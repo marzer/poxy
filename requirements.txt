@@ -1,0 +1,7 @@
+requests
+bs4
+jinja2
+pygments
+html5lib
+lxml
+pytomlpp
