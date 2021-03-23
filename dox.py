@@ -765,7 +765,7 @@ class ModifiersFix2(ModifiersFixBase):
 				bumperContent = self.__expression.sub(lambda m: self.__substitute(m, matches), str(bumper))
 				if (matches):
 					changed = True
-					bumper = html_replace_tag(bumper, bumperContent)
+					html_replace_tag(bumper, bumperContent)
 					lastInserted = end.find('span')
 					for match in matches:
 						lastInserted = doc.new_tag('span',
@@ -872,13 +872,16 @@ class SyntaxHighlightingFix(object):
 			names = [n for n in code_block('span', class_='n') if n.string is not None]
 
 			# namespaces
-			for i in range(len(names)-1, -1, -1):
-				current = names[i]
-				if self.__ns_token_expr.fullmatch(current.string) is None:
+			names_ = [n for n in names]
+			for n in names:
+
+				if (n.decomposed # handled by previous iteration
+					or 'n' not in n['class'] 
+					or self.__ns_token_expr.fullmatch(n.string) is None):
 					continue
 
+				current = n
 				tags = [ current ]
-
 				while True:
 					prev = current.previous_sibling
 					if (prev is None
@@ -891,8 +894,7 @@ class SyntaxHighlightingFix(object):
 					current = prev
 					tags.insert(0, current)
 
-				current = tags[-1]
-
+				current = n
 				while True:
 					next = current.next_sibling
 					if (next is None
@@ -905,24 +907,31 @@ class SyntaxHighlightingFix(object):
 					current = next
 					tags.append(current)
 
+				full_str = None
 				while tags:
-					full_str = "".join([tag.string for tag in tags])
-					if full_str in _namespaces:
+					full_str = ''.join([tag.string for tag in tags])
+					if self.__ns_full_expr.fullmatch(current.string) is not None and full_str in _namespaces:
 						break
 					tags.pop()
 				if not tags:
 					continue
 
-				for t in tags:
-					if not html_remove_class(t, 'o'):
-						html_remove_class(t, 'n')
-						try:
-							names.remove(t)
-						except Exception:
-							pass
-					html_add_class(t, 'ns')
+				while len(tags) > 1:
+					t = tags.pop()
+					try:
+						names_.remove(t)
+					except Exception:
+						pass
+					t.decompose()
+
+				tags[0].string = full_str
+				if not html_remove_class(tags[0], 'o'):
+					html_remove_class(tags[0], 'n')
+					names_.remove(tags[0])
+				html_add_class(tags[0], 'ns')
 
 				changed = True
+			names = names_
 
 			# string literals
 			for i in range(len(names)-1, -1, -1):
@@ -1143,6 +1152,7 @@ def postprocess_file(dir, file, fixes):
 		file = file.lower()
 		for fix in fixes:
 			if fix(dir, file, doc):
+				doc.body.smooth()
 				changed = True
 		if (changed):
 			doc.flush()
