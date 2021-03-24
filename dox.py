@@ -17,6 +17,7 @@ import json
 import pytomlpp
 import shutil
 import fnmatch
+import requests
 from lxml import etree
 from io import BytesIO
 from argparse import ArgumentParser
@@ -52,7 +53,7 @@ def read_all_text_from_file(path, fallback_url=None, encoding='utf-8'):
 				timeout=1
 			)
 			text = response.text
-			with open(path, 'w', encoding='utf-8', newline='\n') as f:
+			with open(str(path), 'w', encoding='utf-8', newline='\n') as f:
 				print(text, end='', file=f)
 			return text
 		else:
@@ -255,7 +256,8 @@ _external_links = [
 	(r'(?:std::)?nullptr_t', 'https://en.cppreference.com/w/cpp/types/nullptr_t'),
 	(r'(?:std::)?ptrdiff_t', 'https://en.cppreference.com/w/cpp/types/ptrdiff_t'),
 	(r'(?:std::)?size_t', 'https://en.cppreference.com/w/cpp/types/size_t'),
-	(r'(?:std::)?u?int(_fast|_least)?(?:8|16|32|64)_ts?', 'https://en.cppreference.com/w/cpp/types/integer'),
+	(r'(?:std::)?u?int(?:_fast|_least)?(?:8|16|32|64)_ts?', 'https://en.cppreference.com/w/cpp/types/integer'),
+	(r'(?:std::)?u?int(?:max|ptr)_t', 'https://en.cppreference.com/w/cpp/types/integer'),
 	(r'(?:wchar|char(?:8|16|32))_ts?', 'https://en.cppreference.com/w/cpp/language/types#Character_types'),
 	(r'\s(?:<|&lt;)fstream(?:>|&gt;)', 'https://en.cppreference.com/w/cpp/header/fstream'),
 	(r'\s(?:<|&lt;)iosfwd(?:>|&gt;)', 'https://en.cppreference.com/w/cpp/header/iosfwd'),
@@ -346,6 +348,7 @@ _external_links = [
 	(r'std::sqrt[fl]?(?:\(\))?', 'https://en.cppreference.com/w/cpp/numeric/math/sqrt'),
 	(r'std::tan[fl]?(?:\(\))?', 'https://en.cppreference.com/w/cpp/numeric/math/tan'),
 	(r'std::to_address(?:\(\))?', 'https://en.cppreference.com/w/cpp/memory/to_address'),
+	(r'std::(?:true|false)_type', 'https://en.cppreference.com/w/cpp/types/integral_constant'),
 	(r'std::trunc[fl]?(?:\(\))?', 'https://en.cppreference.com/w/cpp/numeric/math/trunc'),
 	(r'std::tuple_element(?:_t)?', 'https://en.cppreference.com/w/cpp/utility/tuple/tuple_element'),
 	(r'std::tuple_size(?:_v)?', 'https://en.cppreference.com/w/cpp/utility/tuple/tuple_size'),
@@ -998,7 +1001,7 @@ class SyntaxHighlightingFix(object):
 # adds links to external sources where appropriate
 class ExtDocLinksFix(object):
 
-	__allowedNames = ['dd', 'p', 'dt', 'h3', 'td', 'div']
+	__allowedNames = ['dd', 'p', 'dt', 'h3', 'td', 'div', 'figcaption']
 
 	def __init__(self):
 		global _external_links

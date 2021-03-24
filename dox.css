@@ -335,3 +335,46 @@ pre > p.godbolt
 		display: none;
 	}
 }
+
+/* figures with captions */
+figure.m-figure > figcaption
+{
+	font-weight: initial !important;
+	font-size: initial !important;
+	text-align: center;
+	margin-top: initial;
+}
+
+figure.m-figure::before
+{
+	border-style: none !important;
+}
+
+/* headers in blocks and notes (warnings, remarks, attention, etc.) */
+.m-block > h3,
+.m-block > h4,
+.m-note > h3,
+.m-note > h4
+{
+	font-size: 1em;
+}
+
+/* lists inside blocks and notes */
+.m-block li,
+.m-note li
+{
+	margin-bottom: 0.2rem;
+}
+
+.m-block li:last-child,
+.m-note li:last-child
+{
+	margin-bottom: initial;
+}
+
+/* inline <code> in 'dim' blocks and notes */
+.m-block.m-dim code,
+.m-note.m-dim code
+{
+	color: #acacac;
+}
