@@ -1424,6 +1424,7 @@ def main():
 	args.add_argument('--nocleanup', action='store_true')
 	args = args.parse_args()
 	_verbose = args.verbose
+	vprint(" ".join(sys.argv))
 	vprint(args)
 
 	# get + check paths
@@ -1475,10 +1476,15 @@ def main():
 
 	# run doxygen.py (m.css) to generate the html
 	if 1:
+		doxy_args = [
+			str(Path(config_dir, 'Doxyfile-mcss')),
+			'--no-doxygen'
+		]
+		if _verbose:
+			doxy_args.append('--debug')
 		run_python_script(
 			Path(mcss_dir, 'documentation/doxygen.py'),
-			Path(config_dir, 'Doxyfile-mcss'),
-			'--no-doxygen',
+			*doxy_args,
 			cwd=config_dir
 		)
 		
