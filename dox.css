@@ -145,10 +145,14 @@ pre.m-code + pre.m-console span
 	color: #bababa; /* is yououou */
 }
 
-/* "Parameters", "Returns" etc */
+/* "Parameters", "Returns", subheadings inside description blocks, etc */
 .m-doc-details div table.m-table th,
 .m-doc-details div table.m-table td strong em,
 .m-doc-details div table.m-table td strong em,
+.m-doc-details div > h3,
+.m-doc-details div > h4,
+.m-doc-details div > h5,
+.m-doc-details div > h6,
 body article p strong em,
 body article table strong em
 {

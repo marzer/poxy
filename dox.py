@@ -416,11 +416,16 @@ class HTMLDocument(object):
 		self.head = self.__doc.head
 		self.body = self.__doc.body
 		self.table_of_contents = None
-		toc_candidates = self.body.main.article.div.div.div('div', class_='m-block m-default', recursive=False)
+		self.article_content = self.__doc.body.main.article.div.div.div
+		toc_candidates = self.article_content('div', class_='m-block m-default', recursive=False)
 		for div in toc_candidates:
 			if div.h3 and div.h3.string == 'Contents':
 				self.table_of_contents = div
 				break
+		self.sections = self.article_content('section', recursive=False)
+
+	def smooth(self):
+		self.__doc.smooth()
 
 	def flush(self):
 		with open(self.__path, 'w', encoding='utf-8', newline='\n') as f:
@@ -449,10 +454,11 @@ class HTMLDocument(object):
 
 	def find_all_from_sections(self, name=None, select=None, section=None, include_toc=False, **kwargs):
 		tags = []
-		sectionArgs = { }
+		sections = None
 		if (section is not None):
-			sectionArgs['id'] = section
-		sections = self.body.main.article.div.div.div('section', recursive=False, **sectionArgs)
+			sections = self.article_content('section', recursive=False, id='section')
+		else:
+			sections = self.sections
 		if include_toc and self.table_of_contents is not None:
 			sections = [self.table_of_contents, *sections]
 		for sect in sections:
@@ -481,23 +487,27 @@ def html_find_parent(tag, names, cutoff=None):
 
 
 
-def html_replace_tag(tag,str):
-	doc = soup.BeautifulSoup(str, 'html5lib')
-	newTags = None
-	if (len(doc.body.contents) > 0):
-		newTags = [f for f in doc.body.contents]
-		newTags = [f.extract() for f in newTags]
-		prev = tag
-		for newTag in newTags:
-			prev.insert_after(newTag)
-			prev = newTag
+def html_destroy_node(node):
+	assert node is not None
+	if (isinstance(node, soup.NavigableString)):
+		node.extract()
 	else:
-		newTags = []
+		node.decompose()
 
-	if (isinstance(tag, soup.NavigableString)):
-		tag.extract()
-	else:
-		tag.decompose()
+
+
+def html_replace_tag(tag, new_tag_str):
+	newTags = []
+	if new_tag_str:
+		doc = soup.BeautifulSoup(new_tag_str, 'html5lib')
+		if (len(doc.body.contents) > 0):
+			newTags = [f for f in doc.body.contents]
+			newTags = [f.extract() for f in newTags]
+			prev = tag
+			for newTag in newTags:
+				prev.insert_after(newTag)
+				prev = newTag
+	html_destroy_node(tag)
 	return newTags
 
 
@@ -565,7 +575,15 @@ def html_remove_class(tag, classes):
 			if class_ in tag['class']:
 				tag['class'].remove(class_)
 				removed = True
+		if removed and len(tag['class']) == 0:
+			del tag['class']
 	return removed
+
+
+
+def html_set_class(tag, classes):
+	tag['class'] = []
+	html_add_class(tag, classes)
 
 
 
@@ -573,16 +591,13 @@ class RegexReplacer(object):
 
 	def __substitute(self, m):
 		self.__result = True
-		self.__groups = [m[0]]
-		self.__groups += [str(g) for g in m.groups()]
-		return self.__handler(m)
+		return self.__handler(m, self.__out_data)
 
-	def __init__(self, expression, handler, value):
+	def __init__(self, regex, handler, value):
 		self.__handler = handler
 		self.__result = False
-		self.__value = expression.sub(lambda m: self.__substitute(m), value)
-		if (not self.__result):
-			self.__groups = []
+		self.__out_data = []
+		self.__value = regex.sub(lambda m: self.__substitute(m), value)
 
 	def __str__(self):
 		return self.__value
@@ -590,12 +605,11 @@ class RegexReplacer(object):
 	def __bool__(self):
 		return self.__result
 
-	def __getitem__(self, key):
-		return self.__groups[key]
-
 	def __len__(self):
-		return len(self.__groups)
+		return len(self.__out_data)
 
+	def __getitem__(self, index):
+		return self.__out_data[index]
 
 
 #=======================================================================================================================
@@ -604,14 +618,14 @@ class RegexReplacer(object):
 
 # allows the injection of custom tags using square-bracketed proxies.
 class CustomTagsFix(object):
-	__double_tags = re.compile(r"\[\s*(span|div|code|pre|h1|h2|h3|h4|h5|h6)(.*?)\s*\](.*?)\[\s*/\s*\1\s*\]", re.I)
-	__single_tags = re.compile(r"\[\s*(/?(?:span|div|code|pre|emoji|br|li|ul|ol|htmlentity))(\s.*?)?\s*\]", re.I)
-	__allowed_parents = ['dd', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li']
+	__double_tags = re.compile(r"\[\s*(span|div|aside|code|pre|h1|h2|h3|h4|h5|h6)(.*?)\s*\](.*?)\[\s*/\s*\1\s*\]", re.I)
+	__single_tags = re.compile(r"\[\s*(/?(?:span|div|aside|code|pre|emoji|set_name|(?:add|remove|set)_class|br|li|ul|ol|(?:html)?entity))(\s+[^\]]+?)?\s*\]", re.I)
+	__allowed_parents = ['dd', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'aside']
 	__emojis = None
 	__emoji_uri = re.compile(r".+unicode/([0-9a-fA-F]+)[.]png.*", re.I)
 
 	@classmethod
-	def __double_tags_substitute(cls, m):
+	def __double_tags_substitute(cls, m, out):
 		return '<{}{}>{}</{}>'.format(
 			m[1],
 			html.unescape(m[2]),
@@ -620,16 +634,16 @@ class CustomTagsFix(object):
 		)
 
 	@classmethod
-	def __single_tags_substitute(cls, m):
-		tag_name = m[1].lower();
-		if tag_name == 'htmlentity':
-			entity = m[2].strip()
-			if not entity:
+	def __single_tags_substitute(cls, m, out):
+		tag_name = m[1].lower()
+		tag_content = m[2].strip() if m[2] else ''
+		if tag_name == 'htmlentity' or tag_name == 'entity':
+			if not tag_content:
 				return ''
-			return f'&{entity};'
+			return f'&{tag_content};'
 		elif tag_name == 'emoji':
-			emoji = m[2].strip().lower()
-			if not emoji:
+			tag_content = tag_content.lower()
+			if not tag_content:
 				return ''
 			if cls.__emojis is None:
 				file_path = os.path.join(this_script_dir(), 'emojis.json')
@@ -640,43 +654,75 @@ class CustomTagsFix(object):
 						m2 = cls.__emoji_uri.fullmatch(uri)
 						if m2:
 							emojis[key] = [ str(m2[1]).upper(), uri ]
-					aliases = [('sundae', 'ice_cream')]
+					aliases = [
+						('sundae', 'ice_cream'),
+						('info', 'information_source')
+					]
 					for alias, key in aliases:
 						emojis[alias] = emojis[key]
 					emojis['__processed'] = True
 					with open(file_path, 'w', encoding='utf-8', newline='\n') as f:
 						f.write(json.dumps(emojis, sort_keys=True, indent=4))
 					cls.__emojis = emojis
-			if emoji not in cls.__emojis:
+			if tag_content not in cls.__emojis:
 				return ''
-			return '&#x{}'.format(cls.__emojis[emoji][0])
-
+			return '&#x{}'.format(cls.__emojis[tag_content][0])
+		elif tag_name in ('add_class', 'remove_class', 'set_class'):
+			classes = []
+			if tag_content:
+				for s in tag_content.split():
+					if s:
+						classes.append(s)
+			if classes:
+				out.append((tag_name, classes))
+			return ''
+		elif tag_name == 'set_name':
+			if tag_content:
+				out.append((tag_name, tag_content))
+			return ''
 		else:
 			return '<{}{}>'.format(
 				m[1],
-				(' ' + m[2].strip()) if m[2] else ''
+				(' ' + tag_content) if tag_content else ''
 			)
 
 	def __call__(self, dir, file, doc):
 		changed = False
-		for name in self.__allowed_parents:
-			tags = doc.find_all_from_sections(name, include_toc=True)
-			for tag in tags:
-				if (len(tag.contents) == 0 or html_find_parent(tag, 'a', doc.body) is not None):
-					continue
-
-				replacer = RegexReplacer(self.__double_tags, self.__double_tags_substitute, str(tag))
-				if (replacer):
-					changed = True
-					html_replace_tag(tag, str(replacer))
-					continue
-
-				replacer = RegexReplacer(self.__single_tags, self.__single_tags_substitute, str(tag))
-				if (replacer):
-					changed = True
-					html_replace_tag(tag, str(replacer))
-					continue
-
+		changed_this_pass = True
+		while changed_this_pass:
+			changed_this_pass = False
+			for name in self.__allowed_parents:
+				tags = doc.article_content.find_all(name)
+				for tag in tags:
+					if len(tag.contents) == 0 or html_find_parent(tag, 'a', doc.article_content) is not None or tag.decomposed:
+						continue
+					replacer = RegexReplacer(self.__double_tags, self.__double_tags_substitute, str(tag))
+					if replacer:
+						changed_this_pass = True
+						html_replace_tag(tag, str(replacer))
+						continue
+					replacer = RegexReplacer(self.__single_tags, self.__single_tags_substitute, str(tag))
+					if replacer:
+						changed_this_pass = True
+						parent = tag.parent
+						html_replace_tag(tag, str(replacer))
+						for i in range(len(replacer)):
+							if replacer[i][0] == 'add_class':
+								if parent is not None:
+									html_add_class(parent, replacer[i][1])
+							elif replacer[i][0] == 'remove_class':
+								if parent is not None:
+									html_remove_class(parent, replacer[i][1])
+							elif replacer[i][0] == 'set_class':
+								if parent is not None:
+									html_set_class(parent, replacer[i][1])
+							elif replacer[i][0] == 'set_name':
+								if parent is not None:
+									parent.name = replacer[i][1]
+						continue
+			if changed_this_pass:
+				doc.smooth()
+				changed = True
 		return changed
 
 
@@ -714,7 +760,7 @@ class ModifiersFix1(ModifiersFixBase):
 	__sections = ['pub-static-methods', 'pub-methods', 'friends', 'func-members']
 
 	@classmethod
-	def __substitute(cls, m):
+	def __substitute(cls, m, out):
 		return '{}<span class="dox-injected m-label m-flat {}">{}</span>{}'.format(
 			m[1],
 			cls._modifierClasses[m[2]],
@@ -793,7 +839,7 @@ class IndexPageFix(object):
 		global _badges
 		if file != 'index.html':
 			return False
-		parent = doc.body.main.article.div.div.div
+		parent = doc.article_content
 		banner = parent('img')
 		if banner:
 			banner = banner[0].extract()
@@ -815,8 +861,8 @@ class IndexPageFix(object):
 
 
 
-# adds some additional colouring to the syntax highlighting in code blocks.
-class SyntaxHighlightingFix(object):
+# apply some fixes to code blocks
+class CodeBlockFix(object):
 
 	__keywords = [
 		'alignas',
@@ -867,128 +913,191 @@ class SyntaxHighlightingFix(object):
 		global _namespaces
 		global _literals
 
-		code_blocks = doc.body('pre', class_='m-code')
+		# fix up syntax highlighting
+		code_blocks = doc.body(('pre','code'), class_='m-code')
 		changed = False
-		for code_block in code_blocks:
+		changed_this_pass = True
+		while changed_this_pass:
+			changed_this_pass = False
+			for code_block in code_blocks:
+				changed_this_block = False
 
-			# collect all names
-			names = [n for n in code_block('span', class_='n') if n.string is not None]
-
-			# namespaces
-			names_ = [n for n in names]
-			for n in names:
-
-				if (n.decomposed # handled by previous iteration
-					or 'n' not in n['class'] 
-					or self.__ns_token_expr.fullmatch(n.string) is None):
-					continue
-
-				current = n
-				tags = [ current ]
-				while True:
-					prev = current.previous_sibling
-					if (prev is None
-						or prev.string is None
-						or isinstance(prev, soup.NavigableString)
-						or 'class' not in prev.attrs
-						or ('n' not in prev['class'] and 'o' not in prev['class'])
-						or self.__ns_token_expr.fullmatch(prev.string) is None):
+				# c-style multi-line comments (doxygen butchers them)
+				mlc_open = code_block.find('span', class_='o', string='/!*')
+				while mlc_open is not None:
+					mlc_close = mlc_open.find_next_sibling('span', class_='o', string='*!/')
+					if mlc_close is None:
 						break
-					current = prev
-					tags.insert(0, current)
+					changed_this_block = True
+					next_open = mlc_close.find_next_sibling('span', class_='o', string='/!*')
 
-				current = n
-				while True:
-					next = current.next_sibling
-					if (next is None
-						or next.string is None
-						or isinstance(next, soup.NavigableString)
-						or 'class' not in next.attrs
-						or ('n' not in next['class'] and 'o' not in next['class'])
-						or self.__ns_token_expr.fullmatch(next.string) is None):
-						break
-					current = next
-					tags.append(current)
+					tags = []
+					current = mlc_open
+					while current is not None:
+						tags.append(current)
+						if current is mlc_close:
+							break
+						current = current.next_sibling
 
-				full_str = None
-				while tags:
-					full_str = ''.join([tag.string for tag in tags])
-					if self.__ns_full_expr.fullmatch(current.string) is not None and full_str in _namespaces:
-						break
-					tags.pop()
-				if not tags:
-					continue
+					mlc_open.string = '/*'
+					mlc_close.string = '*/'
+					string = ''
+					for tag in tags:
+						string = string + tag.string
+					mlc_open.string = string
+					html_set_class(mlc_open, 'c1')
+					while len(tags) > 1:
+						html_destroy_node(tags.pop())
 
-				while len(tags) > 1:
-					t = tags.pop()
-					try:
-						names_.remove(t)
-					except Exception:
-						pass
-					t.decompose()
+					mlc_open = next_open
 
-				tags[0].string = full_str
-				if not html_remove_class(tags[0], 'o'):
-					html_remove_class(tags[0], 'n')
-					names_.remove(tags[0])
-				html_add_class(tags[0], 'ns')
+				# collect all names
+				names = [n for n in code_block('span', class_='n') if n.string is not None]
 
-				changed = True
-			names = names_
+				# namespaces
+				names_ = [n for n in names]
+				for n in names:
 
-			# string literals
-			for i in range(len(names)-1, -1, -1):
-				if (names[i].string not in _literals):
-					continue
-				prev = names[i].previous_sibling
-				if (prev is None or 'class' not in prev.attrs or 's' not in prev['class']):
-					continue
-				names[i]['class'] = 'sa'
-				del names[i]
-				changed = True
+					if (n.decomposed # handled by previous iteration
+						or 'n' not in n['class'] 
+						or self.__ns_token_expr.fullmatch(n.string) is None):
+						continue
 
-			# preprocessor macros
-			names = names + [n for n in code_block('span', class_='nc') if n.string is not None]
-			names = names + [n for n in code_block('span', class_='nf') if n.string is not None]
-			names = names + [n for n in code_block('span', class_='nl') if n.string is not None]
-			if _macros:
+					current = n
+					tags = [ current ]
+					while True:
+						prev = current.previous_sibling
+						if (prev is None
+							or prev.string is None
+							or isinstance(prev, soup.NavigableString)
+							or 'class' not in prev.attrs
+							or ('n' not in prev['class'] and 'o' not in prev['class'])
+							or self.__ns_token_expr.fullmatch(prev.string) is None):
+							break
+						current = prev
+						tags.insert(0, current)
+
+					current = n
+					while True:
+						next = current.next_sibling
+						if (next is None
+							or next.string is None
+							or isinstance(next, soup.NavigableString)
+							or 'class' not in next.attrs
+							or ('n' not in next['class'] and 'o' not in next['class'])
+							or self.__ns_token_expr.fullmatch(next.string) is None):
+							break
+						current = next
+						tags.append(current)
+
+					full_str = None
+					while tags:
+						full_str = ''.join([tag.string for tag in tags])
+						if self.__ns_full_expr.fullmatch(current.string) is not None and full_str in _namespaces:
+							break
+						tags.pop()
+					if not tags:
+						continue
+
+					while len(tags) > 1:
+						t = tags.pop()
+						try:
+							names_.remove(t)
+						except Exception:
+							pass
+						t.decompose()
+
+					tags[0].string = full_str
+					if not html_remove_class(tags[0], 'o'):
+						html_remove_class(tags[0], 'n')
+						names_.remove(tags[0])
+					html_add_class(tags[0], 'ns')
+
+					changed_this_block = True
+				names = names_
+
+				# string literals
 				for i in range(len(names)-1, -1, -1):
+					if (names[i].string not in _literals):
+						continue
+					prev = names[i].previous_sibling
+					if (prev is None or 'class' not in prev.attrs or 's' not in prev['class']):
+						continue
+					names[i]['class'] = 'sa'
+					del names[i]
+					changed_this_block = True
+
+				# preprocessor macros
+				names = names + [n for n in code_block('span', class_='nc') if n.string is not None]
+				names = names + [n for n in code_block('span', class_='nf') if n.string is not None]
+				names = names + [n for n in code_block('span', class_='nl') if n.string is not None]
+				if _macros:
+					for i in range(len(names)-1, -1, -1):
+						matched = False
+						for macro in _macros:
+							if re.fullmatch(macro, names[i].string) is not None:
+								matched = True
+								break
+						if not matched:
+							continue
+						names[i]['class'] = 'm'
+						del names[i]
+						changed_this_block = True
+
+				# types and typedefs
+				names = names + [n for n in code_block('span', class_='kt') if n.string is not None]
+				for i in range(len(names)-1, -1, -1):
+					if (names[i].previous_sibling is not None and names[i].previous_sibling.string.endswith('~')):
+						continue
+					if (names[i].next_sibling is not None and names[i].next_sibling.string.startswith('(')):
+						continue
 					matched = False
-					for macro in _macros:
-						if re.fullmatch(macro, names[i].string) is not None:
+					for type_name in _types:
+						if re.fullmatch(type_name, names[i].string) is not None:
 							matched = True
 							break
 					if not matched:
 						continue
-					names[i]['class'] = 'm'
+					names[i]['class'] = 'ut'
 					del names[i]
-					changed = True
+					changed_this_block = True
 
-			# types and typedefs
-			names = names + [n for n in code_block('span', class_='kt') if n.string is not None]
-			for i in range(len(names)-1, -1, -1):
-				if (names[i].previous_sibling is not None and names[i].previous_sibling.string.endswith('~')):
-					continue
-				if (names[i].next_sibling is not None and names[i].next_sibling.string.startswith('(')):
-					continue
-				matched = False
-				for type_name in _types:
-					if re.fullmatch(type_name, names[i].string) is not None:
-						matched = True
-						break
-				if not matched:
-					continue
-				names[i]['class'] = 'ut'
-				del names[i]
-				changed = True
+				# misidentifed keywords
+				for keywordClass in ['nf', 'nb', 'kt', 'ut', 'kr']:
+					kws = code_block('span', class_=keywordClass)
+					for kw in kws:
+						if (kw.string is not None and kw.string in self.__keywords):
+							kw['class'] = 'k'
+							changed_this_block = True
 
-			# misidentifed keywords
-			for keywordClass in ['nf', 'nb', 'kt', 'ut', 'kr']:
-				kws = code_block('span', class_=keywordClass)
-				for kw in kws:
-					if (kw.string is not None and kw.string in self.__keywords):
-						kw['class'] = 'k'
-						changed = True
+				if changed_this_block:
+					code_block.smooth()
+					changed_this_pass = True
+			changed = changed or changed_this_pass
+
+		# fix doxygen butchering code blocks as inline nonsense
+		code_blocks = doc.body('code', class_=('m-code', 'm-console'))
+		changed = False
+		changed_this_pass = True
+		while changed_this_pass:
+			changed_this_pass = False
+			for code_block in code_blocks:
+				parent = code_block.parent
+				if (parent is None
+					or parent.name != 'p'
+					or parent.parent is None
+					or parent.parent.name != 'div'):
+					continue
+				changed_this_pass = True
+				code_block.name = 'pre'
+				parent.insert_before(code_block.extract())
+				parent.smooth()
+				if (not parent.contents
+					or (len(parent.contents) == 1
+						and parent.contents[0].string.strip() == '')):
+					html_destroy_node(parent)
+
+			changed = changed or changed_this_pass
 
 		return changed
 
@@ -1021,8 +1130,7 @@ class ExtDocLinksFix(object):
 
 	def __call__(self, dir, file, doc):
 		changed = False
-		root = doc.body.main.article.div.div
-		tags = html_shallow_search(root, self.__allowedNames, lambda t: html_find_parent(t, 'a', root) is None)
+		tags = html_shallow_search(doc.article_content, self.__allowedNames, lambda t: html_find_parent(t, 'a', doc.article_content) is None)
 		strings = []
 		for tag in tags:
 			strings = strings + html_string_descendants(tag, lambda t: html_find_parent(t, 'a', tag) is None)
@@ -1031,7 +1139,7 @@ class ExtDocLinksFix(object):
 			while i < len(strings):
 				string = strings[i]
 				parent = string.parent
-				replacer = RegexReplacer(expr, lambda m: self.__substitute(m, uri), html.escape(str(string), quote=False))
+				replacer = RegexReplacer(expr, lambda m, out: self.__substitute(m, uri), html.escape(str(string), quote=False))
 				if replacer:
 					repl_str = str(replacer)
 					begins_with_ws = len(repl_str) > 0 and repl_str[:1].isspace()
@@ -1098,7 +1206,7 @@ class TemplateTemplateFix(object):
 	def __call__(self, dir, file, doc):
 		changed = False
 		for template in doc.body('div', class_='m-doc-template'):
-			replacer = RegexReplacer(self.__expression, lambda m: self.__substitute(m), str(template))
+			replacer = RegexReplacer(self.__expression, lambda m, out: self.__substitute(m), str(template))
 			if replacer:
 				html_replace_tag(template, str(replacer))
 				changed = True
@@ -1155,7 +1263,7 @@ def postprocess_file(dir, file, fixes):
 		file = file.lower()
 		for fix in fixes:
 			if fix(dir, file, doc):
-				doc.body.smooth()
+				doc.smooth()
 				changed = True
 		if (changed):
 			doc.flush()
@@ -1503,7 +1611,7 @@ def main():
 		fixes = [
 			DeadLinksFix()
 			, CustomTagsFix()
-			, SyntaxHighlightingFix()
+			, CodeBlockFix()
 			, IndexPageFix()
 			, ModifiersFix1()
 			, ModifiersFix2()
