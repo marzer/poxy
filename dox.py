@@ -41,13 +41,13 @@ def multi_sha256(*objs):
 
 def read_all_text_from_file(path, fallback_url=None, encoding='utf-8'):
 	try:
-		print(f"Reading '{path}'")
+		print(f'Reading {path}')
 		with open(str(path), 'r', encoding=encoding) as f:
 			text = f.read()
 		return text
 	except:
 		if fallback_url is not None:
-			print(f"Couldn't read file locally, downloading from '{fallback_url}'...")
+			print(f"Couldn't read file locally, downloading from {fallback_url}")
 			response = requests.get(
 				fallback_url,
 				timeout=1
@@ -87,10 +87,7 @@ def vprint(*args):
 
 def print_exception(exc):
 	print(
-		'Error: [{}] {}'.format(
-			type(exc).__name__,
-			str(exc)
-		),
+		f'Error: [{type(exc).__name__}] {str(exc)}',
 		file=sys.stderr
 	)
 	traceback.print_exc(file=sys.stderr)
@@ -103,8 +100,8 @@ def delete_directory(path):
 		path = Path(path)
 	if path.exists():
 		if not path.is_dir():
-			raise Exception(f"'{path}' was not a directory")
-		print(f"Deleting '{path}'")
+			raise Exception(f'{path} was not a directory')
+		print(f'Deleting {path}')
 		shutil.rmtree(str(path.resolve()))
 
 
@@ -114,7 +111,7 @@ def assert_existing_file(path):
 	if not isinstance(path, Path):
 		path = Path(path)
 	if not (path.exists() and path.is_file()):
-		raise f"'{path}' did not exist or was not a file"
+		raise f'{path} did not exist or was not a file'
 
 
 
@@ -123,7 +120,7 @@ def assert_existing_directory(path):
 	if not isinstance(path, Path):
 		path = Path(path)
 	if not (path.exists() and path.is_dir()):
-		raise f"'{path}' did not exist or was not a directory"
+		raise f'{path} did not exist or was not a directory'
 
 
 
@@ -148,7 +145,7 @@ def get_all_files(path, all=None, any=None):
 	if not path.exists():
 		return []
 	if not path.is_dir():
-		raise Exception(f"'{path}' was not a directory")
+		raise Exception(f'{path} was not a directory')
 	path = path.resolve()
 	files = [str(f) for f in path.iterdir() if f.is_file()]
 	if (files and all is not None):
@@ -192,67 +189,67 @@ _namespaces = ['std']
 _inline_namespaces = []
 _types = [
 	#------ standard/built-in types
-	'_Float128',
-	'_Float16',
-	'_Float80',
-	'__float128',
-	'__float80',
-	'__fp16',
-	'__int128_t',
-	'__m128',
-	'__m128d',
-	'__m128i',
-	'__m256',
-	'__m256d',
-	'__m256i',
-	'__m512',
-	'__m512d',
-	'__m512i',
-	'__m64',
-	'__uint128_t',
-	'array',
-	'bool',
-	'byte',
-	'char',
-	'const_iterator',
-	'double',
-	'exception',
-	'float',
-	'float128_t',
-	'int',
-	'iterator',
-	'long',
-	'optional',
-	'pair',
-	'ptrdiff_t',
-	'short',
-	'signed',
-	'size_t',
-	'span',
-	'string(?:_view)?',
-	'i?o?f?(?:string)?stream',
-	'tuple',
-	'u?int(?:8|16|32|64|128)_t',
-	'u?intptr_t',
-	'unsigned',
-	'vector',
-	'wchar_t',
+	r'_Float128',
+	r'_Float16',
+	r'_Float80',
+	r'__float128',
+	r'__float80',
+	r'__fp16',
+	r'__int128_t',
+	r'__m128',
+	r'__m128d',
+	r'__m128i',
+	r'__m256',
+	r'__m256d',
+	r'__m256i',
+	r'__m512',
+	r'__m512d',
+	r'__m512i',
+	r'__m64',
+	r'__uint128_t',
+	r'array',
+	r'bool',
+	r'byte',
+	r'char',
+	r'const_iterator',
+	r'double',
+	r'exception',
+	r'float',
+	r'float128_t',
+	r'int',
+	r'iterator',
+	r'long',
+	r'optional',
+	r'pair',
+	r'ptrdiff_t',
+	r'short',
+	r'signed',
+	r'size_t',
+	r'span',
+	r'string(?:_view)?',
+	r'i?o?f?(?:string)?stream',
+	r'tuple',
+	r'u?int(?:8|16|32|64|128)_t',
+	r'u?intptr_t',
+	r'unsigned',
+	r'vector',
+	r'wchar_t',
 	#------ documentation-only types
-	'[T-V][0-9]',
-	'Foo',
-	'Bar',
-	'strong_typedef',
-	'[a-zA-Z_]+_type',
-	'[Vv]ec(?:tor)?[1-4][hifd]?',
-	'[Mm]at(?:rix)?[1-4](?:[xX][1-4])?[hifd]?'
+	r'[T-V][0-9]',
+	r'Foo',
+	r'Bar',
+	r'strong_typedef',
+	r'[a-zA-Z_]+_type',
+	r'[Vv]ec(?:tor)?[1-4][hifd]?',
+	r'[Mm]at(?:rix)?[1-4](?:[xX][1-4])?[hifd]?'
 ]
 _macros = [
-    'assert',
-    'offsetof'
+    r'assert',
+    r'offsetof'
 ]
 _literals = ['s', 'sv']
 _external_links = [
-	('std::assume_aligned(?:\(\))?', 'https://en.cppreference.com/w/cpp/memory/assume_aligned'),
+	(r'std::assume_aligned(?:\(\))?', 'https://en.cppreference.com/w/cpp/memory/assume_aligned'),
 	(r'(?:std::)?nullptr_t', 'https://en.cppreference.com/w/cpp/types/nullptr_t'),
 	(r'(?:std::)?ptrdiff_t', 'https://en.cppreference.com/w/cpp/types/ptrdiff_t'),
 	(r'(?:std::)?size_t', 'https://en.cppreference.com/w/cpp/types/size_t'),
@@ -626,12 +623,7 @@ class CustomTagsFix(object):
 
 	@classmethod
 	def __double_tags_substitute(cls, m, out):
-		return '<{}{}>{}</{}>'.format(
-			m[1],
-			html.unescape(m[2]),
-			m[3],
-			m[1]
-		)
+		return f'<{m[1]}{html.unescape(m[2])}>{m[3]}</{m[1]}>'
 
 	@classmethod
 	def __single_tags_substitute(cls, m, out):
@@ -666,7 +658,7 @@ class CustomTagsFix(object):
 					cls.__emojis = emojis
 			if tag_content not in cls.__emojis:
 				return ''
-			return '&#x{}'.format(cls.__emojis[tag_content][0])
+			return f'&#x{cls.__emojis[tag_content][0]}'
 		elif tag_name in ('add_class', 'remove_class', 'set_class'):
 			classes = []
 			if tag_content:
@@ -681,10 +673,7 @@ class CustomTagsFix(object):
 				out.append((tag_name, tag_content))
 			return ''
 		else:
-			return '<{}{}>'.format(
-				m[1],
-				(' ' + tag_content) if tag_content else ''
-			)
+			return f'<{m[1]}{(" " + tag_content) if tag_content else ""}>'
 
 	def __call__(self, dir, file, doc):
 		changed = False
@@ -733,7 +722,7 @@ class CustomTagsFix(object):
 
 # base type for modifier parsing fixers.
 class ModifiersFixBase(object):
-	_modifierRegex = "defaulted|noexcept|constexpr|(?:pure )?virtual|protected|__(?:(?:vector|std|fast)call|cdecl)"
+	_modifierRegex = r"defaulted|noexcept|constexpr|(?:pure )?virtual|protected|__(?:(?:vector|std|fast)call|cdecl)"
 	_modifierClasses = {
 		"defaulted" : "m-info",
 		"noexcept" : "m-success",
@@ -756,17 +745,12 @@ class ModifiersFixBase(object):
 # fixes improperly-parsed modifiers on function signatures in the various 'detail view' sections.
 class ModifiersFix1(ModifiersFixBase):
 
-	__expression = re.compile(r'(\s+)({})(\s+)'.format(ModifiersFixBase._modifierRegex))
+	__expression = re.compile(rf'(\s+)({ModifiersFixBase._modifierRegex})(\s+)')
 	__sections = ['pub-static-methods', 'pub-methods', 'friends', 'func-members']
 
 	@classmethod
 	def __substitute(cls, m, out):
-		return '{}<span class="dox-injected m-label m-flat {}">{}</span>{}'.format(
-			m[1],
-			cls._modifierClasses[m[2]],
-			m[2],
-			m[3]
-		)
+		return f'{m[1]}<span class="dox-injected m-label m-flat {cls._modifierClasses[m[2]]}">{m[2]}</span>{m[3]}'
 
 	def __call__(self, dir, file, doc):
 		changed = False
@@ -788,7 +772,7 @@ class ModifiersFix1(ModifiersFixBase):
 # fixes improperly-parsed modifiers on function signatures in the 'Function documentation' section.
 class ModifiersFix2(ModifiersFixBase):
 
-	__expression = re.compile(r'\s+({})\s+'.format(ModifiersFixBase._modifierRegex))
+	__expression = re.compile(rf'\s+({ModifiersFixBase._modifierRegex})\s+')
 
 	@classmethod
 	def __substitute(cls, m, matches):
@@ -820,7 +804,7 @@ class ModifiersFix2(ModifiersFixBase):
 						lastInserted = doc.new_tag('span',
 							parent=end,
 							string=match,
-							class_='dox-injected m-label {}'.format(self._modifierClasses[match]),
+							class_=f'dox-injected m-label {self._modifierClasses[match]}',
 							before=lastInserted
 						)
 						lastInserted.insert_after(' ')
@@ -906,10 +890,18 @@ class CodeBlockFix(object):
 	__ns_token_expr = re.compile(r'(?:::|[a-zA-Z_][a-zA-Z_0-9]*|::[a-zA-Z_][a-zA-Z_0-9]*|[a-zA-Z_][a-zA-Z_0-9]*::)')
 	__ns_full_expr = re.compile(r'(?:::)?[a-zA-Z_][a-zA-Z_0-9]*(::[a-zA-Z_][a-zA-Z_0-9]*)*(?:::)?')
 
-
-	def __call__(self, dir, file, doc):
+	def __init__(self):
 		global _types
 		global _macros
+		self.__types = []
+		self.__macros = []
+		for expr in _types:
+			self.__types.append(re.compile(expr))
+		for expr in _macros:
+			self.__macros.append(re.compile(expr))
+
+
+	def __call__(self, dir, file, doc):
 		global _namespaces
 		global _literals
 
@@ -1031,11 +1023,11 @@ class CodeBlockFix(object):
 				names = names + [n for n in code_block('span', class_='nc') if n.string is not None]
 				names = names + [n for n in code_block('span', class_='nf') if n.string is not None]
 				names = names + [n for n in code_block('span', class_='nl') if n.string is not None]
-				if _macros:
+				if self.__macros:
 					for i in range(len(names)-1, -1, -1):
 						matched = False
-						for macro in _macros:
-							if re.fullmatch(macro, names[i].string) is not None:
+						for expr in self.__macros:
+							if expr.fullmatch(names[i].string) is not None:
 								matched = True
 								break
 						if not matched:
@@ -1052,8 +1044,8 @@ class CodeBlockFix(object):
 					if (names[i].next_sibling is not None and names[i].next_sibling.string.startswith('(')):
 						continue
 					matched = False
-					for type_name in _types:
-						if re.fullmatch(type_name, names[i].string) is not None:
+					for expr in self.__types:
+						if expr.fullmatch(names[i].string) is not None:
 							matched = True
 							break
 					if not matched:
@@ -1115,18 +1107,13 @@ class ExtDocLinksFix(object):
 	def __init__(self):
 		global _external_links
 		self.__expressions = []
-		for type, uri in _external_links:
-			self.__expressions.append((re.compile('(?<![a-zA-Z_])'+type+'(?![a-zA-Z_])'), uri))
+		for expr, uri in _external_links:
+			self.__expressions.append((re.compile('(?<![a-zA-Z_])' + expr + '(?![a-zA-Z_])'), uri))
 
 	@classmethod
 	def __substitute(cls, m, uri):
 		external = uri.startswith('http')
-		return r'<a href="{}" class="m-doc dox-injected{}"{}>{}</a>'.format(
-			uri,
-			' dox-external' if external else '',
-			' target="_blank"' if external else '',
-			m[0],
-		)
+		return rf'''<a href="{uri}" class="m-doc dox-injected{' dox-external' if external else ''}"{' target="_blank"' if external else ''}>{m[0]}</a>'''
 
 	def __call__(self, dir, file, doc):
 		changed = False
@@ -1255,7 +1242,7 @@ def postprocess_file(dir, file, fixes):
 	global _thread_error
 	if (_thread_error):
 		return False
-	print(f"Post-processing '{file}'")
+	print(f'Post-processing {file}')
 	changed = False
 
 	try:
@@ -1359,7 +1346,7 @@ def preprocess_xml(dir):
 		extracted_implementation = False
 		xml_files = get_all_files(dir, any=('*.xml'))
 		for xml_file in xml_files:
-			print(f"Pre-processing '{xml_file}'")
+			print(f'Pre-processing {xml_file}')
 			xml = etree.parse(str(xml_file), parser=xml_parser)
 			
 			root = xml.getroot().find('compounddef')
@@ -1629,7 +1616,7 @@ def main():
 						break
 					else:
 						file = jobs[job]
-						print(f"Finished processing '{file}'.")
+						print(f'Finished processing {file}.')
 			if _thread_error:
 				return 1
 

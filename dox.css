@@ -147,14 +147,9 @@ pre.m-code + pre.m-console span
 
 /* "Parameters", "Returns", subheadings inside description blocks, etc */
 .m-doc-details div table.m-table th,
-.m-doc-details div table.m-table td strong em,
-.m-doc-details div table.m-table td strong em,
-.m-doc-details div > h3,
 .m-doc-details div > h4,
 .m-doc-details div > h5,
-.m-doc-details div > h6,
-body article p strong em,
-body article table strong em
+.m-doc-details div > h6
 {
 	color: #a5c9ea;
 	font-style: normal;
@@ -376,9 +371,25 @@ figure.m-figure::before
 	margin-bottom: initial;
 }
 
-/* inline <code> in 'dim' blocks and notes */
+/* 'dim' blocks and notes */
 .m-block.m-dim code,
 .m-note.m-dim code
 {
 	color: #acacac;
+}
+.m-block.m-dim pre.m-code,
+.m-note.m-dim pre.m-code
+{
+	opacity: 0.7;
+}
+.m-block.m-dim:hover pre.m-code,
+.m-note.m-dim:hover pre.m-code
+{
+	opacity: 1.0;
+}
+
+/* word-breaks in doc links */
+p a.m-doc > wbr
+{
+	display: none;
 }
