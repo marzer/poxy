@@ -185,9 +185,26 @@ def copy_file(source, dest):
 
 
 
-_namespaces = ['std']
-_inline_namespaces = []
-_types = [
+_namespaces = (
+	'std',
+	'std::chrono_literals',
+	'std::chrono',
+	'std::complex_literals',
+	'std::execution',
+	'std::filesystem',
+	'std::literals::chrono_literals',
+	'std::literals::complex_literals',
+	'std::literals::string_literals',
+	'std::literals::string_view_literals',
+	'std::literals',
+	'std::numbers',
+	'std::ranges',
+	'std::string_literals',
+	'std::string_view_literals',
+	'std::this_thread'
+)
+_inline_namespaces = tuple()
+_types = (
 	#------ standard/built-in types
 	r'_Float128',
 	r'_Float16',
@@ -242,13 +259,13 @@ _types = [
 	r'[a-zA-Z_]+_type',
 	r'[Vv]ec(?:tor)?[1-4][hifd]?',
 	r'[Mm]at(?:rix)?[1-4](?:[xX][1-4])?[hifd]?'
-]
-_macros = [
+)
+_macros = (
     r'assert',
     r'offsetof'
-]
-_literals = ['s', 'sv']
-_external_links = [
+)
+_string_literals = ('s', 'sv')
+_external_links = (
 	(r'std::assume_aligned(?:\(\))?', 'https://en.cppreference.com/w/cpp/memory/assume_aligned'),
 	(r'(?:std::)?nullptr_t', 'https://en.cppreference.com/w/cpp/types/nullptr_t'),
 	(r'(?:std::)?ptrdiff_t', 'https://en.cppreference.com/w/cpp/types/ptrdiff_t'),
@@ -394,9 +411,9 @@ _external_links = [
 	),
 	(r'(?:_Float|__fp)16s?','https://gcc.gnu.org/onlinedocs/gcc/Half-Precision.html'),
 	(r'(?:_Float|__float)(128|80)s?','https://gcc.gnu.org/onlinedocs/gcc/Floating-Types.html')
-]
-_implementation_headers = []
-_badges = []
+)
+_implementation_headers = tuple()
+_badges = tuple()
 
 
 
@@ -615,10 +632,11 @@ class RegexReplacer(object):
 
 # allows the injection of custom tags using square-bracketed proxies.
 class CustomTagsFix(object):
-	__double_tags = re.compile(r"\[\s*(span|div|aside|code|pre|h1|h2|h3|h4|h5|h6)(.*?)\s*\](.*?)\[\s*/\s*\1\s*\]", re.I)
+	__double_tags = re.compile(r"\[\s*(span|div|aside|code|pre|h1|h2|h3|h4|h5|h6|em|strong|b|i|u|li|ul|ol)(.*?)\s*\](.*?)\[\s*/\s*\1\s*\]", re.I)
 	__single_tags = re.compile(r"\[\s*(/?(?:span|div|aside|code|pre|emoji|set_name|(?:add|remove|set)_class|br|li|ul|ol|(?:html)?entity))(\s+[^\]]+?)?\s*\]", re.I)
-	__allowed_parents = ['dd', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'aside']
+	__allowed_parents = ('dd', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'aside')
 	__emojis = None
+	__emoji_codepoints = None
 	__emoji_uri = re.compile(r".+unicode/([0-9a-fA-F]+)[.]png.*", re.I)
 
 	@classmethod
@@ -632,33 +650,55 @@ class CustomTagsFix(object):
 		if tag_name == 'htmlentity' or tag_name == 'entity':
 			if not tag_content:
 				return ''
+			try:
+				cp = int(tag_content, 16)
+				if cp <= 0x10FFFF:
+					return f'&#x{cp:X};'
+			except:
+				pass
 			return f'&{tag_content};'
 		elif tag_name == 'emoji':
 			tag_content = tag_content.lower()
 			if not tag_content:
 				return ''
 			if cls.__emojis is None:
-				file_path = os.path.join(this_script_dir(), 'emojis.json')
+				file_path = os.path.join(this_script_dir(), 'emojis_v2.json')
 				cls.__emojis = json.loads(read_all_text_from_file(file_path, 'https://api.github.com/emojis'))
 				if '__processed' not in cls.__emojis:
 					emojis = {}
+					cls.__emoji_codepoints = set()
 					for key, uri in cls.__emojis.items():
 						m2 = cls.__emoji_uri.fullmatch(uri)
 						if m2:
-							emojis[key] = [ str(m2[1]).upper(), uri ]
+							cp = int(m2[1], 16)
+							emojis[key] = [ cp, uri ]
+							cls.__emoji_codepoints.add(cp)
 					aliases = [
 						('sundae', 'ice_cream'),
 						('info', 'information_source')
 					]
 					for alias, key in aliases:
 						emojis[alias] = emojis[key]
+					emojis['__codepoints'] = [cp for cp in cls.__emoji_codepoints]
 					emojis['__processed'] = True
 					with open(file_path, 'w', encoding='utf-8', newline='\n') as f:
 						f.write(json.dumps(emojis, sort_keys=True, indent=4))
 					cls.__emojis = emojis
-			if tag_content not in cls.__emojis:
-				return ''
-			return f'&#x{cls.__emojis[tag_content][0]}'
+			if cls.__emoji_codepoints is None:
+				cls.__emoji_codepoints = set()
+				for cp in cls.__emojis['__codepoints']:
+					cls.__emoji_codepoints.add(cp)
+			for base in (16, 10):
+				try:
+					cp = int(tag_content, base)
+					if cp in cls.__emoji_codepoints:
+						return f'&#x{cp:X};&#xFE0F;'
+				except:
+					pass
+			if tag_content in cls.__emojis:
+				cp = cls.__emojis[tag_content][0]
+				return f'&#x{cp:X};&#xFE0F;'
+			return ''
 		elif tag_name in ('add_class', 'remove_class', 'set_class'):
 			classes = []
 			if tag_content:
@@ -730,10 +770,10 @@ class ModifiersFixBase(object):
 		"pure virtual" : "m-warning",
 		"virtual" : "m-warning",
 		"protected" : "m-warning",
-		"__vectorcall" : "m-info",
-		"__stdcall" : "m-info",
-		"__fastcall" : "m-info",
-		"__cdecl" : "m-info"
+		"__vectorcall" : "m-special",
+		"__stdcall" : "m-special",
+		"__fastcall" : "m-special",
+		"__cdecl" : "m-special"
 	}
 
 
@@ -746,7 +786,7 @@ class ModifiersFixBase(object):
 class ModifiersFix1(ModifiersFixBase):
 
 	__expression = re.compile(rf'(\s+)({ModifiersFixBase._modifierRegex})(\s+)')
-	__sections = ['pub-static-methods', 'pub-methods', 'friends', 'func-members']
+	__sections = ('pub-static-methods', 'pub-methods', 'friends', 'func-members')
 
 	@classmethod
 	def __substitute(cls, m, out):
@@ -848,7 +888,7 @@ class IndexPageFix(object):
 # apply some fixes to code blocks
 class CodeBlockFix(object):
 
-	__keywords = [
+	__keywords = (
 		'alignas',
 		'alignof',
 		'bool',
@@ -884,8 +924,7 @@ class CodeBlockFix(object):
 		'void',
 		'wchar_t',
 		'while',
-	]
-
+	)
 
 	__ns_token_expr = re.compile(r'(?:::|[a-zA-Z_][a-zA-Z_0-9]*|::[a-zA-Z_][a-zA-Z_0-9]*|[a-zA-Z_][a-zA-Z_0-9]*::)')
 	__ns_full_expr = re.compile(r'(?:::)?[a-zA-Z_][a-zA-Z_0-9]*(::[a-zA-Z_][a-zA-Z_0-9]*)*(?:::)?')
@@ -903,7 +942,7 @@ class CodeBlockFix(object):
 
 	def __call__(self, dir, file, doc):
 		global _namespaces
-		global _literals
+		global _string_literals
 
 		# fix up syntax highlighting
 		code_blocks = doc.body(('pre','code'), class_='m-code')
@@ -1010,7 +1049,7 @@ class CodeBlockFix(object):
 
 				# string literals
 				for i in range(len(names)-1, -1, -1):
-					if (names[i].string not in _literals):
+					if (names[i].string not in _string_literals):
 						continue
 					prev = names[i].previous_sibling
 					if (prev is None or 'class' not in prev.attrs or 's' not in prev['class']):
@@ -1102,7 +1141,7 @@ class CodeBlockFix(object):
 # adds links to external sources where appropriate
 class ExtDocLinksFix(object):
 
-	__allowedNames = ['dd', 'p', 'dt', 'h3', 'td', 'div', 'figcaption']
+	__allowedNames = ('dd', 'p', 'dt', 'h3', 'td', 'div', 'figcaption')
 
 	def __init__(self):
 		global _external_links
@@ -1147,16 +1186,22 @@ class ExtDocLinksFix(object):
 
 
 
-# makes sure links to certain external sources are correctly marked as such.
-class ExternalLinksFix(object):
+# fixes various minor issues with anchor tags
+class LinksFix(object):
 
-	__href = re.compile(r'^\s*(?:https?|s?ftp|mailto)[:]', re.I)
+	__external_href = re.compile(r'^(?:https?|s?ftp|mailto)[:].+$', re.I)
+	__internal_doc_id = re.compile(r'^[a-fA-F0-9]+$')
+	__internal_doc_id_href = re.compile(r'^#([a-fA-F0-9]+)$')
 	__godbolt = re.compile(r'^\s*https[:]//godbolt.org/z/.+?$', re.I)
 
 	def __call__(self, dir, file, doc):
 		changed = False
 		for anchor in doc.body('a', recursive=True):
-			if self.__href.search(anchor['href']):
+			if 'href' not in anchor.attrs:
+				continue
+
+			# make sure links to certain external sources are correctly marked as such
+			if self.__external_href.fullmatch(anchor['href']) is not None:
 				if 'target' not in anchor.attrs or anchor['target'] != '_blank':
 					anchor['target'] = '_blank'
 					changed = True
@@ -1170,7 +1215,21 @@ class ExternalLinksFix(object):
 						if anchor.parent.next_sibling is not None and anchor.parent.next_sibling.name == 'pre':
 							code_block = anchor.parent.next_sibling
 							code_block.insert(0, anchor.parent.extract())
+				continue
 
+			# make sure internal documentation links actually have somewhere to go
+			if 'class' in anchor.attrs and 'm-doc' in anchor['class']:
+				m = self.__internal_doc_id_href.fullmatch(anchor['href'])
+				if m is not None and doc.body.find(id=m[1], recursive=True) is None:
+					html_remove_class(anchor, 'm-doc')
+					html_add_class(anchor, 'm-doc-self')
+					anchor['href'] = '#'
+					parent_with_id = anchor.find_parent(id=True)
+					while parent_with_id is not None:
+						if self.__internal_doc_id.fullmatch(parent_with_id['id']) is not None:
+							anchor['href'] = '#' + parent_with_id['id']
+							break
+						parent_with_id = parent_with_id.find_parent(id=True)
 
 
 		return changed
@@ -1507,7 +1566,7 @@ def main():
 	global _inline_namespaces
 	global _types
 	global _macros
-	global _literals
+	global _string_literals
 	global _external_links
 	global _implementation_headers
 	global _badges
@@ -1534,23 +1593,35 @@ def main():
 	assert_existing_directory(mcss_dir)
 	assert_existing_file(Path(mcss_dir, 'documentation/doxygen.py'))
 	
-	# read config + precondition it
+	# read config
 	config = pytomlpp.loads(read_all_text_from_file(config_path))
 	if 'namespaces' in config:
-		_namespaces = _namespaces + [str(ns) for ns in config['namespaces']]    
+		_namespaces = tuple([ns for ns in _namespaces] + [str(ns) for ns in config['namespaces']])
+		del config['namespaces']
 	if 'inline_namespaces' in config:
-		_inline_namespaces = _inline_namespaces + [str(ns) for ns in config['inline_namespaces']]
+		_inline_namespaces = tuple([str(ns) for ns in config['inline_namespaces']])
+		del config['inline_namespaces']
 	if 'types' in config:
-		_types = _types + [str(t) for t in config['types']]
+		_types = tuple([t for t in _types] + [str(t) for t in config['types']])
+		del config['types']
 	if 'macros' in config:
-		_macros = _macros + [str(m) for m in config['macros']]
-	if 'literals' in config:
-		_literals = _literals + [str(l) for l in config['literals']]
+		_macros = tuple([m for m in _macros] + [str(m) for m in config['macros']])
+		del config['macros']
+	if 'string_literals' in config:
+		_string_literals = tuple([l for l in _string_literals] + [str(l) for l in config['string_literals']])
+		del config['string_literals']
 	if 'external_links' in config:
-		_external_links = _external_links + [(ext[0], ext[1]) for ext in config['external_links']]
+		_external_links = tuple([l for l in _external_links] + [(ext[0], ext[1]) for ext in config['external_links']])
+		del config['external_links']
 	if 'badges' in config:
-		_badges = _badges + [(b[0], b[1], b[2]) for b in config['badges']]
-
+		_badges = tuple([tuple(b) for b in config['badges']])
+		del config['badges']
+	if 'implementation_headers' in config:
+		_implementation_headers = tuple([tuple(h) for h in config['implementation_headers']])
+		del config['implementation_headers']
+	for k, v in config.items():
+		print(rf'WARNING: Unknown top-level config property {k}')
+	
 	# delete any leftovers from the previous run
 	if 1:
 		delete_directory(xml_dir)
@@ -1603,7 +1674,7 @@ def main():
 			, ModifiersFix1()
 			, ModifiersFix2()
 			, ExtDocLinksFix()
-			, ExternalLinksFix()
+			, LinksFix()
 			, TemplateTemplateFix()
 		]
 		files = [os.path.split(str(f)) for f in get_all_files(html_dir, any=('*.html', '*.htm'))]
