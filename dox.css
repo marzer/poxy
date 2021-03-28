@@ -156,9 +156,10 @@ pre.m-code + pre.m-console span
 }
 
 /* comments */
-.m-code .c1
+.m-code .c1,
+.m-code .cm
 {
-	color: rgb(87,166,74);
+	color: rgb(87,166,74) !important;
 }
 
 /* int and float literals */

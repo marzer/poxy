@@ -976,7 +976,7 @@ class CodeBlockFix(object):
 					for tag in tags:
 						string = string + tag.string
 					mlc_open.string = string
-					html_set_class(mlc_open, 'c1')
+					html_set_class(mlc_open, 'cm')
 					while len(tags) > 1:
 						html_destroy_node(tags.pop())
 
