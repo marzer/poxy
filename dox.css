@@ -35,9 +35,9 @@ header, header *
 	white-space: nowrap;
 }
 
-article, article > header, article div > section
+article div > section
 {
-	margin-bottom: 5rem;
+	margin-top: 3rem;
 }
 
 article div > section > section

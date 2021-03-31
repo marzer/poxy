@@ -236,18 +236,23 @@ _types = (
 	r'int',
 	r'iterator',
 	r'long',
+	r'lock_guard',
 	r'optional',
 	r'pair',
 	r'ptrdiff_t',
+	r'(?:shared_|recursive_)?(?:timed_)?mutex',
 	r'short',
 	r'signed',
 	r'size_t',
 	r'span',
 	r'string(?:_view)?',
-	r'i?o?f?(?:string)?stream',
+	r'streamsize',
+	r'w?(?:(?:(?:i|o)?(?:string|f))|i|o|io)stream',
 	r'tuple',
 	r'u?int(?:8|16|32|64|128)_t',
 	r'u?intptr_t',
+	r'(?:unique|shared|scoped)_(?:ptr|lock)',
+	r'(?:unordered_)?(?:map|set)',
 	r'unsigned',
 	r'vector',
 	r'wchar_t',
@@ -633,7 +638,7 @@ class RegexReplacer(object):
 # allows the injection of custom tags using square-bracketed proxies.
 class CustomTagsFix(object):
 	__double_tags = re.compile(r"\[\s*(span|div|aside|code|pre|h1|h2|h3|h4|h5|h6|em|strong|b|i|u|li|ul|ol)(.*?)\s*\](.*?)\[\s*/\s*\1\s*\]", re.I)
-	__single_tags = re.compile(r"\[\s*(/?(?:span|div|aside|code|pre|emoji|set_name|(?:add|remove|set)_class|br|li|ul|ol|(?:html)?entity))(\s+[^\]]+?)?\s*\]", re.I)
+	__single_tags = re.compile(r"\[\s*(/?(?:span|div|aside|code|pre|emoji|(?:parent_)?set_name|(?:parent_)?(?:add|remove|set)_class|br|li|ul|ol|(?:html)?entity))(\s+[^\]]+?)?\s*\]", re.I)
 	__allowed_parents = ('dd', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'aside')
 	__emojis = None
 	__emoji_codepoints = None
@@ -699,7 +704,7 @@ class CustomTagsFix(object):
 				cp = cls.__emojis[tag_content][0]
 				return f'&#x{cp:X};&#xFE0F;'
 			return ''
-		elif tag_name in ('add_class', 'remove_class', 'set_class'):
+		elif tag_name in ('add_class', 'remove_class', 'set_class', 'parent_add_class', 'parent_remove_class', 'parent_set_class'):
 			classes = []
 			if tag_content:
 				for s in tag_content.split():
@@ -708,7 +713,7 @@ class CustomTagsFix(object):
 			if classes:
 				out.append((tag_name, classes))
 			return ''
-		elif tag_name == 'set_name':
+		elif tag_name in ('set_name', 'parent_set_name'):
 			if tag_content:
 				out.append((tag_name, tag_content))
 			return ''
@@ -734,20 +739,29 @@ class CustomTagsFix(object):
 					if replacer:
 						changed_this_pass = True
 						parent = tag.parent
-						html_replace_tag(tag, str(replacer))
+						new_tags = html_replace_tag(tag, str(replacer))
 						for i in range(len(replacer)):
-							if replacer[i][0] == 'add_class':
-								if parent is not None:
+							if replacer[i][0].startswith('parent_'):
+								if parent is None:
+									continue
+								if replacer[i][0] == 'parent_add_class':
 									html_add_class(parent, replacer[i][1])
-							elif replacer[i][0] == 'remove_class':
-								if parent is not None:
+								elif replacer[i][0] == 'parent_remove_class':
 									html_remove_class(parent, replacer[i][1])
-							elif replacer[i][0] == 'set_class':
-								if parent is not None:
+								elif replacer[i][0] == 'parent_set_class':
 									html_set_class(parent, replacer[i][1])
-							elif replacer[i][0] == 'set_name':
-								if parent is not None:
+								elif replacer[i][0] == 'parent_set_name':
 									parent.name = replacer[i][1]
+							elif len(new_tags) == 1 and not isinstance(new_tags[0], soup.NavigableString):
+								if replacer[i][0] == 'add_class':
+									html_add_class(new_tags[0], replacer[i][1])
+								elif replacer[i][0] == 'remove_class':
+									html_remove_class(new_tags[0], replacer[i][1])
+								elif replacer[i][0] == 'set_class':
+									html_set_class(new_tags[0], replacer[i][1])
+								elif replacer[i][0] == 'set_name':
+									new_tags[0].name = replacer[i][1]
+
 						continue
 			if changed_this_pass:
 				doc.smooth()
@@ -984,13 +998,14 @@ class CodeBlockFix(object):
 
 				# collect all names
 				names = [n for n in code_block('span', class_='n') if n.string is not None]
+				names = names + [n for n in code_block('span', class_='nl') if n.string is not None]
 
 				# namespaces
 				names_ = [n for n in names]
 				for n in names:
 
 					if (n.decomposed # handled by previous iteration
-						or 'n' not in n['class'] 
+						or not ('n' in n['class'] or 'nl' in n['class'])
 						or self.__ns_token_expr.fullmatch(n.string) is None):
 						continue
 
@@ -1002,7 +1017,7 @@ class CodeBlockFix(object):
 							or prev.string is None
 							or isinstance(prev, soup.NavigableString)
 							or 'class' not in prev.attrs
-							or ('n' not in prev['class'] and 'o' not in prev['class'])
+							or ('n' not in prev['class'] and 'nl' not in prev['class'] and 'o' not in prev['class'])
 							or self.__ns_token_expr.fullmatch(prev.string) is None):
 							break
 						current = prev
@@ -1015,7 +1030,7 @@ class CodeBlockFix(object):
 							or next.string is None
 							or isinstance(next, soup.NavigableString)
 							or 'class' not in next.attrs
-							or ('n' not in next['class'] and 'o' not in next['class'])
+							or ('n' not in next['class'] and 'nl' not in next['class'] and 'o' not in next['class'])
 							or self.__ns_token_expr.fullmatch(next.string) is None):
 							break
 						current = next
@@ -1040,7 +1055,7 @@ class CodeBlockFix(object):
 
 					tags[0].string = full_str
 					if not html_remove_class(tags[0], 'o'):
-						html_remove_class(tags[0], 'n')
+						html_remove_class(tags[0], ['n', 'nl'])
 						names_.remove(tags[0])
 					html_add_class(tags[0], 'ns')
 
@@ -1061,7 +1076,6 @@ class CodeBlockFix(object):
 				# preprocessor macros
 				names = names + [n for n in code_block('span', class_='nc') if n.string is not None]
 				names = names + [n for n in code_block('span', class_='nf') if n.string is not None]
-				names = names + [n for n in code_block('span', class_='nl') if n.string is not None]
 				if self.__macros:
 					for i in range(len(names)-1, -1, -1):
 						matched = False
