@@ -401,6 +401,7 @@ table.m-table th.m-special
 	color: #ce97e8;
 }
 .m-note.m-special a,
+.m-block.m-special a,
 table.m-table tr.m-special td a,
 table.m-table td.m-special a,
 table.m-table tr.m-special th a,
@@ -409,16 +410,19 @@ table.m-table th.m-special a
 	color: #a061bd;
 }
 .m-note.m-special a:hover,
+.m-block.m-special a:hover,
 table.m-table tr.m-special td a:hover,
 table.m-table td.m-special a:hover,
 table.m-table tr.m-special th a:hover,
 table.m-table th.m-special a:hover,
 .m-note.m-special a:focus,
+.m-block.m-special a:focus,
 table.m-table tr.m-special td a:focus,
 table.m-table td.m-special a:focus,
 table.m-table tr.m-special th a:focus,
 table.m-table th.m-special a:focus,
 .m-note.m-special a:active,
+.m-block.m-special a:active,
 table.m-table tr.m-special td a:active,
 table.m-table td.m-special a:active,
 table.m-table tr.m-special th a:active,
