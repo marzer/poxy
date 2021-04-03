@@ -111,7 +111,7 @@ def assert_existing_file(path):
 	if not isinstance(path, Path):
 		path = Path(path)
 	if not (path.exists() and path.is_file()):
-		raise f'{path} did not exist or was not a file'
+		raise Exception(f'{path} did not exist or was not a file')
 
 
 
@@ -120,7 +120,7 @@ def assert_existing_directory(path):
 	if not isinstance(path, Path):
 		path = Path(path)
 	if not (path.exists() and path.is_dir()):
-		raise f'{path} did not exist or was not a directory'
+		raise Exception(f'{path} did not exist or was not a directory')
 
 
 
@@ -206,62 +206,39 @@ _namespaces = (
 _inline_namespaces = tuple()
 _types = (
 	#------ standard/built-in types
-	r'_Float128',
-	r'_Float16',
-	r'_Float80',
-	r'__float128',
-	r'__float80',
-	r'__fp16',
-	r'__int128_t',
-	r'__m128',
-	r'__m128d',
-	r'__m128i',
-	r'__m256',
-	r'__m256d',
-	r'__m256i',
-	r'__m512',
-	r'__m512d',
-	r'__m512i',
-	r'__m64',
-	r'__uint128_t',
+	r'[a-zA-Z_][a-zA-Z_0-9]*_t(?:ype(?:def)?|raits)?',
+	r'_Float[0-9]{1,3}',
+	r'__(?:float|fp)[0-9]{1,3}',
+	r'__m[0-9]{1,3}[di]?',
 	r'array',
 	r'bool',
 	r'byte',
 	r'char',
-	r'const_iterator',
+	r'(?:const_)?(?:reverse_)?iterator',
 	r'double',
 	r'exception',
 	r'float',
-	r'float128_t',
 	r'int',
-	r'iterator',
 	r'long',
 	r'lock_guard',
 	r'optional',
 	r'pair',
-	r'ptrdiff_t',
 	r'(?:shared_|recursive_)?(?:timed_)?mutex',
 	r'short',
 	r'signed',
-	r'size_t',
 	r'span',
 	r'string(?:_view)?',
 	r'streamsize',
 	r'w?(?:(?:(?:i|o)?(?:string|f))|i|o|io)stream',
 	r'tuple',
-	r'u?int(?:8|16|32|64|128)_t',
-	r'u?intptr_t',
 	r'(?:unique|shared|scoped)_(?:ptr|lock)',
 	r'(?:unordered_)?(?:map|set)',
 	r'unsigned',
 	r'vector',
-	r'wchar_t',
 	#------ documentation-only types
 	r'[T-V][0-9]',
 	r'Foo',
 	r'Bar',
-	r'strong_typedef',
-	r'[a-zA-Z_]+_type',
 	r'[Vv]ec(?:tor)?[1-4][hifd]?',
 	r'[Mm]at(?:rix)?[1-4](?:[xX][1-4])?[hifd]?'
 )
@@ -270,7 +247,7 @@ _macros = (
     r'offsetof'
 )
 _string_literals = ('s', 'sv')
-_external_links = (
+_auto_links = (
 	(r'std::assume_aligned(?:\(\))?', 'https://en.cppreference.com/w/cpp/memory/assume_aligned'),
 	(r'(?:std::)?nullptr_t', 'https://en.cppreference.com/w/cpp/types/nullptr_t'),
 	(r'(?:std::)?ptrdiff_t', 'https://en.cppreference.com/w/cpp/types/ptrdiff_t'),
@@ -351,7 +328,15 @@ _external_links = (
 	(r'std::maps?', 'https://en.cppreference.com/w/cpp/container/map'),
 	(r'std::max(?:\(\))?', 'https://en.cppreference.com/w/cpp/algorithm/max'),
 	(r'std::min(?:\(\))?', 'https://en.cppreference.com/w/cpp/algorithm/min'),
+	(r'std::numeric_limits::min(?:\(\))?', 'https://en.cppreference.com/w/cpp/types/numeric_limits/min'),
 	(r'std::numeric_limits::lowest(?:\(\))?', 'https://en.cppreference.com/w/cpp/types/numeric_limits/lowest'),
+	(r'std::numeric_limits::max(?:\(\))?', 'https://en.cppreference.com/w/cpp/types/numeric_limits/max'),
+	(r'std::numeric_limits::epsilon(?:\(\))?', 'https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon'),
+	(r'std::numeric_limits::round_error(?:\(\))?', 'https://en.cppreference.com/w/cpp/types/numeric_limits/round_error'),
+	(r'std::numeric_limits::infinity(?:\(\))?', 'https://en.cppreference.com/w/cpp/types/numeric_limits/infinity'),
+	(r'std::numeric_limits::quiet_NaN(?:\(\))?', 'https://en.cppreference.com/w/cpp/types/numeric_limits/quiet_NaN'),
+	(r'std::numeric_limits::signaling_NaN(?:\(\))?', 'https://en.cppreference.com/w/cpp/types/numeric_limits/signaling_NaN'),
+	(r'std::numeric_limits::denorm_min(?:\(\))?', 'https://en.cppreference.com/w/cpp/types/numeric_limits/denorm_min'),
 	(r'std::numeric_limits', 'https://en.cppreference.com/w/cpp/types/numeric_limits'),
 	(r'std::optionals?', 'https://en.cppreference.com/w/cpp/utility/optional'),
 	(r'std::pairs?', 'https://en.cppreference.com/w/cpp/utility/pair'),
@@ -878,18 +863,19 @@ class IndexPageFix(object):
 		if file != 'index.html':
 			return False
 		parent = doc.article_content
-		banner = parent('img')
+		banner = parent.find('img')
 		if banner:
-			banner = banner[0].extract()
-			parent('h1')[0].replace_with(banner)
-			parent = doc.new_tag('div', class_='gh-badges', after=banner)
-			for (alt, src, href) in _badges:
-				if alt is None and src is None and href is None:
-					doc.new_tag('br', parent=parent)
-				else:
-					anchor = doc.new_tag('a', parent=parent, href=href, target='_blank')
-					doc.new_tag('img', parent=anchor, src=src, alt=alt)
-			html_add_class(banner, 'main_page_banner')
+			banner = banner.extract()
+			parent.find('h1').replace_with(banner)
+			if _badges:
+				parent = doc.new_tag('div', class_='gh-badges', after=banner)
+				for (alt, src, href) in _badges:
+					if alt is None and src is None and href is None:
+						doc.new_tag('br', parent=parent)
+					else:
+						anchor = doc.new_tag('a', parent=parent, href=href, target='_blank')
+						doc.new_tag('img', parent=anchor, src=src, alt=alt)
+				html_add_class(banner, 'main_page_banner')
 			return True
 		return False
 
@@ -1152,15 +1138,24 @@ class CodeBlockFix(object):
 
 
 
-# adds links to external sources where appropriate
-class ExtDocLinksFix(object):
+def _m_doc_anchor_tags(tag):
+	return (tag.name == 'a'
+		and tag.has_attr('class')
+		and ('m-doc' in tag['class'] or 'm-doc-self' in tag['class'])
+		and (tag.string is not None or tag.strings is not None)
+	)
+
+
+
+# adds links to additional sources where appropriate
+class AutoDocLinksFix(object):
 
 	__allowedNames = ('dd', 'p', 'dt', 'h3', 'td', 'div', 'figcaption')
 
 	def __init__(self):
-		global _external_links
+		global _auto_links
 		self.__expressions = []
-		for expr, uri in _external_links:
+		for expr, uri in _auto_links:
 			self.__expressions.append((re.compile('(?<![a-zA-Z_])' + expr + '(?![a-zA-Z_])'), uri))
 
 	@classmethod
@@ -1170,28 +1165,49 @@ class ExtDocLinksFix(object):
 
 	def __call__(self, dir, file, doc):
 		changed = False
-		tags = html_shallow_search(doc.article_content, self.__allowedNames, lambda t: html_find_parent(t, 'a', doc.article_content) is None)
-		strings = []
-		for tag in tags:
-			strings = strings + html_string_descendants(tag, lambda t: html_find_parent(t, 'a', tag) is None)
-		for expr, uri in self.__expressions:
-			i = 0
-			while i < len(strings):
-				string = strings[i]
-				parent = string.parent
-				replacer = RegexReplacer(expr, lambda m, out: self.__substitute(m, uri), html.escape(str(string), quote=False))
-				if replacer:
-					repl_str = str(replacer)
-					begins_with_ws = len(repl_str) > 0 and repl_str[:1].isspace()
-					new_tags = html_replace_tag(string, repl_str)
-					if (begins_with_ws and new_tags[0].string is not None and not new_tags[0].string[:1].isspace()):
-						new_tags[0].insert_before(' ')
-					changed = True
-					del strings[i]
-					for tag in new_tags:
-						strings = strings + html_string_descendants(tag, lambda t: html_find_parent(t, 'a', parent) is None)
+
+		# first check all existing doc links to make sure they aren't erroneously linked to the wrong thing
+		if 1:
+			existing_doc_links = doc.article_content.find_all(_m_doc_anchor_tags)
+			for link in existing_doc_links:
+				done = False
+				s = link.get_text()
+				for expr, uri in self.__expressions:
+					if ((not link.has_attr('href') or link['href'] != uri) and expr.fullmatch(s)):
+						link['href'] = uri
+						html_set_class(link, ['m-doc', 'dox-injected'])
+						if uri.startswith('http'):
+							html_add_class(link, 'dox-external')
+						done = True
+						changed = True
+						break
+				if done:
 					continue
-				i = i + 1
+
+		# now search the document for any other potential links
+		if 1:
+			tags = html_shallow_search(doc.article_content, self.__allowedNames, lambda t: html_find_parent(t, 'a', doc.article_content) is None)
+			strings = []
+			for tag in tags:
+				strings = strings + html_string_descendants(tag, lambda t: html_find_parent(t, 'a', tag) is None)
+			for expr, uri in self.__expressions:
+				i = 0
+				while i < len(strings):
+					string = strings[i]
+					parent = string.parent
+					replacer = RegexReplacer(expr, lambda m, out: self.__substitute(m, uri), html.escape(str(string), quote=False))
+					if replacer:
+						repl_str = str(replacer)
+						begins_with_ws = len(repl_str) > 0 and repl_str[:1].isspace()
+						new_tags = html_replace_tag(string, repl_str)
+						if (begins_with_ws and new_tags[0].string is not None and not new_tags[0].string[:1].isspace()):
+							new_tags[0].insert_before(' ')
+						changed = True
+						del strings[i]
+						for tag in new_tags:
+							strings = strings + html_string_descendants(tag, lambda t: html_find_parent(t, 'a', parent) is None)
+						continue
+					i = i + 1
 		return changed
 
 
@@ -1581,7 +1597,7 @@ def main():
 	global _types
 	global _macros
 	global _string_literals
-	global _external_links
+	global _auto_links
 	global _implementation_headers
 	global _badges
 	
@@ -1597,6 +1613,10 @@ def main():
 
 	# get + check paths
 	config_path = args.config.resolve()
+	if not config_path.exists() and Path(str(config_path) + ".toml").exists():
+		config_path = Path(str(config_path) + ".toml")
+	if config_path.is_dir():
+		config_path = Path(config_path, 'dox.toml')
 	config_dir = config_path.parent
 	xml_dir = Path(config_dir, 'xml')
 	html_dir = Path(config_dir, 'html')
@@ -1624,9 +1644,9 @@ def main():
 	if 'string_literals' in config:
 		_string_literals = tuple([l for l in _string_literals] + [str(l) for l in config['string_literals']])
 		del config['string_literals']
-	if 'external_links' in config:
-		_external_links = tuple([l for l in _external_links] + [(ext[0], ext[1]) for ext in config['external_links']])
-		del config['external_links']
+	if 'auto_links' in config:
+		_auto_links = tuple([l for l in _auto_links] + [(ext[0], ext[1]) for ext in config['auto_links']])
+		del config['auto_links']
 	if 'badges' in config:
 		_badges = tuple([tuple(b) for b in config['badges']])
 		del config['badges']
@@ -1687,7 +1707,7 @@ def main():
 			, IndexPageFix()
 			, ModifiersFix1()
 			, ModifiersFix2()
-			, ExtDocLinksFix()
+			, AutoDocLinksFix()
 			, LinksFix()
 			, TemplateTemplateFix()
 		]
