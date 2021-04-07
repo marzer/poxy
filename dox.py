@@ -19,7 +19,7 @@ import shutil
 import fnmatch
 import requests
 from lxml import etree
-from io import BytesIO
+from io import BytesIO, StringIO
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -85,12 +85,15 @@ def vprint(*args):
 
 
 
-def print_exception(exc):
-	print(
-		f'Error: [{type(exc).__name__}] {str(exc)}',
-		file=sys.stderr
-	)
-	traceback.print_exc(file=sys.stderr)
+def print_exception(exc, skip_frames = 0):
+	buf = StringIO()
+	print(f'Error: [{type(exc).__name__}] {str(exc)}', file=buf)
+	tb = exc.__traceback__
+	while skip_frames > 0 and tb.tb_next is not None:
+		skip_frames = skip_frames - 1
+		tb = tb.tb_next
+	traceback.print_exception(type(exc), exc, tb, file=buf)
+	print(buf.getvalue(),file=sys.stderr, end='')
 
 
 
@@ -184,69 +187,68 @@ def copy_file(source, dest):
 #=== CONFIG ============================================================================================================
 
 
-
-_namespaces = (
-	'std',
-	'std::chrono_literals',
-	'std::chrono',
-	'std::complex_literals',
-	'std::execution',
-	'std::filesystem',
-	'std::literals::chrono_literals',
-	'std::literals::complex_literals',
-	'std::literals::string_literals',
-	'std::literals::string_view_literals',
-	'std::literals',
-	'std::numbers',
-	'std::ranges',
-	'std::string_literals',
-	'std::string_view_literals',
-	'std::this_thread'
-)
+_enums = {
+	r'(?:std::)?ios(?:_base)?::(?:app|binary|in|out|trunc|ate)'
+}
+_namespaces = {
+	r'std',
+	r'std::chrono',
+	r'std::execution',
+	r'std::filesystem',
+	r'std::(?:literals::)?(?:chrono|complex|string|string_view)_literals',
+	r'std::literals',
+	r'std::numbers',
+	r'std::ranges',
+	r'std::this_thread'
+}
 _inline_namespaces = tuple()
-_types = (
+_types = {
 	#------ standard/built-in types
-	r'[a-zA-Z_][a-zA-Z_0-9]*_t(?:ype(?:def)?|raits)?',
-	r'_Float[0-9]{1,3}',
 	r'__(?:float|fp)[0-9]{1,3}',
 	r'__m[0-9]{1,3}[di]?',
-	r'array',
+	r'_Float[0-9]{1,3}',
+	r'(?:std::)?(?:basic_)?ios(?:_base)?',
+	r'(?:std::)?(?:const_)?(?:reverse_)?iterator',
+	r'(?:std::)?(?:shared_|recursive_)?(?:timed_)?mutex',
+	r'(?:std::)?array',
+	r'(?:std::)?byte',
+	r'(?:std::)?exception',
+	r'(?:std::)?lock_guard',
+	r'(?:std::)?optional',
+	r'(?:std::)?pair',
+	r'(?:std::)?span',
+	r'(?:std::)?streamsize',
+	r'(?:std::)?string(?:_view)?',
+	r'(?:std::)?tuple',
+	r'(?:std::)?vector',
+	r'(?:std::)?(?:unique|shared|scoped)_(?:ptr|lock)',
+	r'(?:std::)?(?:unordered_)?(?:map|set)',
+	r'[a-zA-Z_][a-zA-Z_0-9]*_t(?:ype(?:def)?|raits)?',
 	r'bool',
-	r'byte',
 	r'char',
-	r'(?:const_)?(?:reverse_)?iterator',
 	r'double',
-	r'exception',
 	r'float',
 	r'int',
 	r'long',
-	r'lock_guard',
-	r'optional',
-	r'pair',
-	r'(?:shared_|recursive_)?(?:timed_)?mutex',
 	r'short',
 	r'signed',
-	r'span',
-	r'string(?:_view)?',
-	r'streamsize',
-	r'w?(?:(?:(?:i|o)?(?:string|f))|i|o|io)stream',
-	r'tuple',
-	r'(?:unique|shared|scoped)_(?:ptr|lock)',
-	r'(?:unordered_)?(?:map|set)',
 	r'unsigned',
-	r'vector',
+	r'(?:std::)?w?(?:(?:(?:i|o)?(?:string|f))|i|o|io)stream',
 	#------ documentation-only types
 	r'[T-V][0-9]',
 	r'Foo',
 	r'Bar',
 	r'[Vv]ec(?:tor)?[1-4][hifd]?',
 	r'[Mm]at(?:rix)?[1-4](?:[xX][1-4])?[hifd]?'
-)
+}
 _macros = (
     r'assert',
     r'offsetof'
 )
-_string_literals = ('s', 'sv')
+_string_literals = {
+	'sv?'
+}
+_numeric_literals = set()
 _auto_links = (
 	(r'std::assume_aligned(?:\(\))?', 'https://en.cppreference.com/w/cpp/memory/assume_aligned'),
 	(r'(?:std::)?nullptr_t', 'https://en.cppreference.com/w/cpp/types/nullptr_t'),
@@ -288,6 +290,7 @@ _auto_links = (
 	(r'std::atan2[fl]?(?:\(\))?', 'https://en.cppreference.com/w/cpp/numeric/math/atan2'),
 	(r'std::atan[fl]?(?:\(\))?', 'https://en.cppreference.com/w/cpp/numeric/math/atan'),
 	(r'std::bad_alloc', 'https://en.cppreference.com/w/cpp/memory/new/bad_alloc'),
+	(r'std::basic_ios', 'https://en.cppreference.com/w/cpp/io/basic_ios'),
 	(r'std::bit_cast(?:\(\))?', 'https://en.cppreference.com/w/cpp/numeric/bit_cast'),
 	(r'std::bit_ceil(?:\(\))?', 'https://en.cppreference.com/w/cpp/numeric/bit_ceil'),
 	(r'std::bit_floor(?:\(\))?', 'https://en.cppreference.com/w/cpp/numeric/bit_floor'),
@@ -306,10 +309,12 @@ _auto_links = (
 	(r'std::enable_if(?:_t)?', 'https://en.cppreference.com/w/cpp/types/enable_if'),
 	(r'std::exceptions?', 'https://en.cppreference.com/w/cpp/error/exception'),
 	(r'std::floor[fl]?(?:\(\))?', 'https://en.cppreference.com/w/cpp/numeric/math/floor'),
+	(r'std::fpos', 'https://en.cppreference.com/w/cpp/io/fpos'),
 	(r'std::has_single_bit(?:\(\))?', 'https://en.cppreference.com/w/cpp/numeric/has_single_bit'),
 	(r'std::hash', 'https://en.cppreference.com/w/cpp/utility/hash'),
 	(r'std::initializer_lists?', 'https://en.cppreference.com/w/cpp/utility/initializer_list'),
 	(r'std::integral_constants?', 'https://en.cppreference.com/w/cpp/types/integral_constant'),
+	(r'std::ios(?:_base)?', 'https://en.cppreference.com/w/cpp/io/ios_base'),
 	(r'std::is_(?:nothrow_)?convertible(?:_v)?', 'https://en.cppreference.com/w/cpp/types/is_convertible'),
 	(r'std::is_(?:nothrow_)?invocable(?:_r)?', 'https://en.cppreference.com/w/cpp/types/is_invocable'),
 	(r'std::is_base_of(?:_v)?', 'https://en.cppreference.com/w/cpp/types/is_base_of'),
@@ -479,7 +484,7 @@ class HTMLDocument(object):
 
 def html_find_parent(tag, names, cutoff=None):
 	if not is_collection(names):
-		names = [ names ]
+		names = ( names, )
 	parent = tag.parent
 	while (parent is not None):
 		if (cutoff is not None and parent is cutoff):
@@ -521,7 +526,7 @@ def html_shallow_search(starting_tag, names, filter = None):
 		return []
 
 	if not is_collection(names):
-		names = [ names ]
+		names = ( names, )
 
 	if starting_tag.name in names:
 		if filter is None or filter(starting_tag):
@@ -622,9 +627,9 @@ class RegexReplacer(object):
 
 # allows the injection of custom tags using square-bracketed proxies.
 class CustomTagsFix(object):
-	__double_tags = re.compile(r"\[\s*(span|div|aside|code|pre|h1|h2|h3|h4|h5|h6|em|strong|b|i|u|li|ul|ol)(.*?)\s*\](.*?)\[\s*/\s*\1\s*\]", re.I)
-	__single_tags = re.compile(r"\[\s*(/?(?:span|div|aside|code|pre|emoji|(?:parent_)?set_name|(?:parent_)?(?:add|remove|set)_class|br|li|ul|ol|(?:html)?entity))(\s+[^\]]+?)?\s*\]", re.I)
-	__allowed_parents = ('dd', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'aside')
+	__double_tags = re.compile(r"\[\s*(span|div|aside|code|pre|h1|h2|h3|h4|h5|h6|em|strong|b|i|u|li|ul|ol)(.*?)\s*\](.*?)\[\s*/\1\s*\]", re.I | re.S)
+	__single_tags = re.compile(r"\[\s*(/?(?:span|div|aside|code|pre|emoji|(?:parent_)?set_name|(?:parent_)?(?:add|remove|set)_class|br|li|ul|ol|(?:html)?entity))(\s+[^\]]+?)?\s*\]", re.I | re.S)
+	__allowed_parents = ('dd', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'aside', 'td')
 	__emojis = None
 	__emoji_codepoints = None
 	__emoji_uri = re.compile(r".+unicode/([0-9a-fA-F]+)[.]png.*", re.I)
@@ -713,7 +718,7 @@ class CustomTagsFix(object):
 			for name in self.__allowed_parents:
 				tags = doc.article_content.find_all(name)
 				for tag in tags:
-					if len(tag.contents) == 0 or html_find_parent(tag, 'a', doc.article_content) is not None or tag.decomposed:
+					if tag.decomposed or len(tag.contents) == 0 or html_find_parent(tag, 'a', doc.article_content) is not None:
 						continue
 					replacer = RegexReplacer(self.__double_tags, self.__double_tags_substitute, str(tag))
 					if replacer:
@@ -889,60 +894,101 @@ class IndexPageFix(object):
 class CodeBlockFix(object):
 
 	__keywords = (
-		'alignas',
-		'alignof',
-		'bool',
-		'char',
-		'char16_t',
-		'char32_t',
-		'char8_t',
-		'class',
-		'const',
-		'consteval',
-		'constexpr',
-		'constinit',
-		'do',
-		'double',
-		'else',
-		'explicit',
-		'false',
-		'float',
-		'if',
-		'inline',
-		'int',
-		'long',
-		'mutable',
-		'noexcept',
-		'short',
-		'signed',
-		'sizeof',
-		'struct',
-		'template',
-		'true',
-		'typename',
-		'unsigned',
-		'void',
-		'wchar_t',
-		'while',
+		r'alignas',
+		r'alignof',
+		r'bool',
+		r'char',
+		r'char16_t',
+		r'char32_t',
+		r'char8_t',
+		r'class',
+		r'const',
+		r'consteval',
+		r'constexpr',
+		r'constinit',
+		r'do',
+		r'double',
+		r'else',
+		r'explicit',
+		r'false',
+		r'float',
+		r'if',
+		r'inline',
+		r'int',
+		r'long',
+		r'mutable',
+		r'noexcept',
+		r'short',
+		r'signed',
+		r'sizeof',
+		r'struct',
+		r'template',
+		r'true',
+		r'typename',
+		r'unsigned',
+		r'void',
+		r'wchar_t',
+		r'while',
 	)
 
 	__ns_token_expr = re.compile(r'(?:::|[a-zA-Z_][a-zA-Z_0-9]*|::[a-zA-Z_][a-zA-Z_0-9]*|[a-zA-Z_][a-zA-Z_0-9]*::)')
 	__ns_full_expr = re.compile(r'(?:::)?[a-zA-Z_][a-zA-Z_0-9]*(::[a-zA-Z_][a-zA-Z_0-9]*)*(?:::)?')
 
-	def __init__(self):
+	@classmethod
+	def __colourize_compound_def(cls, tags):
+		global _enums
 		global _types
+		global _namespaces
+		assert tags
+		assert tags[0].string != '::'
+		assert len(tags) == 1 or tags[-1].string != '::'
+		full_str = ''.join([tag.get_text() for tag in tags])
+
+		if _enums.fullmatch(full_str):
+			html_set_class(tags[-1], 'ne')
+			del tags[-1]
+			while tags and tags[-1].string == '::':
+				del tags[-1]
+			if tags:
+				cls.__colourize_compound_def(tags)
+			return True
+
+		if _types.fullmatch(full_str):
+			html_set_class(tags[-1], 'ut')
+			del tags[-1]
+			while tags and tags[-1].string == '::':
+				del tags[-1]
+			if tags:
+				cls.__colourize_compound_def(tags)
+			return True
+
+		while not _namespaces.fullmatch(full_str):
+			del tags[-1]
+			while tags and tags[-1].string == '::':
+				del tags[-1]
+			if not tags:
+				break
+			full_str = ''.join([tag.get_text() for tag in tags])
+
+		if tags:
+			while len(tags) > 1:
+				tags.pop().decompose()
+			tags[0].string = full_str
+			if html_remove_class(tags[0], ('n', 'nl', 'kt')):
+				html_add_class(tags[0], 'ns')
+			return True
+
+		return False
+
+	def __init__(self):
 		global _macros
-		self.__types = []
 		self.__macros = []
-		for expr in _types:
-			self.__types.append(re.compile(expr))
 		for expr in _macros:
 			self.__macros.append(re.compile(expr))
 
-
 	def __call__(self, dir, file, doc):
-		global _namespaces
 		global _string_literals
+		global _numeric_literals
 
 		# fix up syntax highlighting
 		code_blocks = doc.body(('pre','code'), class_='m-code')
@@ -974,7 +1020,7 @@ class CodeBlockFix(object):
 					mlc_close.string = '*/'
 					string = ''
 					for tag in tags:
-						string = string + tag.string
+						string = string + tag.get_text()
 					mlc_open.string = string
 					html_set_class(mlc_open, 'cm')
 					while len(tags) > 1:
@@ -982,20 +1028,17 @@ class CodeBlockFix(object):
 
 					mlc_open = next_open
 
-				# collect all names
-				names = [n for n in code_block('span', class_='n') if n.string is not None]
-				names = names + [n for n in code_block('span', class_='nl') if n.string is not None]
+				# collect all names and glom them all together as compound names
+				spans = code_block('span', class_=('n', 'nl', 'kt'), string=True)
+				compound_names = []
+				compound_name_evaluated_tags = set()
+				for i in range(0, len(spans)):
 
-				# namespaces
-				names_ = [n for n in names]
-				for n in names:
-
-					if (n.decomposed # handled by previous iteration
-						or not ('n' in n['class'] or 'nl' in n['class'])
-						or self.__ns_token_expr.fullmatch(n.string) is None):
+					current = spans[i]
+					if current in compound_name_evaluated_tags:
 						continue
 
-					current = n
+					compound_name_evaluated_tags.add(current)
 					tags = [ current ]
 					while True:
 						prev = current.previous_sibling
@@ -1003,103 +1046,77 @@ class CodeBlockFix(object):
 							or prev.string is None
 							or isinstance(prev, soup.NavigableString)
 							or 'class' not in prev.attrs
-							or ('n' not in prev['class'] and 'nl' not in prev['class'] and 'o' not in prev['class'])
-							or self.__ns_token_expr.fullmatch(prev.string) is None):
+							or prev['class'][0] not in ('n', 'nl', 'kt', 'o')
+							or not self.__ns_token_expr.fullmatch(prev.string)):
 							break
 						current = prev
 						tags.insert(0, current)
+						compound_name_evaluated_tags.add(current)
 
-					current = n
+					current = spans[i]
 					while True:
-						next = current.next_sibling
-						if (next is None
-							or next.string is None
-							or isinstance(next, soup.NavigableString)
-							or 'class' not in next.attrs
-							or ('n' not in next['class'] and 'nl' not in next['class'] and 'o' not in next['class'])
-							or self.__ns_token_expr.fullmatch(next.string) is None):
+						nxt = current.next_sibling
+						if (nxt is None
+							or nxt.string is None
+							or isinstance(nxt, soup.NavigableString)
+							or 'class' not in nxt.attrs
+							or nxt['class'][0] not in ('n', 'nl', 'kt', 'o')
+							or not self.__ns_token_expr.fullmatch(nxt.string)):
 							break
-						current = next
+						current = nxt
 						tags.append(current)
+						compound_name_evaluated_tags.add(current)
 
-					full_str = None
-					while tags:
-						full_str = ''.join([tag.string for tag in tags])
-						if self.__ns_full_expr.fullmatch(current.string) is not None and full_str in _namespaces:
-							break
-						tags.pop()
-					if not tags:
+					full_str = ''.join([tag.get_text() for tag in tags])
+					if self.__ns_full_expr.fullmatch(full_str):
+						while tags and tags[0].string == '::':
+							del tags[0]
+						while tags and tags[-1].string == '::':
+							del tags[-1]
+						if tags:
+							compound_names.append(tags)
+
+				# types and namespaces
+				for tags in compound_names:
+					if self.__colourize_compound_def(tags):
+						changed_this_block = True
+
+				# string and numeric literals
+				spans = code_block('span', class_='n', string=True)
+				for span in spans:
+					prev = span.previous_sibling
+					if (prev is None
+						or isinstance(prev, soup.NavigableString)
+						or 'class' not in prev.attrs):
 						continue
-
-					while len(tags) > 1:
-						t = tags.pop()
-						try:
-							names_.remove(t)
-						except Exception:
-							pass
-						t.decompose()
-
-					tags[0].string = full_str
-					if not html_remove_class(tags[0], 'o'):
-						html_remove_class(tags[0], ['n', 'nl'])
-						names_.remove(tags[0])
-					html_add_class(tags[0], 'ns')
-
-					changed_this_block = True
-				names = names_
-
-				# string literals
-				for i in range(len(names)-1, -1, -1):
-					if (names[i].string not in _string_literals):
-						continue
-					prev = names[i].previous_sibling
-					if (prev is None or 'class' not in prev.attrs or 's' not in prev['class']):
-						continue
-					names[i]['class'] = 'sa'
-					del names[i]
-					changed_this_block = True
+					if ('s' in prev['class'] and _string_literals.fullmatch(span.get_text())):
+						html_set_class(span, 'sa')
+						changed_this_block = True
+					elif (prev['class'][0] in ('mf', 'mi', 'mb', 'mh') and _numeric_literals.fullmatch(span.get_text())):
+						html_set_class(span, prev['class'][0])
+						changed_this_block = True
 
 				# preprocessor macros
-				names = names + [n for n in code_block('span', class_='nc') if n.string is not None]
-				names = names + [n for n in code_block('span', class_='nf') if n.string is not None]
+				spans = code_block('span', class_=('n', 'nl', 'kt', 'nc', 'nf'), string=True)
 				if self.__macros:
-					for i in range(len(names)-1, -1, -1):
+					for i in range(len(spans)-1, -1, -1):
 						matched = False
 						for expr in self.__macros:
-							if expr.fullmatch(names[i].string) is not None:
+							if expr.fullmatch(spans[i].string) is not None:
 								matched = True
 								break
 						if not matched:
 							continue
-						names[i]['class'] = 'm'
-						del names[i]
+						spans[i]['class'] = 'm'
+						del spans[i]
 						changed_this_block = True
 
-				# types and typedefs
-				names = names + [n for n in code_block('span', class_='kt') if n.string is not None]
-				for i in range(len(names)-1, -1, -1):
-					if (names[i].previous_sibling is not None and names[i].previous_sibling.string.endswith('~')):
-						continue
-					if (names[i].next_sibling is not None and names[i].next_sibling.string.startswith('(')):
-						continue
-					matched = False
-					for expr in self.__types:
-						if expr.fullmatch(names[i].string) is not None:
-							matched = True
-							break
-					if not matched:
-						continue
-					names[i]['class'] = 'ut'
-					del names[i]
-					changed_this_block = True
-
 				# misidentifed keywords
-				for keywordClass in ['nf', 'nb', 'kt', 'ut', 'kr']:
-					kws = code_block('span', class_=keywordClass)
-					for kw in kws:
-						if (kw.string is not None and kw.string in self.__keywords):
-							kw['class'] = 'k'
-							changed_this_block = True
+				spans = code_block('span', class_=('nf', 'nb', 'kt', 'ut', 'kr'), string=True)
+				for span in spans:
+					if (span.string in self.__keywords):
+						span['class'] = 'k'
+						changed_this_block = True
 
 				if changed_this_block:
 					code_block.smooth()
@@ -1390,7 +1407,10 @@ def doxygen_mangle_name(name):
 
 
 def preprocess_xml(dir):
+	global _namespaces
 	global _inline_namespaces
+	global _types
+	global _enums
 	global _implementation_headers
 
 	pretty_print_xml = False
@@ -1437,76 +1457,103 @@ def preprocess_xml(dir):
 		for xml_file in xml_files:
 			print(f'Pre-processing {xml_file}')
 			xml = etree.parse(str(xml_file), parser=xml_parser)
-			
-			root = xml.getroot().find('compounddef')
-			if root is None:
-				continue
-
 			changed = False
+			
+			# the doxygen index
+			if xml.getroot().tag == 'doxygenindex':
+				scopes = [tag for tag in xml.getroot().findall('compound') if tag.get('kind') in ('namespace', 'class', 'struct', 'union')]
+				for scope in scopes:
+					scope_name = scope.find('name').text
+					if scope.get('kind') in ('class', 'struct', 'union'):
+						_types.add(scope_name)
+					elif scope.get('kind') == 'namespace':
+						_namespaces.add(scope_name)
+					# nested enums
+					enums = [tag for tag in scope.findall('member') if tag.get('kind') in ('enum', 'enumvalue')]
+					enum_name = ''
+					for enum in enums:
+						if enum.get('kind') == 'enum':
+							enum_name = rf'{scope_name}::{enum.find("name").text}'
+							_types.add(enum_name)
+						else:
+							assert enum_name
+							_enums.add(rf'{enum_name}::{enum.find("name").text}')
+					# nested typedefs
+					typedefs = [tag for tag in scope.findall('member') if tag.get('kind') == 'typedef']
+					for typedef in typedefs:
+						_types.add(rf'{scope_name}::{typedef.find("name").text}')
 
-			# merge user-defined sections with the same name
-			if root.get("kind") in ("namespace", "class", "struct", "enum", "file"):
-				sectiondefs = [s for s in root.findall('sectiondef') if s.get("kind") == "user-defined"]
-				sections = dict()
-				for section in sectiondefs:
-					header = section.find('header')
-					if header is not None and header.text:
-						if header.text not in sections:
-							sections[header.text] = []
-					sections[header.text].append(section)
-				for key, vals in sections.items():
-					if len(vals) > 1:
-						first_section = vals.pop(0)
-						for section in vals:
-							for member in section.findall('memberdef'):
-								section.remove(member)
-								first_section.append(member)
-							root.remove(section)
+			# some other compound definition
+			else:
+				compounddef = xml.getroot().find('compounddef')
+				assert compounddef is not None
+				compoundname = compounddef.find('compoundname')
+				assert compoundname is not None
+				assert compoundname.text
+
+				# merge user-defined sections with the same name
+				if compounddef.get('kind') in ('namespace', 'class', 'struct', 'enum', 'file'):
+					sectiondefs = [s for s in compounddef.findall('sectiondef') if s.get('kind') == "user-defined"]
+					sections = dict()
+					for section in sectiondefs:
+						header = section.find('header')
+						if header is not None and header.text:
+							if header.text not in sections:
+								sections[header.text] = []
+						sections[header.text].append(section)
+					for key, vals in sections.items():
+						if len(vals) > 1:
+							first_section = vals.pop(0)
+							for section in vals:
+								for member in section.findall('memberdef'):
+									section.remove(member)
+									first_section.append(member)
+								compounddef.remove(section)
+								changed = True
+
+				# namespaces
+				if compounddef.get('kind') == 'namespace' and _inline_namespaces:
+					for nsid in inline_namespace_ids:
+						if compounddef.get("id") == nsid:
+							compounddef.set("inline", "yes")
+							changed = True
+							break
+
+				# dirs
+				if compounddef.get('kind') == "dir" and _implementation_headers:
+					innerfiles = compounddef.findall('innerfile')
+					for innerfile in innerfiles:
+						if innerfile.get('refid') in implementation_header_mappings:
+							compounddef.remove(innerfile)
 							changed = True
 
-			# namespaces
-			if root.get("kind") == "namespace" and _inline_namespaces:
-				for nsid in inline_namespace_ids:
-					if root.get("id") == nsid:
-						root.set("inline", "yes")
-						changed = True
-						break
+				# header files
+				if compounddef.get('kind') == 'file' and _implementation_headers:
+					# remove junk not required by m.css
+					for tag in ('includes', 'includedby', 'incdepgraph', 'invincdepgraph'):
+						tags = compounddef.findall(tag)
+						if tags:
+							for t in tags:
+								compounddef.remove(t)
+								changed = True
 
-			# dirs
-			if root.get("kind") == "dir" and _implementation_headers:
-				innerfiles = root.findall('innerfile')
-				for innerfile in innerfiles:
-					if innerfile.get('refid') in implementation_header_mappings:
-						root.remove(innerfile)
-						changed = True
-
-			# header files
-			if root.get("kind") == "file" and _implementation_headers:
-				# remove junk not required by m.css
-				for tag in ('includes', 'includedby', 'incdepgraph', 'invincdepgraph'):
-					tags = root.findall(tag)
-					if tags:
-						for t in tags:
-							root.remove(t)
-							changed = True
-
-				# rip the good bits out of implementation headers
-				if root.get("id") in implementation_header_mappings:
-					hid = implementation_header_mappings[root.get("id")][2]
-					innernamespaces = root.findall('innernamespace')
-					if innernamespaces:
-						implementation_header_innernamespaces[hid] = implementation_header_innernamespaces[hid] + innernamespaces
-						extracted_implementation = True
-						for tag in innernamespaces:
-							root.remove(tag)
-							changed = True
-					sectiondefs = root.findall('sectiondef')
-					if sectiondefs:
-						implementation_header_sectiondefs[hid] = implementation_header_sectiondefs[hid] + sectiondefs
-						extracted_implementation = True
-						for tag in sectiondefs:
-							root.remove(tag)
-							changed = True
+					# rip the good bits out of implementation headers
+					if compounddef.get("id") in implementation_header_mappings:
+						hid = implementation_header_mappings[compounddef.get("id")][2]
+						innernamespaces = compounddef.findall('innernamespace')
+						if innernamespaces:
+							implementation_header_innernamespaces[hid] = implementation_header_innernamespaces[hid] + innernamespaces
+							extracted_implementation = True
+							for tag in innernamespaces:
+								compounddef.remove(tag)
+								changed = True
+						sectiondefs = compounddef.findall('sectiondef')
+						if sectiondefs:
+							implementation_header_sectiondefs[hid] = implementation_header_sectiondefs[hid] + sectiondefs
+							extracted_implementation = True
+							for tag in sectiondefs:
+								compounddef.remove(tag)
+								changed = True
 
 			if changed:
 				write_xml_to_file(xml, xml_file)
@@ -1517,10 +1564,10 @@ def preprocess_xml(dir):
 				xml_file = os.path.join(dir, f'{hid}.xml')
 				print(f'Merging implementation nodes into {xml_file}')
 				xml = etree.parse(xml_file, parser=xml_parser)
-				root = xml.getroot().find('compounddef')
+				compounddef = xml.getroot().find('compounddef')
 				changed = False
 
-				innernamespaces = root.findall('innernamespace')
+				innernamespaces = compounddef.findall('innernamespace')
 				for new_tag in implementation_header_innernamespaces[hid]:
 					matched = False
 					for existing_tag in innernamespaces:
@@ -1528,11 +1575,11 @@ def preprocess_xml(dir):
 							matched = True
 							break
 					if not matched:
-						root.append(new_tag)
+						compounddef.append(new_tag)
 						innernamespaces.append(new_tag)
 						changed = True
 
-				sectiondefs = root.findall('sectiondef')
+				sectiondefs = compounddef.findall('sectiondef')
 				for new_section in implementation_header_sectiondefs[hid]:
 					matched_section = False
 					for existing_section in sectiondefs:
@@ -1556,7 +1603,7 @@ def preprocess_xml(dir):
 							break
 
 					if not matched_section:
-						root.append(new_section)
+						compounddef.append(new_section)
 						sectiondefs.append(new_section)
 						changed = True
 
@@ -1589,20 +1636,29 @@ def preprocess_xml(dir):
 
 
 
+def flatten_into_compiled_regex(regexes, pattern_prefix = '', pattern_suffix = ''):
+	regexes = [str(r) for r in regexes]
+	regexes.sort()
+	regexes = re.compile(pattern_prefix + '(?:' + '|'.join(regexes) + ')' + pattern_suffix)
+	return regexes
+
+
 def main():
 	global _thread_error
 	global _verbose
 	global _namespaces
 	global _inline_namespaces
+	global _enums
 	global _types
 	global _macros
 	global _string_literals
+	global _numeric_literals
 	global _auto_links
 	global _implementation_headers
 	global _badges
 	
 	args = ArgumentParser(description='Generate fancy C++ documentation.')
-	args.add_argument('config', type=Path, nargs='?', default=Path('./dox.toml'))
+	args.add_argument('config', type=Path, nargs='?', default=Path('.'))
 	args.add_argument('--verbose', '-v', action='store_true')
 	args.add_argument('--threads', type=int, nargs='?', default=os.cpu_count())
 	args.add_argument('--nocleanup', action='store_true')
@@ -1611,39 +1667,79 @@ def main():
 	vprint(" ".join(sys.argv))
 	vprint(args)
 
-	# get + check paths
-	config_path = args.config.resolve()
-	if not config_path.exists() and Path(str(config_path) + ".toml").exists():
+	# get config + doxyfile paths
+	tentative_config_path = args.config.resolve()
+	config = None
+	config_dir = None
+	config_path = None
+	doxyfile_path = None
+	if tentative_config_path.exists() and tentative_config_path.is_file():
+		if tentative_config_path.suffix.lower() == '.toml':
+			config_path = tentative_config_path
+		else:
+			doxyfile_path = tentative_config_path
+	elif Path(str(tentative_config_path) + ".toml").exists():
 		config_path = Path(str(config_path) + ".toml")
-	if config_path.is_dir():
-		config_path = Path(config_path, 'dox.toml')
-	config_dir = config_path.parent
+	elif tentative_config_path.is_dir():
+		if Path(tentative_config_path, 'dox.toml').exists():
+			config_path = Path(tentative_config_path, 'dox.toml')
+		elif Path(tentative_config_path, 'Doxyfile-mcss').exists():
+			doxyfile_path = Path(tentative_config_path, 'Doxyfile-mcss')
+		elif Path(tentative_config_path, 'Doxyfile').exists():
+			doxyfile_path = Path(tentative_config_path, 'Doxyfile')
+	if config_path:
+		config_dir = config_path.parent
+	elif doxyfile_path:
+		config_dir = doxyfile_path.parent
+	if not config_path and Path(config_dir, 'dox.toml').exists():
+		config_path = Path(config_dir, 'dox.toml')
+	if not doxyfile_path and Path(config_dir, 'Doxyfile-mcss').exists():
+		doxyfile_path = Path(config_dir, 'Doxyfile-mcss')
+	if not doxyfile_path and Path(config_dir, 'Doxyfile').exists():
+		doxyfile_path = Path(config_dir, 'Doxyfile')
+	assert_existing_directory(config_dir)
+	assert_existing_file(doxyfile_path)
+		
+	# get remaining paths
 	xml_dir = Path(config_dir, 'xml')
 	html_dir = Path(config_dir, 'html')
 	mcss_dir = Path(this_script_dir(), 'external/mcss')
-	assert_existing_file(config_path)
-	assert_existing_file(Path(config_dir, 'Doxyfile'))
-	assert_existing_file(Path(config_dir, 'Doxyfile-mcss'))
 	assert_existing_directory(mcss_dir)
 	assert_existing_file(Path(mcss_dir, 'documentation/doxygen.py'))
-	
-	# read config
-	config = pytomlpp.loads(read_all_text_from_file(config_path))
+
+	# read + check config
+	if config is None:
+		if config_path is not None:
+			assert_existing_file(config_path)	
+			config = pytomlpp.loads(read_all_text_from_file(config_path))
+		else:
+			config = dict()
 	if 'namespaces' in config:
-		_namespaces = tuple([ns for ns in _namespaces] + [str(ns) for ns in config['namespaces']])
+		for ns in config['namespaces']:
+			_namespaces.add(str(ns))
 		del config['namespaces']
 	if 'inline_namespaces' in config:
 		_inline_namespaces = tuple([str(ns) for ns in config['inline_namespaces']])
 		del config['inline_namespaces']
 	if 'types' in config:
-		_types = tuple([t for t in _types] + [str(t) for t in config['types']])
+		for t in config['types']:
+			_types.add(str(t))
 		del config['types']
+	if 'enums' in config:
+		for t in config['enums']:
+			_enums.add(str(t))
+		del config['enums']
 	if 'macros' in config:
 		_macros = tuple([m for m in _macros] + [str(m) for m in config['macros']])
 		del config['macros']
 	if 'string_literals' in config:
-		_string_literals = tuple([l for l in _string_literals] + [str(l) for l in config['string_literals']])
+		for lit in config['string_literals']:
+			_string_literals.add(str(lit))
 		del config['string_literals']
+	if 'numeric_literals' in config:
+		for lit in config['numeric_literals']:
+			_numeric_literals.add(str(lit))
+		del config['numeric_literals']
 	if 'auto_links' in config:
 		_auto_links = tuple([l for l in _auto_links] + [(ext[0], ext[1]) for ext in config['auto_links']])
 		del config['auto_links']
@@ -1664,7 +1760,7 @@ def main():
 	# run doxygen to generate the xml
 	if 1:
 		subprocess.run(
-			['doxygen', 'Doxyfile'],
+			['doxygen', str(doxyfile_path)],
 			check=True,
 			shell=True,
 			cwd=str(config_dir)
@@ -1674,12 +1770,16 @@ def main():
 	if 1:
 		preprocess_xml(xml_dir)
 
+	# compile some regex (xml preprocessing adds additional values to these lists)
+	_namespaces = flatten_into_compiled_regex(_namespaces, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
+	_types = flatten_into_compiled_regex(_types, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
+	_enums = flatten_into_compiled_regex(_enums, pattern_prefix='(?:::)?')
+	_string_literals = flatten_into_compiled_regex(_string_literals)
+	_numeric_literals = flatten_into_compiled_regex(_numeric_literals)	
+
 	# run doxygen.py (m.css) to generate the html
 	if 1:
-		doxy_args = [
-			str(Path(config_dir, 'Doxyfile-mcss')),
-			'--no-doxygen'
-		]
+		doxy_args = [str(doxyfile_path), '--no-doxygen']
 		if _verbose:
 			doxy_args.append('--debug')
 		run_python_script(
@@ -1734,12 +1834,5 @@ if __name__ == '__main__':
 		else:
 			sys.exit(int(result))
 	except Exception as err:
-		print(
-			'Fatal error: [{}] {}'.format(
-				type(err).__name__,
-				str(err)
-			),
-			file=sys.stderr
-		)
-		traceback.print_exc(file=sys.stderr)
+		print_exception(err, skip_frames=1)
 		sys.exit(-1)

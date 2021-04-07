@@ -64,11 +64,16 @@ a.dox-external
 {
 	font-weight: normal;
 }
-pre a.dox-external,
-pre a.dox-injected
+pre.m-code a,
+pre.m-console a
 {
 	font-weight: inherit !important;
 	color: inherit !important;
+}
+pre.m-code a:hover,
+pre.m-console a:hover
+{
+	text-decoration: underline !important;
 }
 
 .dox-enable-if
@@ -146,13 +151,26 @@ pre.m-code + pre.m-console span
 }
 
 /* "Parameters", "Returns", subheadings inside description blocks, etc */
-.m-doc-details div table.m-table th,
 .m-doc-details div > h4,
 .m-doc-details div > h5,
-.m-doc-details div > h6
+.m-doc-details div > h6,
+.m-doc-details div .m-table th,
+.m-doc-details div .m-table td h3,
+.m-doc-details div .m-table td h4,
+.m-doc-details div .m-table td h5,
+.m-doc-details div .m-table td h6,
+.m-doc-details div .m-table td > strong > em
 {
 	color: #a5c9ea;
 	font-style: normal;
+}
+.m-doc-details div .m-table td > strong > em
+{
+	display:block;
+}
+.m-doc-details div .m-table td > strong:not(:first-child) > em
+{
+	margin-top: 1.0rem;
 }
 
 /* comments */
@@ -162,11 +180,12 @@ pre.m-code + pre.m-console span
 	color: rgb(87,166,74) !important;
 }
 
-/* int and float literals */
+/* int and float literals, enum values */
 .m-code .mb,
 .m-code .mi,
 .m-code .mf,
-.m-code .mh
+.m-code .mh,
+.m-code .ne
 {
 	color: rgb(181,206,168);
 }
