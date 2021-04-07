@@ -154,21 +154,21 @@ pre.m-code + pre.m-console span
 .m-doc-details div > h4,
 .m-doc-details div > h5,
 .m-doc-details div > h6,
-.m-doc-details div .m-table th,
-.m-doc-details div .m-table td h3,
-.m-doc-details div .m-table td h4,
-.m-doc-details div .m-table td h5,
-.m-doc-details div .m-table td h6,
-.m-doc-details div .m-table td > strong > em
+.m-doc-details div > table.m-table th,
+.m-doc-details div > table.m-table td > h3,
+.m-doc-details div > table.m-table td > h4,
+.m-doc-details div > table.m-table td > h5,
+.m-doc-details div > table.m-table td > h6,
+.m-doc-details div > table.m-table td > strong > em
 {
 	color: #a5c9ea;
 	font-style: normal;
 }
-.m-doc-details div .m-table td > strong > em
+.m-doc-details div > table.m-table td > strong > em
 {
 	display:block;
 }
-.m-doc-details div .m-table td > strong:not(:first-child) > em
+.m-doc-details div > table.m-table td > strong:not(:first-child) > em
 {
 	margin-top: 1.0rem;
 }
