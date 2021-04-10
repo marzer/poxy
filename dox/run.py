@@ -4,189 +4,38 @@
 # See https://github.com/marzer/dox/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 
+try:
+	from dox.utils import *
+	import dox.doxygen as doxygen
+	import dox.soup as soup
+except:
+	from utils import *
+	import doxygen as doxygen
+	import soup as soup
+
 import sys
 import os
 import re
-import traceback
 import subprocess
-import random
 import concurrent.futures as futures
-import html
-import bs4 as soup
 import json
 import pytomlpp
-import shutil
-import fnmatch
-import requests
+import html
 from lxml import etree
-from io import BytesIO, StringIO
+from io import BytesIO
 from argparse import ArgumentParser
 from pathlib import Path
 
 
 
-#=== UTILITY FUNCTIONS =================================================================================================
+#=======================================================================================================================
+# GLOBALS
+#=======================================================================================================================
 
-
-
-def multi_sha256(*objs):
-	assert objs
-	h = hashlib.sha256()
-	for o in objs:
-		assert o is not None
-		h.update(str(o).encode('utf-8'))
-	return h.hexdigest()
-
-
-
-def read_all_text_from_file(path, fallback_url=None, encoding='utf-8'):
-	try:
-		print(f'Reading {path}')
-		with open(str(path), 'r', encoding=encoding) as f:
-			text = f.read()
-		return text
-	except:
-		if fallback_url is not None:
-			print(f"Couldn't read file locally, downloading from {fallback_url}")
-			response = requests.get(
-				fallback_url,
-				timeout=1
-			)
-			text = response.text
-			with open(str(path), 'w', encoding='utf-8', newline='\n') as f:
-				print(text, end='', file=f)
-			return text
-		else:
-			raise
-
-
-
-def is_collection(val):
-	if isinstance(val, (list, tuple, dict, set, range)):
-		return True
-	return False
-
-
-
-_script_folder = None
-def this_script_dir():
-	global _script_folder
-	if _script_folder is None:
-		_script_folder = Path(sys.argv[0]).resolve().parent
-	return _script_folder
-	
-
-
-_verbose = False
-def vprint(*args):
-	global _verbose
-	if _verbose:
-		print(*args)
-
-
-
-def print_exception(exc, skip_frames = 0):
-	buf = StringIO()
-	print(f'Error: [{type(exc).__name__}] {str(exc)}', file=buf)
-	tb = exc.__traceback__
-	while skip_frames > 0 and tb.tb_next is not None:
-		skip_frames = skip_frames - 1
-		tb = tb.tb_next
-	traceback.print_exception(type(exc), exc, tb, file=buf)
-	print(buf.getvalue(),file=sys.stderr, end='')
-
-
-
-def delete_directory(path):
-	assert path is not None
-	if not isinstance(path, Path):
-		path = Path(path)
-	if path.exists():
-		if not path.is_dir():
-			raise Exception(f'{path} was not a directory')
-		print(f'Deleting {path}')
-		shutil.rmtree(str(path.resolve()))
-
-
-
-def assert_existing_file(path):
-	assert path is not None
-	if not isinstance(path, Path):
-		path = Path(path)
-	if not (path.exists() and path.is_file()):
-		raise Exception(f'{path} did not exist or was not a file')
-
-
-
-def assert_existing_directory(path):
-	assert path is not None
-	if not isinstance(path, Path):
-		path = Path(path)
-	if not (path.exists() and path.is_dir()):
-		raise Exception(f'{path} did not exist or was not a directory')
-
-
-
-def run_python_script(path, *args, cwd=None):
-	assert path is not None
-	assert cwd is not None
-	if not isinstance(path, Path):
-		path = Path(path)
-	assert_existing_file(path)
-	subprocess.run(
-		['py' if shutil.which('py') is not None else 'python3', str(path)] + [arg for arg in args],
-		check=True,
-		cwd=str(cwd)
-	)
-
-
-
-def get_all_files(path, all=None, any=None):
-	assert path is not None
-	if not isinstance(path, Path):
-		path = Path(path)
-	if not path.exists():
-		return []
-	if not path.is_dir():
-		raise Exception(f'{path} was not a directory')
-	path = path.resolve()
-	files = [str(f) for f in path.iterdir() if f.is_file()]
-	if (files and all is not None):
-		if (not is_collection(all)):
-			all = (all,)
-		all = [f for f in all if f is not None]
-		for fil in all:
-			files = fnmatch.filter(files, fil)
-
-	if (files and any is not None):
-		if (not is_collection(any)):
-			any = (any,)
-		any = [f for f in any if f is not None]
-		if any:
-			results = set()
-			for fil in any:
-				results.update(fnmatch.filter(files, fil))
-			files = [f for f in results]
-	files.sort()
-	return [Path(f) for f in files]
-
-
-
-def copy_file(source, dest):
-	assert source is not None
-	assert dest is not None
-	if not isinstance(source, Path):
-		source = Path(source)
-	if not isinstance(dest, Path):
-		dest = Path(dest)
-	assert_existing_file(source)
-	shutil.copyfile(str(source), str(dest))
-
-
-
-#=== CONFIG ============================================================================================================
-
-
+_this_dir = Path(__file__).resolve().parent
+_project_name = ''
+_project_description = ''
+_project_github = ''
 _enums = {
 	r'(?:std::)?ios(?:_base)?::(?:app|binary|in|out|trunc|ate)'
 }
@@ -412,227 +261,61 @@ _badges = tuple()
 
 
 
-#=== HTML DOCUMENT =====================================================================================================
-
-
-
-class HTMLDocument(object):
-
-	def __init__(self, path):
-		self.__path = path
-		with open(path, 'r', encoding='utf-8') as f:
-			self.__doc = soup.BeautifulSoup(f, 'html5lib', from_encoding='utf-8')
-		self.head = self.__doc.head
-		self.body = self.__doc.body
-		self.table_of_contents = None
-		self.article_content = self.__doc.body.main.article.div.div.div
-		toc_candidates = self.article_content('div', class_='m-block m-default', recursive=False)
-		for div in toc_candidates:
-			if div.h3 and div.h3.string == 'Contents':
-				self.table_of_contents = div
-				break
-		self.sections = self.article_content('section', recursive=False)
-
-	def smooth(self):
-		self.__doc.smooth()
-
-	def flush(self):
-		with open(self.__path, 'w', encoding='utf-8', newline='\n') as f:
-			f.write(str(self.__doc))
-
-	def new_tag(self, name, parent=None, string=None, class_=None, index=None, before=None, after=None, **kwargs):
-		tag = self.__doc.new_tag(name, **kwargs)
-		if (string is not None):
-			if (tag.string is not None):
-				tag.string.replace_with(string)
-			else:
-				tag.string = soup.NavigableString(string)
-		if (class_ is not None):
-			tag['class'] = class_
-		if (before is not None):
-			before.insert_before(tag)
-		elif (after is not None):
-			after.insert_after(tag)
-		elif (parent is not None):
-			if (index is None or index < 0):
-				parent.append(tag)
-			else:
-				parent.insert(index, tag)
-
-		return tag
-
-	def find_all_from_sections(self, name=None, select=None, section=None, include_toc=False, **kwargs):
-		tags = []
-		sections = None
-		if (section is not None):
-			sections = self.article_content('section', recursive=False, id='section')
-		else:
-			sections = self.sections
-		if include_toc and self.table_of_contents is not None:
-			sections = [self.table_of_contents, *sections]
-		for sect in sections:
-			matches = sect(name, **kwargs) if name is not None else [ sect ]
-			if (select is not None):
-				newMatches = []
-				for match in matches:
-					newMatches += match.select(select)
-				matches = newMatches
-			tags += matches
-		return tags
-
-
-
-def html_find_parent(tag, names, cutoff=None):
-	if not is_collection(names):
-		names = ( names, )
-	parent = tag.parent
-	while (parent is not None):
-		if (cutoff is not None and parent is cutoff):
-			return None
-		if parent.name in names:
-			return parent;
-		parent = parent.parent
-	return parent
-
-
-
-def html_destroy_node(node):
-	assert node is not None
-	if (isinstance(node, soup.NavigableString)):
-		node.extract()
-	else:
-		node.decompose()
-
-
-
-def html_replace_tag(tag, new_tag_str):
-	newTags = []
-	if new_tag_str:
-		doc = soup.BeautifulSoup(new_tag_str, 'html5lib')
-		if (len(doc.body.contents) > 0):
-			newTags = [f for f in doc.body.contents]
-			newTags = [f.extract() for f in newTags]
-			prev = tag
-			for newTag in newTags:
-				prev.insert_after(newTag)
-				prev = newTag
-	html_destroy_node(tag)
-	return newTags
-
-
-
-def html_shallow_search(starting_tag, names, filter = None):
-	if isinstance(starting_tag, soup.NavigableString):
-		return []
-
-	if not is_collection(names):
-		names = ( names, )
-
-	if starting_tag.name in names:
-		if filter is None or filter(starting_tag):
-			return [ starting_tag ]
-
-	results = []
-	for tag in starting_tag.children:
-		if isinstance(tag, soup.NavigableString):
-			continue
-		if tag.name in names:
-			if filter is None or filter(tag):
-				results.append(tag)
-		else:
-			results = results + html_shallow_search(tag, names, filter)
-	return results
-
-
-
-def html_string_descendants(starting_tag, filter = None):
-	if isinstance(starting_tag, soup.NavigableString):
-		if filter is None or filter(starting_tag):
-			return [ starting_tag ]
-
-	results = []
-	for tag in starting_tag.children:
-		if isinstance(tag, soup.NavigableString):
-			if filter is None or filter(tag):
-				results.append(tag)
-		else:
-			results = results + html_string_descendants(tag, filter)
-	return results
-
-
-
-def html_add_class(tag, classes):
-	appended = False
-	if 'class' not in tag.attrs:
-		tag['class'] = []
-	if not is_collection(classes):
-		classes = (classes,)
-	for class_ in classes:
-		if class_ not in tag['class']:
-			tag['class'].append(class_)
-			appended = True
-	return appended
-
-
-
-def html_remove_class(tag, classes):
-	removed = False
-	if 'class' in tag.attrs:
-		if not is_collection(classes):
-			classes = (classes,)
-		for class_ in classes:
-			if class_ in tag['class']:
-				tag['class'].remove(class_)
-				removed = True
-		if removed and len(tag['class']) == 0:
-			del tag['class']
-	return removed
-
-
-
-def html_set_class(tag, classes):
-	tag['class'] = []
-	html_add_class(tag, classes)
-
-
-
-class RegexReplacer(object):
-
-	def __substitute(self, m):
-		self.__result = True
-		return self.__handler(m, self.__out_data)
-
-	def __init__(self, regex, handler, value):
-		self.__handler = handler
-		self.__result = False
-		self.__out_data = []
-		self.__value = regex.sub(lambda m: self.__substitute(m), value)
-
-	def __str__(self):
-		return self.__value
-
-	def __bool__(self):
-		return self.__result
-
-	def __len__(self):
-		return len(self.__out_data)
-
-	def __getitem__(self, index):
-		return self.__out_data[index]
-
-
 #=======================================================================================================================
-
-
+# HTML FIXERS
+#=======================================================================================================================
 
 # allows the injection of custom tags using square-bracketed proxies.
 class CustomTagsFix(object):
 	__double_tags = re.compile(r"\[\s*(span|div|aside|code|pre|h1|h2|h3|h4|h5|h6|em|strong|b|i|u|li|ul|ol)(.*?)\s*\](.*?)\[\s*/\1\s*\]", re.I | re.S)
 	__single_tags = re.compile(r"\[\s*(/?(?:span|div|aside|code|pre|emoji|(?:parent_)?set_name|(?:parent_)?(?:add|remove|set)_class|br|li|ul|ol|(?:html)?entity))(\s+[^\]]+?)?\s*\]", re.I | re.S)
 	__allowed_parents = ('dd', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'aside', 'td')
+	__emoji_uri = re.compile(r".+unicode/([0-9a-fA-F]+)[.]png.*", re.I)
 	__emojis = None
 	__emoji_codepoints = None
-	__emoji_uri = re.compile(r".+unicode/([0-9a-fA-F]+)[.]png.*", re.I)
+
+	@classmethod
+	def __class_init__(cls):
+		if cls.__emojis is not None:
+			return
+		global _this_dir
+		file_path = Path(_this_dir.parent, 'emojis_v2.json')
+		cls.__emojis = json.loads(read_all_text_from_file(file_path, 'https://api.github.com/emojis'))
+		if '__processed' not in cls.__emojis:
+			emojis = {}
+			cls.__emoji_codepoints = set()
+			for key, uri in cls.__emojis.items():
+				m2 = cls.__emoji_uri.fullmatch(uri)
+				if m2:
+					cp = int(m2[1], 16)
+					emojis[key] = [ cp, uri ]
+					cls.__emoji_codepoints.add(cp)
+			aliases = [
+				('sundae', 'ice_cream'),
+				('info', 'information_source')
+			]
+			for alias, key in aliases:
+				emojis[alias] = emojis[key]
+			emojis['__codepoints'] = [cp for cp in cls.__emoji_codepoints]
+			emojis['__processed'] = True
+			print(rf'Writing {file_path}')
+			with open(file_path, 'w', encoding='utf-8', newline='\n') as f:
+				f.write(json.dumps(emojis, sort_keys=True, indent=4))
+			cls.__emojis = emojis
+		cls.__emoji_codepoints = set()
+		for cp in cls.__emojis['__codepoints']:
+			cls.__emoji_codepoints.add(cp)
+
+	def __init__(self):
+		self.__class_init__()
+
+	@classmethod
+	def emoji(cls, vals=None):
+		if vals is None:
+			return (cls.__emojis, cls.__emoji_codepoints)
+		else:
+			cls.__emojis = vals[0]
+			cls.__emoji_codepoints = vals[1]
 
 	@classmethod
 	def __double_tags_substitute(cls, m, out):
@@ -656,33 +339,6 @@ class CustomTagsFix(object):
 			tag_content = tag_content.lower()
 			if not tag_content:
 				return ''
-			if cls.__emojis is None:
-				file_path = os.path.join(this_script_dir(), 'emojis_v2.json')
-				cls.__emojis = json.loads(read_all_text_from_file(file_path, 'https://api.github.com/emojis'))
-				if '__processed' not in cls.__emojis:
-					emojis = {}
-					cls.__emoji_codepoints = set()
-					for key, uri in cls.__emojis.items():
-						m2 = cls.__emoji_uri.fullmatch(uri)
-						if m2:
-							cp = int(m2[1], 16)
-							emojis[key] = [ cp, uri ]
-							cls.__emoji_codepoints.add(cp)
-					aliases = [
-						('sundae', 'ice_cream'),
-						('info', 'information_source')
-					]
-					for alias, key in aliases:
-						emojis[alias] = emojis[key]
-					emojis['__codepoints'] = [cp for cp in cls.__emoji_codepoints]
-					emojis['__processed'] = True
-					with open(file_path, 'w', encoding='utf-8', newline='\n') as f:
-						f.write(json.dumps(emojis, sort_keys=True, indent=4))
-					cls.__emojis = emojis
-			if cls.__emoji_codepoints is None:
-				cls.__emoji_codepoints = set()
-				for cp in cls.__emojis['__codepoints']:
-					cls.__emoji_codepoints.add(cp)
 			for base in (16, 10):
 				try:
 					cp = int(tag_content, base)
@@ -710,7 +366,7 @@ class CustomTagsFix(object):
 		else:
 			return f'<{m[1]}{(" " + tag_content) if tag_content else ""}>'
 
-	def __call__(self, dir, file, doc):
+	def __call__(self, doc):
 		changed = False
 		changed_this_pass = True
 		while changed_this_pass:
@@ -718,37 +374,37 @@ class CustomTagsFix(object):
 			for name in self.__allowed_parents:
 				tags = doc.article_content.find_all(name)
 				for tag in tags:
-					if tag.decomposed or len(tag.contents) == 0 or html_find_parent(tag, 'a', doc.article_content) is not None:
+					if tag.decomposed or len(tag.contents) == 0 or soup.find_parent(tag, 'a', doc.article_content) is not None:
 						continue
 					replacer = RegexReplacer(self.__double_tags, self.__double_tags_substitute, str(tag))
 					if replacer:
 						changed_this_pass = True
-						html_replace_tag(tag, str(replacer))
+						soup.replace_tag(tag, str(replacer))
 						continue
 					replacer = RegexReplacer(self.__single_tags, self.__single_tags_substitute, str(tag))
 					if replacer:
 						changed_this_pass = True
 						parent = tag.parent
-						new_tags = html_replace_tag(tag, str(replacer))
+						new_tags = soup.replace_tag(tag, str(replacer))
 						for i in range(len(replacer)):
 							if replacer[i][0].startswith('parent_'):
 								if parent is None:
 									continue
 								if replacer[i][0] == 'parent_add_class':
-									html_add_class(parent, replacer[i][1])
+									soup.add_class(parent, replacer[i][1])
 								elif replacer[i][0] == 'parent_remove_class':
-									html_remove_class(parent, replacer[i][1])
+									soup.remove_class(parent, replacer[i][1])
 								elif replacer[i][0] == 'parent_set_class':
-									html_set_class(parent, replacer[i][1])
+									soup.set_class(parent, replacer[i][1])
 								elif replacer[i][0] == 'parent_set_name':
 									parent.name = replacer[i][1]
 							elif len(new_tags) == 1 and not isinstance(new_tags[0], soup.NavigableString):
 								if replacer[i][0] == 'add_class':
-									html_add_class(new_tags[0], replacer[i][1])
+									soup.add_class(new_tags[0], replacer[i][1])
 								elif replacer[i][0] == 'remove_class':
-									html_remove_class(new_tags[0], replacer[i][1])
+									soup.remove_class(new_tags[0], replacer[i][1])
 								elif replacer[i][0] == 'set_class':
-									html_set_class(new_tags[0], replacer[i][1])
+									soup.set_class(new_tags[0], replacer[i][1])
 								elif replacer[i][0] == 'set_name':
 									new_tags[0].name = replacer[i][1]
 
@@ -796,7 +452,7 @@ class ModifiersFix1(ModifiersFixBase):
 	def __substitute(cls, m, out):
 		return f'{m[1]}<span class="dox-injected m-label m-flat {cls._modifierClasses[m[2]]}">{m[2]}</span>{m[3]}'
 
-	def __call__(self, dir, file, doc):
+	def __call__(self, doc):
 		changed = False
 		for sect in self.__sections:
 			tags = doc.find_all_from_sections('dt', select='span.m-doc-wrap', section=sect)
@@ -804,7 +460,7 @@ class ModifiersFix1(ModifiersFixBase):
 				replacer = RegexReplacer(self.__expression, self.__substitute, str(tag))
 				if (replacer):
 					changed = True
-					html_replace_tag(tag, str(replacer))
+					soup.replace_tag(tag, str(replacer))
 		return changed
 
 
@@ -823,7 +479,7 @@ class ModifiersFix2(ModifiersFixBase):
 		matches.append(m[1])
 		return ' '
 
-	def __call__(self, dir, file, doc):
+	def __call__(self, doc):
 		changed = False
 		sections = doc.find_all_from_sections(section=False) # all sections without an id
 		section = None
@@ -842,7 +498,7 @@ class ModifiersFix2(ModifiersFixBase):
 				bumperContent = self.__expression.sub(lambda m: self.__substitute(m, matches), str(bumper))
 				if (matches):
 					changed = True
-					html_replace_tag(bumper, bumperContent)
+					soup.replace_tag(bumper, bumperContent)
 					lastInserted = end.find('span')
 					for match in matches:
 						lastInserted = doc.new_tag('span',
@@ -863,9 +519,9 @@ class ModifiersFix2(ModifiersFixBase):
 # applies some basic fixes to index.html
 class IndexPageFix(object):
 
-	def __call__(self, dir, file, doc):
+	def __call__(self, doc):
 		global _badges
-		if file != 'index.html':
+		if doc.path.name.lower() != 'index.html':
 			return False
 		parent = doc.article_content
 		banner = parent.find('img')
@@ -880,7 +536,7 @@ class IndexPageFix(object):
 					else:
 						anchor = doc.new_tag('a', parent=parent, href=href, target='_blank')
 						doc.new_tag('img', parent=anchor, src=src, alt=alt)
-				html_add_class(banner, 'main_page_banner')
+				soup.add_class(banner, 'main_page_banner')
 			return True
 		return False
 
@@ -945,7 +601,7 @@ class CodeBlockFix(object):
 		full_str = ''.join([tag.get_text() for tag in tags])
 
 		if _enums.fullmatch(full_str):
-			html_set_class(tags[-1], 'ne')
+			soup.set_class(tags[-1], 'ne')
 			del tags[-1]
 			while tags and tags[-1].string == '::':
 				del tags[-1]
@@ -954,7 +610,7 @@ class CodeBlockFix(object):
 			return True
 
 		if _types.fullmatch(full_str):
-			html_set_class(tags[-1], 'ut')
+			soup.set_class(tags[-1], 'ut')
 			del tags[-1]
 			while tags and tags[-1].string == '::':
 				del tags[-1]
@@ -974,8 +630,8 @@ class CodeBlockFix(object):
 			while len(tags) > 1:
 				tags.pop().decompose()
 			tags[0].string = full_str
-			if html_remove_class(tags[0], ('n', 'nl', 'kt')):
-				html_add_class(tags[0], 'ns')
+			if soup.remove_class(tags[0], ('n', 'nl', 'kt')):
+				soup.add_class(tags[0], 'ns')
 			return True
 
 		return False
@@ -986,7 +642,7 @@ class CodeBlockFix(object):
 		for expr in _macros:
 			self.__macros.append(re.compile(expr))
 
-	def __call__(self, dir, file, doc):
+	def __call__(self, doc):
 		global _string_literals
 		global _numeric_literals
 
@@ -1022,9 +678,9 @@ class CodeBlockFix(object):
 					for tag in tags:
 						string = string + tag.get_text()
 					mlc_open.string = string
-					html_set_class(mlc_open, 'cm')
+					soup.set_class(mlc_open, 'cm')
 					while len(tags) > 1:
-						html_destroy_node(tags.pop())
+						soup.destroy_node(tags.pop())
 
 					mlc_open = next_open
 
@@ -1090,10 +746,10 @@ class CodeBlockFix(object):
 						or 'class' not in prev.attrs):
 						continue
 					if ('s' in prev['class'] and _string_literals.fullmatch(span.get_text())):
-						html_set_class(span, 'sa')
+						soup.set_class(span, 'sa')
 						changed_this_block = True
 					elif (prev['class'][0] in ('mf', 'mi', 'mb', 'mh') and _numeric_literals.fullmatch(span.get_text())):
-						html_set_class(span, prev['class'][0])
+						soup.set_class(span, prev['class'][0])
 						changed_this_block = True
 
 				# preprocessor macros
@@ -1143,7 +799,7 @@ class CodeBlockFix(object):
 				if (not parent.contents
 					or (len(parent.contents) == 1
 						and parent.contents[0].string.strip() == '')):
-					html_destroy_node(parent)
+					soup.destroy_node(parent)
 
 			changed = changed or changed_this_pass
 
@@ -1180,7 +836,7 @@ class AutoDocLinksFix(object):
 		external = uri.startswith('http')
 		return rf'''<a href="{uri}" class="m-doc dox-injected{' dox-external' if external else ''}"{' target="_blank"' if external else ''}>{m[0]}</a>'''
 
-	def __call__(self, dir, file, doc):
+	def __call__(self, doc):
 		changed = False
 
 		# first check all existing doc links to make sure they aren't erroneously linked to the wrong thing
@@ -1192,9 +848,9 @@ class AutoDocLinksFix(object):
 				for expr, uri in self.__expressions:
 					if ((not link.has_attr('href') or link['href'] != uri) and expr.fullmatch(s)):
 						link['href'] = uri
-						html_set_class(link, ['m-doc', 'dox-injected'])
+						soup.set_class(link, ['m-doc', 'dox-injected'])
 						if uri.startswith('http'):
-							html_add_class(link, 'dox-external')
+							soup.add_class(link, 'dox-external')
 						done = True
 						changed = True
 						break
@@ -1203,10 +859,10 @@ class AutoDocLinksFix(object):
 
 		# now search the document for any other potential links
 		if 1:
-			tags = html_shallow_search(doc.article_content, self.__allowedNames, lambda t: html_find_parent(t, 'a', doc.article_content) is None)
+			tags = soup.shallow_search(doc.article_content, self.__allowedNames, lambda t: soup.find_parent(t, 'a', doc.article_content) is None)
 			strings = []
 			for tag in tags:
-				strings = strings + html_string_descendants(tag, lambda t: html_find_parent(t, 'a', tag) is None)
+				strings = strings + soup.string_descendants(tag, lambda t: soup.find_parent(t, 'a', tag) is None)
 			for expr, uri in self.__expressions:
 				i = 0
 				while i < len(strings):
@@ -1216,13 +872,13 @@ class AutoDocLinksFix(object):
 					if replacer:
 						repl_str = str(replacer)
 						begins_with_ws = len(repl_str) > 0 and repl_str[:1].isspace()
-						new_tags = html_replace_tag(string, repl_str)
+						new_tags = soup.replace_tag(string, repl_str)
 						if (begins_with_ws and new_tags[0].string is not None and not new_tags[0].string[:1].isspace()):
 							new_tags[0].insert_before(' ')
 						changed = True
 						del strings[i]
 						for tag in new_tags:
-							strings = strings + html_string_descendants(tag, lambda t: html_find_parent(t, 'a', parent) is None)
+							strings = strings + soup.string_descendants(tag, lambda t: soup.find_parent(t, 'a', parent) is None)
 						continue
 					i = i + 1
 		return changed
@@ -1241,7 +897,7 @@ class LinksFix(object):
 	__internal_doc_id_href = re.compile(r'^#([a-fA-F0-9]+)$')
 	__godbolt = re.compile(r'^\s*https[:]//godbolt.org/z/.+?$', re.I)
 
-	def __call__(self, dir, file, doc):
+	def __call__(self, doc):
 		changed = False
 		for anchor in doc.body('a', recursive=True):
 			if 'href' not in anchor.attrs:
@@ -1252,13 +908,13 @@ class LinksFix(object):
 				if 'target' not in anchor.attrs or anchor['target'] != '_blank':
 					anchor['target'] = '_blank'
 					changed = True
-				changed = html_add_class(anchor, 'dox-external') or changed
+				changed = soup.add_class(anchor, 'dox-external') or changed
 
 				# do magic with godbolt.org links
 				if self.__godbolt.fullmatch(anchor['href']):
-					changed = html_add_class(anchor, 'godbolt') or changed
+					changed = soup.add_class(anchor, 'godbolt') or changed
 					if anchor.parent.name == 'p' and len(anchor.parent.contents) == 1:
-						changed = html_add_class(anchor.parent, ('m-note', 'm-success', 'godbolt')) or changed
+						changed = soup.add_class(anchor.parent, ('m-note', 'm-success', 'godbolt')) or changed
 						if anchor.parent.next_sibling is not None and anchor.parent.next_sibling.name == 'pre':
 							code_block = anchor.parent.next_sibling
 							code_block.insert(0, anchor.parent.extract())
@@ -1268,8 +924,8 @@ class LinksFix(object):
 			if 'class' in anchor.attrs and 'm-doc' in anchor['class']:
 				m = self.__internal_doc_id_href.fullmatch(anchor['href'])
 				if m is not None and doc.body.find(id=m[1], recursive=True) is None:
-					html_remove_class(anchor, 'm-doc')
-					html_add_class(anchor, 'm-doc-self')
+					soup.remove_class(anchor, 'm-doc')
+					soup.add_class(anchor, 'm-doc-self')
 					anchor['href'] = '#'
 					parent_with_id = anchor.find_parent(id=True)
 					while parent_with_id is not None:
@@ -1296,12 +952,12 @@ class TemplateTemplateFix(object):
 	def __substitute(cls, m):
 		return f'{m[1]}<br>\n{m[2]}'
 
-	def __call__(self, dir, file, doc):
+	def __call__(self, doc):
 		changed = False
 		for template in doc.body('div', class_='m-doc-template'):
 			replacer = RegexReplacer(self.__expression, lambda m, out: self.__substitute(m), str(template))
 			if replacer:
-				html_replace_tag(template, str(replacer))
+				soup.replace_tag(template, str(replacer))
 				changed = True
 		return changed
 
@@ -1316,21 +972,21 @@ class DeadLinksFix(object):
 
 	__href = re.compile(r'^([-_a-zA-Z0-9]+\.html?)(?:#(.*))?$')
 
-	def __call__(self, dir, file, doc):
+	def __call__(self, doc):
 		changed = False
 		for anchor in doc.body('a', recursive=True):
 			match = self.__href.fullmatch(anchor['href'])
-			if match and not os.path.exists(os.path.join(dir, match[1])):
-				html_remove_class(anchor, 'm-doc')
+			if match and not Path(doc.path.parent, match[1]).exists():
+				soup.remove_class(anchor, 'm-doc')
 				if anchor.parent is not None and anchor.parent.name in ('dt', 'div'):
-					html_add_class(anchor, 'm-doc-self')
+					soup.add_class(anchor, 'm-doc-self')
 					id = None
 					if 'id' in anchor.parent.attrs:
 						id = anchor.parent['id']
 					else:
 						id = match[2]
 						if not id:
-							id = f'{multi_sha256(match[1], anchor.string)}'
+							id = f'{sha1(match[1], anchor.string)}'
 						anchor.parent['id'] = id
 					anchor['href'] = f'#{id}'
 				changed = True
@@ -1339,79 +995,30 @@ class DeadLinksFix(object):
 
 
 #=======================================================================================================================
+# PRE/POST PROCESSORS
+#=======================================================================================================================
+
+def _preprocess_doxyfile(path):
+	# global _project_name
+	# global _project_description
+	# global _project_github
+
+	with doxygen.Doxyfile(path, temp=True) as f:
+		path = f.path
+
+		# .. do stuff
+
+	return path
 
 
 
-_thread_error = False
-def postprocess_file(dir, file, fixes):
-
-	global _thread_error
-	if (_thread_error):
-		return False
-	print(f'Post-processing {file}')
-	changed = False
-
-	try:
-		doc = HTMLDocument(os.path.join(dir, file))
-		file = file.lower()
-		for fix in fixes:
-			if fix(dir, file, doc):
-				doc.smooth()
-				changed = True
-		if (changed):
-			doc.flush()
-
-	except Exception as err:
-		print_exception(err)
-		_thread_error = True
-
-	return changed
-
-
-
-# this is a lightweight version of doxygen's escapeCharsInString()
-# (see https://github.com/doxygen/doxygen/blob/master/src/util.cpp)
-def doxygen_mangle_name(name):
-	assert name is not None
-
-	name = name.replace('_', '__')
-	name = name.replace(':', '_1')
-	name = name.replace('/', '_2')
-	name = name.replace('<', '_3')
-	name = name.replace('>', '_4')
-	name = name.replace('*', '_5')
-	name = name.replace('&', '_6')
-	name = name.replace('|', '_7')
-	name = name.replace('.', '_8')
-	name = name.replace('!', '_9')
-	name = name.replace(',', '_00')
-	name = name.replace(' ', '_01')
-	name = name.replace('{', '_02')
-	name = name.replace('}', '_03')
-	name = name.replace('?', '_04')
-	name = name.replace('^', '_05')
-	name = name.replace('%', '_06')
-	name = name.replace('(', '_07')
-	name = name.replace(')', '_08')
-	name = name.replace('+', '_09')
-	name = name.replace('=', '_0a')
-	name = name.replace('$', '_0b')
-	name = name.replace('\\','_0c')
-	name = name.replace('@', '_0d')
-	name = name.replace(']', '_0e')
-	name = name.replace('[', '_0f')
-	name = name.replace('#', '_0g')
-	name = re.sub(r'[A-Z]', lambda m: '_' + m[0].lower(), name)
-	return name
-
-
-
-def preprocess_xml(dir):
+def _preprocess_xml(dir):
 	global _namespaces
 	global _inline_namespaces
 	global _types
 	global _enums
 	global _implementation_headers
+	assert dir is not None
 
 	pretty_print_xml = False
 
@@ -1426,7 +1033,7 @@ def preprocess_xml(dir):
 
 	inline_namespace_ids = None
 	if _inline_namespaces:
-		inline_namespace_ids = [f'namespace{doxygen_mangle_name(ns)}' for ns in _inline_namespaces]
+		inline_namespace_ids = [f'namespace{doxygen.mangle_name(ns)}' for ns in _inline_namespaces]
 
 	implementation_header_data = None
 	implementation_header_mappings = None
@@ -1437,8 +1044,8 @@ def preprocess_xml(dir):
 			(
 				hp,
 				os.path.basename(hp),
-				doxygen_mangle_name(os.path.basename(hp)),
-				[(i, os.path.basename(i), doxygen_mangle_name(os.path.basename(i))) for i in impl]
+				doxygen.mangle_name(os.path.basename(hp)),
+				[(i, os.path.basename(i), doxygen.mangle_name(os.path.basename(i))) for i in impl]
 			)
 			for hp, impl in _implementation_headers
 		]
@@ -1636,16 +1243,136 @@ def preprocess_xml(dir):
 
 
 
-def flatten_into_compiled_regex(regexes, pattern_prefix = '', pattern_suffix = ''):
-	regexes = [str(r) for r in regexes]
-	regexes.sort()
-	regexes = re.compile(pattern_prefix + '(?:' + '|'.join(regexes) + ')' + pattern_suffix)
-	return regexes
+def _postprocess_html_init_globals(vals):
+	global _project_name
+	global _project_description
+	global _project_github
+	global _namespaces
+	global _inline_namespaces
+	global _enums
+	global _types
+	global _macros
+	global _string_literals
+	global _numeric_literals
+	global _auto_links
+	global _implementation_headers
+	global _badges
+
+	_project_name = vals[r'_project_name']
+	_project_description = vals[r'_project_description']
+	_project_github = vals[r'_project_github']
+	_namespaces = vals[r'_namespaces']
+	_inline_namespaces = vals[r'_inline_namespaces']
+	_enums = vals[r'_enums']
+	_types = vals[r'_types']
+	_macros = vals[r'_macros']
+	_string_literals = vals[r'_string_literals']
+	_numeric_literals = vals[r'_numeric_literals']
+	_auto_links = vals[r'_auto_links']
+	_implementation_headers = vals[r'_implementation_headers']
+	_badges = vals[r'_badges']
+	verbose(vals[r'verbose'])
+	CustomTagsFix.emoji(vals[r'emoji'])
 
 
-def main():
-	global _thread_error
-	global _verbose
+
+def _postprocess_html_file(path, fixes):
+	assert path is not None
+	assert path.exists()
+	assert fixes is not None
+
+	print(f'Post-processing {path}')
+	changed = False
+	doc = soup.HTMLDocument(path)
+	for fix in fixes:
+		if fix(doc):
+			doc.smooth()
+			changed = True
+	if (changed):
+		doc.flush()
+	return changed
+
+
+
+def _postprocess_html(dir, threads=-1):
+	assert dir is not None
+
+	files = get_all_files(dir, any=('*.html', '*.htm'))
+	if not files:
+		return
+
+	threads = min(4, os.cpu_count(), len(files)) if threads <= 0 else max(1, min(32, os.cpu_count(), len(files), threads))
+	
+	with ScopeTimer(rf'Post-processing {len(files)} HTML files on {threads} threads'):
+		fixes = (
+			DeadLinksFix()
+			, CustomTagsFix()
+			, CodeBlockFix()
+			, IndexPageFix()
+			, ModifiersFix1()
+			, ModifiersFix2()
+			, AutoDocLinksFix()
+			, LinksFix()
+			, TemplateTemplateFix()
+		)
+
+		vprint(rf'Post-processing {len(files)} HTML files on {threads} threads...')
+		if threads > 1:
+			global _project_name
+			global _project_description
+			global _project_github
+			global _namespaces
+			global _inline_namespaces
+			global _enums
+			global _types
+			global _macros
+			global _string_literals
+			global _numeric_literals
+			global _auto_links
+			global _implementation_headers
+			global _badges
+
+			vals = {
+				r'_project_name' : _project_name,
+				r'_project_description' : _project_description,
+				r'_project_github' : _project_github,
+				r'_namespaces' : _namespaces,
+				r'_inline_namespaces' : _inline_namespaces,
+				r'_enums' : _enums,
+				r'_types' : _types,
+				r'_macros' : _macros,
+				r'_string_literals' : _string_literals,
+				r'_numeric_literals' : _numeric_literals,
+				r'_auto_links' : _auto_links,
+				r'_implementation_headers' : _implementation_headers,
+				r'_badges' : _badges,
+				r'verbose' : verbose(),
+				r'emoji' : CustomTagsFix.emoji()
+			}
+			with futures.ProcessPoolExecutor(max_workers=threads, initializer=_postprocess_html_init_globals, initargs=(vals,)) as executor:
+				jobs = [ executor.submit(_postprocess_html_file, file, fixes) for file in files ]
+				for future in futures.as_completed(jobs):
+					try:
+						future.result()
+					except:
+						executor.shutdown(wait=False, cancel_futures=True)
+						raise
+
+		else:
+			for file in files:
+				_postprocess_html_file(file, fixes)
+
+
+
+#=======================================================================================================================
+# RUN
+#=======================================================================================================================
+
+def run(config_path='.', threads=-1, cleanup=True):
+	global _this_dir
+	global _project_name
+	global _project_description
+	global _project_github
 	global _namespaces
 	global _inline_namespaces
 	global _enums
@@ -1657,21 +1384,16 @@ def main():
 	global _implementation_headers
 	global _badges
 	
-	args = ArgumentParser(description='Generate fancy C++ documentation.')
-	args.add_argument('config', type=Path, nargs='?', default=Path('.'))
-	args.add_argument('--verbose', '-v', action='store_true')
-	args.add_argument('--threads', type=int, nargs='?', default=os.cpu_count())
-	args.add_argument('--nocleanup', action='store_true')
-	args = args.parse_args()
-	_verbose = args.verbose
-	vprint(" ".join(sys.argv))
-	vprint(args)
+	if config_path is None:
+		config_path = Path('.')
+	if not isinstance(config_path, Path):
+		config_path = Path(str(config_path))
 
 	# get config + doxyfile paths
-	tentative_config_path = args.config.resolve()
-	config = None
-	config_dir = None
+	tentative_config_path = config_path.resolve()
 	config_path = None
+	config_dir = None
+	config = None
 	doxyfile_path = None
 	if tentative_config_path.exists() and tentative_config_path.is_file():
 		if tentative_config_path.suffix.lower() == '.toml':
@@ -1681,39 +1403,58 @@ def main():
 	elif Path(str(tentative_config_path) + ".toml").exists():
 		config_path = Path(str(config_path) + ".toml")
 	elif tentative_config_path.is_dir():
+		config_dir = tentative_config_path
 		if Path(tentative_config_path, 'dox.toml').exists():
 			config_path = Path(tentative_config_path, 'dox.toml')
 		elif Path(tentative_config_path, 'Doxyfile-mcss').exists():
 			doxyfile_path = Path(tentative_config_path, 'Doxyfile-mcss')
 		elif Path(tentative_config_path, 'Doxyfile').exists():
 			doxyfile_path = Path(tentative_config_path, 'Doxyfile')
-	if config_path:
-		config_dir = config_path.parent
-	elif doxyfile_path:
-		config_dir = doxyfile_path.parent
-	if not config_path and Path(config_dir, 'dox.toml').exists():
-		config_path = Path(config_dir, 'dox.toml')
-	if not doxyfile_path and Path(config_dir, 'Doxyfile-mcss').exists():
-		doxyfile_path = Path(config_dir, 'Doxyfile-mcss')
-	if not doxyfile_path and Path(config_dir, 'Doxyfile').exists():
-		doxyfile_path = Path(config_dir, 'Doxyfile')
+	if config_dir is None:
+		if config_path:
+			config_dir = config_path.parent
+		elif doxyfile_path:
+			config_dir = doxyfile_path.parent
+	if config_dir is not None:
+		if config_path is None and Path(config_dir, 'dox.toml').exists():
+			config_path = Path(config_dir, 'dox.toml')
+		if doxyfile_path is None and Path(config_dir, 'Doxyfile-mcss').exists():
+			doxyfile_path = Path(config_dir, 'Doxyfile-mcss')
+		if doxyfile_path is None and Path(config_dir, 'Doxyfile').exists():
+			doxyfile_path = Path(config_dir, 'Doxyfile')
+
+	if doxyfile_path is None:
+		eprint(rf"Could not find Doxyfile or Doxyfile-mcss relative to {tentative_config_path}.")
+		return False
+	if not (doxyfile_path.exists() and doxyfile_path.is_file()):
+		eprint(rf"{doxyfile_path} did not exist or was not a file.")
+		return False
 	assert_existing_directory(config_dir)
-	assert_existing_file(doxyfile_path)
 		
 	# get remaining paths
 	xml_dir = Path(config_dir, 'xml')
 	html_dir = Path(config_dir, 'html')
-	mcss_dir = Path(this_script_dir(), 'external/mcss')
+	mcss_dir = Path(_this_dir.parent, 'external/mcss')
 	assert_existing_directory(mcss_dir)
 	assert_existing_file(Path(mcss_dir, 'documentation/doxygen.py'))
 
 	# read + check config
 	if config is None:
 		if config_path is not None:
-			assert_existing_file(config_path)	
+			assert_existing_file(config_path)
 			config = pytomlpp.loads(read_all_text_from_file(config_path))
 		else:
 			config = dict()
+
+	if 'name' in config:
+		_project_name = str(config['name'])
+		del config['name']
+	if 'description' in config:
+		_project_description = str(config['description'])
+		del config['description']
+	if 'github' in config:
+		_project_github = str(config['github'])
+		del config['github']
 	if 'namespaces' in config:
 		for ns in config['namespaces']:
 			_namespaces.add(str(ns))
@@ -1750,89 +1491,94 @@ def main():
 		_implementation_headers = tuple([tuple(h) for h in config['implementation_headers']])
 		del config['implementation_headers']
 	for k, v in config.items():
-		print(rf'WARNING: Unknown top-level config property {k}')
+		eprint(rf'WARNING: Unknown top-level config property {k}')
 	
-	# delete any leftovers from the previous run
-	if 1:
-		delete_directory(xml_dir)
-		delete_directory(html_dir)
+	with ScopeTimer('All tasks') as all_tasks_timer:
 
-	# run doxygen to generate the xml
-	if 1:
-		subprocess.run(
-			['doxygen', str(doxyfile_path)],
-			check=True,
-			shell=True,
-			cwd=str(config_dir)
-		)
+		# delete any leftovers from the previous run
+		if 1:
+			delete_directory(xml_dir)
+			delete_directory(html_dir)
 
-	# fix some shit that's broken in the xml
-	if 1:
-		preprocess_xml(xml_dir)
+		# copy the doxyfile to preprocess it separately
+		doxyfile_path = _preprocess_doxyfile(doxyfile_path)
+		try:
 
-	# compile some regex (xml preprocessing adds additional values to these lists)
-	_namespaces = flatten_into_compiled_regex(_namespaces, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
-	_types = flatten_into_compiled_regex(_types, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
-	_enums = flatten_into_compiled_regex(_enums, pattern_prefix='(?:::)?')
-	_string_literals = flatten_into_compiled_regex(_string_literals)
-	_numeric_literals = flatten_into_compiled_regex(_numeric_literals)	
+			# run doxygen to generate the xml
+			if 1:
+				with ScopeTimer('Generating XML files with Doxygen') as t:
+					subprocess.run(
+						['doxygen', str(doxyfile_path)],
+						check=True,
+						shell=True,
+						cwd=str(config_dir)
+					)
 
-	# run doxygen.py (m.css) to generate the html
-	if 1:
-		doxy_args = [str(doxyfile_path), '--no-doxygen']
-		if _verbose:
-			doxy_args.append('--debug')
-		run_python_script(
-			Path(mcss_dir, 'documentation/doxygen.py'),
-			*doxy_args,
-			cwd=config_dir
-		)
-		
-	# copy additional files
-	if 1:
-		copy_file(Path(mcss_dir, 'css/m-dark+documentation.compiled.css'), Path(html_dir, 'm-dark+documentation.compiled.css'))
-		copy_file(Path(this_script_dir(), 'dox.css'), Path(html_dir, 'dox.css'))
-		copy_file(Path(this_script_dir(), 'github-icon.png'), Path(html_dir, 'github-icon.png'))
+			# fix some shit that's broken in the xml
+			if 1:
+				with ScopeTimer('Pre-processing XML files') as t:
+					_preprocess_xml(xml_dir)
 
-	# delete the xml
-	if not args.nocleanup:
-		delete_directory(xml_dir)
+			# compile some regex (xml preprocessing adds additional values to these lists)
+			_namespaces = regex_or(_namespaces, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
+			_types = regex_or(_types, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
+			_enums = regex_or(_enums, pattern_prefix='(?:::)?')
+			_string_literals = regex_or(_string_literals)
+			_numeric_literals = regex_or(_numeric_literals)	
 
-	# post-process html files
-	if 1:
-		fixes = [
-			DeadLinksFix()
-			, CustomTagsFix()
-			, CodeBlockFix()
-			, IndexPageFix()
-			, ModifiersFix1()
-			, ModifiersFix2()
-			, AutoDocLinksFix()
-			, LinksFix()
-			, TemplateTemplateFix()
-		]
-		files = [os.path.split(str(f)) for f in get_all_files(html_dir, any=('*.html', '*.htm'))]
-		if files:
-			with futures.ThreadPoolExecutor(max_workers=max(1, min(64, args.threads))) as executor:
-				jobs = { executor.submit(postprocess_file, dir, file, fixes) : file for dir, file in files }
-				for job in futures.as_completed(jobs):
-					if _thread_error:
-						executor.shutdown(False)
-						break
-					else:
-						file = jobs[job]
-						print(f'Finished processing {file}.')
-			if _thread_error:
-				return 1
+			# run doxygen.py (m.css) to generate the html
+			if 1:
+				with ScopeTimer('Generating HTML files with m.css') as t:
+					doxy_args = [str(doxyfile_path), '--no-doxygen']
+					if verbose():
+						doxy_args.append('--debug')
+					run_python_script(
+						Path(mcss_dir, 'documentation/doxygen.py'),
+						*doxy_args,
+						cwd=config_dir
+					)
+				
+			# copy additional files
+			if 1:
+				copy_file(Path(mcss_dir, 'css/m-dark+documentation.compiled.css'), Path(html_dir, 'm-dark+documentation.compiled.css'))
+				copy_file(Path(_this_dir.parent, 'dox.css'), Path(html_dir, 'dox.css'))
+				copy_file(Path(_this_dir.parent, 'github-icon.png'), Path(html_dir, 'github-icon.png'))
+
+			# delete the xml
+			if cleanup:
+				delete_directory(xml_dir)
+
+			# post-process html files
+			if 1:
+				_postprocess_html(html_dir, threads=threads)
+
+		# delete the temp doxyfile
+		finally:
+			if cleanup:
+				delete_file(doxyfile_path)
 
 
-if __name__ == '__main__':
+
+def main():
 	try:
-		result = main()
-		if result is None:
+		args = ArgumentParser(description='Generate fancy C++ documentation.')
+		args.add_argument('config', type=Path, nargs='?', default=Path('.'))
+		args.add_argument('--verbose', '-v', action='store_true')
+		args.add_argument('--threads', type=int, nargs='?', default=-1)
+		args.add_argument('--nocleanup', action='store_true')
+		args = args.parse_args()
+		verbose(args.verbose)
+
+		result = run(config_path=args.config, threads=args.threads, cleanup=not args.nocleanup)
+		if result is None or bool(result):
 			sys.exit(0)
 		else:
-			sys.exit(int(result))
+			sys.exit(1)
 	except Exception as err:
 		print_exception(err, skip_frames=1)
 		sys.exit(-1)
+
+
+
+if __name__ == '__main__':
+	main()
