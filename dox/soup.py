@@ -26,7 +26,7 @@ def find_parent(tag, names, cutoff=None):
 		if (cutoff is not None and parent is cutoff):
 			return None
 		if parent.name in names:
-			return parent;
+			return parent
 		parent = parent.parent
 	return parent
 
@@ -140,7 +140,6 @@ class HTMLDocument(object):
 
 	def __init__(self, path):
 		self.path = path
-		vprint(rf'Reading {path}')
 		with open(self.path, 'r', encoding='utf-8') as f:
 			self.__doc = bs4.BeautifulSoup(f, 'html5lib', from_encoding='utf-8')
 		self.head = self.__doc.head
@@ -158,7 +157,7 @@ class HTMLDocument(object):
 		self.__doc.smooth()
 
 	def flush(self):
-		vprint(rf'Writing {self.path}')
+		print(rf'Writing {self.path}')
 		with open(self.path, 'w', encoding='utf-8', newline='\n') as f:
 			f.write(str(self.__doc))
 

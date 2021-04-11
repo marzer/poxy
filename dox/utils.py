@@ -29,35 +29,23 @@ def is_collection(val):
 
 
 
-__verbose = False
-def verbose(val = None):
-	global __verbose
-	if val is not None:
-		__verbose = bool(val)
-	return __verbose
-
-
-
-def vprint(*args):
-	global __verbose
-	if __verbose:
-		print(*args)
-
-
-
 def eprint(*args):
 	print(*args, file=sys.stderr)
 
 
 
-def print_exception(exc, skip_frames = 0, file=sys.stderr):
+def print_exception(exc, file=sys.stderr, include_type = False, include_traceback=False, skip_frames = 0):
 	buf = StringIO()
-	print(f'Error: [{type(exc).__name__}] {exc}', file=buf)
-	tb = exc.__traceback__
-	while skip_frames > 0 and tb.tb_next is not None:
-		skip_frames = skip_frames - 1
-		tb = tb.tb_next
-	traceback.print_exception(type(exc), exc, tb, file=buf)
+	print(rf'Error: ', file=buf, end='')
+	if include_type:
+		print(rf'{type(exc).__name__}: ', file=buf, end='')
+	print(str(exc), file=buf)
+	if include_traceback:
+		tb = exc.__traceback__
+		while skip_frames > 0 and tb.tb_next is not None:
+			skip_frames = skip_frames - 1
+			tb = tb.tb_next
+		traceback.print_exception(type(exc), exc, tb, file=buf)
 	print(buf.getvalue(),file=file, end='')
 
 
@@ -198,13 +186,11 @@ def read_all_text_from_file(path, fallback_url=None, encoding='utf-8'):
 
 def run_python_script(path, *args, cwd=None):
 	assert path is not None
-	if cwd is not None:
-		cwd = str(cwd)
 	assert_existing_file(path)
 	subprocess.run(
 		['py' if shutil.which('py') is not None else 'python3', str(path)] + [arg for arg in args],
 		check=True,
-		cwd=cwd
+		cwd=path.cwd() if cwd is None else cwd
 	)
 
 
@@ -219,11 +205,14 @@ def sha1(*objs):
 
 
 
-def regex_or(regexes, pattern_prefix = '', pattern_suffix = ''):
-	regexes = [str(r) for r in regexes]
-	regexes.sort()
-	regexes = re.compile(pattern_prefix + '(?:' + '|'.join(regexes) + ')' + pattern_suffix)
-	return regexes
+def regex_or(patterns, pattern_prefix = '', pattern_suffix = '', flags=0):
+	patterns = [str(r) for r in patterns]
+	patterns.sort()
+	pattern = ''
+	if patterns:
+		pattern = '(?:(?:' + ')|(?:'.join(patterns) + '))'
+	patterns = re.compile(pattern_prefix + pattern + pattern_suffix, flags=flags)
+	return patterns
 
 
 
@@ -233,9 +222,8 @@ def regex_or(regexes, pattern_prefix = '', pattern_suffix = ''):
 
 class ScopeTimer(object):
 
-	def __init__(self, scope, verbose_only=False):
+	def __init__(self, scope):
 		self.__scope = str(scope)
-		self.__print = vprint if verbose_only else print
 
 	def __enter__(self):
 		self.__start = time.perf_counter_ns()
@@ -246,7 +234,7 @@ class ScopeTimer(object):
 			micros = int(nanos / 1000)
 			nanos = int(nanos % 1000)
 			micros = float(micros) + float(nanos) / 1000.0
-			self.__print(rf'{self.__scope} completed in {timedelta(microseconds=micros)}.')
+			print(rf'{self.__scope} completed in {timedelta(microseconds=micros)}.')
 
 
 
