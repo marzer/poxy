@@ -53,15 +53,22 @@ def mangle_name(name):
 	name = re.sub(r'[A-Z]', lambda m: '_' + m[0].lower(), name)
 	return name
 
-def extract_value(doxyfile_text, key):
-	m = re.search(rf'^\s*{key}\s*=\s*(.+?)\s*$', doxyfile_text, flags=re.M)
+def extract_value(doxyfile_text, key, fallback=None):
+	pattern = re.compile(rf'^\s*{key}\s*=\s*(.*?)\s*$', flags=re.M)
+	m = pattern.search(doxyfile_text)
 	while m:
-		n = re.search(rf'^\s*{key}\s*=\s*(.+?)\s*$', doxyfile_text[m.end():], flags=re.M)
-		if n:
-			m = n
+		doxyfile_text = doxyfile_text[m.end():]
+		n = pattern.search(doxyfile_text)
+		if not n:
+			break
+		m = n
 	if m:
-		return m[1].strip(' "')
-	return None
+		val = m[1].strip(' "')
+		return val if val else fallback
+	return fallback
+
+def extract_boolean(doxyfile_text, key):
+	return extract_value(doxyfile_text, key, fallback='NO').upper() == 'YES'
 
 #=======================================================================================================================
 # Doxyfile
@@ -147,6 +154,8 @@ class Doxyfile(object):
 		(r'SOURCE_BROWSER',			r'NO'),
 		(r'TAB_SIZE',				r'4'),
 		(r'TYPEDEF_HIDES_STRUCT',	r'NO'),
+		(r'WARN_IF_DOC_ERROR',		r'YES'),
+		(r'WARN_IF_INCOMPLETE_DOC',	r'YES'),
 		(r'XML_NS_MEMB_FILE_SCOPE',	r'YES'),
 		(r'XML_OUTPUT',				r'xml'),
 		(r'XML_PROGRAMLISTING',		r'NO')
@@ -208,22 +217,46 @@ class Doxyfile(object):
 			write(r'## marzer/dox')
 			write(r'##==========================================================================')
 			if context:
+
 				if context.name:
 					write(rf'PROJECT_NAME           = "{context.name}"')
 				else:
-					context.name = extract_value(text, 'PROJECT_NAME')
+					context.name = extract_value(text, 'PROJECT_NAME', fallback='')
+
 				if context.description:
 					write(rf'PROJECT_BRIEF          = "{context.description}"')
 				else:
-					context.name = extract_value(text, 'PROJECT_BRIEF')
-			if context and context.generate_tagfile is not None:
-				if context.generate_tagfile:
-					if context.name:
-						write(rf'GENERATE_TAGFILE       = {context.name.replace(" ","_")}.tag')
-					else:
-						write(rf'GENERATE_TAGFILE       = tagfile.tag')
+					context.description = extract_value(text, 'PROJECT_BRIEF', fallback='')
+
+				if context.show_includes is not None:
+					write(rf'SHOW_INCLUDE_FILES     = {"YES" if context.show_includes else "NO"}')
 				else:
-					write(rf'GENERATE_TAGFILE       =')
+					context.show_includes = extract_boolean(text, 'SHOW_INCLUDE_FILES')
+
+				if context.warnings.enabled is not None:
+					write(rf'WARNINGS               = {"YES" if context.warnings.enabled else "NO"}')
+				else:
+					context.warnings.enabled = extract_boolean(text, 'WARNINGS')
+
+				if context.warnings.treat_as_errors is not None:
+					write(rf'WARN_AS_ERROR          = {"YES" if context.warnings.treat_as_errors else "NO"}')
+				else:
+					context.warnings.treat_as_errors = extract_boolean(text, 'WARN_AS_ERROR')
+
+				if context.warnings.undocumented is not None:
+					write(rf'WARN_IF_UNDOCUMENTED   = {"YES" if context.warnings.undocumented else "NO"}')
+				else:
+					context.warnings.undocumented = extract_boolean(text, 'WARN_IF_UNDOCUMENTED')
+
+				if context.generate_tagfile is not None:
+					if context.generate_tagfile:
+						if context.name:
+							write(rf'GENERATE_TAGFILE       = {context.name.replace(" ","_")}.tag')
+						else:
+							write(rf'GENERATE_TAGFILE       = tagfile.tag')
+					else:
+						write(rf'GENERATE_TAGFILE       =')
+
 			write( r'LOOKUP_CACHE_SIZE      = 2')
 			write(rf'NUM_PROC_THREADS       = {context.threads}')
 			write(rf'OUTPUT_DIRECTORY       = "."')
@@ -231,8 +264,6 @@ class Doxyfile(object):
 			write(rf'CLANG_OPTIONS         += -Wno-everything')
 			for k, v in self.__default_overrides:
 				write(rf'{k:<23}= {v}')
-			if context.show_includes is not None:
-				write(rf'SHOW_INCLUDE_FILES     = {"YES" if context.show_includes else "NO"}')
 			if context and context.tagfiles:
 				write()
 				for k, v in context.tagfiles.items():
@@ -240,9 +271,10 @@ class Doxyfile(object):
 			write()
 			for k, v in self.__aliases:
 				write(rf'ALIASES               += "{k}={v}"')
-			write()
-			for k, v in context.defines:
-				write(rf'PREDEFINED            += "{k}={v}"')
+			if context and context.defines:
+				write()
+				for k, v in context.defines:
+					write(rf'PREDEFINED            += "{k}={v}"')
 			if text.find('M_LINKS_NAVBAR1') == -1:
 				write()
 				write(r'##! M_LINKS_NAVBAR1            = ''\\')
@@ -254,7 +286,7 @@ class Doxyfile(object):
 				write(r'##!     annotated ', end='')
 				if context and context.github:
 					write('\\')
-					write(rf'##!     "<a target=\"_blank\" href=\"{context.github}\" class=\"github\">Github</a>"')
+					write(rf'##!     "<a target=\"_blank\" href=\"https://github.com/{context.github}/\" class=\"github\">Github</a>"')
 				else:
 					write()
 			if text.find('M_CLASS_TREE_EXPAND_LEVELS') == -1:

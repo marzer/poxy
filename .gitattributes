@@ -14,6 +14,7 @@
 *.hxx              text         eol=lf      encoding=UTF-8
 *.ini              text         eol=lf      encoding=UTF-8
 *.inl              text         eol=lf      encoding=UTF-8
+*.json             text         eol=lf      encoding=UTF-8
 *.md               text         eol=lf      encoding=UTF-8
 *.natvis           text         eol=lf      encoding=UTF-8
 *.props            text         eol=lf      encoding=UTF-8

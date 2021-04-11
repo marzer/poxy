@@ -107,23 +107,23 @@ def _preprocess_xml(context):
 				for scope in scopes:
 					scope_name = scope.find('name').text
 					if scope.get('kind') in ('class', 'struct', 'union'):
-						context.types.add(scope_name)
+						context.highlighting.types.add(scope_name)
 					elif scope.get('kind') == 'namespace':
-						context.namespaces.add(scope_name)
+						context.highlighting.namespaces.add(scope_name)
 					# nested enums
 					enums = [tag for tag in scope.findall('member') if tag.get('kind') in ('enum', 'enumvalue')]
 					enum_name = ''
 					for enum in enums:
 						if enum.get('kind') == 'enum':
 							enum_name = rf'{scope_name}::{enum.find("name").text}'
-							context.types.add(enum_name)
+							context.highlighting.types.add(enum_name)
 						else:
 							assert enum_name
-							context.enums.add(rf'{enum_name}::{enum.find("name").text}')
+							context.highlighting.enums.add(rf'{enum_name}::{enum.find("name").text}')
 					# nested typedefs
 					typedefs = [tag for tag in scope.findall('member') if tag.get('kind') == 'typedef']
 					for typedef in typedefs:
-						context.types.add(rf'{scope_name}::{typedef.find("name").text}')
+						context.highlighting.types.add(rf'{scope_name}::{typedef.find("name").text}')
 
 			# some other compound definition
 			else:
@@ -384,12 +384,12 @@ def run(config_path='.', threads=-1, cleanup=True, cwd='.', verbose=False, mcss_
 
 			# compile regexes
 			# (done here because doxygen and xml preprocessing adds additional values to these lists)
-			context.namespaces = regex_or(context.namespaces, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
-			context.types = regex_or(context.types, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
-			context.enums = regex_or(context.enums, pattern_prefix='(?:::)?')
-			context.string_literals = regex_or(context.string_literals)
-			context.numeric_literals = regex_or(context.numeric_literals)
-			context.macros = regex_or(context.macros)
+			context.highlighting.namespaces = regex_or(context.highlighting.namespaces, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
+			context.highlighting.types = regex_or(context.highlighting.types, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
+			context.highlighting.enums = regex_or(context.highlighting.enums, pattern_prefix='(?:::)?')
+			context.highlighting.string_literals = regex_or(context.highlighting.string_literals)
+			context.highlighting.numeric_literals = regex_or(context.highlighting.numeric_literals)
+			context.highlighting.macros = regex_or(context.highlighting.macros)
 			context.autolinks = tuple([(re.compile('(?<![a-zA-Z_])' + expr + '(?![a-zA-Z_])'), uri) for expr, uri in context.autolinks])
 
 			# run doxygen.py (m.css) to generate the html
@@ -407,8 +407,8 @@ def run(config_path='.', threads=-1, cleanup=True, cwd='.', verbose=False, mcss_
 			# copy additional files
 			if 1:
 				copy_file(Path(context.mcss_dir, 'css/m-dark+documentation.compiled.css'), Path(context.html_dir, 'm-dark+documentation.compiled.css'))
-				copy_file(Path(context.dox_dir, 'dox.css'), Path(context.html_dir, 'dox.css'))
-				copy_file(Path(context.dox_dir, 'github-icon.png'), Path(context.html_dir, 'github-icon.png'))
+				copy_file(Path(context.data_dir, 'dox.css'), Path(context.html_dir, 'dox.css'))
+				copy_file(Path(context.data_dir, 'github-icon.png'), Path(context.html_dir, 'github-icon.png'))
 
 			# delete the xml
 			if context.cleanup:

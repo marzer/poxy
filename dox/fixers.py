@@ -311,7 +311,7 @@ class CodeBlockFix(object):
 		assert len(tags) == 1 or tags[-1].string != '::'
 		full_str = ''.join([tag.get_text() for tag in tags])
 
-		if context.enums.fullmatch(full_str):
+		if context.highlighting.enums.fullmatch(full_str):
 			soup.set_class(tags[-1], 'ne')
 			del tags[-1]
 			while tags and tags[-1].string == '::':
@@ -320,7 +320,7 @@ class CodeBlockFix(object):
 				cls.__colourize_compound_def(tags, context)
 			return True
 
-		if context.types.fullmatch(full_str):
+		if context.highlighting.types.fullmatch(full_str):
 			soup.set_class(tags[-1], 'ut')
 			del tags[-1]
 			while tags and tags[-1].string == '::':
@@ -329,7 +329,7 @@ class CodeBlockFix(object):
 				cls.__colourize_compound_def(tags, context)
 			return True
 
-		while not context.namespaces.fullmatch(full_str):
+		while not context.highlighting.namespaces.fullmatch(full_str):
 			del tags[-1]
 			while tags and tags[-1].string == '::':
 				del tags[-1]
@@ -447,17 +447,17 @@ class CodeBlockFix(object):
 						or isinstance(prev, soup.NavigableString)
 						or 'class' not in prev.attrs):
 						continue
-					if ('s' in prev['class'] and context.string_literals.fullmatch(span.get_text())):
+					if ('s' in prev['class'] and context.highlighting.string_literals.fullmatch(span.get_text())):
 						soup.set_class(span, 'sa')
 						changed_this_block = True
-					elif (prev['class'][0] in ('mf', 'mi', 'mb', 'mh') and context.numeric_literals.fullmatch(span.get_text())):
+					elif (prev['class'][0] in ('mf', 'mi', 'mb', 'mh') and context.highlighting.numeric_literals.fullmatch(span.get_text())):
 						soup.set_class(span, prev['class'][0])
 						changed_this_block = True
 
 				# preprocessor macros
 				spans = code_block('span', class_=('n', 'nl', 'kt', 'nc', 'nf'), string=True)
 				for span in spans:
-					if context.macros.fullmatch(span.get_text()):
+					if context.highlighting.macros.fullmatch(span.get_text()):
 						soup.set_class(span, 'm')
 						changed_this_block = True
 

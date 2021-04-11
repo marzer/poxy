@@ -478,12 +478,104 @@ class _Defaults(object):
 	}
 	tagfiles = dict()
 
+class _Warnings(object):
+	def __init__(self, config):
+		self.enabled = None
+		self.treat_as_errors = None
+		self.undocumented = None
+
+		if 'warnings' not in config:
+			return
+		vals = config['warnings']
+
+		if 'enabled' in vals:
+			self.treat_as_errors = bool(vals['enabled'])
+			del vals['enabled']
+
+		if 'treat_as_errors' in vals:
+			self.treat_as_errors = bool(vals['treat_as_errors'])
+			del vals['treat_as_errors']
+
+		if 'undocumented' in vals:
+			self.treat_as_errors = bool(vals['undocumented'])
+			del vals['undocumented']
+
+		for k, v in vals.items():
+			raise Exception(rf"Unknown config property 'warnings.{k}'")
+		del config['warnings']
+
+class _Highlighting(object):
+	def __init__(self, config, defines):
+		self.types = copy.deepcopy(_Defaults.types)
+		self.macros = copy.deepcopy(_Defaults.macros)
+		self.string_literals = copy.deepcopy(_Defaults.string_literals)
+		self.numeric_literals = copy.deepcopy(_Defaults.numeric_literals)
+		self.enums = copy.deepcopy(_Defaults.enums)
+		self.namespaces = copy.deepcopy(_Defaults.namespaces)
+
+		if 'highlighting' in config:
+			vals = config['highlighting']
+
+			if 'types' in vals:
+				for t in vals['types']:
+					type_ = str(t).strip()
+					if type_:
+						self.types.add(type_)
+				del vals['types']
+
+			if 'macros' in vals:
+				for m in vals['macros']:
+					macro = str(m).strip()
+					if macro:
+						self.macros.add(macro)
+				del vals['macros']
+
+			if 'string_literals' in vals:
+				for lit in vals['string_literals']:
+					literal = str(lit).strip()
+					if literal:
+						self.string_literals.add(literal)
+				del vals['string_literals']
+
+			if 'numeric_literals' in vals:
+				for lit in vals['numeric_literals']:
+					literal = str(lit).strip()
+					if literal:
+						self.numeric_literals.add(literal)
+				del vals['numeric_literals']
+
+			if 'enums' in vals:
+				for e in vals['enums']:
+					enum = str(e).strip()
+					if enum:
+						self.enums.add(enum)
+				del vals['enums']
+
+			if 'namespaces' in vals:
+				for ns in vals['namespaces']:
+					namespace = str(ns).strip()
+					if namespace:
+						self.namespaces.add(namespace)
+				del vals['namespaces']
+
+			for k, v in vals.items():
+				raise Exception(rf"Unknown config property 'highlighting.{k}'")
+			del config['highlighting']
+
+		for k, v in defines:
+			define = k
+			bracket = define.find('(')
+			if bracket != -1:
+				define = define[:bracket].strip()
+			if define:
+				self.macros.add(define)
+
 class Context(object):
 
 	__emoji = None
 	__emoji_codepoints = None
 	__emoji_uri = re.compile(r".+unicode/([0-9a-fA-F]+)[.]png.*", re.I)
-	__cached_data_lock = threading.Lock()
+	__data_files_lock = threading.Lock()
 
 	def is_verbose(self):
 		return self.__verbose
@@ -524,15 +616,20 @@ class Context(object):
 				self.verbose(v)
 		else:
 			self.verbose(val)
-		
+
+	def verbose_object(self, name, obj):
+		if not self.__verbose:
+			return
+		for k, v in obj.__dict__.items():
+			self.verbose_value(rf'{name}.{k}', v)
 
 	@classmethod
-	def __init_cached_data_files(cls, cache_dir):
-		cls.__cached_data_lock.acquire()
+	def __init_data_files(cls, data_dir):
+		cls.__data_files_lock.acquire()
 		try:
-			cache_dir.mkdir(exist_ok=True)
+			data_dir.mkdir(exist_ok=True)
 			if cls.__emoji is None:
-				file_path = Path(cache_dir, 'emojis.json')
+				file_path = Path(data_dir, 'emoji.json')
 				cls.__emoji = json.loads(read_all_text_from_file(file_path, 'https://api.github.com/emojis'))
 				if '__processed' not in cls.__emoji:
 					emoji = {}
@@ -553,29 +650,29 @@ class Context(object):
 					emoji['__processed'] = True
 					print(rf'Writing {file_path}')
 					with open(file_path, 'w', encoding='utf-8', newline='\n') as f:
-						f.write(json.dumps(emoji, sort_keys=True, indent=4))
+						print(json.dumps(emoji, sort_keys=True, indent=4), file=f)
 					cls.__emoji = emoji
 				cls.__emoji_codepoints = set()
 				for cp in cls.__emoji['__codepoints']:
 					cls.__emoji_codepoints.add(cp)
 		finally:
-			cls.__cached_data_lock.release()
+			cls.__data_files_lock.release()
 
 	def __init__(self, config_path, threads, cleanup, cwd, verbose, mcss_dir, temp_file_name):
 
 		self.__verbose = bool(verbose)
 
 		self.cleanup = bool(cleanup)
-		self.verbose_value(rf'Context.cleanup', self.cleanup)
+		self.verbose_value(r'Context.cleanup', self.cleanup)
 
 		self.temp_file_name = str(temp_file_name).strip() if temp_file_name is not None else None
-		self.verbose_value(rf'Context.temp_file_name', self.temp_file_name)
+		self.verbose_value(r'Context.temp_file_name', self.temp_file_name)
 
 		threads = int(threads)
 		if threads <= 0:
 			threads = os.cpu_count()
 		self.threads = max(1, min(32, os.cpu_count(), threads))
-		self.verbose_value(rf'Context.threads', self.threads)
+		self.verbose_value(r'Context.threads', self.threads)
 
 		self.fixers = None
 
@@ -584,17 +681,18 @@ class Context(object):
 			
 			# environment
 			self.this_dir = Path(__file__).resolve().parent
-			self.verbose_value(rf'Context.this_dir', self.this_dir)
+			self.verbose_value(r'Context.this_dir', self.this_dir)
+			self.data_dir = Path(self.this_dir, 'data')
+			self.verbose_value(r'Context.data_dir', self.data_dir)
 			self.dox_dir = self.this_dir.parent
-			self.verbose_value(rf'Context.dox_dir', self.dox_dir)
+			self.verbose_value(r'Context.dox_dir', self.dox_dir)
 			if cwd is None:
 				cwd = Path.cwd()
 			if not isinstance(cwd, Path):
 				cwd = Path(str(cwd))
 			self.cwd = cwd.resolve()
-			self.verbose_value(rf'Context.cwd', self.cwd)
+			self.verbose_value(r'Context.cwd', self.cwd)
 			assert self.cwd.is_absolute()
-
 
 			# config + doxyfile
 			config_dir = None
@@ -640,14 +738,14 @@ class Context(object):
 			assert self.doxyfile_path is not None
 			if self.doxyfile_path.exists() and not self.doxyfile_path.is_file():
 				raise Exception(rf'{doxyfile_path} was not a file')
-			self.verbose_value(rf'Context.doxyfile_path', self.doxyfile_path)
-			self.verbose_value(rf'Context.config_path', self.config_path)
+			self.verbose_value(r'Context.doxyfile_path', self.doxyfile_path)
+			self.verbose_value(r'Context.config_path', self.config_path)
 
 			# output folders
 			self.xml_dir = Path(self.cwd, 'xml')
 			self.html_dir = Path(self.cwd, 'html')
-			self.verbose_value(rf'Context.xml_dir', self.xml_dir)
-			self.verbose_value(rf'Context.html_dir', self.html_dir)
+			self.verbose_value(r'Context.xml_dir', self.xml_dir)
+			self.verbose_value(r'Context.html_dir', self.html_dir)
 
 			# m.css
 			if mcss_dir is None:
@@ -659,7 +757,7 @@ class Context(object):
 			assert_existing_directory(mcss_dir)
 			assert_existing_file(Path(mcss_dir, 'documentation/doxygen.py'))
 			self.mcss_dir = mcss_dir
-			self.verbose_value(rf'Context.mcss_dir', self.mcss_dir)
+			self.verbose_value(r'Context.mcss_dir', self.mcss_dir)
 
 		# read + check config
 		if 1:
@@ -667,6 +765,9 @@ class Context(object):
 			if self.config_path is not None:
 				assert_existing_file(self.config_path)
 				config = pytomlpp.loads(read_all_text_from_file(self.config_path))
+
+			self.warnings = _Warnings(config)
+			self.verbose_object(r'Context.warnings', self.warnings)
 
 			self.name = ''
 			if 'name' in config:
@@ -678,7 +779,7 @@ class Context(object):
 			if 'description' in config:
 				self.description = str(config['description']).strip()
 				del config['description']
-			self.verbose_value(rf'Context.description', self.description)
+			self.verbose_value(r'Context.description', self.description)
 
 			self.cpp = 2020
 			if 'cpp' in config:
@@ -692,13 +793,13 @@ class Context(object):
 					else:
 						raise Exception(rf"'{config['cpp']}' is not a valid cpp standard version")
 				del config['cpp']
-			self.verbose_value(rf'Context.cpp', self.cpp)
+			self.verbose_value(r'Context.cpp', self.cpp)
 
 			self.github = ''
 			if 'github' in config:
-				self.github = str(config['github']).strip()
+				self.github = str(config['github']).strip().replace('\\', '/').strip('/')
 				del config['github']
-			self.verbose_value(rf'Context.github', self.github)
+			self.verbose_value(r'Context.github', self.github)
 
 			self.tagfiles = copy.deepcopy(_Defaults.tagfiles)
 			if 'tagfiles' in config:
@@ -712,10 +813,10 @@ class Context(object):
 						file = Path(self.cwd, file)
 					self.tagfiles[str(file)] = uri
 				del config['tagfiles']
-			self.tagfiles[str(Path(self.dox_dir, r'cppreference-doxygen-web.tag.xml'))] = r'http://en.cppreference.com/w/'
+			self.tagfiles[str(Path(self.data_dir, r'cppreference-doxygen-web.tag.xml'))] = r'http://en.cppreference.com/w/'
 			for k, v in self.tagfiles.items():
 				assert_existing_file(k)
-			self.verbose_value(rf'Context.tagfiles', self.tagfiles)
+			self.verbose_value(r'Context.tagfiles', self.tagfiles)
 
 			self.defines = copy.deepcopy(_Defaults.defines)
 			if 'defines' in config:
@@ -734,7 +835,7 @@ class Context(object):
 			for k, v in cpp_defs.items():
 				self.defines.append((k, v))
 			self.defines = tuple(self.defines)
-			self.verbose_value(rf'Context.defines', self.defines)
+			self.verbose_value(r'Context.defines', self.defines)
 
 			self.inline_namespaces = copy.deepcopy(_Defaults.inline_namespaces)
 			if 'inline_namespaces' in config:
@@ -743,7 +844,7 @@ class Context(object):
 					if namespace:
 						self.inline_namespaces.add(namespace)
 				del config['inline_namespaces']
-			self.verbose_value(rf'Context.inline_namespaces', self.inline_namespaces)
+			self.verbose_value(r'Context.inline_namespaces', self.inline_namespaces)
 
 			default_autolinks = [(k, v) for k, v in _Defaults.autolinks.items()]
 			user_autolinks = []
@@ -756,7 +857,7 @@ class Context(object):
 			default_autolinks.sort(key = lambda v: len(v[0]), reverse=True)
 			user_autolinks.sort(key = lambda v: len(v[0]), reverse=True)
 			self.autolinks = tuple(user_autolinks + default_autolinks)
-			self.verbose_value(rf'Context.autolinks', self.autolinks)
+			self.verbose_value(r'Context.autolinks', self.autolinks)
 
 			self.badges = []
 			if 'badges' in config:
@@ -783,92 +884,22 @@ class Context(object):
 			if 'show_includes' in config:
 				self.show_includes = bool(config['show_includes'])
 				del config['show_includes']
-			self.verbose_value(rf'Context.show_includes', self.show_includes)
+			self.verbose_value(r'Context.show_includes', self.show_includes)
 
 			self.generate_tagfile = None
 			if 'generate_tagfile' in config:
 				self.generate_tagfile = bool(config['generate_tagfile'])
 				del config['generate_tagfile']
-			self.verbose_value(rf'Context.generate_tagfile', self.generate_tagfile)
+			self.verbose_value(r'Context.generate_tagfile', self.generate_tagfile)
 
-
-			if 'syntax_highlighting' in config:
-				
-				syntax = config['syntax_highlighting']
-
-				self.types = copy.deepcopy(_Defaults.types)
-				if 'types' in syntax:
-					for t in syntax['types']:
-						type_ = str(t).strip()
-						if type_:
-							self.types.add(type_)
-					del syntax['types']
-				self.verbose_value(rf'Context.types', self.types)
-
-				self.macros = copy.deepcopy(_Defaults.macros)
-				if 'macros' in syntax:
-					for m in syntax['macros']:
-						macro = str(m).strip()
-						if macro:
-							self.macros.add(macro)
-					del syntax['macros']
-				for k, v in self.defines:
-					define = k
-					bracket = define.find('(')
-					if bracket != -1:
-						define = define[:bracket].strip()
-					if define:
-						self.macros.add(define)
-				self.verbose_value(rf'Context.macros', self.macros)
-
-				self.string_literals = copy.deepcopy(_Defaults.string_literals)
-				if 'string_literals' in syntax:
-					for lit in syntax['string_literals']:
-						literal = str(lit).strip()
-						if literal:
-							self.string_literals.add(literal)
-					del syntax['string_literals']
-				self.verbose_value(rf'Context.string_literals', self.string_literals)
-
-				self.numeric_literals = copy.deepcopy(_Defaults.numeric_literals)
-				if 'numeric_literals' in syntax:
-					for lit in syntax['numeric_literals']:
-						literal = str(lit).strip()
-						if literal:
-							self.numeric_literals.add(literal)
-					del syntax['numeric_literals']
-				self.verbose_value(rf'Context.numeric_literals', self.numeric_literals)
-
-				self.enums = copy.deepcopy(_Defaults.enums)
-				if 'enums' in syntax:
-					for e in syntax['enums']:
-						enum = str(e).strip()
-						if enum:
-							self.enums.add(enum)
-					del syntax['enums']
-				self.verbose_value(rf'Context.enums', self.enums)
-
-				self.namespaces = copy.deepcopy(_Defaults.namespaces)
-				if 'namespaces' in syntax:
-					for ns in syntax['namespaces']:
-						namespace = str(ns).strip()
-						if namespace:
-							self.namespaces.add(namespace)
-					del syntax['namespaces']
-				self.verbose_value(rf'Context.namespaces', self.namespaces)
-
-				for k, v in syntax.items():
-					raise Exception(rf"Unknown config property 'syntax_highlighting.{k}'")
-
-				del config['syntax_highlighting']
+			self.highlighting = _Highlighting(config, self.defines)
+			self.verbose_object(r'Context.highlighting', self.highlighting)
 
 			for k, v in config.items():
 				raise Exception(rf"Unknown config property '{k}'")
 
-
-
-		# initialize cached data
-		self.__init_cached_data_files(Path(self.dox_dir, 'cache'))
+		# initialize other data from files on disk
+		self.__init_data_files(self.data_dir)
 		self.emoji = self.__emoji
 		self.emoji_codepoints = self.__emoji_codepoints
 
