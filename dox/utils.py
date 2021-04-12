@@ -18,6 +18,7 @@ from pathlib import Path
 from io import StringIO
 
 
+
 #=======================================================================================================================
 # FUNCTIONS
 #=======================================================================================================================
@@ -184,11 +185,19 @@ def read_all_text_from_file(path, fallback_url=None, encoding='utf-8'):
 
 
 
+__py_command = None
 def run_python_script(path, *args, cwd=None):
 	assert path is not None
-	assert_existing_file(path)
+	if not isinstance(path, Path):
+		path = Path(path)
+	assert path.exists()
+
+	global __py_command
+	if __py_command is None:
+		__py_command = 'py' if shutil.which('py') is not None else 'python3'
+
 	subprocess.run(
-		['py' if shutil.which('py') is not None else 'python3', str(path)] + [arg for arg in args],
+		[__py_command, str(path)] + [arg for arg in args],
 		check=True,
 		cwd=path.cwd() if cwd is None else cwd
 	)

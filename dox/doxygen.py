@@ -13,6 +13,8 @@ import re
 from pathlib import Path
 from io import StringIO
 
+
+
 #=======================================================================================================================
 # functions
 #=======================================================================================================================
@@ -53,6 +55,8 @@ def mangle_name(name):
 	name = re.sub(r'[A-Z]', lambda m: '_' + m[0].lower(), name)
 	return name
 
+
+
 def extract_value(doxyfile_text, key, fallback=None):
 	pattern = re.compile(rf'^\s*{key}\s*=\s*(.*?)\s*$', flags=re.M)
 	m = pattern.search(doxyfile_text)
@@ -67,8 +71,12 @@ def extract_value(doxyfile_text, key, fallback=None):
 		return val if val else fallback
 	return fallback
 
+
+
 def extract_boolean(doxyfile_text, key):
 	return extract_value(doxyfile_text, key, fallback='NO').upper() == 'YES'
+
+
 
 #=======================================================================================================================
 # Doxyfile

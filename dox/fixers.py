@@ -13,6 +13,8 @@ except:
 
 import html
 
+
+
 #=======================================================================================================================
 # custom tags
 #=======================================================================================================================
@@ -122,6 +124,8 @@ class CustomTagsFix(object):
 				changed = True
 		return changed
 
+
+
 #=======================================================================================================================
 # C++
 #=======================================================================================================================
@@ -144,6 +148,8 @@ class _ModifiersFixBase(object):
 		"__cdecl" : "m-special"
 	}
 
+
+
 class ModifiersFix1(_ModifiersFixBase):
 	'''
 	Fixes improperly-parsed modifiers on function signatures in the various 'detail view' sections.
@@ -165,6 +171,8 @@ class ModifiersFix1(_ModifiersFixBase):
 					changed = True
 					soup.replace_tag(tag, str(replacer))
 		return changed
+
+
 
 class ModifiersFix2(_ModifiersFixBase):
 	'''
@@ -208,6 +216,8 @@ class ModifiersFix2(_ModifiersFixBase):
 						lastInserted.insert_after(' ')
 		return changed
 
+
+
 class TemplateTemplateFix(object):
 	'''
 	Spreads consecutive template <> declarations out over multiple lines.
@@ -226,6 +236,8 @@ class TemplateTemplateFix(object):
 				soup.replace_tag(template, str(replacer))
 				changed = True
 		return changed
+
+
 
 #=======================================================================================================================
 # index.html
@@ -254,6 +266,8 @@ class IndexPageFix(object):
 				soup.add_class(banner, 'main_page_banner')
 			return True
 		return False
+
+
 
 #=======================================================================================================================
 # <code> blocks
@@ -499,6 +513,8 @@ class CodeBlockFix(object):
 
 		return changed
 
+
+
 #=======================================================================================================================
 # <a> tags
 #=======================================================================================================================
@@ -509,6 +525,8 @@ def _m_doc_anchor_tags(tag):
 		and ('m-doc' in tag['class'] or 'm-doc-self' in tag['class'])
 		and (tag.string is not None or tag.strings is not None)
 	)
+
+
 
 class AutoDocLinksFix(object):
 	'''
@@ -568,6 +586,8 @@ class AutoDocLinksFix(object):
 					i = i + 1
 		return changed
 
+
+
 class LinksFix(object):
 	'''
 	Fixes various minor issues with anchor tags.
@@ -615,6 +635,8 @@ class LinksFix(object):
 						parent_with_id = parent_with_id.find_parent(id=True)
 
 		return changed
+
+
 
 class DeadLinksFix(object):
 	'''

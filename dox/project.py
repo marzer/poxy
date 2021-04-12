@@ -16,6 +16,8 @@ import threading
 import json
 from pathlib import Path
 
+
+
 #=======================================================================================================================
 # PROJECT CONTEXT
 #=======================================================================================================================
@@ -478,6 +480,8 @@ class _Defaults(object):
 	}
 	tagfiles = dict()
 
+
+
 class _Warnings(object):
 	def __init__(self, config):
 		self.enabled = None
@@ -503,6 +507,8 @@ class _Warnings(object):
 		for k, v in vals.items():
 			raise Exception(rf"Unknown config property 'warnings.{k}'")
 		del config['warnings']
+
+
 
 class _Highlighting(object):
 	def __init__(self, config, defines):
@@ -569,6 +575,8 @@ class _Highlighting(object):
 				define = define[:bracket].strip()
 			if define:
 				self.macros.add(define)
+
+
 
 class Context(object):
 
