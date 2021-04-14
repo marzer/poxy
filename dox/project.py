@@ -15,6 +15,7 @@ import pytomlpp
 import threading
 import json
 from pathlib import Path
+from io import StringIO
 
 
 
@@ -79,16 +80,16 @@ class _Defaults(object):
 		r'[Vv]ec(?:tor)?[1-4][hifd]?',
 		r'[Mm]at(?:rix)?[1-4](?:[xX][1-4])?[hifd]?'
 	}
-	defines = [
-		(r'DOXYGEN',					1),
-		(r'__DOXYGEN__',				1),
-		(r'__doxygen__',				1),
-		(r'__DOX__',					1),
-		(r'__dox__',					1),
-		(r'__has_include(...)',			0),
-		(r'__has_attribute(...)',		0),
-		(r'__has_cpp_attribute(...)',	999999),
-	]
+	defines = {
+		r'DOXYGEN' :					1,
+		r'__DOXYGEN__' :				1,
+		r'__doxygen__' :				1,
+		r'__DOX__' :					1,
+		r'__dox__' :					1,
+		r'__has_include(...)' :			0,
+		r'__has_attribute(...)' :		0,
+		r'__has_cpp_attribute(...)' :	999999,
+	}
 	cpp_builtin_defines = {
 		1998 : {
 			r'__cplusplus' 		: r'199711L',
@@ -316,11 +317,24 @@ class _Defaults(object):
 			r'__cpp_using_enum'							: 201907,
 		},
 	}
-	macros = { # syntax highlighting only
-		r'assert',
-		r'offsetof',
-		r'__(?:FILE|LINE|DATE|TIME|STDC_HOSTED|STDCPP_DEFAULT_NEW_ALIGNMENT|INTELLISENSE)__',
-		r'_MSC(?:_FULL)_VER|_MSVC_LANG|_WIN(?:32|64)'
+	# syntax highlighting only
+	macros = {
+			# standard builtins:
+			r'__cplusplus(?:_cli|_winrt)?',
+			r'__cpp_[a-zA-Z_]+?',
+			r'__has_(?:(?:cpp_)?attribute|include)',
+			r'assert',
+			r'offsetof',
+			# msvc:
+			r'__(?:'
+				+ r'FILE|LINE|DATE|TIME|COUNTER'
+				+ r'|STDC(?:_HOSTED|_NO_ATOMICS|_NO_COMPLEX|_NO_THREADS|_NO_VLA|_VERSION|_THREADS)?'
+				+ r'|STDCPP_DEFAULT_NEW_ALIGNMENT|INTELLISENSE|ATOM'
+				+ r'|AVX(?:2|512(?:BW|CD|DQ|F|VL)?)?|FUNC(?:TION|DNAME|SIG)'
+				+ r')__',
+			r'_M_(?:AMD64|ARM(?:_ARMV7VE|_FP|64)?|X64|CEE(?:_PURE|_SAFE)?|FP_(?:EXCEPT|FAST|PRECISE|STRICT)|IX86(?:_FP)?)',
+			r'__CLR_VER|_CHAR_UNSIGNED|_CONTROL_FLOW_GUARD|_CPP(?:RTTI|UNWIND)|_DEBUG|_INTEGRAL_MAX_BITS|_ISO_VOLATILE',
+			r'_KERNEL_MODE|_MANAGED|_MSC_(?:BUILD|EXTENSIONS|(?:FULL_)?VER)|NDEBUG|_MSC(?:_FULL)_VER|_MSVC_LANG|_WIN(?:32|64)'
 	}
 	string_literals = {
 		r'sv?'
@@ -466,7 +480,7 @@ class _Defaults(object):
 			+ r')'
 			: r'https://docs.microsoft.com/en-us/windows/desktop/winprog/windows-data-types',
 		r'__INTELLISENSE__|_MSC(?:_FULL)_VER|_MSVC_LANG|_WIN(?:32|64)'
-			: 'https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=vs-2019',
+			: r'https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=vs-2019',
 		r'IUnknowns?' : r'https://docs.microsoft.com/en-us/windows/win32/api/unknwn/nn-unknwn-iunknown',
 		r'(?:IUnknown::)?QueryInterface?' : r'https://docs.microsoft.com/en-us/windows/win32/api/unknwn/nf-unknwn-iunknown-queryinterface(q)',
 		# unreal engine types
@@ -478,7 +492,102 @@ class _Defaults(object):
 		r'(?:::)?FMatrix(?:es|ices)?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FMatrix/index.html',
 		r'(?:::)?TMatrix(?:es|ices)?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/TMatrix/index.html',
 	}
-	tagfiles = dict()
+	navbar = [r'files', r'groups', r'namespaces', r'classes']
+	aliases = {
+		r'cpp' : r'@code{.cpp}',
+		r'ecpp' : r'@endcode',
+		r'endcpp' : r'@endcode',
+		r'out' : r'@code{.shell-session}',
+		r'eout' : r'@endcode',
+		r'endout' : r'@endcode',
+		r'bash' : r'@code{.sh}',
+		r'ebash' : r'@endcode',
+		r'endbash' : r'@endcode',
+		r'detail' : r'@details',
+		r'inline_subheading{1}' : r'[h4]\1[/h4] ^^',
+		r'conditional_return{1}' : r'<strong><em>\1:</em></strong> ^^',
+		r'inline_note' : r'[set_class m-note m-info]',
+		r'inline_warning' : r'[set_class m-note m-danger]',
+		r'inline_attention' : r'[set_class m-note m-warning]',
+		r'inline_remark' : r'[set_class m-note m-default]',
+		r'github{1}' : r'<a href="https://github.com/\1" target="_blank">\1</a>',
+		r'github{2}' : r'<a href="https://github.com/\1" target="_blank">\2</a>',
+		r'godbolt{1}' : r'<a href="https://godbolt.org/z/\1" target="_blank">Try this code on Compiler Explorer</a>',
+		r'flags_enum' : r'@note This enum is a flags type; it is equipped with a full complement of bitwise operators. ^^',
+		r'implementers' : r'@par [parent_set_class m-block m-dim][emoji hammer][entity nbsp]Implementers: ',
+		r'optional' : r'@par [parent_set_class m-block m-info]Optional field ^^',
+		r'required' : r'@par [parent_set_class m-block m-warning][emoji warning][entity nbsp]Required field ^^',
+		r'availability' : r'@par [parent_set_class m-block m-special]Conditional availability ^^',
+		r'figure{1}' : r'@image html \1',
+		r'figure{2}' : r'@image html \1 "\2"',
+		r'm_div{1}' : r'@xmlonly<mcss:div xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:class="\1">@endxmlonly',
+		r'm_enddiv' : r'@xmlonly</mcss:div>@endxmlonly',
+		r'm_span{1}' : r'@xmlonly<mcss:span xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:class="\1">@endxmlonly',
+		r'm_endspan' : r'@xmlonly</mcss:span>@endxmlonly',
+		r'm_class{1}' : r'@xmlonly<mcss:class xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:class="\1" />@endxmlonly',
+		r'm_footernavigation' : r'@xmlonly<mcss:footernavigation xmlns:mcss="http://mcss.mosra.cz/doxygen/" />@endxmlonly',
+		r'm_examplenavigation{2}' : r'@xmlonly<mcss:examplenavigation xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:page="\1" mcss:prefix="\2" />@endxmlonly',
+		r'm_keywords{1}' : r'@xmlonly<mcss:search xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:keywords="\1" />@endxmlonly',
+		r'm_keyword{3}' : r'@xmlonly<mcss:search xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:keyword="\1" mcss:title="\2" mcss:suffix-length="\3" />@endxmlonly',
+		r'm_enum_values_as_keywords' : r'@xmlonly<mcss:search xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:enum-values-as-keywords="true" />@endxmlonly'
+	}
+
+
+def _coerce_collection(val):
+	if not is_collection(val):
+		val = ( val, )
+	return val
+
+
+
+def _extract_kvps(config, table,
+		key_label=None,
+		value_label=None,
+		strip_keys=True,
+		allow_blank_keys=False,
+		strip_values=True,
+		allow_blank_values=False,
+		value_type=None):
+
+	assert config is not None
+	assert isinstance(config, dict)
+	assert table is not None
+
+	if table not in config:
+		return {}
+
+	if key_label is None:
+		key_label = r'key'
+	if value_label is None:
+		value_label = r'value'
+
+	out = {}
+	for k, v in config[table].items():
+		key = str(k)
+		if strip_keys:
+			key = key.strip()
+			if key in out:
+				raise Exception(rf'{table}.{key}: cannot be specified more than once')
+		if not allow_blank_keys and not key:
+			raise Exception(rf'{table}: keys cannot be blank')
+
+		if is_collection(v):
+			raise Exception(rf'{table}.{key}: must be of the form "<{key_label}>" = "<{value_label}>"')
+
+		value = str(v)
+		if strip_values:
+			value = value.strip()
+		if not allow_blank_values and not value:
+			raise Exception(rf'{table}.{key}: values cannot be blank')
+
+		if value_type is not None:
+			value = value_type(value)
+
+		out[key] = value
+
+	del config[table]
+
+	return out
 
 
 
@@ -523,42 +632,42 @@ class _Highlighting(object):
 			vals = config['highlighting']
 
 			if 'types' in vals:
-				for t in vals['types']:
+				for t in _coerce_collection(vals['types']):
 					type_ = str(t).strip()
 					if type_:
 						self.types.add(type_)
 				del vals['types']
 
 			if 'macros' in vals:
-				for m in vals['macros']:
+				for m in _coerce_collection(vals['macros']):
 					macro = str(m).strip()
 					if macro:
 						self.macros.add(macro)
 				del vals['macros']
 
 			if 'string_literals' in vals:
-				for lit in vals['string_literals']:
+				for lit in _coerce_collection(vals['string_literals']):
 					literal = str(lit).strip()
 					if literal:
 						self.string_literals.add(literal)
 				del vals['string_literals']
 
 			if 'numeric_literals' in vals:
-				for lit in vals['numeric_literals']:
+				for lit in _coerce_collection(vals['numeric_literals']):
 					literal = str(lit).strip()
 					if literal:
 						self.numeric_literals.add(literal)
 				del vals['numeric_literals']
 
 			if 'enums' in vals:
-				for e in vals['enums']:
+				for e in _coerce_collection(vals['enums']):
 					enum = str(e).strip()
 					if enum:
 						self.enums.add(enum)
 				del vals['enums']
 
 			if 'namespaces' in vals:
-				for ns in vals['namespaces']:
+				for ns in _coerce_collection(vals['namespaces']):
 					namespace = str(ns).strip()
 					if namespace:
 						self.namespaces.add(namespace)
@@ -568,8 +677,8 @@ class _Highlighting(object):
 				raise Exception(rf"Unknown config property 'highlighting.{k}'")
 			del config['highlighting']
 
-		for k, v in defines:
-			define = k
+		for k, v in defines.items():
+			define = str(k)
 			bracket = define.find('(')
 			if bracket != -1:
 				define = define[:bracket].strip()
@@ -592,14 +701,10 @@ class Context(object):
 		if self.__verbose:
 			print(*args, file=file, end=end, sep=sep)
 
-	def warning(self, *args, file=sys.stderr, end='\n', sep=' '):
-		print('WARNING: ', file=file, end='', sep='')
-		print(*args, file=file, end=end, sep=sep)
-
 	def verbose_value(self, name, val):
 		if not self.__verbose:
 			return
-		self.verbose(rf'{name+": ":<30}', end='')
+		self.verbose(rf'{name+": ":<35}', end='')
 		if val is None:
 			self.verbose('')
 		elif isinstance(val, dict):
@@ -609,9 +714,9 @@ class Context(object):
 			first = True
 			for k, v in val.items():
 				if not first:
-					self.verbose(rf'{" ":<30}', end='')
+					self.verbose(rf'{" ":<35}', end='')
 				first = False
-				self.verbose(rf'{k:<25} => {v}')
+				self.verbose(rf'{k:<35} => {v}')
 		elif is_collection(val):
 			if not val:
 				self.verbose('')
@@ -619,7 +724,7 @@ class Context(object):
 			first = True
 			for v in val:
 				if not first:
-					self.verbose(rf'{" ":<30}', end='')
+					self.verbose(rf'{" ":<35}', end='')
 				first = False
 				self.verbose(v)
 		else:
@@ -630,6 +735,14 @@ class Context(object):
 			return
 		for k, v in obj.__dict__.items():
 			self.verbose_value(rf'{name}.{k}', v)
+
+	def warning(self, *args, file=sys.stderr, end='\n', sep=' '):
+		if self.warnings is not None and self.warnings.treat_as_errors:
+			with StringIO() as buf:
+				print(*args, r' [warnings.treat_as_errors]', file=buf, end='', sep=sep)
+				raise Exception(buf.getvalue())
+		print('Warning: ', file=file, end='', sep='')
+		print(*args, file=file, end=end, sep=sep)
 
 	@classmethod
 	def __init_data_files(cls, data_dir):
@@ -666,7 +779,7 @@ class Context(object):
 		finally:
 			cls.__data_files_lock.release()
 
-	def __init__(self, config_path, threads, cleanup, cwd, verbose, mcss_dir, temp_file_name):
+	def __init__(self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, temp_file_name):
 
 		self.__verbose = bool(verbose)
 
@@ -683,10 +796,12 @@ class Context(object):
 		self.verbose_value(r'Context.threads', self.threads)
 
 		self.fixers = None
+		self.tagfile_path = None
+		self.warnings = None
 
 		# resolve paths
 		if 1:
-			
+
 			# environment
 			self.this_dir = Path(__file__).resolve().parent
 			self.verbose_value(r'Context.this_dir', self.this_dir)
@@ -694,27 +809,26 @@ class Context(object):
 			self.verbose_value(r'Context.data_dir', self.data_dir)
 			self.dox_dir = self.this_dir.parent
 			self.verbose_value(r'Context.dox_dir', self.dox_dir)
-			if cwd is None:
-				cwd = Path.cwd()
-			if not isinstance(cwd, Path):
-				cwd = Path(str(cwd))
-			self.cwd = cwd.resolve()
-			self.verbose_value(r'Context.cwd', self.cwd)
-			assert self.cwd.is_absolute()
+			if output_dir is None:
+				output_dir = Path.cwd()
+			if not isinstance(output_dir, Path):
+				output_dir = Path(str(output_dir))
+			self.output_dir = output_dir.resolve()
+			self.verbose_value(r'Context.output_dir', self.output_dir)
+			assert self.output_dir.is_absolute()
 
 			# config + doxyfile
-			config_dir = None
+			input_dir = None
 			self.config_path = None
 			self.doxyfile_path = None
 			if config_path is None:
-				config_path = self.cwd
+				config_path = self.output_dir
 			else:
 				if not isinstance(config_path, Path):
 					config_path = Path(str(config_path))
 				if not config_path.is_absolute():
-					config_path = Path(self.cwd, config_path)
+					config_path = Path(self.output_dir, config_path)
 				config_path = config_path.resolve()
-			assert config_path.is_absolute()
 			if config_path.exists() and config_path.is_file():
 				if config_path.suffix.lower() == '.toml':
 					self.config_path = config_path
@@ -723,35 +837,41 @@ class Context(object):
 			elif Path(str(config_path) + ".toml").exists():
 				self.config_path = Path(str(config_path) + ".toml")
 			elif config_path.is_dir():
-				config_dir = config_path
+				input_dir = config_path
 				if Path(config_path, 'dox.toml').exists():
 					self.config_path = Path(config_path, 'dox.toml')
 				elif Path(config_path, 'Doxyfile-mcss').exists():
 					self.doxyfile_path = Path(config_path, 'Doxyfile-mcss')
 				elif Path(config_path, 'Doxyfile').exists():
 					self.doxyfile_path = Path(config_path, 'Doxyfile')
-			if config_dir is None:
+			if input_dir is None:
 				if self.config_path is not None:
-					config_dir = self.config_path.parent
+					input_dir = self.config_path.parent
 				elif self.doxyfile_path is not None:
-					config_dir = self.doxyfile_path.parent
-			if config_dir is not None:
-				if self.config_path is None and Path(config_dir, 'dox.toml').exists():
-					self.config_path = Path(config_dir, 'dox.toml')
-				if self.doxyfile_path is None and Path(config_dir, 'Doxyfile-mcss').exists():
-					self.doxyfile_path = Path(config_dir, 'Doxyfile-mcss')
+					input_dir = self.doxyfile_path.parent
+			if input_dir is not None:
+				if self.config_path is None and Path(input_dir, 'dox.toml').exists():
+					self.config_path = Path(input_dir, 'dox.toml')
+				if self.doxyfile_path is None and Path(input_dir, 'Doxyfile-mcss').exists():
+					self.doxyfile_path = Path(input_dir, 'Doxyfile-mcss')
 				if self.doxyfile_path is None:
-					self.doxyfile_path = Path(config_dir, 'Doxyfile')
-			assert_existing_directory(config_dir)
+					self.doxyfile_path = Path(input_dir, 'Doxyfile')
+			self.input_dir = input_dir
+			self.verbose_value(r'Context.input_dir', self.input_dir)
+			assert_existing_directory(self.input_dir)
+
 			assert self.doxyfile_path is not None
+			self.doxyfile_path = self.doxyfile_path.resolve()
 			if self.doxyfile_path.exists() and not self.doxyfile_path.is_file():
 				raise Exception(rf'{doxyfile_path} was not a file')
-			self.verbose_value(r'Context.doxyfile_path', self.doxyfile_path)
+			if self.config_path is not None:
+				self.config_path = self.config_path.resolve()
 			self.verbose_value(r'Context.config_path', self.config_path)
+			self.verbose_value(r'Context.doxyfile_path', self.doxyfile_path)
 
 			# output folders
-			self.xml_dir = Path(self.cwd, 'xml')
-			self.html_dir = Path(self.cwd, 'html')
+			self.xml_dir = Path(self.output_dir, 'xml')
+			self.html_dir = Path(self.output_dir, 'html')
 			self.verbose_value(r'Context.xml_dir', self.xml_dir)
 			self.verbose_value(r'Context.html_dir', self.html_dir)
 
@@ -760,8 +880,7 @@ class Context(object):
 				mcss_dir = Path(self.dox_dir, 'external/mcss')
 			if not isinstance(mcss_dir, Path):
 				mcss_dir = Path(str(mcss_dir))
-			if not mcss_dir.is_absolute():
-				mcss_dir = Path(self.cwd, mcss_dir)
+			mcss_dir = mcss_dir.resolve()
 			assert_existing_directory(mcss_dir)
 			assert_existing_file(Path(mcss_dir, 'documentation/doxygen.py'))
 			self.mcss_dir = mcss_dir
@@ -769,26 +888,31 @@ class Context(object):
 
 		# read + check config
 		if 1:
+			extra_files = []
+			badges = []
+
 			config = dict()
 			if self.config_path is not None:
 				assert_existing_file(self.config_path)
 				config = pytomlpp.loads(read_all_text_from_file(self.config_path))
 
-			self.warnings = _Warnings(config)
-			self.verbose_object(r'Context.warnings', self.warnings)
+			self.warnings = _Warnings(config) # printed in run.py post-doxyfile
 
+			# project name (PROJECT_NAME)
 			self.name = ''
 			if 'name' in config:
 				self.name = str(config['name']).strip()
 				del config['name']
 			self.verbose_value(rf'Context.name', self.name)
 
+			# project description (PROJECT_BRIEF)
 			self.description = ''
 			if 'description' in config:
 				self.description = str(config['description']).strip()
 				del config['description']
 			self.verbose_value(r'Context.description', self.description)
 
+			# project C++ version
 			self.cpp = 2020
 			if 'cpp' in config:
 				self.cpp = int(config['cpp'])
@@ -802,38 +926,59 @@ class Context(object):
 						raise Exception(rf"'{config['cpp']}' is not a valid cpp standard version")
 				del config['cpp']
 			self.verbose_value(r'Context.cpp', self.cpp)
+			badge = rf'dox-badge-c++{str(self.cpp)[2:]}.svg'
+			badges.append((rf'C++{str(self.cpp)[2:]}', badge, r'https://en.cppreference.com/w/cpp/compiler_support'))
+			extra_files.append(Path(self.data_dir, badge))
 
+			# project github repo
 			self.github = ''
 			if 'github' in config:
 				self.github = str(config['github']).strip().replace('\\', '/').strip('/')
 				del config['github']
 			self.verbose_value(r'Context.github', self.github)
 
-			self.tagfiles = copy.deepcopy(_Defaults.tagfiles)
-			if 'tagfiles' in config:
-				for k, v in config['tagfiles'].items():
-					file = str(k).strip()
-					uri = str(v).strip()
-					if not file or not uri:
-						continue
-					file = Path(file)
-					if not file.is_absolute():
-						file = Path(self.cwd, file)
-					self.tagfiles[str(file)] = uri
-				del config['tagfiles']
+			# m.css navbar
+			if 'navbar' in config:
+				self.navbar = []
+				for v in _coerce_collection(config['navbar']):
+					val = str(v).strip().lower()
+					if val:
+						self.navbar.append(val)
+				del config['navbar']
+			else:
+				self.navbar = copy.deepcopy(_Defaults.navbar)
+			for i in range(len(self.navbar)):
+				if self.navbar[i] == 'classes':
+					self.navbar[i] = 'annotated'
+				elif self.navbar[i] == 'groups':
+					self.navbar[i] = 'modules'
+			if self.github and 'github' not in self.navbar:
+				self.navbar.append('github')
+			self.navbar = tuple(self.navbar)
+			self.verbose_value(r'Context.navbar', self.navbar)
+
+			# <meta> tags
+			self.meta = {}
+			for k, v in _extract_kvps(config, 'meta', key_label='name', allow_blank_values=True, value_label='content').items():
+				self.meta[k] = v
+			if self.description and 'description' not in self.meta:
+				self.meta['description'] = self.description
+			self.verbose_value(r'Context.meta', self.meta)
+
+			# TAGFILES
+			self.tagfiles = {}
+			for k,v in _extract_kvps(config, 'tagfiles', key_label='file', value_label='uri').items():
+				self.tagfiles[str(Path(self.input_dir, k).resolve())] = v
 			self.tagfiles[str(Path(self.data_dir, r'cppreference-doxygen-web.tag.xml'))] = r'http://en.cppreference.com/w/'
 			for k, v in self.tagfiles.items():
 				assert_existing_file(k)
 			self.verbose_value(r'Context.tagfiles', self.tagfiles)
 
+			# PREDEFINED
 			self.defines = copy.deepcopy(_Defaults.defines)
-			if 'defines' in config:
-				for k, v in config['defines'].items():
-					key = str(k).strip()
-					val = str(v).strip()
-					if key:
-						self.defines.append((key, val))
-				del config['defines']
+			for k, v in _extract_kvps(config, 'defines', key_label='define', allow_blank_values=True).items():
+				self.defines[k] = v
+			non_cpp_def_defines = copy.deepcopy(self.defines)
 			cpp_defs = dict()
 			for ver in (1998, 2003, 2011, 2014, 2017, 2020):
 				if ver > self.cpp:
@@ -841,24 +986,27 @@ class Context(object):
 				for k, v in _Defaults.cpp_builtin_defines[ver].items():
 					cpp_defs[k] = v
 			for k, v in cpp_defs.items():
-				self.defines.append((k, v))
-			self.defines = tuple(self.defines)
+				self.defines[k] = v
 			self.verbose_value(r'Context.defines', self.defines)
 
+			# inline namespaces for old versions of doxygen
 			self.inline_namespaces = copy.deepcopy(_Defaults.inline_namespaces)
 			if 'inline_namespaces' in config:
-				for ns in config['inline_namespaces']:
+				for ns in _coerce_collection(config['inline_namespaces']):
 					namespace = str(ns).strip()
 					if namespace:
 						self.inline_namespaces.add(namespace)
 				del config['inline_namespaces']
 			self.verbose_value(r'Context.inline_namespaces', self.inline_namespaces)
 
+			# autolinks
 			default_autolinks = [(k, v) for k, v in _Defaults.autolinks.items()]
 			user_autolinks = []
 			if 'autolinks' in config:
 				for pattern, u in config['autolinks'].items():
-					uri = u.strip()
+					if is_collection(u):
+						raise Exception(rf'autolinks.{pattern}: must be of the form "<pattern>" = "<uri>"')
+					uri = str(u).strip()
 					if pattern.strip() and uri:
 						user_autolinks.append((pattern, uri))
 				del config['autolinks']
@@ -867,41 +1015,127 @@ class Context(object):
 			self.autolinks = tuple(user_autolinks + default_autolinks)
 			self.verbose_value(r'Context.autolinks', self.autolinks)
 
-			self.badges = []
-			if 'badges' in config:
-				for t, i, a in config['badges']:
-					text = t.strip()
-					image_uri = i.strip()
-					anchor_uri = a.strip()
-					if text and image_uri and anchor_uri:
-						self.badges.append((text, image_uri, anchor_uri))
-				del config['badges']
-			self.badges = tuple(self.badges)
+			# ALIASES
+			self.aliases = copy.deepcopy(_Defaults.aliases)
+			if 'aliases' in config:
+				for k, v in config['aliases'].items():
+					if is_collection(v):
+						raise Exception(rf'aliases.{k}: must be of the form "<alias>" = "<replacement>"')
+					alias = str(k).strip()
+					if not alias:
+						continue
+					if alias in self.aliases:
+						raise Exception(rf'aliases.{k}: cannot override a built-in alias')
+						self.aliases[alias] = v
+				del config['autolinks']
+			self.verbose_value(r'Context.aliases', self.aliases)
 
+			# implementation headers to merge
 			self.implementation_headers = []
 			if 'implementation_headers' in config:
-				for h, i in config['implementation_headers']:
-					header = h.strip()
-					impls = tuple([impl.strip() for impl in i if len(impl.strip()) > 0])
+				for k, v in config['implementation_headers'].items():
+					header = str(k).strip()
+					if not is_collection(v):
+						raise Exception(rf'implementation_headers.{text}: must be of the form "<main header>" = [ "<impl header>", "<impl header>", ... ]')
+					impls = [str(i).strip() for i in v]
+					impls = [i for i in impls if len(i)]
 					if header and impls:
 						self.implementation_headers .append((header, impls))
 				del config['implementation_headers']
 			self.implementation_headers = tuple(self.implementation_headers)
+			self.verbose_value(r'Context.implementation_headers', self.implementation_headers)
 
+			# SHOW_INCLUDES
 			self.show_includes = None
 			if 'show_includes' in config:
 				self.show_includes = bool(config['show_includes'])
 				del config['show_includes']
 			self.verbose_value(r'Context.show_includes', self.show_includes)
 
+			# GENERATE_TAGFILE
 			self.generate_tagfile = None
 			if 'generate_tagfile' in config:
 				self.generate_tagfile = bool(config['generate_tagfile'])
 				del config['generate_tagfile']
 			self.verbose_value(r'Context.generate_tagfile', self.generate_tagfile)
 
-			self.highlighting = _Highlighting(config, self.defines)
-			self.verbose_object(r'Context.highlighting', self.highlighting)
+			# license
+			self.license = None
+			if 'license' in config:
+				if not is_collection(config['license']) or len(config['license']) != 2:
+					raise Exception(rf'license: must be of the form [ "<name>" , "<uri>" ]')
+				name = str(config['license'][0]).strip()
+				uri = str(config['license'][1]).strip()
+				if name and uri:
+					self.license = (name, uri)
+				del config['license']
+				if self.license:
+					badge = Path(self.data_dir, rf'dox-badge-license-{self.license[0].lower()}.svg')
+					if badge.exists():
+						extra_files.append(badge)
+						badges.append((self.license[0], badge.name, self.license[1]))
+			self.verbose_value(r'Context.license', self.license)
+
+			# badges (shields) for index.html
+			if 'badges' in config:
+				for k, v in config['badges'].items():
+					text = str(k).strip()
+					if not is_collection(v) or len(v) != 2:
+						raise Exception(rf'badges.{text}: must be of the form "<name>" = [ "<image>", "<uri>" ]')
+					image_uri = str(v[0]).strip()
+					anchor_uri = str(v[1]).strip()
+					if text and image_uri and anchor_uri:
+						badges.append((text, image_uri, anchor_uri))
+				del config['badges']
+			self.badges = tuple(badges)
+			self.verbose_value(r'Context.badges', self.badges)
+
+			# HTML_EXTRA_FILES
+			if 'extra_files' in config:
+				for f in _coerce_collection(config['extra_files']):
+					file = str(f).strip()
+					if file:
+						extra_files.append(Path(file))
+				del config['extra_files']
+
+			# m.css favicon
+			self.favicon = None
+			if 'favicon' in config:
+				file = str(config['favicon'])
+				if file:
+					file = Path(file)
+					if not file.is_absolute():
+						file = Path(self.input_dir, file)
+					self.favicon = file.resolve()
+					extra_files.append(self.favicon)
+				del config['favicon']
+			else:
+				favicon = Path(self.input_dir, 'favicon.ico')
+				if favicon.exists() and favicon.is_file():
+					self.favicon = favicon
+					extra_files.append(favicon)
+			self.verbose_value(r'Context.favicon', self.favicon)
+
+			# add built-ins to extra files
+			extra_files.append(Path(self.data_dir, r'dox.css'))
+			extra_files.append(Path(self.data_dir, r'dox-github-icon.png'))
+
+			# check extra files
+			for i in range(len(extra_files)):
+				if not extra_files[i].is_absolute():
+					extra_files[i] = Path(self.input_dir, extra_files[i])
+				extra_files[i] = extra_files[i].resolve()
+				if not extra_files[i].exists() or not extra_files[i].is_file():
+					raise Exception(rf'extra_files: {self.extra_files[i]} did not exist or was not a file')
+			self.extra_files = set(extra_files)
+			self.verbose_value(r'Context.extra_files', self.extra_files)
+			extra_filenames = set()
+			for f in self.extra_files:
+				if f.name in extra_filenames:
+					raise Exception(rf'extra_files: Multiple source files with the name {f.name}')
+				extra_filenames.add(f.name)
+
+			self.highlighting = _Highlighting(config, non_cpp_def_defines) # printed in run.py post-xml
 
 			for k, v in config.items():
 				raise Exception(rf"Unknown config property '{k}'")

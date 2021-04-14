@@ -35,11 +35,14 @@ def eprint(*args):
 
 
 
-def print_exception(exc, file=sys.stderr, include_type = False, include_traceback=False, skip_frames = 0):
+def print_exception(exc, file=sys.stderr, include_type=False, include_traceback=False, skip_frames = 0):
+	if isinstance(exc, AssertionError):
+		include_type=True
+		include_traceback=True
 	buf = StringIO()
 	print(rf'Error: ', file=buf, end='')
 	if include_type:
-		print(rf'{type(exc).__name__}: ', file=buf, end='')
+		print(rf'[{type(exc).__name__}] ', file=buf, end='')
 	print(str(exc), file=buf)
 	if include_traceback:
 		tb = exc.__traceback__
@@ -99,7 +102,7 @@ def copy_file(source, dest):
 		dest = Path(dest)
 	assert_existing_file(source)
 	print(f'Copying {source}')
-	shutil.copyfile(str(source), str(dest))
+	shutil.copy(str(source), str(dest))
 
 
 
@@ -186,20 +189,22 @@ def read_all_text_from_file(path, fallback_url=None, encoding='utf-8'):
 
 
 __py_command = None
-def run_python_script(path, *args, cwd=None):
+def run_python_script(path, *args, cwd=None, **kwargs):
 	assert path is not None
 	if not isinstance(path, Path):
 		path = Path(path)
-	assert path.exists()
+	if not path.exists():
+		raise Exception(f'{path} was not an existing directory or file')
 
 	global __py_command
 	if __py_command is None:
 		__py_command = 'py' if shutil.which('py') is not None else 'python3'
 
-	subprocess.run(
+	return subprocess.run(
 		[__py_command, str(path)] + [arg for arg in args],
 		check=True,
-		cwd=path.cwd() if cwd is None else cwd
+		cwd=path.cwd() if cwd is None else cwd,
+		**kwargs
 	)
 
 
@@ -215,7 +220,7 @@ def sha1(*objs):
 
 
 def regex_or(patterns, pattern_prefix = '', pattern_suffix = '', flags=0):
-	patterns = [str(r) for r in patterns]
+	patterns = [str(r) for r in patterns if r is not None and r]
 	patterns.sort()
 	pattern = ''
 	if patterns:
@@ -231,11 +236,14 @@ def regex_or(patterns, pattern_prefix = '', pattern_suffix = '', flags=0):
 
 class ScopeTimer(object):
 
-	def __init__(self, scope):
+	def __init__(self, scope, print_start=False):
 		self.__scope = str(scope)
+		self.__print_start = print_start
 
 	def __enter__(self):
 		self.__start = time.perf_counter_ns()
+		if self.__print_start:
+			print(self.__scope)
 
 	def __exit__(self ,type, value, traceback):
 		if traceback is None:
@@ -274,3 +282,91 @@ class RegexReplacer(object):
 
 	def __getitem__(self, index):
 		return self.__out_data[index]
+
+
+
+#=======================================================================================================================
+# CppTree
+#=======================================================================================================================
+
+class CppTree(object):
+
+	NAMESPACES = 1
+	TYPES = 2
+	ENUM_VALUES = 4
+
+	class Node(object):
+
+		def __init__(self, val, parent, type_ = 0):
+			assert val.find(r'::') == -1
+			assert type_ in (0, CppTree.NAMESPACES, CppTree.TYPES, CppTree.ENUM_VALUES)
+			self.value = val
+			self.parent = parent
+			self.type = type_
+			self.mask = type_
+			self.children = {}
+
+		def add(self, val, type_ = 0):
+			assert val.find(r'::') == -1
+			assert type_ in (0, CppTree.NAMESPACES, CppTree.TYPES, CppTree.ENUM_VALUES)
+			child = None
+			if val not in self.children:
+				child = CppTree.Node(val, self, type_)
+				self.children[val] = child
+			else:
+				child = self.children[val]
+				if type_:
+					assert child.type in (0, type_)
+					child.type = type_
+					child.mask = child.mask | type_
+			self.mask = self.mask | child.mask
+			return child
+
+		def regex_matcher(self, type_):
+			assert type_ in (CppTree.NAMESPACES, CppTree.TYPES, CppTree.ENUM_VALUES)
+			if not (type_ & self.mask):
+				return None
+			if not self.children:
+				return self.value
+			matchers = [v.regex_matcher(type_) for k, v in self.children.items()]
+			matchers = [v for v in matchers if v is not None]
+			if not matchers:
+				if self.type == type_:
+					return self.value
+				return None
+			
+			grouped = len(matchers) > 1
+			matchers = r'|'.join(matchers)
+			if not self.value and not self.parent: # root
+				return matchers
+			matchers = (r'(?:' if grouped else '') + matchers + (r')' if grouped else '')
+			
+			if self.type == type_:
+				return rf'{self.value}(?:::{matchers})?'
+			else:
+				return rf'{self.value}::{matchers}'
+
+
+
+	def __init__(self):
+		self.root = CppTree.Node('', None)
+
+	def add(self, val, type_):
+		assert type_ in (CppTree.NAMESPACES, CppTree.TYPES, CppTree.ENUM_VALUES)
+		val = [v for v in val.split(r'::') if len(v)]
+		parent = self.root
+		while len(val):
+			v = val.pop(0)
+			parent = parent.add(v, type_ if not len(val) else 0)
+
+	def add_type(self, val):
+		self.add(val, CppTree.TYPES)
+
+	def add_namespace(self, val):
+		self.add(val, CppTree.NAMESPACES)
+
+	def add_enum_value(self, val):
+		self.add(val, CppTree.ENUM_VALUES)
+
+	def matcher(self, type_):
+		return self.root.regex_matcher(type_)
