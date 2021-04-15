@@ -14,6 +14,7 @@ import copy
 import pytomlpp
 import threading
 import json
+import datetime
 
 
 
@@ -314,6 +315,12 @@ class _Defaults(object):
 			r'__cpp_nontype_template_args'				: 201911,
 			r'__cpp_using_enum'							: 201907,
 		},
+
+		2023 : dict(),
+
+		2026 : dict(),
+
+		2029 : dict(),
 	}
 	# syntax highlighting only
 	macros = {
@@ -895,14 +902,19 @@ class Context(object):
 			self.verbose_value(r'Context.description', self.description)
 
 			# project C++ version
-			self.cpp = 2020
+			# defaults to 'current' cpp year version based on (current year - 2)
+			self.cpp = max(int(datetime.datetime.now().year) - 2, 2011)
+			self.cpp = self.cpp - ((self.cpp - 2011) % 3)
 			if 'cpp' in config:
-				self.cpp = int(config['cpp'])
+				self.cpp = str(config['cpp']).lstrip('0 \t').rstrip()
+				if not self.cpp:
+					self.cpp = '20'
+				self.cpp = int(self.cpp)
 				if self.cpp in (1998, 98):
 					self.cpp = 1998
 				else:
 					self.cpp = self.cpp % 2000
-					if self.cpp in (3, 11, 14, 17, 20):
+					if self.cpp in (3, 11, 14, 17, 20, 23, 26, 29):
 						self.cpp = self.cpp + 2000
 					else:
 						raise Exception(rf"'{config['cpp']}' is not a valid cpp standard version")
@@ -912,12 +924,41 @@ class Context(object):
 			badges.append((rf'C++{str(self.cpp)[2:]}', badge, r'https://en.cppreference.com/w/cpp/compiler_support'))
 			extra_files.append(Path(self.data_dir, badge))
 
+			# project license
+			self.license = None
+			if 'license' in config:
+				if not is_collection(config['license']) or len(config['license']) != 2:
+					raise Exception(rf'license: must be of the form [ "<name>" , "<uri>" ]')
+				name = str(config['license'][0]).strip()
+				uri = str(config['license'][1]).strip()
+				if name and uri:
+					self.license = (name, uri)
+				del config['license']
+				if self.license:
+					badge = Path(self.data_dir, rf'dox-badge-license-{self.license[0].lower()}.svg')
+					if badge.exists():
+						extra_files.append(badge)
+						badges.append((self.license[0], badge.name, self.license[1]))
+			self.verbose_value(r'Context.license', self.license)
+
+			# project repo access level
+			self.private_repo = False
+			if 'private_repo' in config:
+				self.private_repo = bool(config['github'])
+				del config['private_repo']
+
 			# project github repo
 			self.github = ''
 			if 'github' in config:
 				self.github = str(config['github']).strip().replace('\\', '/').strip('/')
 				del config['github']
 			self.verbose_value(r'Context.github', self.github)
+			if self.github and not self.private_repo:
+				badges.append((
+					r'Releases',
+					rf'https://img.shields.io/github/v/release/{self.github}?style=flat-square',
+					rf'https://github.com/{self.github}/releases'
+				))
 
 			# m.css navbar
 			if 'navbar' in config:
@@ -962,7 +1003,7 @@ class Context(object):
 				self.defines[k] = v
 			non_cpp_def_defines = copy.deepcopy(self.defines)
 			cpp_defs = dict()
-			for ver in (1998, 2003, 2011, 2014, 2017, 2020):
+			for ver in (1998, 2003, 2011, 2014, 2017, 2020, 2023, 2026, 2029):
 				if ver > self.cpp:
 					break
 				for k, v in _Defaults.cpp_builtin_defines[ver].items():
@@ -1040,23 +1081,6 @@ class Context(object):
 				self.generate_tagfile = bool(config['generate_tagfile'])
 				del config['generate_tagfile']
 			self.verbose_value(r'Context.generate_tagfile', self.generate_tagfile)
-
-			# license
-			self.license = None
-			if 'license' in config:
-				if not is_collection(config['license']) or len(config['license']) != 2:
-					raise Exception(rf'license: must be of the form [ "<name>" , "<uri>" ]')
-				name = str(config['license'][0]).strip()
-				uri = str(config['license'][1]).strip()
-				if name and uri:
-					self.license = (name, uri)
-				del config['license']
-				if self.license:
-					badge = Path(self.data_dir, rf'dox-badge-license-{self.license[0].lower()}.svg')
-					if badge.exists():
-						extra_files.append(badge)
-						badges.append((self.license[0], badge.name, self.license[1]))
-			self.verbose_value(r'Context.license', self.license)
 
 			# badges (shields) for index.html
 			if 'badges' in config:
