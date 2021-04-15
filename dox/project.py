@@ -19,7 +19,7 @@ import datetime
 
 
 #=======================================================================================================================
-# PROJECT CONTEXT
+# internal helpers
 #=======================================================================================================================
 
 class _Defaults(object):
@@ -686,6 +686,10 @@ class _Highlighting(object):
 
 
 
+#=======================================================================================================================
+# project context
+#=======================================================================================================================
+
 class Context(object):
 
 	__emoji = None
@@ -696,9 +700,31 @@ class Context(object):
 	def is_verbose(self):
 		return self.__verbose
 
-	def verbose(self, msg):
+	def __log(self, level, msg, indent=None):
+		if msg is None:
+			return
+		msg = str(msg).strip(r'\r\n\v\f')
+		if not msg:
+			return
+		if indent is not None:
+			indent = str(indent)
+		if indent:
+			with io.StringIO() as buf:
+				for line in msg.splitlines():
+					print(rf'{indent}{line}', file=buf, end='\n')
+				log(self.logger, buf.getvalue(), level=level)
+		else:
+			log(self.logger, msg, level=level)
+
+	def verbose(self, msg, indent=None):
 		if self.__verbose:
-			log(self.logger, msg, level=logging.DEBUG)
+			self.__log(logging.DEBUG, msg, indent=indent)
+
+	def info(self, msg, indent=None):
+		self.__log(logging.INFO, msg, indent=indent)
+
+	def warning(self, msg, indent=None):
+		self.__log(logging.WARNING, rf'Warning: {msg}', indent=indent)
 
 	def verbose_value(self, name, val):
 		if not self.__verbose:
@@ -724,7 +750,7 @@ class Context(object):
 							print(v, file=buf, end='')
 				else:
 					print(val, file=buf, end='')
-			log(self.logger, buf.getvalue(), level=logging.DEBUG)
+			self.verbose(buf.getvalue())
 
 	def verbose_object(self, name, obj):
 		if not self.__verbose:
@@ -733,13 +759,13 @@ class Context(object):
 			self.verbose_value(rf'{name}.{k}', v)
 
 	@classmethod
-	def __init_data_files(cls, data_dir):
+	def __init_data_files(cls, context):
 		cls.__data_files_lock.acquire()
 		try:
-			data_dir.mkdir(exist_ok=True)
+			context.data_dir.mkdir(exist_ok=True)
 			if cls.__emoji is None:
-				file_path = coerce_path(data_dir, 'emoji.json')
-				cls.__emoji = json.loads(read_all_text_from_file(file_path, 'https://api.github.com/emojis'))
+				file_path = coerce_path(context.data_dir, 'emoji.json')
+				cls.__emoji = json.loads(read_all_text_from_file(file_path, fallback_url='https://api.github.com/emojis', logger=context.logger))
 				if '__processed' not in cls.__emoji:
 					emoji = {}
 					cls.__emoji_codepoints = set()
@@ -757,7 +783,7 @@ class Context(object):
 						emoji[alias] = emoji[key]
 					emoji['__codepoints'] = [cp for cp in cls.__emoji_codepoints]
 					emoji['__processed'] = True
-					print(rf'Writing {file_path}')
+					context.log(rf'Writing {file_path}')
 					with open(file_path, 'w', encoding='utf-8', newline='\n') as f:
 						print(json.dumps(emoji, sort_keys=True, indent=4), file=f)
 					cls.__emoji = emoji
@@ -771,6 +797,7 @@ class Context(object):
 
 		self.logger = logger
 		self.__verbose = bool(verbose)
+		self.verbose_logger = logger if self.__verbose else None
 
 		self.cleanup = bool(cleanup)
 		self.verbose_value(r'Context.cleanup', self.cleanup)
@@ -883,7 +910,7 @@ class Context(object):
 			config = dict()
 			if self.config_path is not None:
 				assert_existing_file(self.config_path)
-				config = pytomlpp.loads(read_all_text_from_file(self.config_path))
+				config = pytomlpp.loads(read_all_text_from_file(self.config_path, logger=self.logger))
 
 			self.warnings = _Warnings(config) # printed in run.py post-doxyfile
 
@@ -1147,7 +1174,7 @@ class Context(object):
 				raise Exception(rf"Unknown config property '{k}'")
 
 		# initialize other data from files on disk
-		self.__init_data_files(self.data_dir)
+		self.__init_data_files(self)
 		self.emoji = self.__emoji
 		self.emoji_codepoints = self.__emoji_codepoints
 

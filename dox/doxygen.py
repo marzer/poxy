@@ -79,6 +79,9 @@ class Doxyfile(object):
 	__include = re.compile(r'^\s*@INCLUDE\s*=\s*(.+?)\s*$', re.M)
 
 	def __init__(self, doxyfile_path, cwd=None, logger=None):
+		self.__logger=logger
+		self.__dirty=True
+
 		# the path of the actual doxyfile
 		self.path = coerce_path(doxyfile_path).resolve()
 
@@ -91,9 +94,9 @@ class Doxyfile(object):
 		if self.path.exists():
 			if not self.path.is_file():
 				raise Exception(f'{self.path} was not a file')
-			self.__text = read_all_text_from_file(self.path).strip()
+			self.__text = read_all_text_from_file(self.path, logger=self.__logger).strip()
 		else:
-			log(logger, rf'Warning: doxyfile {self.path} not found! A default one will be generated in-memory.', level=logging.WARNING)
+			log(self.__logger, rf'Warning: doxyfile {self.path} not found! A default one will be generated in-memory.', level=logging.WARNING)
 			result = subprocess.run(
 				r'doxygen -s -g -'.split(),
 				check=True,
@@ -113,7 +116,7 @@ class Doxyfile(object):
 				if not inc.is_absolute():
 					inc = Path(self.__cwd, inc)
 				inc = inc.resolve()
-				sub = f'\n\n{read_all_text_from_file(inc).strip()}\n\n'
+				sub = f'\n\n{read_all_text_from_file(inc, logger=self.__logger).strip()}\n\n'
 			self.__text = self.__text[:m.start()].strip() + sub + self.__text[m.end():].strip()
 			m = self.__include.search(self.__text)
 
@@ -121,6 +124,9 @@ class Doxyfile(object):
 		self.__text = f'\n{self.__text}\n'
 
 	def cleanup(self):
+		if not self.__dirty:
+			return
+		log(self.__logger, rf'Invoking doxygen to clean doxyfile')
 		result = subprocess.run(
 			r'doxygen -s -u -'.split(),
 			check=True,
@@ -129,12 +135,12 @@ class Doxyfile(object):
 			encoding='utf-8',
 			input=self.__text
 		)
+		self.__dirty = False
 		self.__text = result.stdout.strip()
 
 	def flush(self):
-		if 1:
-			self.cleanup()
-		print(rf'Writing {self.path}')
+		self.cleanup()
+		log(self.__logger, rf'Writing {self.path}')
 		with open(self.path, 'w', encoding='utf-8', newline='\n') as f:
 			print(self.__text, file=f)
 
@@ -169,6 +175,7 @@ class Doxyfile(object):
 
 	def append(self, *args, end='\n', sep=' '):
 		self.__text = rf'{self.__text}{sep.join(args)}{end}'
+		self.__dirty = True
 		return self
 
 	def add_value(self, key, value=None):
@@ -180,6 +187,7 @@ class Doxyfile(object):
 							self.append(rf'{key:<23}+= {_format_for_doxyfile(v)}')
 			else:
 				self.append(rf'{key:<23}+= {_format_for_doxyfile(value)}')
+			self.__dirty = True
 		return self
 
 	def set_value(self, key, value=None):
@@ -193,7 +201,11 @@ class Doxyfile(object):
 				first = False
 		else:
 			self.append(rf'{key:<23}=  {_format_for_doxyfile(value)}')
+		self.__dirty = True
 		return self
+
+	def get_text(self):
+		return self.__text
 
 	def __enter__(self):
 		return self

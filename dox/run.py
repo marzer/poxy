@@ -21,6 +21,7 @@ import os
 import subprocess
 import concurrent.futures as futures
 import argparse
+import tempfile
 from lxml import etree
 from io import BytesIO
 
@@ -224,7 +225,7 @@ def __preprocess_doxyfile(context):
 					top_row.append(rf'<a href="https://github.com/{context.github}/">Github</a>')
 					top_row.append(rf'<a href="https://github.com/{context.github}/issues">Report an issue</a>')
 				if context.generate_tagfile:
-					top_row.append(rf'<a href="{context.tagfile_path.name}" target="_blank">Doxygen tagfile</a>')
+					top_row.append(rf'<a href="{context.tagfile_path.name}" target="_blank" type="text/xml" download>Doxygen tagfile</a>')
 				if top_row:
 					for i in range(len(top_row)):
 						df.append(rf'##!     {" &bull; " if i else ""}{top_row[i]} ''\\')
@@ -242,6 +243,11 @@ def __preprocess_doxyfile(context):
 			df.path = coerce_path(context.output_dir, df.path.name + rf'.{df.hash()}.temp')
 		context.doxyfile_path = df.path
 		context.verbose_value(r'Context.doxyfile_path', context.doxyfile_path)
+
+		# debug dump final doxyfile
+		df.cleanup()
+		context.verbose(r'Final Doxyfile:')
+		context.verbose(df.get_text(), indent=r'    ')
 
 
 
@@ -294,7 +300,7 @@ def __preprocess_xml(context):
 		macros = set()
 		cpp_tree = CppTree()
 		for xml_file in xml_files:
-			log(context.logger, rf'Pre-processing {xml_file}')
+			context.verbose(rf'Pre-processing {xml_file}')
 			xml = etree.parse(str(xml_file), parser=xml_parser)
 			changed = False
 
@@ -431,7 +437,7 @@ def __preprocess_xml(context):
 		if extracted_implementation:
 			for (hp, hfn, hid, impl) in implementation_header_data:
 				xml_file = coerce_path(context.xml_dir, rf'{hid}.xml')
-				log(context.logger, rf'Merging implementation nodes into {xml_file}')
+				context.verbose(rf'Merging implementation nodes into {xml_file}')
 				xml = etree.parse(str(xml_file), parser=xml_parser)
 				compounddef = xml.getroot().find(r'compounddef')
 				changed = False
@@ -483,14 +489,14 @@ def __preprocess_xml(context):
 	if 1 and context.implementation_headers:
 		for hdata in implementation_header_data:
 			for (ip, ifn, iid) in hdata[3]:
-				delete_file(coerce_path(context.xml_dir, rf'{iid}.xml'))
+				delete_file(coerce_path(context.xml_dir, rf'{iid}.xml'), logger=context.verbose_logger)
 
 	# scan through the files and substitute impl header ids and paths as appropriate
 	if 1 and context.implementation_headers:
 		xml_files = get_all_files(context.xml_dir, any=('*.xml'))
 		for xml_file in xml_files:
-			log(context.logger, rf"Re-linking implementation headers in '{xml_file}'")
-			xml_text = read_all_text_from_file(xml_file)
+			context.verbose(rf"Re-linking implementation headers in '{xml_file}'")
+			xml_text = read_all_text_from_file(xml_file, logger=context.verbose_logger)
 			for (hp, hfn, hid, impl) in implementation_header_data:
 				for (ip, ifn, iid) in impl:
 					#xml_text = xml_text.replace(f'refid="{iid}"',f'refid="{hid}"')
@@ -521,9 +527,9 @@ def __postprocess_html_file(path, context=None):
 	assert context is not None
 	assert isinstance(context, project.Context)
 
-	log(context.logger, rf'Post-processing {path}')
+	context.verbose(rf'Post-processing {path}')
 	changed = False
-	doc = soup.HTMLDocument(path, logger=context.logger)
+	doc = soup.HTMLDocument(path, logger=context.verbose_logger)
 	for fix in context.fixers:
 		if fix(doc, context):
 			doc.smooth()
@@ -544,7 +550,7 @@ def __postprocess_html(context):
 
 	threads = min(len(files), context.threads, 4)
 
-	with ScopeTimer(rf'Post-processing {len(files)} HTML files'):
+	with ScopeTimer(rf'Post-processing {len(files)} HTML files', print_start=True):
 		context.fixers = (
 			fixers.DeadLinksFix()
 			, fixers.CustomTagsFix()
@@ -594,12 +600,12 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 		logger = logger
 	)
 
-	with ScopeTimer('All tasks') as all_tasks_timer:
+	with ScopeTimer(r'All tasks') as all_tasks_timer:
 
 		# delete any leftovers from the previous run
 		if 1:
-			delete_directory(context.xml_dir)
-			delete_directory(context.html_dir)
+			delete_directory(context.xml_dir, logger=context.logger)
+			delete_directory(context.html_dir, logger=context.logger)
 
 		# preprocess the doxyfile
 		__preprocess_doxyfile(context)
@@ -610,24 +616,35 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 
 			# run doxygen to generate the xml
 			if 1:
-				with ScopeTimer('Generating XML files with Doxygen') as t:
-					subprocess.run(
-						['doxygen', str(context.doxyfile_path)],
-						check=True,
-						shell=True,
-						cwd=context.input_dir
-					)
+				with ScopeTimer(r'Generating XML files with Doxygen', print_start=True) as t:
+					with tempfile.SpooledTemporaryFile(mode='w+', newline='\n', encoding='utf-8') as file:
+						try:
+							subprocess.run(
+								['doxygen', str(context.doxyfile_path)],
+								check=True,
+								stdout=file,
+								stderr=file,
+								cwd=context.input_dir
+							)
+						except:
+							context.warning(r'Doxygen failed! Output dump:')
+							file.seek(0)
+							context.info(file.read(), indent=r'    ')
+							raise
+						context.verbose(r'Doxygen output dump:')
+						file.seek(0)
+						context.verbose(file.read(), indent=r'    ')
 
 					# remove the local paths from the tagfile since they're meaningless (and a privacy breach)
 					if context.tagfile_path is not None and context.tagfile_path.exists():
-						text = read_all_text_from_file(context.tagfile_path)
+						text = read_all_text_from_file(context.tagfile_path, logger=context.verbose_logger)
 						text = re.sub(r'\n\s*?<path>.+?</path>\s*?\n', '\n', text, re.S)
 						with open(context.tagfile_path, 'w', encoding='utf-8', newline='\n') as f:
 							f.write(text)
 
 			# fix some shit that's broken in the xml
 			if 1:
-				with ScopeTimer('Pre-processing XML files') as t:
+				with ScopeTimer(r'Pre-processing XML files', print_start=True) as t:
 					__preprocess_xml(context)
 
 			context.verbose_object(r'Context.highlighting', context.highlighting)
@@ -644,30 +661,43 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 
 			# run m.css to generate the html
 			if 1:
-				with ScopeTimer('Generating HTML files with m.css') as t:
-					doxy_args = [str(context.doxyfile_path), '--no-doxygen']
-					if context.is_verbose():
-						doxy_args.append('--debug')
-					run_python_script(
-						coerce_path(context.mcss_dir, r'documentation/doxygen.py'),
-						*doxy_args,
-						cwd=context.input_dir
-					)
+				with ScopeTimer(r'Generating HTML files with m.css', print_start=True) as t:
+					with tempfile.SpooledTemporaryFile(mode='w+', newline='\n', encoding='utf-8') as file:
+						doxy_args = [str(context.doxyfile_path), '--no-doxygen']
+						if context.is_verbose():
+							doxy_args.append('--debug')
+						try:
+							run_python_script(
+								coerce_path(context.mcss_dir, r'documentation/doxygen.py'),
+								*doxy_args,
+								stdout=file,
+								stderr=file,
+								cwd=context.input_dir
+							)
+						except:
+							context.warning(r'm.css failed! Output dump:')
+							file.seek(0)
+							context.info(file.read(), indent=r'    ')
+							raise
+						context.verbose(r'm.css output dump:')
+						file.seek(0)
+						context.verbose(file.read(), indent=r'    ')
 
 			# copy extra_files
-			for f in context.extra_files:
-				copy_file(f, coerce_path(context.html_dir, f.name))
+			with ScopeTimer(r'Copying extra_files', print_start=True) as t:
+				for f in context.extra_files:
+					copy_file(f, coerce_path(context.html_dir, f.name), logger=context.verbose_logger)
 
 			# delete the xml
 			if context.cleanup:
-				delete_directory(context.xml_dir)
+				delete_directory(context.xml_dir, logger=context.logger)
 
 			# move the tagfile into the html directory
 			if context.generate_tagfile:
 				if context.tagfile_path.exists():
-					move_file(context.tagfile_path, coerce_path(context.output_dir, 'html'))
+					move_file(context.tagfile_path, coerce_path(context.output_dir, 'html'), logger=context.verbose_logger)
 				else:
-					log(context.logger, rf'Warning: tagfile {context.tagfile_path} not found!', level=logging.WARNING)
+					context.warning(rf'Doxygen tagfile {context.tagfile_path} not found!')
 
 			# post-process html files
 			if 1:
@@ -676,7 +706,7 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 		# delete the temp doxyfile
 		finally:
 			if context.cleanup:
-				delete_file(context.doxyfile_path)
+				delete_file(context.doxyfile_path, logger=context.verbose_logger)
 
 
 
