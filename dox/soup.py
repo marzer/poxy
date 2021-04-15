@@ -138,7 +138,7 @@ def set_class(tag, classes):
 
 class HTMLDocument(object):
 
-	def __init__(self, path):
+	def __init__(self, path, logger):
 		self.path = path
 		with open(self.path, 'r', encoding='utf-8') as f:
 			self.__doc = bs4.BeautifulSoup(f, 'html5lib', from_encoding='utf-8')
@@ -152,12 +152,13 @@ class HTMLDocument(object):
 				self.table_of_contents = div
 				break
 		self.sections = self.article_content('section', recursive=False)
+		self.__logger = logger
 
 	def smooth(self):
 		self.__doc.smooth()
 
 	def flush(self):
-		print(rf'Writing {self.path}')
+		log(self.__logger, rf'Writing {self.path}')
 		with open(self.path, 'w', encoding='utf-8', newline='\n') as f:
 			f.write(str(self.__doc))
 

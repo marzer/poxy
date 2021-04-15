@@ -1,4 +1,4 @@
-requests
+misk>=0.1.2
 bs4
 jinja2
 pygments

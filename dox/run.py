@@ -17,15 +17,12 @@ except:
 	import soup
 	import fixers
 
-import sys
 import os
-import re
 import subprocess
 import concurrent.futures as futures
 import argparse
 from lxml import etree
 from io import BytesIO
-from pathlib import Path
 
 
 
@@ -103,7 +100,7 @@ __doxygen_overrides  = (
 def __preprocess_doxyfile(context):
 	assert context is not None
 	assert isinstance(context, project.Context)
-	
+
 	with doxygen.Doxyfile(
 			doxyfile_path=context.doxyfile_path,
 			cwd=context.input_dir) as df:
@@ -142,8 +139,8 @@ def __preprocess_doxyfile(context):
 			df.set_value(r'WARN_IF_UNDOCUMENTED', context.warnings.undocumented)
 
 			if context.generate_tagfile:
-				context.tagfile_path = Path(context.output_dir, rf'{context.name.replace(" ","_")}.tagfile.xml' if context.name else r'tagfile.xml')
-				df.set_value(r'GENERATE_TAGFILE', context.tagfile_path)
+				context.tagfile_path = coerce_path(context.output_dir, rf'{context.name.replace(" ","_")}.tagfile.xml' if context.name else r'tagfile.xml')
+				df.set_value(r'GENERATE_TAGFILE', context.tagfile_path.name)
 			else:
 				df.set_value(r'GENERATE_TAGFILE')
 
@@ -225,9 +222,9 @@ def __preprocess_doxyfile(context):
 
 		# move to a temp file path
 		if context.temp_file_name:
-			df.path = Path(context.output_dir, context.temp_file_name)
+			df.path = coerce_path(context.output_dir, context.temp_file_name)
 		else:
-			df.path = Path(context.output_dir, df.path.name + rf'.{df.hash()}.temp')
+			df.path = coerce_path(context.output_dir, df.path.name + rf'.{df.hash()}.temp')
 		context.doxyfile_path = df.path
 		context.verbose_value(r'Context.doxyfile_path', context.doxyfile_path)
 
@@ -277,37 +274,37 @@ def __preprocess_xml(context):
 
 	if 1:
 		extracted_implementation = False
-		xml_files = get_all_files(context.xml_dir, any=('*.xml'))
+		xml_files = get_all_files(context.xml_dir, any=(r'*.xml'))
 		tentative_macros = regex_or(context.highlighting.macros)
 		macros = set()
 		cpp_tree = CppTree()
 		for xml_file in xml_files:
-			print(f'Pre-processing {xml_file}')
+			log(context.logger, rf'Pre-processing {xml_file}')
 			xml = etree.parse(str(xml_file), parser=xml_parser)
 			changed = False
 
 			# the doxygen index
-			if xml.getroot().tag == 'doxygenindex':
+			if xml.getroot().tag == r'doxygenindex':
 				# extract namespaces, types and enum values for syntax highlighting
-				scopes = [tag for tag in xml.getroot().findall('compound') if tag.get('kind') in ('namespace', 'class', 'struct', 'union')]
+				scopes = [tag for tag in xml.getroot().findall(r'compound') if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')]
 				for scope in scopes:
-					scope_name = scope.find('name').text
+					scope_name = scope.find(r'name').text
 
 					# skip template members because they'll break the regex matchers
-					if scope_name.find('<') != -1:
+					if scope_name.find(r'<') != -1:
 						continue
 
 					# regular types and namespaces
-					if scope.get('kind') in ('class', 'struct', 'union'):
+					if scope.get(r'kind') in (r'class', r'struct', r'union'):
 						cpp_tree.add_type(scope_name)
-					elif scope.get('kind') == 'namespace':
+					elif scope.get(r'kind') == r'namespace':
 						cpp_tree.add_namespace(scope_name)
 
 					# nested enums
-					enum_tags = [tag for tag in scope.findall('member') if tag.get('kind') in ('enum', 'enumvalue')]
+					enum_tags = [tag for tag in scope.findall(r'member') if tag.get(r'kind') in (r'enum', r'enumvalue')]
 					enum_name = ''
 					for tag in enum_tags:
-						if tag.get('kind') == 'enum':
+						if tag.get(r'kind') == r'enum':
 							enum_name = rf'{scope_name}::{tag.find("name").text}'
 							cpp_tree.add_type(enum_name)
 						else:
@@ -315,24 +312,24 @@ def __preprocess_xml(context):
 							cpp_tree.add_enum_value(rf'{enum_name}::{tag.find("name").text}')
 
 					# nested typedefs
-					typedefs = [tag for tag in scope.findall('member') if tag.get('kind') == 'typedef']
+					typedefs = [tag for tag in scope.findall(r'member') if tag.get(r'kind') == r'typedef']
 					for typedef in typedefs:
 						cpp_tree.add_type(rf'{scope_name}::{typedef.find("name").text}')
 
 			# some other compound definition
 			else:
-				compounddef = xml.getroot().find('compounddef')
+				compounddef = xml.getroot().find(r'compounddef')
 				assert compounddef is not None
-				compoundname = compounddef.find('compoundname')
+				compoundname = compounddef.find(r'compoundname')
 				assert compoundname is not None
 				assert compoundname.text
 
 				# merge user-defined sections with the same name
-				if compounddef.get('kind') in ('namespace', 'class', 'struct', 'enum', 'file'):
-					sectiondefs = [s for s in compounddef.findall('sectiondef') if s.get('kind') == "user-defined"]
+				if compounddef.get(r'kind') in (r'namespace', r'class', r'struct', r'enum', r'file'):
+					sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
 					sections = dict()
 					for section in sectiondefs:
-						header = section.find('header')
+						header = section.find(r'header')
 						if header is not None and header.text:
 							if header.text not in sections:
 								sections[header.text] = []
@@ -341,33 +338,33 @@ def __preprocess_xml(context):
 						if len(vals) > 1:
 							first_section = vals.pop(0)
 							for section in vals:
-								for member in section.findall('memberdef'):
+								for member in section.findall(r'memberdef'):
 									section.remove(member)
 									first_section.append(member)
 								compounddef.remove(section)
 								changed = True
 
 				# namespaces
-				if compounddef.get('kind') == 'namespace' and context.inline_namespaces:
+				if compounddef.get(r'kind') == r'namespace' and context.inline_namespaces:
 					for nsid in inline_namespace_ids:
-						if compounddef.get("id") == nsid:
-							compounddef.set("inline", "yes")
+						if compounddef.get(r'id') == nsid:
+							compounddef.set(r'inline', r'yes')
 							changed = True
 							break
 
 				# dirs
-				if compounddef.get('kind') == "dir" and context.implementation_headers:
-					innerfiles = compounddef.findall('innerfile')
+				if compounddef.get(r'kind') == r'dir' and context.implementation_headers:
+					innerfiles = compounddef.findall(r'innerfile')
 					for innerfile in innerfiles:
-						if innerfile.get('refid') in implementation_header_mappings:
+						if innerfile.get(r'refid') in implementation_header_mappings:
 							compounddef.remove(innerfile)
 							changed = True
 
 				# files
-				if compounddef.get('kind') == 'file':
+				if compounddef.get(r'kind') == r'file':
 
 					# simplify the XML by removing unnecessary junk
-					for tag in ('includes', 'includedby', 'incdepgraph', 'invincdepgraph'):
+					for tag in (r'includes', r'includedby', r'incdepgraph', r'invincdepgraph'):
 						tags = compounddef.findall(tag)
 						if tags:
 							for t in tags:
@@ -375,29 +372,29 @@ def __preprocess_xml(context):
 								changed = True
 
 					# get any macros for the syntax highlighter
-					define_sections = [tag for tag in compounddef.findall('sectiondef') if tag.get('kind') == r'define']
+					define_sections = [tag for tag in compounddef.findall(r'sectiondef') if tag.get(r'kind') == r'define']
 					for define_section in define_sections:
-						defines = [tag for tag in define_section.findall('memberdef') if tag.get('kind') == r'define']
+						defines = [tag for tag in define_section.findall(r'memberdef') if tag.get(r'kind') == r'define']
 						for define in defines:
 							# if (define.find('briefdescription').text.strip()
 							# 		or define.find('detaileddescription').text.strip()
 							# 		or define.find('inbodydescription').text.strip()):
-							macro = define.find('name').text
+							macro = define.find(r'name').text
 							if not tentative_macros.fullmatch(macro):
 								macros.add(macro)
 
 					# rip the good bits out of implementation headers
 					if context.implementation_headers:
-						if compounddef.get("id") in implementation_header_mappings:
+						if compounddef.get(r'id') in implementation_header_mappings:
 							hid = implementation_header_mappings[compounddef.get("id")][2]
-							innernamespaces = compounddef.findall('innernamespace')
+							innernamespaces = compounddef.findall(r'innernamespace')
 							if innernamespaces:
 								implementation_header_innernamespaces[hid] = implementation_header_innernamespaces[hid] + innernamespaces
 								extracted_implementation = True
 								for tag in innernamespaces:
 									compounddef.remove(tag)
 									changed = True
-							sectiondefs = compounddef.findall('sectiondef')
+							sectiondefs = compounddef.findall(r'sectiondef')
 							if sectiondefs:
 								implementation_header_sectiondefs[hid] = implementation_header_sectiondefs[hid] + sectiondefs
 								extracted_implementation = True
@@ -418,17 +415,17 @@ def __preprocess_xml(context):
 		# merge extracted implementations
 		if extracted_implementation:
 			for (hp, hfn, hid, impl) in implementation_header_data:
-				xml_file = Path(context.xml_dir, f'{hid}.xml')
-				print(f'Merging implementation nodes into {xml_file}')
+				xml_file = coerce_path(context.xml_dir, rf'{hid}.xml')
+				log(context.logger, rf'Merging implementation nodes into {xml_file}')
 				xml = etree.parse(str(xml_file), parser=xml_parser)
-				compounddef = xml.getroot().find('compounddef')
+				compounddef = xml.getroot().find(r'compounddef')
 				changed = False
 
-				innernamespaces = compounddef.findall('innernamespace')
+				innernamespaces = compounddef.findall(r'innernamespace')
 				for new_tag in implementation_header_innernamespaces[hid]:
 					matched = False
 					for existing_tag in innernamespaces:
-						if existing_tag.get('refid') == new_tag.get('refid'):
+						if existing_tag.get(r'refid') == new_tag.get(r'refid'):
 							matched = True
 							break
 					if not matched:
@@ -436,19 +433,19 @@ def __preprocess_xml(context):
 						innernamespaces.append(new_tag)
 						changed = True
 
-				sectiondefs = compounddef.findall('sectiondef')
+				sectiondefs = compounddef.findall(r'sectiondef')
 				for new_section in implementation_header_sectiondefs[hid]:
 					matched_section = False
 					for existing_section in sectiondefs:
-						if existing_section.get('kind') == new_section.get('kind'):
+						if existing_section.get(r'kind') == new_section.get(r'kind'):
 							matched_section = True
 
-							memberdefs = existing_section.findall('memberdef')
-							new_memberdefs = new_section.findall('memberdef')
+							memberdefs = existing_section.findall(r'memberdef')
+							new_memberdefs = new_section.findall(r'memberdef')
 							for new_memberdef in new_memberdefs:
 								matched = False
 								for existing_memberdef in memberdefs:
-									if existing_memberdef.get('id') == new_memberdef.get('id'):
+									if existing_memberdef.get(r'id') == new_memberdef.get(r'id'):
 										matched = True
 										break
 
@@ -471,18 +468,18 @@ def __preprocess_xml(context):
 	if 1 and context.implementation_headers:
 		for hdata in implementation_header_data:
 			for (ip, ifn, iid) in hdata[3]:
-				delete_file(Path(context.xml_dir, rf'{iid}.xml'))
+				delete_file(coerce_path(context.xml_dir, rf'{iid}.xml'))
 
 	# scan through the files and substitute impl header ids and paths as appropriate
 	if 1 and context.implementation_headers:
 		xml_files = get_all_files(context.xml_dir, any=('*.xml'))
 		for xml_file in xml_files:
-			print(f"Re-linking implementation headers in '{xml_file}'")
+			log(context.logger, rf"Re-linking implementation headers in '{xml_file}'")
 			xml_text = read_all_text_from_file(xml_file)
 			for (hp, hfn, hid, impl) in implementation_header_data:
 				for (ip, ifn, iid) in impl:
 					#xml_text = xml_text.replace(f'refid="{iid}"',f'refid="{hid}"')
-					xml_text = xml_text.replace(f'compoundref="{iid}"',f'compoundref="{hid}"')
+					xml_text = xml_text.replace(rf'compoundref="{iid}"',f'compoundref="{hid}"')
 					xml_text = xml_text.replace(ip,hp)
 			with BytesIO(bytes(xml_text, 'utf-8')) as b:
 				xml = etree.parse(b, parser=xml_parser)
@@ -509,9 +506,9 @@ def __postprocess_html_file(path, context=None):
 	assert context is not None
 	assert isinstance(context, project.Context)
 
-	print(f'Post-processing {path}')
+	log(context.logger, rf'Post-processing {path}')
 	changed = False
-	doc = soup.HTMLDocument(path)
+	doc = soup.HTMLDocument(path, logger=context.logger)
 	for fix in context.fixers:
 		if fix(doc, context):
 			doc.smooth()
@@ -531,7 +528,7 @@ def __postprocess_html(context):
 		return
 
 	threads = min(len(files), context.threads, 4)
-	
+
 	with ScopeTimer(rf'Post-processing {len(files)} HTML files'):
 		context.fixers = (
 			fixers.DeadLinksFix()
@@ -566,7 +563,7 @@ def __postprocess_html(context):
 # RUN
 #=======================================================================================================================
 
-def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False, mcss_dir=None, temp_file_name=None):
+def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False, mcss_dir=None, temp_file_name=None, logger=None):
 
 	context = project.Context(
 		config_path = config_path,
@@ -575,7 +572,8 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 		cleanup = cleanup,
 		verbose = verbose,
 		mcss_dir = mcss_dir,
-		temp_file_name = temp_file_name
+		temp_file_name = temp_file_name,
+		logger = logger
 	)
 
 	with ScopeTimer('All tasks') as all_tasks_timer:
@@ -633,14 +631,14 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 					if context.is_verbose():
 						doxy_args.append('--debug')
 					run_python_script(
-						Path(context.mcss_dir, 'documentation/doxygen.py'),
+						coerce_path(context.mcss_dir, r'documentation/doxygen.py'),
 						*doxy_args,
 						cwd=context.input_dir
 					)
 
 			# copy extra_files
 			for f in context.extra_files:
-				copy_file(f, Path(context.html_dir, f.name))
+				copy_file(f, coerce_path(context.html_dir, f.name))
 
 			# delete the xml
 			if context.cleanup:
@@ -648,7 +646,10 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 
 			# move the tagfile into the html directory
 			if context.generate_tagfile:
-				shutil.move(str(context.tagfile_path), str(Path(context.output_dir, 'html')))
+				if context.tagfile_path.exists():
+					move_file(context.tagfile_path, coerce_path(context.output_dir, 'html'))
+				else:
+					log(context.logger, rf'Warning: tagfile {context.tagfile_path} not found!', level=logging.WARNING)
 
 			# post-process html files
 			if 1:
@@ -695,7 +696,8 @@ def main():
 			cleanup = not args.nocleanup,
 			verbose = verbose,
 			mcss_dir = args.mcss,
-			temp_file_name = args.temp_file_name
+			temp_file_name = args.temp_file_name,
+			logger=True # stderr + stdout
 		)
 		if result is None or bool(result):
 			sys.exit(0)

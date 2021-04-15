@@ -9,9 +9,7 @@ try:
 except:
 	from utils import *
 
-import re
-from pathlib import Path
-from io import StringIO
+import subprocess
 
 
 
@@ -82,19 +80,12 @@ class Doxyfile(object):
 
 	def __init__(self, doxyfile_path, cwd=None):
 		# the path of the actual doxyfile
-		assert doxyfile_path is not None
-		if not isinstance(doxyfile_path, Path):
-			doxyfile_path = Path(doxyfile_path)
-		self.path = doxyfile_path.resolve()
+		self.path = coerce_path(doxyfile_path).resolve()
 
 		# the working directory for doxygen invocations
-		cwd = Path.cwd() if cwd is None else cwd
-		if not isinstance(cwd, Path):
-			cwd = Path(cwd)
-		cwd = cwd.resolve()
-		assert_existing_directory(cwd)
-		self.__cwd = cwd
-	
+		self.__cwd = Path.cwd() if cwd is None else coerce_path(cwd).resolve()
+		assert_existing_directory(self.__cwd)
+
 		# read in doxyfile (or generate one)
 		self.__text = ''
 		if self.path.exists():

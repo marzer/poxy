@@ -14,8 +14,6 @@ import copy
 import pytomlpp
 import threading
 import json
-from pathlib import Path
-from io import StringIO
 
 
 
@@ -533,12 +531,6 @@ class _Defaults(object):
 	}
 
 
-def _coerce_collection(val):
-	if not is_collection(val):
-		val = ( val, )
-	return val
-
-
 
 def _extract_kvps(config, table,
 		key_label=None,
@@ -632,42 +624,42 @@ class _Highlighting(object):
 			vals = config['highlighting']
 
 			if 'types' in vals:
-				for t in _coerce_collection(vals['types']):
+				for t in coerce_collection(vals['types']):
 					type_ = str(t).strip()
 					if type_:
 						self.types.add(type_)
 				del vals['types']
 
 			if 'macros' in vals:
-				for m in _coerce_collection(vals['macros']):
+				for m in coerce_collection(vals['macros']):
 					macro = str(m).strip()
 					if macro:
 						self.macros.add(macro)
 				del vals['macros']
 
 			if 'string_literals' in vals:
-				for lit in _coerce_collection(vals['string_literals']):
+				for lit in coerce_collection(vals['string_literals']):
 					literal = str(lit).strip()
 					if literal:
 						self.string_literals.add(literal)
 				del vals['string_literals']
 
 			if 'numeric_literals' in vals:
-				for lit in _coerce_collection(vals['numeric_literals']):
+				for lit in coerce_collection(vals['numeric_literals']):
 					literal = str(lit).strip()
 					if literal:
 						self.numeric_literals.add(literal)
 				del vals['numeric_literals']
 
 			if 'enums' in vals:
-				for e in _coerce_collection(vals['enums']):
+				for e in coerce_collection(vals['enums']):
 					enum = str(e).strip()
 					if enum:
 						self.enums.add(enum)
 				del vals['enums']
 
 			if 'namespaces' in vals:
-				for ns in _coerce_collection(vals['namespaces']):
+				for ns in coerce_collection(vals['namespaces']):
 					namespace = str(ns).strip()
 					if namespace:
 						self.namespaces.add(namespace)
@@ -697,38 +689,35 @@ class Context(object):
 	def is_verbose(self):
 		return self.__verbose
 
-	def verbose(self, *args, file=sys.stdout, end='\n', sep=' '):
+	def verbose(self, msg):
 		if self.__verbose:
-			print(*args, file=file, end=end, sep=sep)
+			log(self.logger, msg, level=logging.DEBUG)
 
 	def verbose_value(self, name, val):
 		if not self.__verbose:
 			return
-		self.verbose(rf'{name+": ":<35}', end='')
-		if val is None:
-			self.verbose('')
-		elif isinstance(val, dict):
-			if not val:
-				self.verbose('')
-				return
-			first = True
-			for k, v in val.items():
-				if not first:
-					self.verbose(rf'{" ":<35}', end='')
-				first = False
-				self.verbose(rf'{k:<35} => {v}')
-		elif is_collection(val):
-			if not val:
-				self.verbose('')
-				return
-			first = True
-			for v in val:
-				if not first:
-					self.verbose(rf'{" ":<35}', end='')
-				first = False
-				self.verbose(v)
-		else:
-			self.verbose(val)
+		with io.StringIO() as buf:
+			print(rf'{name+": ":<35}', file=buf, end='')
+			if val is not None:
+				if isinstance(val, dict):
+					if val:
+						first = True
+						for k, v in val.items():
+							if not first:
+								print(f'\n{" ":<35}', file=buf, end='')
+							first = False
+							print(rf'{k:<35} => {v}', file=buf, end='')
+				elif is_collection(val):
+					if val:
+						first = True
+						for v in val:
+							if not first:
+								print(f'\n{" ":<35}', file=buf, end='')
+							first = False
+							print(v, file=buf, end='')
+				else:
+					print(val, file=buf, end='')
+			log(self.logger, buf.getvalue(), level=logging.DEBUG)
 
 	def verbose_object(self, name, obj):
 		if not self.__verbose:
@@ -736,21 +725,13 @@ class Context(object):
 		for k, v in obj.__dict__.items():
 			self.verbose_value(rf'{name}.{k}', v)
 
-	def warning(self, *args, file=sys.stderr, end='\n', sep=' '):
-		if self.warnings is not None and self.warnings.treat_as_errors:
-			with StringIO() as buf:
-				print(*args, r' [warnings.treat_as_errors]', file=buf, end='', sep=sep)
-				raise Exception(buf.getvalue())
-		print('Warning: ', file=file, end='', sep='')
-		print(*args, file=file, end=end, sep=sep)
-
 	@classmethod
 	def __init_data_files(cls, data_dir):
 		cls.__data_files_lock.acquire()
 		try:
 			data_dir.mkdir(exist_ok=True)
 			if cls.__emoji is None:
-				file_path = Path(data_dir, 'emoji.json')
+				file_path = coerce_path(data_dir, 'emoji.json')
 				cls.__emoji = json.loads(read_all_text_from_file(file_path, 'https://api.github.com/emojis'))
 				if '__processed' not in cls.__emoji:
 					emoji = {}
@@ -779,8 +760,9 @@ class Context(object):
 		finally:
 			cls.__data_files_lock.release()
 
-	def __init__(self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, temp_file_name):
+	def __init__(self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, temp_file_name, logger):
 
+		self.logger = logger
 		self.__verbose = bool(verbose)
 
 		self.cleanup = bool(cleanup)
@@ -940,7 +922,7 @@ class Context(object):
 			# m.css navbar
 			if 'navbar' in config:
 				self.navbar = []
-				for v in _coerce_collection(config['navbar']):
+				for v in coerce_collection(config['navbar']):
 					val = str(v).strip().lower()
 					if val:
 						self.navbar.append(val)
@@ -992,7 +974,7 @@ class Context(object):
 			# inline namespaces for old versions of doxygen
 			self.inline_namespaces = copy.deepcopy(_Defaults.inline_namespaces)
 			if 'inline_namespaces' in config:
-				for ns in _coerce_collection(config['inline_namespaces']):
+				for ns in coerce_collection(config['inline_namespaces']):
 					namespace = str(ns).strip()
 					if namespace:
 						self.inline_namespaces.add(namespace)
@@ -1092,7 +1074,7 @@ class Context(object):
 
 			# HTML_EXTRA_FILES
 			if 'extra_files' in config:
-				for f in _coerce_collection(config['extra_files']):
+				for f in coerce_collection(config['extra_files']):
 					file = str(f).strip()
 					if file:
 						extra_files.append(Path(file))

@@ -648,7 +648,7 @@ class DeadLinksFix(object):
 		changed = False
 		for anchor in doc.body('a', recursive=True):
 			match = self.__href.fullmatch(anchor['href'])
-			if match and not Path(doc.path.parent, match[1]).exists():
+			if match and not coerce_path(doc.path.parent, match[1]).exists():
 				soup.remove_class(anchor, 'm-doc')
 				if anchor.parent is not None and anchor.parent.name in ('dt', 'div'):
 					soup.add_class(anchor, 'm-doc-self')
