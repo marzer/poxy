@@ -139,20 +139,25 @@ def set_class(tag, classes):
 class HTMLDocument(object):
 
 	def __init__(self, path, logger):
+		self.__logger = logger
 		self.path = path
 		with open(self.path, 'r', encoding='utf-8') as f:
 			self.__doc = bs4.BeautifulSoup(f, 'html5lib', from_encoding='utf-8')
 		self.head = self.__doc.head
 		self.body = self.__doc.body
 		self.table_of_contents = None
-		self.article_content = self.__doc.body.main.article.div.div.div
-		toc_candidates = self.article_content('div', class_='m-block m-default', recursive=False)
-		for div in toc_candidates:
-			if div.h3 and div.h3.string == 'Contents':
-				self.table_of_contents = div
-				break
-		self.sections = self.article_content('section', recursive=False)
-		self.__logger = logger
+		try:
+			self.article_content = self.__doc.body.main.article.div.div.div
+			toc_candidates = self.article_content('div', class_='m-block m-default', recursive=False)
+			for div in toc_candidates:
+				if div.h3 and div.h3.string == 'Contents':
+					self.table_of_contents = div
+					break
+			self.sections = self.article_content('section', recursive=False)
+		except:
+			self.article_content = None
+			self.table_of_contents = None
+			self.sections = None
 
 	def smooth(self):
 		self.__doc.smooth()
@@ -193,19 +198,20 @@ class HTMLDocument(object):
 
 	def find_all_from_sections(self, name=None, select=None, section=None, include_toc=False, **kwargs):
 		tags = []
-		sections = None
-		if (section is not None):
-			sections = self.article_content('section', recursive=False, id='section')
-		else:
-			sections = self.sections
-		if include_toc and self.table_of_contents is not None:
-			sections = [self.table_of_contents, *sections]
-		for sect in sections:
-			matches = sect(name, **kwargs) if name is not None else [ sect ]
-			if (select is not None):
-				newMatches = []
-				for match in matches:
-					newMatches += match.select(select)
-				matches = newMatches
-			tags += matches
+		if self.article_content is not None:
+			sections = None
+			if (section is not None):
+				sections = self.article_content('section', recursive=False, id='section')
+			else:
+				sections = self.sections
+			if include_toc and self.table_of_contents is not None:
+				sections = [self.table_of_contents, *sections]
+			for sect in sections:
+				matches = sect(name, **kwargs) if name is not None else [ sect ]
+				if (select is not None):
+					newMatches = []
+					for match in matches:
+						newMatches += match.select(select)
+					matches = newMatches
+				tags += matches
 		return tags

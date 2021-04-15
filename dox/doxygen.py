@@ -78,7 +78,7 @@ class Doxyfile(object):
 
 	__include = re.compile(r'^\s*@INCLUDE\s*=\s*(.+?)\s*$', re.M)
 
-	def __init__(self, doxyfile_path, cwd=None):
+	def __init__(self, doxyfile_path, cwd=None, logger=None):
 		# the path of the actual doxyfile
 		self.path = coerce_path(doxyfile_path).resolve()
 
@@ -93,6 +93,7 @@ class Doxyfile(object):
 				raise Exception(f'{self.path} was not a file')
 			self.__text = read_all_text_from_file(self.path).strip()
 		else:
+			log(logger, rf'Warning: doxyfile {self.path} not found! A default one will be generated in-memory.', level=logging.WARNING)
 			result = subprocess.run(
 				r'doxygen -s -g -'.split(),
 				check=True,

@@ -31,6 +31,7 @@ from io import BytesIO
 #=======================================================================================================================
 
 __doxygen_overrides  = (
+		(r'ALLEXTERNALS',			False),
 		(r'ALLOW_UNICODE_NAMES',	False),
 		(r'AUTOLINK_SUPPORT',		True),
 		(r'CLASS_DIAGRAMS',			False),
@@ -39,6 +40,8 @@ __doxygen_overrides  = (
 		(r'DOXYFILE_ENCODING',		r'UTF-8'),
 		(r'ENABLE_PREPROCESSING',	True),
 		(r'EXPAND_ONLY_PREDEF', 	False),
+		(r'EXTERNAL_GROUPS', 		False),
+		(r'EXTERNAL_PAGES', 		False),
 		(r'EXTRACT_ANON_NSPACES',	False),
 		(r'EXTRACT_LOCAL_CLASSES',	False),
 		(r'GENERATE_AUTOGEN_DEF',	False),
@@ -56,16 +59,19 @@ __doxygen_overrides  = (
 		(r'GENERATE_PERLMOD',		False),
 		(r'GENERATE_QHP',			False),
 		(r'GENERATE_RTF',			False),
+		(r'GENERATE_SQLITE3',		False),
 		(r'GENERATE_TESTLIST',		False),
 		(r'GENERATE_TODOLIST',		False),
 		(r'GENERATE_TREEVIEW',		False),
 		(r'GENERATE_XML',			True),
+		(r'HAVE_DOT',				False),
 		(r'HIDE_UNDOC_CLASSES',		True),
 		(r'HIDE_UNDOC_MEMBERS',		True),
 		(r'HTML_FILE_EXTENSION',	r'.html'),
 		(r'HTML_OUTPUT',			r'html'),
 		(r'IDL_PROPERTY_SUPPORT',	False),
 		(r'INLINE_INHERITED_MEMB',	True),
+		(r'INLINE_SOURCES',			False),
 		(r'INPUT_ENCODING',			r'UTF-8'),
 		(r'LOOKUP_CACHE_SIZE',		2),
 		(r'MACRO_EXPANSION',		True),
@@ -75,8 +81,12 @@ __doxygen_overrides  = (
 		(r'OPTIMIZE_OUTPUT_JAVA',	False),
 		(r'OPTIMIZE_OUTPUT_SLICE',	False),
 		(r'OPTIMIZE_OUTPUT_VHDL',	False),
+		(r'QUIET',					False),
+		(r'RECURSIVE',				True),
+		(r'REFERENCES_LINK_SOURCE',	False),
 		(r'RESOLVE_UNNAMED_PARAMS',	True),
 		(r'SHORT_NAMES',			False),
+		(r'SHOW_USED_FILES',		False),
 		(r'SIP_SUPPORT',			False),
 		(r'SKIP_FUNCTION_MACROS', 	False),
 		(r'SORT_BRIEF_DOCS',		False),
@@ -87,6 +97,9 @@ __doxygen_overrides  = (
 		(r'SOURCE_BROWSER',			False),
 		(r'TAB_SIZE',				4),
 		(r'TYPEDEF_HIDES_STRUCT',	False),
+		(r'UML_LOOK',				False),
+		(r'USE_HTAGS',				False),
+		(r'VERBATIM_HEADERS',		False),
 		(r'WARN_IF_DOC_ERROR',		True),
 		(r'WARN_IF_INCOMPLETE_DOC',	True),
 		(r'WARN_LOGFILE',			''),
@@ -102,8 +115,10 @@ def __preprocess_doxyfile(context):
 	assert isinstance(context, project.Context)
 
 	with doxygen.Doxyfile(
-			doxyfile_path=context.doxyfile_path,
-			cwd=context.input_dir) as df:
+			doxyfile_path = context.doxyfile_path,
+			cwd = context.input_dir,
+			logger = context.logger
+		) as df:
 
 		df.append()
 		df.append(r'#---------------------------------------------------------------------------')
@@ -550,7 +565,10 @@ def __postprocess_html(context):
 					try:
 						future.result()
 					except:
-						executor.shutdown(wait=False, cancel_futures=True)
+						try:
+							executor.shutdown(wait=False, cancel_futures=True)
+						except TypeError:
+							executor.shutdown(wait=False)
 						raise
 
 		else:

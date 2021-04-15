@@ -77,6 +77,8 @@ class CustomTagsFix(object):
 			return f'<{m[1]}{(" " + tag_content) if tag_content else ""}>'
 
 	def __call__(self, doc, context):
+		if doc.article_content is None:
+			return False
 		changed = False
 		changed_this_pass = True
 		while changed_this_pass:
@@ -162,6 +164,8 @@ class ModifiersFix1(_ModifiersFixBase):
 		return f'{m[1]}<span class="dox-injected m-label m-flat {cls._modifierClasses[m[2]]}">{m[2]}</span>{m[3]}'
 
 	def __call__(self, doc, context):
+		if doc.article_content is None:
+			return False
 		changed = False
 		for sect in self.__sections:
 			tags = doc.find_all_from_sections('dt', select='span.m-doc-wrap', section=sect)
@@ -186,6 +190,8 @@ class ModifiersFix2(_ModifiersFixBase):
 		return ' '
 
 	def __call__(self, doc, context):
+		if doc.article_content is None:
+			return False
 		changed = False
 		sections = doc.find_all_from_sections(section=False) # all sections without an id
 		section = None
@@ -248,7 +254,7 @@ class IndexPageFix(object):
 	Applies some basic fixes to index.html
 	'''
 	def __call__(self, doc, context):
-		if doc.path.name.lower() != 'index.html':
+		if doc.article_content is None or doc.path.name.lower() != 'index.html':
 			return False
 		parent = doc.article_content
 		banner = parent.find('img')
@@ -540,6 +546,9 @@ class AutoDocLinksFix(object):
 		return rf'''<a href="{uri}" class="m-doc dox-injected{' dox-external' if external else ''}"{' target="_blank"' if external else ''}>{m[0]}</a>'''
 
 	def __call__(self, doc, context):
+		if doc.article_content is None:
+			return False
+
 		changed = False
 
 		# first check all existing doc links to make sure they aren't erroneously linked to the wrong thing
