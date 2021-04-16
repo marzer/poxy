@@ -759,16 +759,16 @@ def main():
 		args.add_argument(
 			'--threads',
 			type=int,
-			nargs='?',
 			default=0,
-			metavar='N',
+			metavar='<N>',
 			help=r"sets the number of threads used (default: %(default)s (automatic))"
 		)
-		args.add_argument('--mcss',
+		args.add_argument('--m.css',
 			type=Path,
 			default=None,
-			metavar='<dir path>',
-			help=r"overrides the version of m.css used for documentation generation"
+			metavar='<path>',
+			help=r"overrides the version of m.css used for documentation generation",
+			dest=r'mcss'
 		)
 		args.add_argument('--nocleanup', action='store_true', help=argparse.SUPPRESS)
 		args.add_argument('--temp_file_name', type=str, default=None, metavar='<file name>', help=argparse.SUPPRESS)

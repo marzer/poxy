@@ -528,7 +528,7 @@ class CodeBlockFix(object):
 def _m_doc_anchor_tags(tag):
 	return (tag.name == 'a'
 		and tag.has_attr('class')
-		and ('m-doc' in tag['class'] or 'm-doc-self' in tag['class'])
+		and ('m-doc' in tag['class']) # or 'm-doc-self' in tag['class'])
 		and (tag.string is not None or tag.strings is not None)
 	)
 
