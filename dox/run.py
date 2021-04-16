@@ -31,13 +31,15 @@ from io import BytesIO
 # PRE/POST PROCESSORS
 #=======================================================================================================================
 
-__doxygen_overrides  = (
+_doxygen_overrides  = (
 		(r'ALLEXTERNALS',			False),
 		(r'ALLOW_UNICODE_NAMES',	False),
+		(r'ALWAYS_DETAILED_SEC',	False),
 		(r'AUTOLINK_SUPPORT',		True),
 		(r'CLASS_DIAGRAMS',			False),
 		(r'CPP_CLI_SUPPORT',		False),
 		(r'CREATE_SUBDIRS',			False),
+		(r'DISTRIBUTE_GROUP_DOC',	False),
 		(r'DOXYFILE_ENCODING',		r'UTF-8'),
 		(r'ENABLE_PREPROCESSING',	True),
 		(r'EXPAND_ONLY_PREDEF', 	False),
@@ -45,6 +47,9 @@ __doxygen_overrides  = (
 		(r'EXTERNAL_PAGES', 		False),
 		(r'EXTRACT_ANON_NSPACES',	False),
 		(r'EXTRACT_LOCAL_CLASSES',	False),
+		(r'EXTRACT_PACKAGE',		False),
+		(r'EXTRACT_PRIVATE',		False),
+		(r'EXTRACT_STATIC',			False),
 		(r'GENERATE_AUTOGEN_DEF',	False),
 		(r'GENERATE_BUGLIST',		False),
 		(r'GENERATE_CHI',			False),
@@ -66,12 +71,16 @@ __doxygen_overrides  = (
 		(r'GENERATE_TREEVIEW',		False),
 		(r'GENERATE_XML',			True),
 		(r'HAVE_DOT',				False),
+		(r'HIDE_FRIEND_COMPOUNDS',	False),
 		(r'HIDE_UNDOC_CLASSES',		True),
 		(r'HIDE_UNDOC_MEMBERS',		True),
 		(r'HTML_FILE_EXTENSION',	r'.html'),
 		(r'HTML_OUTPUT',			r'html'),
 		(r'IDL_PROPERTY_SUPPORT',	False),
+		(r'INHERIT_DOCS', 			True),
+		(r'INLINE_GROUPED_CLASSES',	False),
 		(r'INLINE_INHERITED_MEMB',	True),
+		(r'INLINE_SIMPLE_STRUCTS',	False),
 		(r'INLINE_SOURCES',			False),
 		(r'INPUT_ENCODING',			r'UTF-8'),
 		(r'LOOKUP_CACHE_SIZE',		2),
@@ -82,20 +91,23 @@ __doxygen_overrides  = (
 		(r'OPTIMIZE_OUTPUT_JAVA',	False),
 		(r'OPTIMIZE_OUTPUT_SLICE',	False),
 		(r'OPTIMIZE_OUTPUT_VHDL',	False),
+		(r'PYTHON_DOCSTRING', 		True),
 		(r'QUIET',					False),
 		(r'RECURSIVE',				True),
 		(r'REFERENCES_LINK_SOURCE',	False),
 		(r'RESOLVE_UNNAMED_PARAMS',	True),
+		(r'SEPARATE_MEMBER_PAGES',	False),
 		(r'SHORT_NAMES',			False),
 		(r'SHOW_USED_FILES',		False),
 		(r'SIP_SUPPORT',			False),
 		(r'SKIP_FUNCTION_MACROS', 	False),
-		(r'SORT_BRIEF_DOCS',		False),
+		(r'SORT_BRIEF_DOCS',		True),
 		(r'SORT_BY_SCOPE_NAME',		True),
 		(r'SORT_GROUP_NAMES',		True),
 		(r'SORT_MEMBER_DOCS',		False),
 		(r'SORT_MEMBERS_CTORS_1ST',	True),
 		(r'SOURCE_BROWSER',			False),
+		(r'SUBGROUPING', 			True),
 		(r'TAB_SIZE',				4),
 		(r'TYPEDEF_HIDES_STRUCT',	False),
 		(r'UML_LOOK',				False),
@@ -111,7 +123,7 @@ __doxygen_overrides  = (
 
 
 
-def __preprocess_doxyfile(context):
+def _preprocess_doxyfile(context):
 	assert context is not None
 	assert isinstance(context, project.Context)
 
@@ -160,9 +172,9 @@ def __preprocess_doxyfile(context):
 			else:
 				df.set_value(r'GENERATE_TAGFILE')
 
-			global __doxygen_overrides
+			global _doxygen_overrides
 			df.append()
-			for k, v in __doxygen_overrides:
+			for k, v in _doxygen_overrides:
 				df.set_value(k, v)
 			df.set_value(r'NUM_PROC_THREADS', context.threads)
 			df.add_value(r'CLANG_OPTIONS', rf'-std=c++{context.cpp%100}')
@@ -206,8 +218,14 @@ def __preprocess_doxyfile(context):
 			if not df.contains(r'M_FILE_TREE_EXPAND_LEVELS'):
 				df.append(r'##! M_FILE_TREE_EXPAND_LEVELS  = 3')
 				df.append(r'##!')
+			if not df.contains(r'M_EXPAND_INNER_TYPES'):
+				df.append(r'##! M_EXPAND_INNER_TYPES       = YES')
+				df.append(r'##!')
 			if not df.contains(r'M_SEARCH_DOWNLOAD_BINARY'):
 				df.append(r'##! M_SEARCH_DOWNLOAD_BINARY   = NO')
+				df.append(r'##!')
+			if not df.contains(r'M_SEARCH_DISABLED'):
+				df.append(r'##! M_SEARCH_DISABLED          = NO')
 				df.append(r'##!')
 			if not df.contains(r'M_FAVICON'):
 				df.append(rf'##! M_FAVICON   = "{context.favicon if context.favicon is not None else ""}"')
@@ -251,7 +269,7 @@ def __preprocess_doxyfile(context):
 
 
 
-def __preprocess_xml(context):
+def _preprocess_xml(context):
 	assert context is not None
 	assert isinstance(context, project.Context)
 
@@ -346,7 +364,7 @@ def __preprocess_xml(context):
 				assert compoundname.text
 
 				# merge user-defined sections with the same name
-				if compounddef.get(r'kind') in (r'namespace', r'class', r'struct', r'enum', r'file'):
+				if compounddef.get(r'kind') in (r'namespace', r'class', r'struct', r'enum', r'file', r'group'):
 					sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
 					sections = dict()
 					for section in sectiondefs:
@@ -365,21 +383,40 @@ def __preprocess_xml(context):
 								compounddef.remove(section)
 								changed = True
 
+				# groups:
+				if compounddef.get(r'kind') == r'group':
+
+					# remove things that are listed twice because doxygen is idiotic:
+					for section in compounddef.findall(r'sectiondef'):
+						members = [tag for tag in section.findall(r'memberdef')]
+						for i in range(len(members)-1, 0, -1):
+							for j in range(i):
+								if members[i].get(r'id') == members[j].get(r'id'):
+									section.remove(members[i])
+									changed = True
+									break
+
 				# namespaces
-				if compounddef.get(r'kind') == r'namespace' and context.inline_namespaces:
-					for nsid in inline_namespace_ids:
-						if compounddef.get(r'id') == nsid:
-							compounddef.set(r'inline', r'yes')
-							changed = True
-							break
+				if compounddef.get(r'kind') == r'namespace':
+
+					# set inline namespaces
+					if context.inline_namespaces:
+						for nsid in inline_namespace_ids:
+							if compounddef.get(r'id') == nsid:
+								compounddef.set(r'inline', r'yes')
+								changed = True
+								break
 
 				# dirs
-				if compounddef.get(r'kind') == r'dir' and context.implementation_headers:
-					innerfiles = compounddef.findall(r'innerfile')
-					for innerfile in innerfiles:
-						if innerfile.get(r'refid') in implementation_header_mappings:
-							compounddef.remove(innerfile)
-							changed = True
+				if compounddef.get(r'kind') == r'dir':
+
+					# remove implementation headers
+					if context.implementation_headers:
+						innerfiles = compounddef.findall(r'innerfile')
+						for innerfile in innerfiles:
+							if innerfile.get(r'refid') in implementation_header_mappings:
+								compounddef.remove(innerfile)
+								changed = True
 
 				# files
 				if compounddef.get(r'kind') == r'file':
@@ -508,22 +545,22 @@ def __preprocess_xml(context):
 
 
 
-__worker_context = None
+_worker_context = None
 def _initialize_worker(context):
-	global __worker_context
-	__worker_context = context
+	global _worker_context
+	_worker_context = context
 
 
 
-def __postprocess_html_file(path, context=None):
+def _postprocess_html_file(path, context=None):
 	assert path is not None
 	assert isinstance(path, Path)
 	assert path.is_absolute()
 	assert path.exists()
 
 	if context is None:
-		global __worker_context
-		context = __worker_context
+		global _worker_context
+		context = _worker_context
 	assert context is not None
 	assert isinstance(context, project.Context)
 
@@ -540,7 +577,7 @@ def __postprocess_html_file(path, context=None):
 
 
 
-def __postprocess_html(context):
+def _postprocess_html(context):
 	assert context is not None
 	assert isinstance(context, project.Context)
 
@@ -566,7 +603,7 @@ def __postprocess_html(context):
 		context.verbose(rf'Post-processing {len(files)} HTML files...')
 		if threads > 1:
 			with futures.ProcessPoolExecutor(max_workers=threads, initializer=_initialize_worker, initargs=(context,)) as executor:
-				jobs = [ executor.submit(__postprocess_html_file, file) for file in files ]
+				jobs = [ executor.submit(_postprocess_html_file, file) for file in files ]
 				for future in futures.as_completed(jobs):
 					try:
 						future.result()
@@ -579,7 +616,7 @@ def __postprocess_html(context):
 
 		else:
 			for file in files:
-				__postprocess_html_file(file, context)
+				_postprocess_html_file(file, context)
 
 
 
@@ -608,7 +645,7 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 			delete_directory(context.html_dir, logger=context.logger)
 
 		# preprocess the doxyfile
-		__preprocess_doxyfile(context)
+		_preprocess_doxyfile(context)
 		context.verbose_object(r'Context.warnings', context.warnings)
 
 		# preprocessing the doxyfile creates a temp copy; this is the cleanup block.
@@ -645,7 +682,7 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 			# fix some shit that's broken in the xml
 			if 1:
 				with ScopeTimer(r'Pre-processing XML files', print_start=True) as t:
-					__preprocess_xml(context)
+					_preprocess_xml(context)
 
 			context.verbose_object(r'Context.highlighting', context.highlighting)
 
@@ -663,9 +700,9 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 			if 1:
 				with ScopeTimer(r'Generating HTML files with m.css', print_start=True) as t:
 					with tempfile.SpooledTemporaryFile(mode='w+', newline='\n', encoding='utf-8') as file:
-						doxy_args = [str(context.doxyfile_path), '--no-doxygen']
+						doxy_args = [str(context.doxyfile_path), r'--no-doxygen', r'--sort-globbed-files']
 						if context.is_verbose():
-							doxy_args.append('--debug')
+							doxy_args.append(r'--debug')
 						try:
 							run_python_script(
 								coerce_path(context.mcss_dir, r'documentation/doxygen.py'),
@@ -701,7 +738,7 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 
 			# post-process html files
 			if 1:
-				__postprocess_html(context)
+				_postprocess_html(context)
 
 		# delete the temp doxyfile
 		finally:

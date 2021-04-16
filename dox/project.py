@@ -499,6 +499,7 @@ class _Defaults(object):
 	}
 	navbar = [r'files', r'groups', r'namespaces', r'classes']
 	aliases = {
+		# dox
 		r'cpp' : r'@code{.cpp}',
 		r'ecpp' : r'@endcode',
 		r'endcpp' : r'@endcode',
@@ -525,6 +526,7 @@ class _Defaults(object):
 		r'availability' : r'@par [parent_set_class m-block m-special]Conditional availability ^^',
 		r'figure{1}' : r'@image html \1',
 		r'figure{2}' : r'@image html \1 "\2"',
+		# m-css
 		r'm_div{1}' : r'@xmlonly<mcss:div xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:class="\1">@endxmlonly',
 		r'm_enddiv' : r'@xmlonly</mcss:div>@endxmlonly',
 		r'm_span{1}' : r'@xmlonly<mcss:span xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:class="\1">@endxmlonly',
