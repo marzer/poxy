@@ -957,15 +957,20 @@ class Context(object):
 			self.license = None
 			if 'license' in config:
 				if not is_collection(config['license']) or len(config['license']) != 2:
-					raise Exception(rf'license: must be of the form [ "<name>" , "<uri>" ]')
-				name = str(config['license'][0]).strip()
+					raise Exception(rf'license: must be of the form [ "<SPDX short identifier>" , "<uri>" ]')
+				name = str(config['license'][0]).strip(" \t-._:")
 				uri = str(config['license'][1]).strip()
 				if name and uri:
 					self.license = (name, uri)
 				del config['license']
 				if self.license:
-					badge = Path(self.data_dir, rf'dox-badge-license-{self.license[0].lower()}.svg')
+					badge = re.sub(r'(?:[.]0+)+$', '', name.lower()) # trailing .0, .0.0 etc
+					badge = badge.strip(' \t-._:') # leading + trailing junk
+					badge = re.sub(r'[:;!@#$%^&*\\|/,.<>?`~\[\]{}()_+\-= \t]+', '_', badge) # internal junk
+					badge = Path(self.data_dir, rf'dox-badge-license-{badge}.svg')
+					self.verbose(rf'Matching license {name} against badge file {badge.name}...')
 					if badge.exists():
+						self.verbose(rf'Badge file found at {badge}')
 						extra_files.append(badge)
 						badges.append((self.license[0], badge.name, self.license[1]))
 			self.verbose_value(r'Context.license', self.license)
@@ -988,6 +993,19 @@ class Context(object):
 					rf'https://img.shields.io/github/v/release/{self.github}?style=flat-square',
 					rf'https://github.com/{self.github}/releases'
 				))
+
+			# project logo
+			self.logo = None
+			if 'logo' in config:
+				if not isinstance(config['logo'], str):
+					raise Exception(rf'logo: expected a string, saw {type(config["logo"])}')
+				if config['logo']:
+					file = Path(config['logo'])
+					if not file.is_absolute():
+						file = Path(self.input_dir, file)
+					self.logo = file.resolve()
+				del config['logo']
+			self.verbose_value(r'Context.logo', self.logo)
 
 			# m.css navbar
 			if 'navbar' in config:
@@ -1105,7 +1123,7 @@ class Context(object):
 			self.verbose_value(r'Context.show_includes', self.show_includes)
 
 			# GENERATE_TAGFILE
-			self.generate_tagfile = None
+			self.generate_tagfile = True
 			if 'generate_tagfile' in config:
 				self.generate_tagfile = bool(config['generate_tagfile'])
 				del config['generate_tagfile']
@@ -1136,9 +1154,10 @@ class Context(object):
 			# m.css favicon
 			self.favicon = None
 			if 'favicon' in config:
-				file = str(config['favicon'])
-				if file:
-					file = Path(file)
+				if not isinstance(config['favicon'], str):
+					raise Exception(rf'favicon: expected a string, saw {type(config["favicon"])}')
+				if config['favicon']:
+					file = Path(config['favicon'])
 					if not file.is_absolute():
 						file = Path(self.input_dir, file)
 					self.favicon = file.resolve()

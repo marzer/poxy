@@ -140,6 +140,8 @@ def _preprocess_doxyfile(context):
 
 		# apply regular doxygen settings
 		if 1:
+			df.set_value(r'OUTPUT_DIRECTORY', context.output_dir)
+
 			if not context.name:
 				context.name = df.get_value(r'PROJECT_NAME', fallback='')
 			df.set_value(r'PROJECT_NAME', context.name)
@@ -148,7 +150,14 @@ def _preprocess_doxyfile(context):
 				context.description = df.get_value(r'PROJECT_BRIEF', fallback='')
 			df.set_value(r'PROJECT_BRIEF', context.description)
 
-			df.set_value(r'OUTPUT_DIRECTORY', context.output_dir)
+			if context.logo is None:
+				context.logo = df.get_value(r'PROJECT_LOGO', fallback=None)
+				if context.logo is not None:
+					context.logo = Path(str(context.logo))
+					if not context.logo.is_absolute():
+						context.logo = Path(context.input_dir, context.logo)
+					context.logo = context.logo.resolve()
+			df.set_value(r'PROJECT_LOGO', context.logo)
 
 			if context.show_includes is None:
 				context.show_includes = df.get_boolean(r'SHOW_INCLUDE_FILES', fallback=True)
@@ -170,7 +179,7 @@ def _preprocess_doxyfile(context):
 				context.tagfile_path = coerce_path(context.output_dir, rf'{context.name.replace(" ","_")}.tagfile.xml' if context.name else r'tagfile.xml')
 				df.set_value(r'GENERATE_TAGFILE', context.tagfile_path.name)
 			else:
-				df.set_value(r'GENERATE_TAGFILE')
+				df.set_value(r'GENERATE_TAGFILE', None)
 
 			global _doxygen_overrides
 			df.append()
