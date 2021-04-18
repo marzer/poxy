@@ -1180,7 +1180,7 @@ class Context(object):
 					extra_files[i] = Path(self.input_dir, extra_files[i])
 				extra_files[i] = extra_files[i].resolve()
 				if not extra_files[i].exists() or not extra_files[i].is_file():
-					raise Exception(rf'extra_files: {self.extra_files[i]} did not exist or was not a file')
+					raise Exception(rf'extra_files: {extra_files[i]} did not exist or was not a file')
 			self.extra_files = set(extra_files)
 			self.verbose_value(r'Context.extra_files', self.extra_files)
 			extra_filenames = set()
