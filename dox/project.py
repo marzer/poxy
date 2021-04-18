@@ -930,29 +930,6 @@ class Context(object):
 				del config['description']
 			self.verbose_value(r'Context.description', self.description)
 
-			# project C++ version
-			# defaults to 'current' cpp year version based on (current year - 2)
-			self.cpp = max(int(datetime.datetime.now().year) - 2, 2011)
-			self.cpp = self.cpp - ((self.cpp - 2011) % 3)
-			if 'cpp' in config:
-				self.cpp = str(config['cpp']).lstrip('0 \t').rstrip()
-				if not self.cpp:
-					self.cpp = '20'
-				self.cpp = int(self.cpp)
-				if self.cpp in (1998, 98):
-					self.cpp = 1998
-				else:
-					self.cpp = self.cpp % 2000
-					if self.cpp in (3, 11, 14, 17, 20, 23, 26, 29):
-						self.cpp = self.cpp + 2000
-					else:
-						raise Exception(rf"'{config['cpp']}' is not a valid cpp standard version")
-				del config['cpp']
-			self.verbose_value(r'Context.cpp', self.cpp)
-			badge = rf'dox-badge-c++{str(self.cpp)[2:]}.svg'
-			badges.append((rf'C++{str(self.cpp)[2:]}', badge, r'https://en.cppreference.com/w/cpp/compiler_support'))
-			extra_files.append(Path(self.data_dir, badge))
-
 			# project license
 			self.license = None
 			if 'license' in config:
@@ -993,6 +970,29 @@ class Context(object):
 					rf'https://img.shields.io/github/v/release/{self.github}?style=flat-square',
 					rf'https://github.com/{self.github}/releases'
 				))
+
+			# project C++ version
+			# defaults to 'current' cpp year version based on (current year - 2)
+			self.cpp = max(int(datetime.datetime.now().year) - 2, 2011)
+			self.cpp = self.cpp - ((self.cpp - 2011) % 3)
+			if 'cpp' in config:
+				self.cpp = str(config['cpp']).lstrip('0 \t').rstrip()
+				if not self.cpp:
+					self.cpp = '20'
+				self.cpp = int(self.cpp)
+				if self.cpp in (1998, 98):
+					self.cpp = 1998
+				else:
+					self.cpp = self.cpp % 2000
+					if self.cpp in (3, 11, 14, 17, 20, 23, 26, 29):
+						self.cpp = self.cpp + 2000
+					else:
+						raise Exception(rf"'{config['cpp']}' is not a valid cpp standard version")
+				del config['cpp']
+			self.verbose_value(r'Context.cpp', self.cpp)
+			badge = rf'dox-badge-c++{str(self.cpp)[2:]}.svg'
+			badges.append((rf'C++{str(self.cpp)[2:]}', badge, r'https://en.cppreference.com/w/cpp/compiler_support'))
+			extra_files.append(Path(self.data_dir, badge))
 
 			# project logo
 			self.logo = None
@@ -1130,6 +1130,7 @@ class Context(object):
 			self.verbose_value(r'Context.generate_tagfile', self.generate_tagfile)
 
 			# badges (shields) for index.html
+			user_badges = []
 			if 'badges' in config:
 				for k, v in config['badges'].items():
 					text = str(k).strip()
@@ -1138,9 +1139,10 @@ class Context(object):
 					image_uri = str(v[0]).strip()
 					anchor_uri = str(v[1]).strip()
 					if text and image_uri and anchor_uri:
-						badges.append((text, image_uri, anchor_uri))
+						user_badges.append((text, image_uri, anchor_uri))
 				del config['badges']
-			self.badges = tuple(badges)
+			user_badges.sort(key= lambda b: b[0])
+			self.badges = tuple(badges + user_badges)
 			self.verbose_value(r'Context.badges', self.badges)
 
 			# HTML_EXTRA_FILES
