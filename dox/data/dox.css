@@ -18,7 +18,7 @@ body
 
 a
 {
-	text-decoration: none !important; 
+	text-decoration: none !important;
 }
 
 header
@@ -159,16 +159,19 @@ pre.m-code + pre.m-console span
 .m-doc-details div > table.m-table td > h4,
 .m-doc-details div > table.m-table td > h5,
 .m-doc-details div > table.m-table td > h6,
-.m-doc-details div > table.m-table td > strong > em
+.m-doc-details div > table.m-table td > strong > em,
+.m-doc-details div > table.m-table td > p > strong > em
 {
 	color: #a5c9ea;
 	font-style: normal;
 }
-.m-doc-details div > table.m-table td > strong > em
+.m-doc-details div > table.m-table td > strong > em,
+.m-doc-details div > table.m-table td > p > strong > em
 {
 	display:block;
 }
-.m-doc-details div > table.m-table td > strong:not(:first-child) > em
+.m-doc-details div > table.m-table td > strong:not(:first-child) > em,
+.m-doc-details div > table.m-table td > p:not(:first-child) > strong > em
 {
 	margin-top: 1.0rem;
 }
@@ -261,7 +264,7 @@ pre.m-code + pre.m-console span
 	.gh-badges
 	{
 		display: flex;
-		justify-content: space-between;		
+		justify-content: space-between;
 	}
 	.gh-badges br
 	{

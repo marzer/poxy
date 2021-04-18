@@ -372,8 +372,9 @@ def _preprocess_xml(context):
 				assert compoundname is not None
 				assert compoundname.text
 
-				# merge user-defined sections with the same name
 				if compounddef.get(r'kind') in (r'namespace', r'class', r'struct', r'enum', r'file', r'group'):
+
+					# merge user-defined sections with the same name
 					sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
 					sections = dict()
 					for section in sectiondefs:
@@ -391,6 +392,16 @@ def _preprocess_xml(context):
 									first_section.append(member)
 								compounddef.remove(section)
 								changed = True
+
+					# sort user-defined sections based on their name
+					sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
+					sectiondefs = [s for s in sectiondefs if s.find(r'header') is not None]
+					for section in sectiondefs:
+						compounddef.remove(section)
+					sectiondefs.sort(key=lambda s: s.find(r'header').text)
+					for section in sectiondefs:
+						compounddef.append(section)
+						changed = True
 
 				# groups:
 				if compounddef.get(r'kind') == r'group':
