@@ -610,7 +610,6 @@ def _postprocess_html(context):
 	with ScopeTimer(rf'Post-processing {len(files)} HTML files', print_start=True):
 		context.fixers = (
 			fixers.DeadLinksFix()
-			, fixers.CustomTagsFix()
 			, fixers.CodeBlockFix()
 			, fixers.IndexPageFix()
 			, fixers.ModifiersFix1()
@@ -618,6 +617,7 @@ def _postprocess_html(context):
 			, fixers.AutoDocLinksFix()
 			, fixers.LinksFix()
 			, fixers.TemplateTemplateFix()
+			, fixers.CustomTagsFix()
 		)
 
 		context.verbose(rf'Post-processing {len(files)} HTML files...')
