@@ -1123,7 +1123,7 @@ class Context(object):
 			self.verbose_value(r'Context.show_includes', self.show_includes)
 
 			# GENERATE_TAGFILE
-			self.generate_tagfile = True
+			self.generate_tagfile = not self.private_repo
 			if 'generate_tagfile' in config:
 				self.generate_tagfile = bool(config['generate_tagfile'])
 				del config['generate_tagfile']
