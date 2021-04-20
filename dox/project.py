@@ -777,7 +777,7 @@ class Context(object):
 			context.data_dir.mkdir(exist_ok=True)
 			if cls.__emoji is None:
 				file_path = coerce_path(context.data_dir, 'emoji.json')
-				cls.__emoji = json.loads(read_all_text_from_file(file_path, fallback_url='https://api.github.com/emojis', logger=context.logger))
+				cls.__emoji = json.loads(read_all_text_from_file(file_path, fallback_url='https://api.github.com/emojis', logger=context.verbose_logger))
 				if '__processed' not in cls.__emoji:
 					emoji = {}
 					cls.__emoji_codepoints = set()
@@ -795,7 +795,7 @@ class Context(object):
 						emoji[alias] = emoji[key]
 					emoji['__codepoints'] = [cp for cp in cls.__emoji_codepoints]
 					emoji['__processed'] = True
-					context.log(rf'Writing {file_path}')
+					context.verbose(rf'Writing {file_path}')
 					with open(file_path, 'w', encoding='utf-8', newline='\n') as f:
 						print(json.dumps(emoji, sort_keys=True, indent=4), file=f)
 					cls.__emoji = emoji
@@ -805,11 +805,12 @@ class Context(object):
 		finally:
 			cls.__data_files_lock.release()
 
-	def __init__(self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, temp_file_name, logger):
+	def __init__(self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, temp_file_name, logger, dry_run):
 
 		self.logger = logger
 		self.__verbose = bool(verbose)
 		self.verbose_logger = logger if self.__verbose else None
+		self.dry_run = dry_run
 
 		self.cleanup = bool(cleanup)
 		self.verbose_value(r'Context.cleanup', self.cleanup)

@@ -101,8 +101,8 @@ _doxygen_overrides  = (
 		(r'SHOW_USED_FILES',		False),
 		(r'SIP_SUPPORT',			False),
 		(r'SKIP_FUNCTION_MACROS', 	False),
-		(r'SORT_BRIEF_DOCS',		True),
-		(r'SORT_BY_SCOPE_NAME',		True),
+		(r'SORT_BRIEF_DOCS',		False),
+		(r'SORT_BY_SCOPE_NAME',		False),
 		(r'SORT_GROUP_NAMES',		True),
 		(r'SORT_MEMBER_DOCS',		False),
 		(r'SORT_MEMBERS_CTORS_1ST',	True),
@@ -130,7 +130,7 @@ def _preprocess_doxyfile(context):
 	with doxygen.Doxyfile(
 			doxyfile_path = context.doxyfile_path,
 			cwd = context.input_dir,
-			logger = context.logger
+			logger = context.verbose_logger
 		) as df:
 
 		df.append()
@@ -273,295 +273,338 @@ def _preprocess_doxyfile(context):
 
 		# debug dump final doxyfile
 		df.cleanup()
-		context.verbose(r'Final Doxyfile:')
-		context.verbose(df.get_text(), indent=r'    ')
+		if context.dry_run:
+			context.info(r'#====================================================================================')
+			context.info(r'# dox-generated Doxyfile')
+			context.info(r'#====================================================================================')
+			context.info(df.get_text())
+			context.info(r'#====================================================================================')
+		else:
+			context.verbose(r'Effective Doxyfile:')
+			context.verbose(df.get_text(), indent='    ')
 
 
 
-def _preprocess_xml(context):
+def _postprocess_xml(context):
 	assert context is not None
 	assert isinstance(context, project.Context)
 
-	pretty_print_xml = False
+	xml_files = get_all_files(context.xml_dir, any=(r'*.xml'))
+	if not xml_files:
+		return
 
-	xml_parser = etree.XMLParser(
-		encoding='utf-8',
-		remove_blank_text=pretty_print_xml,
-		recover=True,
-		remove_comments=True,
-		ns_clean=True
-	)
-	write_xml_to_file = lambda xml, f: xml.write(str(f), encoding='utf-8', xml_declaration=True, pretty_print=pretty_print_xml)
+	with ScopeTimer(rf'Post-processing {len(xml_files)} XML files', print_start=True, print_end=context.verbose_logger):
 
-	inline_namespace_ids = None
-	if context.inline_namespaces:
-		inline_namespace_ids = [f'namespace{doxygen.mangle_name(ns)}' for ns in context.inline_namespaces]
+		pretty_print_xml = False
+		xml_parser = etree.XMLParser(
+			encoding='utf-8',
+			remove_blank_text=pretty_print_xml,
+			recover=True,
+			remove_comments=True,
+			ns_clean=True
+		)
+		write_xml_to_file = lambda xml, f: xml.write(str(f), encoding='utf-8', xml_declaration=True, pretty_print=pretty_print_xml)
 
-	implementation_header_data = None
-	implementation_header_mappings = None
-	implementation_header_innernamespaces = None
-	implementation_header_sectiondefs = None
-	if context.implementation_headers:
-		implementation_header_data = [
-			(
-				hp,
-				os.path.basename(hp),
-				doxygen.mangle_name(os.path.basename(hp)),
-				[(i, os.path.basename(i), doxygen.mangle_name(os.path.basename(i))) for i in impl]
-			)
-			for hp, impl in context.implementation_headers
-		]
-		implementation_header_mappings = dict()
-		implementation_header_innernamespaces = dict()
-		implementation_header_sectiondefs = dict()
-		for hdata in implementation_header_data:
-			implementation_header_innernamespaces[hdata[2]] = []
-			implementation_header_sectiondefs[hdata[2]] = []
-			for (ip, ifn, iid) in hdata[3]:
-				implementation_header_mappings[iid] = hdata
+		inline_namespace_ids = None
+		if context.inline_namespaces:
+			inline_namespace_ids = [f'namespace{doxygen.mangle_name(ns)}' for ns in context.inline_namespaces]
 
-	if 1:
-		extracted_implementation = False
-		xml_files = get_all_files(context.xml_dir, any=(r'*.xml'))
-		tentative_macros = regex_or(context.highlighting.macros)
-		macros = set()
-		cpp_tree = CppTree()
-		for xml_file in xml_files:
-			context.verbose(rf'Pre-processing {xml_file}')
-			xml = etree.parse(str(xml_file), parser=xml_parser)
-			changed = False
+		implementation_header_data = None
+		implementation_header_mappings = None
+		implementation_header_innernamespaces = None
+		implementation_header_sectiondefs = None
+		if context.implementation_headers:
+			implementation_header_data = [
+				(
+					hp,
+					os.path.basename(hp),
+					doxygen.mangle_name(os.path.basename(hp)),
+					[(i, os.path.basename(i), doxygen.mangle_name(os.path.basename(i))) for i in impl]
+				)
+				for hp, impl in context.implementation_headers
+			]
+			implementation_header_mappings = dict()
+			implementation_header_innernamespaces = dict()
+			implementation_header_sectiondefs = dict()
+			for hdata in implementation_header_data:
+				implementation_header_innernamespaces[hdata[2]] = []
+				implementation_header_sectiondefs[hdata[2]] = []
+				for (ip, ifn, iid) in hdata[3]:
+					implementation_header_mappings[iid] = hdata
 
-			# the doxygen index
-			if xml.getroot().tag == r'doxygenindex':
-				# extract namespaces, types and enum values for syntax highlighting
-				scopes = [tag for tag in xml.getroot().findall(r'compound') if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')]
-				for scope in scopes:
-					scope_name = scope.find(r'name').text
+		if 1:
+			extracted_implementation = False
+			tentative_macros = regex_or(context.highlighting.macros)
+			macros = set()
+			cpp_tree = CppTree()
+			for xml_file in xml_files:
+				context.verbose(rf'Pre-processing {xml_file}')
+				xml = etree.parse(str(xml_file), parser=xml_parser)
+				changed = False
 
-					# skip template members because they'll break the regex matchers
-					if scope_name.find(r'<') != -1:
-						continue
+				# the doxygen index
+				if xml.getroot().tag == r'doxygenindex':
+					# extract namespaces, types and enum values for syntax highlighting
+					scopes = [tag for tag in xml.getroot().findall(r'compound') if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')]
+					for scope in scopes:
+						scope_name = scope.find(r'name').text
 
-					# regular types and namespaces
-					if scope.get(r'kind') in (r'class', r'struct', r'union'):
-						cpp_tree.add_type(scope_name)
-					elif scope.get(r'kind') == r'namespace':
-						cpp_tree.add_namespace(scope_name)
+						# skip template members because they'll break the regex matchers
+						if scope_name.find(r'<') != -1:
+							continue
 
-					# nested enums
-					enum_tags = [tag for tag in scope.findall(r'member') if tag.get(r'kind') in (r'enum', r'enumvalue')]
-					enum_name = ''
-					for tag in enum_tags:
-						if tag.get(r'kind') == r'enum':
-							enum_name = rf'{scope_name}::{tag.find("name").text}'
-							cpp_tree.add_type(enum_name)
-						else:
-							assert enum_name
-							cpp_tree.add_enum_value(rf'{enum_name}::{tag.find("name").text}')
+						# regular types and namespaces
+						if scope.get(r'kind') in (r'class', r'struct', r'union'):
+							cpp_tree.add_type(scope_name)
+						elif scope.get(r'kind') == r'namespace':
+							cpp_tree.add_namespace(scope_name)
 
-					# nested typedefs
-					typedefs = [tag for tag in scope.findall(r'member') if tag.get(r'kind') == r'typedef']
-					for typedef in typedefs:
-						cpp_tree.add_type(rf'{scope_name}::{typedef.find("name").text}')
+						# nested enums
+						enum_tags = [tag for tag in scope.findall(r'member') if tag.get(r'kind') in (r'enum', r'enumvalue')]
+						enum_name = ''
+						for tag in enum_tags:
+							if tag.get(r'kind') == r'enum':
+								enum_name = rf'{scope_name}::{tag.find("name").text}'
+								cpp_tree.add_type(enum_name)
+							else:
+								assert enum_name
+								cpp_tree.add_enum_value(rf'{enum_name}::{tag.find("name").text}')
 
-			# some other compound definition
-			else:
-				compounddef = xml.getroot().find(r'compounddef')
-				assert compounddef is not None
-				compoundname = compounddef.find(r'compoundname')
-				assert compoundname is not None
-				assert compoundname.text
+						# nested typedefs
+						typedefs = [tag for tag in scope.findall(r'member') if tag.get(r'kind') == r'typedef']
+						for typedef in typedefs:
+							cpp_tree.add_type(rf'{scope_name}::{typedef.find("name").text}')
 
-				if compounddef.get(r'kind') in (r'namespace', r'class', r'struct', r'enum', r'file', r'group'):
+				# some other compound definition
+				else:
+					compounddef = xml.getroot().find(r'compounddef')
+					assert compounddef is not None
+					compoundname = compounddef.find(r'compoundname')
+					assert compoundname is not None
+					assert compoundname.text
 
-					# merge user-defined sections with the same name
-					sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
-					sections = dict()
-					for section in sectiondefs:
-						header = section.find(r'header')
-						if header is not None and header.text:
-							if header.text not in sections:
-								sections[header.text] = []
-						sections[header.text].append(section)
-					for key, vals in sections.items():
-						if len(vals) > 1:
-							first_section = vals.pop(0)
-							for section in vals:
-								for member in section.findall(r'memberdef'):
-									section.remove(member)
-									first_section.append(member)
-								compounddef.remove(section)
-								changed = True
+					if compounddef.get(r'kind') in (r'namespace', r'class', r'struct', r'union', r'enum', r'file', r'group'):
 
-					# sort user-defined sections based on their name
-					sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
-					sectiondefs = [s for s in sectiondefs if s.find(r'header') is not None]
-					for section in sectiondefs:
-						compounddef.remove(section)
-					sectiondefs.sort(key=lambda s: s.find(r'header').text)
-					for section in sectiondefs:
-						compounddef.append(section)
-						changed = True
+						# merge user-defined sections with the same name
+						sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
+						sections = dict()
+						for section in sectiondefs:
+							header = section.find(r'header')
+							if header is not None and header.text:
+								if header.text not in sections:
+									sections[header.text] = []
+							sections[header.text].append(section)
+						for key, vals in sections.items():
+							if len(vals) > 1:
+								first_section = vals.pop(0)
+								for section in vals:
+									for member in section.findall(r'memberdef'):
+										section.remove(member)
+										first_section.append(member)
+									compounddef.remove(section)
+									changed = True
 
-				# groups:
-				if compounddef.get(r'kind') == r'group':
+						# sort user-defined sections based on their name
+						sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
+						sectiondefs = [s for s in sectiondefs if s.find(r'header') is not None]
+						for section in sectiondefs:
+							compounddef.remove(section)
+						sectiondefs.sort(key=lambda s: s.find(r'header').text)
+						for section in sectiondefs:
+							compounddef.append(section)
+							changed = True
 
-					# remove things that are listed twice because doxygen is idiotic:
-					for section in compounddef.findall(r'sectiondef'):
-						members = [tag for tag in section.findall(r'memberdef')]
-						for i in range(len(members)-1, 0, -1):
-							for j in range(i):
-								if members[i].get(r'id') == members[j].get(r'id'):
-									section.remove(members[i])
+						# per-section stuff
+						for section in compounddef.findall(r'sectiondef'):
+
+							# remove members which are listed multiple times because doxygen is idiotic:
+							members = [tag for tag in section.findall(r'memberdef')]
+							for i in range(len(members)-1, 0, -1):
+								for j in range(i):
+									if members[i].get(r'id') == members[j].get(r'id'):
+										section.remove(members[i])
+										changed = True
+										break
+
+							# re-sort members to override Doxygen's weird and stupid sorting 'rules'
+							if 1:
+								sort_members_by_name = lambda tag: tag.find(r'name').text
+								members = [tag for tag in section.findall(r'memberdef')]
+								for tag in members:
+									section.remove(tag)
+								groups = [
+									([tag for tag in members if tag.get(r'kind') == r'define'], True),
+									([tag for tag in members if tag.get(r'kind') == r'typedef'], True),
+									([tag for tag in members if tag.get(r'kind') == r'enum'], True),
+									([tag for tag in members if tag.get(r'kind') == r'variable' and tag.get(r'static') == r'yes'], True),
+									(
+										[tag for tag in members if tag.get(r'kind') == r'variable' and tag.get(r'static') == r'no'],
+										compounddef.get(r'kind') not in (r'class', r'struct', r'union')
+									),
+									([tag for tag in members if tag.get(r'kind') == r'function' and tag.get(r'static') == r'yes'], True),
+									([tag for tag in members if tag.get(r'kind') == r'function' and tag.get(r'static') == r'no'], True),
+									([tag for tag in members if tag.get(r'kind') == r'friend'], True)
+								]
+								for group, sort in groups:
+									if sort:
+										group.sort(key=sort_members_by_name)
+									for tag in group:
+										members.remove(tag)
+										section.append(tag)
+										changed = True
+								# if we've missed any groups just glob them on the end
+								if members:
+									members.sort(key=sort_members_by_name)
+									changed = True
+									for tag in members:
+										section.append(tag)
+
+					# namespaces
+					if compounddef.get(r'kind') == r'namespace':
+
+						# set inline namespaces
+						if context.inline_namespaces:
+							for nsid in inline_namespace_ids:
+								if compounddef.get(r'id') == nsid:
+									compounddef.set(r'inline', r'yes')
 									changed = True
 									break
 
-				# namespaces
-				if compounddef.get(r'kind') == r'namespace':
+					# dirs
+					if compounddef.get(r'kind') == r'dir':
 
-					# set inline namespaces
-					if context.inline_namespaces:
-						for nsid in inline_namespace_ids:
-							if compounddef.get(r'id') == nsid:
-								compounddef.set(r'inline', r'yes')
-								changed = True
-								break
-
-				# dirs
-				if compounddef.get(r'kind') == r'dir':
-
-					# remove implementation headers
-					if context.implementation_headers:
-						innerfiles = compounddef.findall(r'innerfile')
-						for innerfile in innerfiles:
-							if innerfile.get(r'refid') in implementation_header_mappings:
-								compounddef.remove(innerfile)
-								changed = True
-
-				# files
-				if compounddef.get(r'kind') == r'file':
-
-					# simplify the XML by removing unnecessary junk
-					for tag in (r'includes', r'includedby', r'incdepgraph', r'invincdepgraph'):
-						tags = compounddef.findall(tag)
-						if tags:
-							for t in tags:
-								compounddef.remove(t)
-								changed = True
-
-					# get any macros for the syntax highlighter
-					define_sections = [tag for tag in compounddef.findall(r'sectiondef') if tag.get(r'kind') == r'define']
-					for define_section in define_sections:
-						defines = [tag for tag in define_section.findall(r'memberdef') if tag.get(r'kind') == r'define']
-						for define in defines:
-							# if (define.find('briefdescription').text.strip()
-							# 		or define.find('detaileddescription').text.strip()
-							# 		or define.find('inbodydescription').text.strip()):
-							macro = define.find(r'name').text
-							if not tentative_macros.fullmatch(macro):
-								macros.add(macro)
-
-					# rip the good bits out of implementation headers
-					if context.implementation_headers:
-						if compounddef.get(r'id') in implementation_header_mappings:
-							hid = implementation_header_mappings[compounddef.get("id")][2]
-							innernamespaces = compounddef.findall(r'innernamespace')
-							if innernamespaces:
-								implementation_header_innernamespaces[hid] = implementation_header_innernamespaces[hid] + innernamespaces
-								extracted_implementation = True
-								for tag in innernamespaces:
-									compounddef.remove(tag)
-									changed = True
-							sectiondefs = compounddef.findall(r'sectiondef')
-							if sectiondefs:
-								implementation_header_sectiondefs[hid] = implementation_header_sectiondefs[hid] + sectiondefs
-								extracted_implementation = True
-								for tag in sectiondefs:
-									compounddef.remove(tag)
+						# remove implementation headers
+						if context.implementation_headers:
+							innerfiles = compounddef.findall(r'innerfile')
+							for innerfile in innerfiles:
+								if innerfile.get(r'refid') in implementation_header_mappings:
+									compounddef.remove(innerfile)
 									changed = True
 
-			if changed:
-				write_xml_to_file(xml, xml_file)
+					# files
+					if compounddef.get(r'kind') == r'file':
 
-		# add to syntax highlighter
-		context.highlighting.namespaces.add(cpp_tree.matcher(CppTree.NAMESPACES))
-		context.highlighting.types.add(cpp_tree.matcher(CppTree.TYPES))
-		context.highlighting.enums.add(cpp_tree.matcher(CppTree.ENUM_VALUES))
-		for macro in macros:
-			context.highlighting.macros.add(macro)
-
-		# merge extracted implementations
-		if extracted_implementation:
-			for (hp, hfn, hid, impl) in implementation_header_data:
-				xml_file = coerce_path(context.xml_dir, rf'{hid}.xml')
-				context.verbose(rf'Merging implementation nodes into {xml_file}')
-				xml = etree.parse(str(xml_file), parser=xml_parser)
-				compounddef = xml.getroot().find(r'compounddef')
-				changed = False
-
-				innernamespaces = compounddef.findall(r'innernamespace')
-				for new_tag in implementation_header_innernamespaces[hid]:
-					matched = False
-					for existing_tag in innernamespaces:
-						if existing_tag.get(r'refid') == new_tag.get(r'refid'):
-							matched = True
-							break
-					if not matched:
-						compounddef.append(new_tag)
-						innernamespaces.append(new_tag)
-						changed = True
-
-				sectiondefs = compounddef.findall(r'sectiondef')
-				for new_section in implementation_header_sectiondefs[hid]:
-					matched_section = False
-					for existing_section in sectiondefs:
-						if existing_section.get(r'kind') == new_section.get(r'kind'):
-							matched_section = True
-
-							memberdefs = existing_section.findall(r'memberdef')
-							new_memberdefs = new_section.findall(r'memberdef')
-							for new_memberdef in new_memberdefs:
-								matched = False
-								for existing_memberdef in memberdefs:
-									if existing_memberdef.get(r'id') == new_memberdef.get(r'id'):
-										matched = True
-										break
-
-								if not matched:
-									new_section.remove(new_memberdef)
-									existing_section.append(new_memberdef)
-									memberdefs.append(new_memberdef)
+						# simplify the XML by removing unnecessary junk
+						for tag in (r'includes', r'includedby', r'incdepgraph', r'invincdepgraph'):
+							tags = compounddef.findall(tag)
+							if tags:
+								for t in tags:
+									compounddef.remove(t)
 									changed = True
-							break
 
-					if not matched_section:
-						compounddef.append(new_section)
-						sectiondefs.append(new_section)
-						changed = True
+						# get any macros for the syntax highlighter
+						define_sections = [tag for tag in compounddef.findall(r'sectiondef') if tag.get(r'kind') == r'define']
+						for define_section in define_sections:
+							defines = [tag for tag in define_section.findall(r'memberdef') if tag.get(r'kind') == r'define']
+							for define in defines:
+								# if (define.find('briefdescription').text.strip()
+								# 		or define.find('detaileddescription').text.strip()
+								# 		or define.find('inbodydescription').text.strip()):
+								macro = define.find(r'name').text
+								if not tentative_macros.fullmatch(macro):
+									macros.add(macro)
+
+						# rip the good bits out of implementation headers
+						if context.implementation_headers:
+							if compounddef.get(r'id') in implementation_header_mappings:
+								hid = implementation_header_mappings[compounddef.get("id")][2]
+								innernamespaces = compounddef.findall(r'innernamespace')
+								if innernamespaces:
+									implementation_header_innernamespaces[hid] = implementation_header_innernamespaces[hid] + innernamespaces
+									extracted_implementation = True
+									for tag in innernamespaces:
+										compounddef.remove(tag)
+										changed = True
+								sectiondefs = compounddef.findall(r'sectiondef')
+								if sectiondefs:
+									implementation_header_sectiondefs[hid] = implementation_header_sectiondefs[hid] + sectiondefs
+									extracted_implementation = True
+									for tag in sectiondefs:
+										compounddef.remove(tag)
+										changed = True
 
 				if changed:
 					write_xml_to_file(xml, xml_file)
 
-	# delete the impl header xml files
-	if 1 and context.implementation_headers:
-		for hdata in implementation_header_data:
-			for (ip, ifn, iid) in hdata[3]:
-				delete_file(coerce_path(context.xml_dir, rf'{iid}.xml'), logger=context.verbose_logger)
+			# add to syntax highlighter
+			context.highlighting.namespaces.add(cpp_tree.matcher(CppTree.NAMESPACES))
+			context.highlighting.types.add(cpp_tree.matcher(CppTree.TYPES))
+			context.highlighting.enums.add(cpp_tree.matcher(CppTree.ENUM_VALUES))
+			for macro in macros:
+				context.highlighting.macros.add(macro)
 
-	# scan through the files and substitute impl header ids and paths as appropriate
-	if 1 and context.implementation_headers:
-		xml_files = get_all_files(context.xml_dir, any=('*.xml'))
-		for xml_file in xml_files:
-			context.verbose(rf"Re-linking implementation headers in '{xml_file}'")
-			xml_text = read_all_text_from_file(xml_file, logger=context.verbose_logger)
-			for (hp, hfn, hid, impl) in implementation_header_data:
-				for (ip, ifn, iid) in impl:
-					#xml_text = xml_text.replace(f'refid="{iid}"',f'refid="{hid}"')
-					xml_text = xml_text.replace(rf'compoundref="{iid}"',f'compoundref="{hid}"')
-					xml_text = xml_text.replace(ip,hp)
-			with BytesIO(bytes(xml_text, 'utf-8')) as b:
-				xml = etree.parse(b, parser=xml_parser)
-				write_xml_to_file(xml, xml_file)
+			# merge extracted implementations
+			if extracted_implementation:
+				for (hp, hfn, hid, impl) in implementation_header_data:
+					xml_file = coerce_path(context.xml_dir, rf'{hid}.xml')
+					context.verbose(rf'Merging implementation nodes into {xml_file}')
+					xml = etree.parse(str(xml_file), parser=xml_parser)
+					compounddef = xml.getroot().find(r'compounddef')
+					changed = False
+
+					innernamespaces = compounddef.findall(r'innernamespace')
+					for new_tag in implementation_header_innernamespaces[hid]:
+						matched = False
+						for existing_tag in innernamespaces:
+							if existing_tag.get(r'refid') == new_tag.get(r'refid'):
+								matched = True
+								break
+						if not matched:
+							compounddef.append(new_tag)
+							innernamespaces.append(new_tag)
+							changed = True
+
+					sectiondefs = compounddef.findall(r'sectiondef')
+					for new_section in implementation_header_sectiondefs[hid]:
+						matched_section = False
+						for existing_section in sectiondefs:
+							if existing_section.get(r'kind') == new_section.get(r'kind'):
+								matched_section = True
+
+								memberdefs = existing_section.findall(r'memberdef')
+								new_memberdefs = new_section.findall(r'memberdef')
+								for new_memberdef in new_memberdefs:
+									matched = False
+									for existing_memberdef in memberdefs:
+										if existing_memberdef.get(r'id') == new_memberdef.get(r'id'):
+											matched = True
+											break
+
+									if not matched:
+										new_section.remove(new_memberdef)
+										existing_section.append(new_memberdef)
+										memberdefs.append(new_memberdef)
+										changed = True
+								break
+
+						if not matched_section:
+							compounddef.append(new_section)
+							sectiondefs.append(new_section)
+							changed = True
+
+					if changed:
+						write_xml_to_file(xml, xml_file)
+
+		# delete the impl header xml files
+		if 1 and context.implementation_headers:
+			for hdata in implementation_header_data:
+				for (ip, ifn, iid) in hdata[3]:
+					delete_file(coerce_path(context.xml_dir, rf'{iid}.xml'), logger=context.verbose_logger)
+
+		# scan through the files and substitute impl header ids and paths as appropriate
+		if 1 and context.implementation_headers:
+			xml_files = get_all_files(context.xml_dir, any=('*.xml'))
+			for xml_file in xml_files:
+				context.verbose(rf"Re-linking implementation headers in '{xml_file}'")
+				xml_text = read_all_text_from_file(xml_file, logger=context.verbose_logger)
+				for (hp, hfn, hid, impl) in implementation_header_data:
+					for (ip, ifn, iid) in impl:
+						#xml_text = xml_text.replace(f'refid="{iid}"',f'refid="{hid}"')
+						xml_text = xml_text.replace(rf'compoundref="{iid}"',f'compoundref="{hid}"')
+						xml_text = xml_text.replace(ip,hp)
+				with BytesIO(bytes(xml_text, 'utf-8')) as b:
+					xml = etree.parse(b, parser=xml_parser)
+					write_xml_to_file(xml, xml_file)
 
 
 
@@ -607,7 +650,7 @@ def _postprocess_html(context):
 
 	threads = min(len(files), context.threads, 4)
 
-	with ScopeTimer(rf'Post-processing {len(files)} HTML files', print_start=True):
+	with ScopeTimer(rf'Post-processing {len(files)} HTML files', print_start=True, print_end=context.verbose_logger):
 		context.fixers = (
 			fixers.DeadLinksFix()
 			, fixers.CodeBlockFix()
@@ -644,7 +687,7 @@ def _postprocess_html(context):
 # RUN
 #=======================================================================================================================
 
-def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False, mcss_dir=None, temp_file_name=None, logger=None):
+def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False, mcss_dir=None, temp_file_name=None, logger=None, dry_run=False):
 
 	context = project.Context(
 		config_path = config_path,
@@ -654,15 +697,11 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 		verbose = verbose,
 		mcss_dir = mcss_dir,
 		temp_file_name = temp_file_name,
-		logger = logger
+		logger = logger,
+		dry_run = dry_run
 	)
 
-	with ScopeTimer(r'All tasks') as all_tasks_timer:
-
-		# delete any leftovers from the previous run
-		if 1:
-			delete_directory(context.xml_dir, logger=context.logger)
-			delete_directory(context.html_dir, logger=context.logger)
+	with ScopeTimer(r'All tasks', print_start=False, print_end=context.verbose if dry_run else context.info) as all_tasks_timer:
 
 		# preprocess the doxyfile
 		_preprocess_doxyfile(context)
@@ -670,95 +709,100 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 
 		# preprocessing the doxyfile creates a temp copy; this is the cleanup block.
 		try:
+			if not dry_run:
 
-			# run doxygen to generate the xml
-			if 1:
-				with ScopeTimer(r'Generating XML files with Doxygen', print_start=True) as t:
-					with tempfile.SpooledTemporaryFile(mode='w+', newline='\n', encoding='utf-8') as file:
-						try:
-							subprocess.run(
-								['doxygen', str(context.doxyfile_path)],
-								check=True,
-								stdout=file,
-								stderr=file,
-								cwd=context.input_dir
-							)
-						except:
-							context.warning(r'Doxygen failed! Output dump:')
+				# delete any leftovers from the previous run
+				if 1:
+					delete_directory(context.xml_dir, logger=context.verbose_logger)
+					delete_directory(context.html_dir, logger=context.verbose_logger)
+
+				# run doxygen to generate the xml
+				if 1:
+					with ScopeTimer(r'Generating XML files with Doxygen', print_start=True, print_end=context.verbose_logger) as t:
+						with tempfile.SpooledTemporaryFile(mode='w+', newline='\n', encoding='utf-8') as file:
+							try:
+								subprocess.run(
+									['doxygen', str(context.doxyfile_path)],
+									check=True,
+									stdout=file,
+									stderr=file,
+									cwd=context.input_dir
+								)
+							except:
+								context.warning(r'Doxygen failed! Output dump:')
+								file.seek(0)
+								context.info(file.read(), indent=r'    ')
+								raise
+							context.verbose(r'Doxygen output dump:')
 							file.seek(0)
-							context.info(file.read(), indent=r'    ')
-							raise
-						context.verbose(r'Doxygen output dump:')
-						file.seek(0)
-						context.verbose(file.read(), indent=r'    ')
+							context.verbose(file.read(), indent=r'    ')
 
-					# remove the local paths from the tagfile since they're meaningless (and a privacy breach)
-					if context.tagfile_path is not None and context.tagfile_path.exists():
-						text = read_all_text_from_file(context.tagfile_path, logger=context.verbose_logger)
-						text = re.sub(r'\n\s*?<path>.+?</path>\s*?\n', '\n', text, re.S)
-						with open(context.tagfile_path, 'w', encoding='utf-8', newline='\n') as f:
-							f.write(text)
+						# remove the local paths from the tagfile since they're meaningless (and a privacy breach)
+						if context.tagfile_path is not None and context.tagfile_path.exists():
+							text = read_all_text_from_file(context.tagfile_path, logger=context.verbose_logger)
+							text = re.sub(r'\n\s*?<path>.+?</path>\s*?\n', '\n', text, re.S)
+							with open(context.tagfile_path, 'w', encoding='utf-8', newline='\n') as f:
+								f.write(text)
 
-			# fix some shit that's broken in the xml
-			if 1:
-				with ScopeTimer(r'Pre-processing XML files', print_start=True) as t:
-					_preprocess_xml(context)
+				# post-process xml files
+				if 1:
+					_postprocess_xml(context)
 
-			context.verbose_object(r'Context.highlighting', context.highlighting)
+				context.verbose_object(r'Context.highlighting', context.highlighting)
 
-			# compile regexes
-			# (done here because doxygen and xml preprocessing adds additional values to these lists)
-			context.highlighting.namespaces = regex_or(context.highlighting.namespaces, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
-			context.highlighting.types = regex_or(context.highlighting.types, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
-			context.highlighting.enums = regex_or(context.highlighting.enums, pattern_prefix='(?:::)?')
-			context.highlighting.string_literals = regex_or(context.highlighting.string_literals)
-			context.highlighting.numeric_literals = regex_or(context.highlighting.numeric_literals)
-			context.highlighting.macros = regex_or(context.highlighting.macros)
-			context.autolinks = tuple([(re.compile('(?<![a-zA-Z_])' + expr + '(?![a-zA-Z_])'), uri) for expr, uri in context.autolinks])
+				# compile regexes
+				# (done here because doxygen and xml preprocessing adds additional values to these lists)
+				context.highlighting.namespaces = regex_or(context.highlighting.namespaces, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
+				context.highlighting.types = regex_or(context.highlighting.types, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
+				context.highlighting.enums = regex_or(context.highlighting.enums, pattern_prefix='(?:::)?')
+				context.highlighting.string_literals = regex_or(context.highlighting.string_literals)
+				context.highlighting.numeric_literals = regex_or(context.highlighting.numeric_literals)
+				context.highlighting.macros = regex_or(context.highlighting.macros)
+				context.autolinks = tuple([(re.compile('(?<![a-zA-Z_])' + expr + '(?![a-zA-Z_])'), uri) for expr, uri in context.autolinks])
 
-			# run m.css to generate the html
-			if 1:
-				with ScopeTimer(r'Generating HTML files with m.css', print_start=True) as t:
-					with tempfile.SpooledTemporaryFile(mode='w+', newline='\n', encoding='utf-8') as file:
-						doxy_args = [str(context.doxyfile_path), r'--no-doxygen', r'--sort-globbed-files']
-						if context.is_verbose():
-							doxy_args.append(r'--debug')
-						try:
-							run_python_script(
-								coerce_path(context.mcss_dir, r'documentation/doxygen.py'),
-								*doxy_args,
-								stdout=file,
-								stderr=file,
-								cwd=context.input_dir
-							)
-						except:
-							context.warning(r'm.css failed! Output dump:')
+				# run m.css to generate the html
+				if 1:
+					with ScopeTimer(r'Generating HTML files with m.css', print_start=True, print_end=context.verbose_logger) as t:
+						with tempfile.SpooledTemporaryFile(mode='w+', newline='\n', encoding='utf-8') as file:
+							doxy_args = [str(context.doxyfile_path), r'--no-doxygen', r'--sort-globbed-files']
+							if context.is_verbose():
+								doxy_args.append(r'--debug')
+							try:
+								run_python_script(
+									coerce_path(context.mcss_dir, r'documentation/doxygen.py'),
+									*doxy_args,
+									stdout=file,
+									stderr=file,
+									cwd=context.input_dir
+								)
+							except:
+								context.warning(r'm.css failed! Output dump:')
+								file.seek(0)
+								context.info(file.read(), indent=r'    ')
+								raise
+							context.verbose(r'm.css output dump:')
 							file.seek(0)
-							context.info(file.read(), indent=r'    ')
-							raise
-						context.verbose(r'm.css output dump:')
-						file.seek(0)
-						context.verbose(file.read(), indent=r'    ')
+							context.verbose(file.read(), indent=r'    ')
 
-			# copy extra_files
-			with ScopeTimer(r'Copying extra_files', print_start=True) as t:
-				for f in context.extra_files:
-					copy_file(f, coerce_path(context.html_dir, f.name), logger=context.verbose_logger)
+				# copy extra_files
+				with ScopeTimer(r'Copying extra_files', print_start=True, print_end=context.verbose_logger) as t:
+					for f in context.extra_files:
+						copy_file(f, coerce_path(context.html_dir, f.name), logger=context.verbose_logger)
 
-			# delete the xml
-			if context.cleanup:
-				delete_directory(context.xml_dir, logger=context.logger)
+				# delete the xml
+				if context.cleanup:
+					delete_directory(context.xml_dir, logger=context.logger)
 
-			# move the tagfile into the html directory
-			if context.generate_tagfile:
-				if context.tagfile_path.exists():
-					move_file(context.tagfile_path, coerce_path(context.output_dir, 'html'), logger=context.verbose_logger)
-				else:
-					context.warning(rf'Doxygen tagfile {context.tagfile_path} not found!')
+				# move the tagfile into the html directory
+				if context.generate_tagfile:
+					if context.tagfile_path.exists():
+						move_file(context.tagfile_path, coerce_path(context.output_dir, 'html'), logger=context.verbose_logger)
+					else:
+						context.warning(rf'Doxygen tagfile {context.tagfile_path} not found!')
 
-			# post-process html files
-			if 1:
-				_postprocess_html(context)
+				# post-process html files
+				if 1:
+					_postprocess_html(context)
 
 		# delete the temp doxyfile
 		finally:
@@ -771,27 +815,43 @@ def main():
 	verbose = False
 	try:
 		args = argparse.ArgumentParser(
-			description='Generate fancy C++ documentation.',
+			description=r'Generate fancy C++ documentation.',
 			formatter_class=argparse.RawTextHelpFormatter
 		)
-		args.add_argument('config', type=Path, nargs='?', default=Path('.'))
-		args.add_argument('--verbose', '-v', action='store_true')
 		args.add_argument(
-			'--threads',
+			r'config',
+			type=Path,
+			nargs='?',
+			default=Path('.'),
+			help=r'a path to a Doxyfile, dox.toml, or a directory containing one/both (default: %(default)s/)'
+		)
+		args.add_argument(
+			 r'-v', r'--verbose',
+			action=r'store_true',
+			help=r"enables very noisy diagnostic output"
+		)
+		args.add_argument(
+			r'--dry',
+			action=r'store_true',
+			help=r"does a 'dry run' only, stopping after emitting the effective Doxyfile"
+		)
+		args.add_argument(
+			r'--threads',
 			type=int,
 			default=0,
-			metavar='<N>',
-			help=r"sets the number of threads used (default: %(default)s (automatic))"
+			metavar=r'<N>',
+			help=r"sets the number of threads used (default: automatic)"
 		)
-		args.add_argument('--m.css',
+		args.add_argument(
+			r'--m.css',
 			type=Path,
 			default=None,
-			metavar='<path>',
+			metavar=r'<path>',
 			help=r"overrides the version of m.css used for documentation generation",
 			dest=r'mcss'
 		)
-		args.add_argument('--nocleanup', action='store_true', help=argparse.SUPPRESS)
-		args.add_argument('--temp_file_name', type=str, default=None, metavar='<file name>', help=argparse.SUPPRESS)
+		args.add_argument(r'--nocleanup', action=r'store_true', help=argparse.SUPPRESS)
+		args.add_argument(r'--temp_file_name', type=str, default=None, metavar=r'<file name>', help=argparse.SUPPRESS)
 		args = args.parse_args()
 		verbose = args.verbose
 		result = run(
@@ -802,7 +862,8 @@ def main():
 			verbose = verbose,
 			mcss_dir = args.mcss,
 			temp_file_name = args.temp_file_name,
-			logger=True # stderr + stdout
+			logger=True, # stderr + stdout
+			dry_run=args.dry
 		)
 		if result is None or bool(result):
 			sys.exit(0)
