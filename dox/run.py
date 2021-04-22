@@ -50,6 +50,7 @@ _doxygen_overrides  = (
 		(r'EXTRACT_PACKAGE',		False),
 		(r'EXTRACT_PRIVATE',		False),
 		(r'EXTRACT_STATIC',			False),
+		(r'FULL_PATH_NAMES',		True),
 		(r'GENERATE_AUTOGEN_DEF',	False),
 		(r'GENERATE_BUGLIST',		False),
 		(r'GENERATE_CHI',			False),
@@ -333,19 +334,54 @@ def _postprocess_xml(context):
 					implementation_header_mappings[iid] = hdata
 
 		if 1:
+
+			# pre-pass to delete file and dir entries where appropriate:
+			if 1:
+				dox_files = (r'dox', r'md')
+				dox_files = [rf'*_8{ext}.xml' for ext in dox_files]
+				for xml_file in get_all_files(context.xml_dir, any=dox_files):
+					delete_file(xml_file, logger=context.verbose_logger)
+				deleted = True
+				while deleted:
+					deleted = False
+					for xml_file in get_all_files(context.xml_dir, all=(r'dir_*.xml')):
+						xml = etree.parse(str(xml_file), parser=xml_parser)
+						compounddef = xml.getroot().find(r'compounddef')
+						if compounddef is None or compounddef.get(r'kind') != r'dir':
+							continue
+						existing_inners = 0
+						for subtype in (r'innerfile', r'innerdir'):
+							for inner in compounddef.findall(subtype):
+								ref_file = Path(context.xml_dir, rf'{inner.get(r"refid")}.xml')
+								if ref_file.exists():
+									existing_inners = existing_inners + 1
+						if not existing_inners:
+							delete_file(xml_file, logger=context.verbose_logger)
+							deleted = True
+
 			extracted_implementation = False
 			tentative_macros = regex_or(context.highlighting.macros)
 			macros = set()
 			cpp_tree = CppTree()
+			xml_files = get_all_files(context.xml_dir, any=(r'*.xml'))
 			for xml_file in xml_files:
 				context.verbose(rf'Pre-processing {xml_file}')
 				xml = etree.parse(str(xml_file), parser=xml_parser)
+				root = xml.getroot()
 				changed = False
 
 				# the doxygen index
-				if xml.getroot().tag == r'doxygenindex':
+				if root.tag == r'doxygenindex':
+
+					# remove entries for files we might have explicitly deleted above
+					for compound in [tag for tag in root.findall(r'compound') if tag.get(r'kind') in (r'file', r'dir')]:
+						ref_file = Path(context.xml_dir, rf'{compound.get(r"refid")}.xml')
+						if not ref_file.exists():
+							root.remove(compound)
+							changed = True
+
 					# extract namespaces, types and enum values for syntax highlighting
-					scopes = [tag for tag in xml.getroot().findall(r'compound') if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')]
+					scopes = [tag for tag in root.findall(r'compound') if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')]
 					for scope in scopes:
 						scope_name = scope.find(r'name').text
 
@@ -377,7 +413,7 @@ def _postprocess_xml(context):
 
 				# some other compound definition
 				else:
-					compounddef = xml.getroot().find(r'compounddef')
+					compounddef = root.find(r'compounddef')
 					assert compounddef is not None
 					compoundname = compounddef.find(r'compoundname')
 					assert compoundname is not None
@@ -475,8 +511,7 @@ def _postprocess_xml(context):
 
 						# remove implementation headers
 						if context.implementation_headers:
-							innerfiles = compounddef.findall(r'innerfile')
-							for innerfile in innerfiles:
+							for innerfile in compounddef.findall(r'innerfile'):
 								if innerfile.get(r'refid') in implementation_header_mappings:
 									compounddef.remove(innerfile)
 									changed = True

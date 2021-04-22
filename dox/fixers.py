@@ -603,7 +603,6 @@ class LinksFix(object):
 	'''
 	__external_href = re.compile(r'^(?:https?|s?ftp|mailto)[:].+$', re.I)
 	__internal_doc_id = re.compile(r'^[a-fA-F0-9]+$')
-	__internal_doc_id_href = re.compile(r'^#([a-fA-F0-9]+)$')
 	__godbolt = re.compile(r'^\s*https[:]//godbolt.org/z/.+?$', re.I)
 
 	def __call__(self, doc, context):
@@ -611,16 +610,17 @@ class LinksFix(object):
 		for anchor in doc.body('a', recursive=True):
 			if 'href' not in anchor.attrs:
 				continue
+			href = anchor['href']
 
 			# make sure links to certain external sources are correctly marked as such
-			if self.__external_href.fullmatch(anchor['href']) is not None:
+			if self.__external_href.fullmatch(href) is not None:
 				if 'target' not in anchor.attrs or anchor['target'] != '_blank':
 					anchor['target'] = '_blank'
 					changed = True
 				changed = soup.add_class(anchor, 'dox-external') or changed
 
 				# do magic with godbolt.org links
-				if self.__godbolt.fullmatch(anchor['href']):
+				if self.__godbolt.fullmatch(href):
 					changed = soup.add_class(anchor, 'godbolt') or changed
 					if anchor.parent.name == 'p' and len(anchor.parent.contents) == 1:
 						changed = soup.add_class(anchor.parent, ('m-note', 'm-success', 'godbolt')) or changed
@@ -630,18 +630,22 @@ class LinksFix(object):
 				continue
 
 			# make sure internal documentation links actually have somewhere to go
-			if 'class' in anchor.attrs and 'm-doc' in anchor['class']:
-				m = self.__internal_doc_id_href.fullmatch(anchor['href'])
-				if m is not None and doc.body.find(id=m[1], recursive=True) is None:
-					soup.remove_class(anchor, 'm-doc')
-					soup.add_class(anchor, 'm-doc-self')
-					anchor['href'] = '#'
+			if ('class' in anchor.attrs
+					and href.startswith(r'#')
+					and (r'm-doc' in anchor['class'] or r'm-doc-self' in anchor['class'])
+					and (href == r'#' or doc.body.find(id=href[1:], recursive=True) is None)):
+				soup.remove_class(anchor, 'm-doc')
+				soup.add_class(anchor, 'm-doc-self')
+				anchor['href'] = '#'
+				parent_with_id = anchor.find_parent(id=self.__internal_doc_id)
+				if parent_with_id is None:
+					parent_with_id = anchor.find_parent((r'dt', r'tr'), id=False)
+					if parent_with_id is not None:
+						parent_with_id['id'] = sha256(parent_with_id.get_text())
+				if parent_with_id is None:
 					parent_with_id = anchor.find_parent(id=True)
-					while parent_with_id is not None:
-						if self.__internal_doc_id.fullmatch(parent_with_id['id']) is not None:
-							anchor['href'] = '#' + parent_with_id['id']
-							break
-						parent_with_id = parent_with_id.find_parent(id=True)
+				if parent_with_id is not None:
+					anchor['href'] = '#' + parent_with_id['id']
 
 		return changed
 
