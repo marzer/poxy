@@ -122,8 +122,6 @@ _doxygen_overrides  = (
 		(r'XML_PROGRAMLISTING',		False),
 	)
 
-
-
 def _preprocess_doxyfile(context):
 	assert context is not None
 	assert isinstance(context, project.Context)
@@ -241,10 +239,13 @@ def _preprocess_doxyfile(context):
 				df.append(rf'##! M_FAVICON   = "{context.favicon if context.favicon is not None else ""}"')
 				df.append(r'##!')
 			if not df.contains(r'M_HTML_HEADER'):
+				global _embedded_js
 				df.append(r'##! M_HTML_HEADER              = ''\\')
 				for k, v in context.meta.items():
 					df.append(rf'##!    <meta name="{k}" content="{v}"> ''\\')
-				df.append(r'##!    <link href="dox.css" rel="stylesheet"/>')
+				df.append(r'##!    <link href="dox.css" rel="stylesheet"/> ''\\')
+				df.append(rf'##!    <script src="{context.jquery.name}"></script> ''\\')
+				df.append(r'##!    <script src="dox.js"></script>')
 				df.append(r'##!')
 			if not df.contains(r'M_PAGE_FINE_PRINT'):
 				df.append(r'##! M_PAGE_FINE_PRINT          = ''\\')

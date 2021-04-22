@@ -1185,7 +1185,12 @@ class Context(object):
 
 			# add built-ins to extra files
 			extra_files.append(Path(self.data_dir, r'dox.css'))
+			extra_files.append(Path(self.data_dir, r'dox.js'))
 			extra_files.append(Path(self.data_dir, r'dox-github-icon.png'))
+
+			# add jquery
+			self.jquery = Path(self.data_dir, r'jquery-3.6.0.slim.min.js')
+			extra_files.append(self.jquery)
 
 			# check extra files
 			for i in range(len(extra_files)):
