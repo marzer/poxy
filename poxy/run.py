@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-# This file is a part of marzer/dox and is subject to the the terms of the MIT license.
+# This file is a part of marzer/poxy and is subject to the the terms of the MIT license.
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
-# See https://github.com/marzer/dox/blob/master/LICENSE for the full license text.
+# See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 
 try:
-	from dox.utils import *
-	import dox.project as project
-	import dox.doxygen as doxygen
-	import dox.soup as soup
-	import dox.fixers as fixers
+	from poxy.utils import *
+	import poxy.project as project
+	import poxy.doxygen as doxygen
+	import poxy.soup as soup
+	import poxy.fixers as fixers
 except:
 	from utils import *
 	import project
@@ -152,7 +152,7 @@ def _preprocess_doxyfile(context):
 
 		df.append()
 		df.append(r'#---------------------------------------------------------------------------')
-		df.append(r'# marzer/dox')
+		df.append(r'# marzer/poxy')
 		df.append(r'#---------------------------------------------------------------------------')
 
 		# apply regular doxygen settings
@@ -289,9 +289,9 @@ def _preprocess_doxyfile(context):
 				df.append(r'##! M_HTML_HEADER              = ''\\')
 				for k, v in context.meta_tags.items():
 					df.append(rf'##!    <meta name="{k}" content="{v}"> ''\\')
-				df.append(r'##!    <link href="dox.css" rel="stylesheet"/> ''\\')
+				df.append(r'##!    <link href="poxy.css" rel="stylesheet"/> ''\\')
 				df.append(rf'##!    <script src="{context.jquery.name}"></script> ''\\')
-				df.append(r'##!    <script src="dox.js"></script>')
+				df.append(r'##!    <script src="poxy.js"></script>')
 				df.append(r'##!')
 			if not df.contains(r'M_PAGE_FINE_PRINT'):
 				df.append(r'##! M_PAGE_FINE_PRINT          = ''\\')
@@ -308,7 +308,7 @@ def _preprocess_doxyfile(context):
 				df.append(r'##!     Documentation created using ''\\')
 				df.append(r'##!     <a href="https://www.doxygen.nl/index.html">Doxygen</a> ''\\')
 				df.append(r'##!     + <a href="https://mcss.mosra.cz/documentation/doxygen/">mosra/m.css</a> ''\\')
-				df.append(r'##!     + <a href="https://github.com/marzer/dox/">marzer/dox</a>')
+				df.append(r'##!     + <a href="https://github.com/marzer/poxy/">marzer/poxy</a>')
 				df.append(r'##!')
 
 		# move to a temp file path
@@ -323,7 +323,7 @@ def _preprocess_doxyfile(context):
 		df.cleanup()
 		if context.dry_run:
 			context.info(r'#====================================================================================')
-			context.info(r'# dox-generated Doxyfile')
+			context.info(r'# poxy-generated Doxyfile')
 			context.info(r'#====================================================================================')
 			context.info(df.get_text())
 			context.info(r'#====================================================================================')
@@ -904,7 +904,7 @@ def main():
 			type=Path,
 			nargs='?',
 			default=Path('.'),
-			help=r'a path to a Doxyfile, dox.toml, or a directory containing one/both (default: %(default)s/)'
+			help=r'a path to a Doxyfile, poxy.toml, or a directory containing one/both (default: %(default)s/)'
 		)
 		args.add_argument(
 			 r'-v', r'--verbose',

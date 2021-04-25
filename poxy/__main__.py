@@ -4,7 +4,10 @@
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 
-from poxy import main
+try:
+	from poxy.run import main
+except:
+	from run import main
 
 if __name__ == '__main__':
 	main()

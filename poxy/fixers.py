@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-# This file is a part of marzer/dox and is subject to the the terms of the MIT license.
+# This file is a part of marzer/poxy and is subject to the the terms of the MIT license.
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
-# See https://github.com/marzer/dox/blob/master/LICENSE for the full license text.
+# See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 
 try:
-	from dox.utils import *
-	import dox.soup as soup
+	from poxy.utils import *
+	import poxy.soup as soup
 except:
 	from utils import *
 	import soup
@@ -161,7 +161,7 @@ class Modifiers1(_ModifiersBase):
 
 	@classmethod
 	def __substitute(cls, m, out):
-		return f'{m[1]}<span class="dox-injected m-label m-flat {cls._modifierClasses[m[2]]}">{m[2]}</span>{m[3]}'
+		return f'{m[1]}<span class="poxy-injected m-label m-flat {cls._modifierClasses[m[2]]}">{m[2]}</span>{m[3]}'
 
 	def __call__(self, doc, context):
 		if doc.article_content is None:
@@ -216,7 +216,7 @@ class Modifiers2(_ModifiersBase):
 						lastInserted = doc.new_tag('span',
 							parent=end,
 							string=match,
-							class_=f'dox-injected m-label {self._modifierClasses[match]}',
+							class_=f'poxy-injected m-label {self._modifierClasses[match]}',
 							before=lastInserted
 						)
 						lastInserted.insert_after(' ')
@@ -572,7 +572,7 @@ class AutoDocLinks(object):
 	@classmethod
 	def __substitute(cls, m, uri):
 		external = uri.startswith('http')
-		return rf'''<a href="{uri}" class="m-doc dox-injected{' dox-external' if external else ''}"{' target="_blank"' if external else ''}>{m[0]}</a>'''
+		return rf'''<a href="{uri}" class="m-doc poxy-injected{' poxy-external' if external else ''}"{' target="_blank"' if external else ''}>{m[0]}</a>'''
 
 	def __call__(self, doc, context):
 		if doc.article_content is None:
@@ -589,9 +589,9 @@ class AutoDocLinks(object):
 				for expr, uri in context.autolinks:
 					if ((not link.has_attr('href') or link['href'] != uri) and expr.fullmatch(s)):
 						link['href'] = uri
-						soup.set_class(link, ['m-doc', 'dox-injected'])
+						soup.set_class(link, ['m-doc', 'poxy-injected'])
 						if uri.startswith('http'):
-							soup.add_class(link, 'dox-external')
+							soup.add_class(link, 'poxy-external')
 						done = True
 						changed = True
 						break
@@ -645,7 +645,7 @@ class Links(object):
 				if 'target' not in anchor.attrs or anchor['target'] != '_blank':
 					anchor['target'] = '_blank'
 					changed = True
-				changed = soup.add_class(anchor, 'dox-external') or changed
+				changed = soup.add_class(anchor, 'poxy-external') or changed
 
 				# do magic with godbolt.org links
 				if self.__godbolt.fullmatch(href):

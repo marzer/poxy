@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# This file is a part of marzer/dox and is subject to the the terms of the MIT license.
+# This file is a part of marzer/poxy and is subject to the the terms of the MIT license.
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
-# See https://github.com/marzer/dox/blob/master/LICENSE for the full license text.
+# See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 
 try:
-	from dox.utils import *
+	from poxy.utils import *
 except:
 	from utils import *
 
@@ -84,8 +84,8 @@ class _Defaults(object):
 		r'DOXYGEN' :					1,
 		r'__DOXYGEN__' :				1,
 		r'__doxygen__' :				1,
-		r'__DOX__' :					1,
-		r'__dox__' :					1,
+		r'__POXY__' :					1,
+		r'__poxy__' :					1,
 		r'__has_include(...)' :			0,
 		r'__has_attribute(...)' :		0,
 		r'__has_cpp_attribute(...)' :	999999,
@@ -510,7 +510,7 @@ class _Defaults(object):
 	}
 	navbar = [r'files', r'groups', r'namespaces', r'classes']
 	aliases = {
-		# dox
+		# poxy
 		r'cpp' : r'@code{.cpp}',
 		r'ecpp' : r'@endcode',
 		r'endcpp' : r'@endcode',
@@ -907,12 +907,10 @@ class Context(object):
 		if 1:
 
 			# environment
-			self.this_dir = Path(__file__).resolve().parent
-			self.verbose_value(r'Context.this_dir', self.this_dir)
-			self.data_dir = Path(self.this_dir, 'data')
+			self.package_dir = Path(__file__).resolve().parent
+			self.verbose_value(r'Context.package_dir', self.package_dir)
+			self.data_dir = Path(self.package_dir, r'data')
 			self.verbose_value(r'Context.data_dir', self.data_dir)
-			self.dox_dir = self.this_dir.parent
-			self.verbose_value(r'Context.dox_dir', self.dox_dir)
 			if output_dir is None:
 				output_dir = Path.cwd()
 			if not isinstance(output_dir, Path):
@@ -942,8 +940,8 @@ class Context(object):
 				self.config_path = Path(str(config_path) + ".toml")
 			elif config_path.is_dir():
 				input_dir = config_path
-				if Path(config_path, 'dox.toml').exists():
-					self.config_path = Path(config_path, 'dox.toml')
+				if Path(config_path, 'poxy.toml').exists():
+					self.config_path = Path(config_path, 'poxy.toml')
 				elif Path(config_path, 'Doxyfile-mcss').exists():
 					self.doxyfile_path = Path(config_path, 'Doxyfile-mcss')
 				elif Path(config_path, 'Doxyfile').exists():
@@ -954,8 +952,8 @@ class Context(object):
 				elif self.doxyfile_path is not None:
 					input_dir = self.doxyfile_path.parent
 			if input_dir is not None:
-				if self.config_path is None and Path(input_dir, 'dox.toml').exists():
-					self.config_path = Path(input_dir, 'dox.toml')
+				if self.config_path is None and Path(input_dir, 'poxy.toml').exists():
+					self.config_path = Path(input_dir, 'poxy.toml')
 				if self.doxyfile_path is None and Path(input_dir, 'Doxyfile-mcss').exists():
 					self.doxyfile_path = Path(input_dir, 'Doxyfile-mcss')
 				if self.doxyfile_path is None:
@@ -981,7 +979,7 @@ class Context(object):
 
 			# m.css
 			if mcss_dir is None:
-				mcss_dir = Path(self.dox_dir, 'external/mcss')
+				mcss_dir = Path(self.data_dir, r'mcss')
 			if not isinstance(mcss_dir, Path):
 				mcss_dir = Path(str(mcss_dir))
 			mcss_dir = mcss_dir.resolve()
@@ -1027,12 +1025,12 @@ class Context(object):
 					badge = re.sub(r'(?:[.]0+)+$', '', spdx.lower()) # trailing .0, .0.0 etc
 					badge = badge.strip(' \t-._:') # leading + trailing junk
 					badge = re.sub(r'[:;!@#$%^&*\\|/,.<>?`~\[\]{}()_+\-= \t]+', '_', badge) # internal junk
-					badge = Path(self.data_dir, rf'dox-badge-license-{badge}.svg')
-					self.verbose(rf'Matching license {spdx} against badge file {badge.name}...')
+					badge = Path(self.data_dir, rf'poxy-badge-license-{badge}.svg')
+					self.verbose(rf"Finding badge SVG for license '{spdx}'...")
 					if badge.exists():
 						self.verbose(rf'Badge file found at {badge}')
 						extra_files.append(badge)
-						badges.append((self.license[r'spdx'], badge.spdx, self.license[r'uri']))
+						badges.append((spdx, badge.name, uri))
 			self.verbose_value(r'Context.license', self.license)
 
 			# project repo access level
@@ -1070,7 +1068,7 @@ class Context(object):
 					else:
 						raise Exception(rf"cpp: '{config['cpp']}' is not a valid cpp standard version")
 			self.verbose_value(r'Context.cpp', self.cpp)
-			badge = rf'dox-badge-c++{str(self.cpp)[2:]}.svg'
+			badge = rf'poxy-badge-c++{str(self.cpp)[2:]}.svg'
 			badges.append((rf'C++{str(self.cpp)[2:]}', badge, r'https://en.cppreference.com/w/cpp/compiler_support'))
 			extra_files.append(Path(self.data_dir, badge))
 
@@ -1292,9 +1290,9 @@ class Context(object):
 						extra_files.append(Path(file))
 
 			# add built-ins to extra files
-			extra_files.append(Path(self.data_dir, r'dox.css'))
-			extra_files.append(Path(self.data_dir, r'dox.js'))
-			extra_files.append(Path(self.data_dir, r'dox-github-icon.png'))
+			extra_files.append(Path(self.data_dir, r'poxy.css'))
+			extra_files.append(Path(self.data_dir, r'poxy.js'))
+			extra_files.append(Path(self.data_dir, r'poxy-github-icon.png'))
 
 			# add jquery
 			self.jquery = Path(self.data_dir, r'jquery-3.6.0.slim.min.js')
