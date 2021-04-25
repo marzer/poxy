@@ -62,6 +62,18 @@ def log(logger, msg, level=logging.INFO):
 
 
 
+def enum_subdirs(root):
+	root = coerce_path(root)
+	assert root.is_dir()
+	subdirs = []
+	for p in root.iterdir():
+		if p.is_dir():
+			subdirs.append(p)
+			subdirs = subdirs + enum_subdirs(p)
+	return subdirs
+
+
+
 #=======================================================================================================================
 # REGEX REPLACER
 #=======================================================================================================================

@@ -19,7 +19,7 @@ import html
 # custom tags
 #=======================================================================================================================
 
-class CustomTagsFix(object):
+class CustomTags(object):
 	'''
 	Modifies HTML using custom square-bracket [tags].
 	'''
@@ -132,7 +132,7 @@ class CustomTagsFix(object):
 # C++
 #=======================================================================================================================
 
-class _ModifiersFixBase(object):
+class _ModifiersBase(object):
 	'''
 	Base type for modifier parsing fixers.
 	'''
@@ -152,11 +152,11 @@ class _ModifiersFixBase(object):
 
 
 
-class ModifiersFix1(_ModifiersFixBase):
+class Modifiers1(_ModifiersBase):
 	'''
 	Fixes improperly-parsed modifiers on function signatures in the various 'detail view' sections.
 	'''
-	__expression = re.compile(rf'(\s+)({_ModifiersFixBase._modifierRegex})(\s+)')
+	__expression = re.compile(rf'(\s+)({_ModifiersBase._modifierRegex})(\s+)')
 	__sections = ('pub-static-methods', 'pub-methods', 'friends', 'func-members')
 
 	@classmethod
@@ -178,11 +178,11 @@ class ModifiersFix1(_ModifiersFixBase):
 
 
 
-class ModifiersFix2(_ModifiersFixBase):
+class Modifiers2(_ModifiersBase):
 	'''
 	Fixes improperly-parsed modifiers on function signatures in the 'Function documentation' section.
 	'''
-	__expression = re.compile(rf'\s+({_ModifiersFixBase._modifierRegex})\s+')
+	__expression = re.compile(rf'\s+({_ModifiersBase._modifierRegex})\s+')
 
 	@classmethod
 	def __substitute(cls, m, matches):
@@ -224,7 +224,7 @@ class ModifiersFix2(_ModifiersFixBase):
 
 
 
-class TemplateTemplateFix(object):
+class TemplateTemplate(object):
 	'''
 	Spreads consecutive template <> declarations out over multiple lines.
 	'''
@@ -245,11 +245,40 @@ class TemplateTemplateFix(object):
 
 
 
+class StripIncludes(object):
+	'''
+	Strips #include <paths/to/headers.h> based on context.strip_includes.
+	'''
+	def __call__(self, doc, context):
+		if doc.article is None or not context.strip_includes:
+			return False
+		changed = False
+		for include_div in doc.article.find_all(r'div', class_=r'm-doc-include'):
+			anchor = include_div.find('a', href=True, class_=r'cpf')
+			if anchor is None:
+				continue
+			text = anchor.get_text()
+			if not (text.startswith('<') and text.endswith('>')):
+				continue
+			text = text[1:-1].strip()
+			for strip in context.strip_includes:
+				if len(text) < len(strip) or not text.startswith(strip):
+					continue
+				if len(text) == len(strip):
+					soup.destroy_node(include_div)
+				else:
+					anchor.contents.clear()
+					anchor.contents.append(soup.NavigableString(rf'<{text[len(strip):]}>'))
+				changed = True
+				break
+		return changed
+
+
 #=======================================================================================================================
 # index.html
 #=======================================================================================================================
 
-class IndexPageFix(object):
+class IndexPage(object):
 	'''
 	Applies some basic fixes to index.html
 	'''
@@ -279,7 +308,7 @@ class IndexPageFix(object):
 # <code> blocks
 #=======================================================================================================================
 
-class CodeBlockFix(object):
+class CodeBlocks(object):
 	'''
 	Fixes various issues and improves syntax highlighting in <code> blocks.
 	'''
@@ -534,7 +563,7 @@ def _m_doc_anchor_tags(tag):
 
 
 
-class AutoDocLinksFix(object):
+class AutoDocLinks(object):
 	'''
 	Adds links to additional sources where appropriate.
 	'''
@@ -597,22 +626,21 @@ class AutoDocLinksFix(object):
 
 
 
-class LinksFix(object):
+class Links(object):
 	'''
 	Fixes various minor issues with anchor tags.
 	'''
 	__external_href = re.compile(r'^(?:https?|s?ftp|mailto)[:].+$', re.I)
 	__internal_doc_id = re.compile(r'^[a-fA-F0-9]+$')
 	__godbolt = re.compile(r'^\s*https[:]//godbolt.org/z/.+?$', re.I)
+	__local_href = re.compile(r'^([-/_a-zA-Z0-9]+\.[a-zA-Z]+)(?:#(.*))?$')
 
 	def __call__(self, doc, context):
 		changed = False
-		for anchor in doc.body('a', recursive=True):
-			if 'href' not in anchor.attrs:
-				continue
+		for anchor in doc.body('a', recursive=True, href=True):
 			href = anchor['href']
 
-			# make sure links to certain external sources are correctly marked as such
+			# make sure links to external sources are correctly marked as such
 			if self.__external_href.fullmatch(href) is not None:
 				if 'target' not in anchor.attrs or anchor['target'] != '_blank':
 					anchor['target'] = '_blank'
@@ -622,18 +650,38 @@ class LinksFix(object):
 				# do magic with godbolt.org links
 				if self.__godbolt.fullmatch(href):
 					changed = soup.add_class(anchor, 'godbolt') or changed
-					if anchor.parent.name == 'p' and len(anchor.parent.contents) == 1:
-						changed = soup.add_class(anchor.parent, ('m-note', 'm-success', 'godbolt')) or changed
-						if anchor.parent.next_sibling is not None and anchor.parent.next_sibling.name == 'pre':
-							code_block = anchor.parent.next_sibling
-							code_block.insert(0, anchor.parent.extract())
+					if (anchor.parent.name == 'p'
+							and len(anchor.parent.contents) == 1
+							and anchor.parent.next_sibling is not None
+							and anchor.parent.next_sibling.name == 'pre'):
+						soup.add_class(anchor.parent, ('m-note', 'm-success', 'godbolt'))
+						code_block = anchor.parent.next_sibling
+						code_block.insert(0, anchor.parent.extract())
+						changed = True
 				continue
 
-			# make sure internal documentation links actually have somewhere to go
-			if ('class' in anchor.attrs
+			is_mdoc = r'class' in anchor.attrs and (r'm-doc' in anchor['class'] or r'm-doc-self' in anchor['class'])
+
+			# make sure links to local files point to actual existing files
+			match = self.__local_href.fullmatch(href)
+			if match and not coerce_path(doc.path.parent, match[1]).exists():
+				changed = True
+				if is_mdoc:
+					href = r'#'
+					anchor[r'href'] = r'#' # will by fixed by the next step
+				else:
+					for attr in (r'download', r'href', r'hreflang', r'media', r'ping', r'referrerpolicy', r'rel', r'target', r'type'):
+						if attr in anchor.attrs:
+							del anchor[attr]
+					anchor.name = r'span'
+					continue
+
+
+			# make sure internal documentation #id links actually have somewhere to go
+			if (is_mdoc
 					and href.startswith(r'#')
-					and (r'm-doc' in anchor['class'] or r'm-doc-self' in anchor['class'])
-					and (href == r'#' or doc.body.find(id=href[1:], recursive=True) is None)):
+					and (len(href) == 1 or doc.body.find(id=href[1:], recursive=True) is None)):
+				changed = True
 				soup.remove_class(anchor, 'm-doc')
 				soup.add_class(anchor, 'm-doc-self')
 				anchor['href'] = '#'
@@ -646,34 +694,6 @@ class LinksFix(object):
 					parent_with_id = anchor.find_parent(id=True)
 				if parent_with_id is not None:
 					anchor['href'] = '#' + parent_with_id['id']
+				continue
 
 		return changed
-
-
-
-class DeadLinksFix(object):
-	'''
-	Fixes dead links to non-existent local files.
-	'''
-	__href = re.compile(r'^([-_a-zA-Z0-9]+\.html?)(?:#(.*))?$')
-
-	def __call__(self, doc, context):
-		changed = False
-		for anchor in doc.body('a', recursive=True):
-			match = self.__href.fullmatch(anchor['href'])
-			if match and not coerce_path(doc.path.parent, match[1]).exists():
-				soup.remove_class(anchor, 'm-doc')
-				if anchor.parent is not None and anchor.parent.name in ('dt', 'div'):
-					soup.add_class(anchor, 'm-doc-self')
-					id = None
-					if 'id' in anchor.parent.attrs:
-						id = anchor.parent['id']
-					else:
-						id = match[2]
-						if not id:
-							id = f'{sha1(match[1], anchor.string)}'
-						anchor.parent['id'] = id
-					anchor['href'] = f'#{id}'
-				changed = True
-		return changed
-

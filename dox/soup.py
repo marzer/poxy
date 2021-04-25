@@ -145,19 +145,20 @@ class HTMLDocument(object):
 			self.__doc = bs4.BeautifulSoup(f, 'html5lib', from_encoding='utf-8')
 		self.head = self.__doc.head
 		self.body = self.__doc.body
+		self.article = None
+		self.article_content = None
 		self.table_of_contents = None
+		self.sections = None
 		try:
-			self.article_content = self.__doc.body.main.article.div.div.div
-			toc_candidates = self.article_content('div', class_='m-block m-default', recursive=False)
-			for div in toc_candidates:
+			self.article = self.__doc.body.main.article
+			self.article_content = self.article.div.div.div
+			for div in self.article_content('div', class_='m-block m-default', recursive=False):
 				if div.h3 and div.h3.string == 'Contents':
 					self.table_of_contents = div
 					break
 			self.sections = self.article_content('section', recursive=False)
 		except:
-			self.article_content = None
-			self.table_of_contents = None
-			self.sections = None
+			pass
 
 	def smooth(self):
 		self.__doc.smooth()

@@ -36,20 +36,30 @@ _doxygen_overrides  = (
 		(r'ALLOW_UNICODE_NAMES',	False),
 		(r'ALWAYS_DETAILED_SEC',	False),
 		(r'AUTOLINK_SUPPORT',		True),
+		(r'BUILTIN_STL_SUPPORT',	False),
+		(r'CASE_SENSE_NAMES',		False),
 		(r'CLASS_DIAGRAMS',			False),
 		(r'CPP_CLI_SUPPORT',		False),
 		(r'CREATE_SUBDIRS',			False),
 		(r'DISTRIBUTE_GROUP_DOC',	False),
 		(r'DOXYFILE_ENCODING',		r'UTF-8'),
 		(r'ENABLE_PREPROCESSING',	True),
+		(r'EXCLUDE_SYMLINKS', 		False),
 		(r'EXPAND_ONLY_PREDEF', 	False),
 		(r'EXTERNAL_GROUPS', 		False),
 		(r'EXTERNAL_PAGES', 		False),
 		(r'EXTRACT_ANON_NSPACES',	False),
 		(r'EXTRACT_LOCAL_CLASSES',	False),
+		(r'EXTRACT_LOCAL_METHODS',	False),
 		(r'EXTRACT_PACKAGE',		False),
+		(r'EXTRACT_PRIV_VIRTUAL',	True),
 		(r'EXTRACT_PRIVATE',		False),
 		(r'EXTRACT_STATIC',			False),
+		(r'FILE_PATTERNS',
+			(r'*.h', r'*.hh', r'*.hxx', r'*.hpp', r'*.h++', r'*.inc', r'*.markdown', r'*.md', r'*.dox')
+		),
+		(r'FILTER_PATTERNS',		None),
+		(r'FORCE_LOCAL_INCLUDES',	False),
 		(r'FULL_PATH_NAMES',		True),
 		(r'GENERATE_AUTOGEN_DEF',	False),
 		(r'GENERATE_BUGLIST',		False),
@@ -72,7 +82,10 @@ _doxygen_overrides  = (
 		(r'GENERATE_TREEVIEW',		False),
 		(r'GENERATE_XML',			True),
 		(r'HAVE_DOT',				False),
+		(r'HIDE_COMPOUND_REFERENCE',False),
 		(r'HIDE_FRIEND_COMPOUNDS',	False),
+		(r'HIDE_IN_BODY_DOCS',		False),
+		(r'HIDE_SCOPE_NAMES',		False),
 		(r'HIDE_UNDOC_CLASSES',		True),
 		(r'HIDE_UNDOC_MEMBERS',		True),
 		(r'HTML_FILE_EXTENSION',	r'.html'),
@@ -80,10 +93,12 @@ _doxygen_overrides  = (
 		(r'IDL_PROPERTY_SUPPORT',	False),
 		(r'INHERIT_DOCS', 			True),
 		(r'INLINE_GROUPED_CLASSES',	False),
+		(r'INLINE_INFO',			True),
 		(r'INLINE_INHERITED_MEMB',	True),
 		(r'INLINE_SIMPLE_STRUCTS',	False),
 		(r'INLINE_SOURCES',			False),
 		(r'INPUT_ENCODING',			r'UTF-8'),
+		(r'INPUT_FILTER',			None),
 		(r'LOOKUP_CACHE_SIZE',		2),
 		(r'MACRO_EXPANSION',		True),
 		(r'MARKDOWN_SUPPORT',		True),
@@ -94,11 +109,13 @@ _doxygen_overrides  = (
 		(r'OPTIMIZE_OUTPUT_VHDL',	False),
 		(r'PYTHON_DOCSTRING', 		True),
 		(r'QUIET',					False),
-		(r'RECURSIVE',				True),
+		(r'RECURSIVE',				False),
 		(r'REFERENCES_LINK_SOURCE',	False),
 		(r'RESOLVE_UNNAMED_PARAMS',	True),
+		(r'SEARCH_INCLUDES',		False),
 		(r'SEPARATE_MEMBER_PAGES',	False),
 		(r'SHORT_NAMES',			False),
+		(r'SHOW_GROUPED_MEMB_INC',	False),
 		(r'SHOW_USED_FILES',		False),
 		(r'SIP_SUPPORT',			False),
 		(r'SKIP_FUNCTION_MACROS', 	False),
@@ -108,6 +125,7 @@ _doxygen_overrides  = (
 		(r'SORT_MEMBER_DOCS',		False),
 		(r'SORT_MEMBERS_CTORS_1ST',	True),
 		(r'SOURCE_BROWSER',			False),
+		(r'STRICT_PROTO_MATCHING',	False),
 		(r'SUBGROUPING', 			True),
 		(r'TAB_SIZE',				4),
 		(r'TYPEDEF_HIDES_STRUCT',	False),
@@ -116,7 +134,7 @@ _doxygen_overrides  = (
 		(r'VERBATIM_HEADERS',		False),
 		(r'WARN_IF_DOC_ERROR',		True),
 		(r'WARN_IF_INCOMPLETE_DOC',	True),
-		(r'WARN_LOGFILE',			''),
+		(r'WARN_LOGFILE',			None),
 		(r'XML_NS_MEMB_FILE_SCOPE',	True),
 		(r'XML_OUTPUT',				r'xml'),
 		(r'XML_PROGRAMLISTING',		False),
@@ -139,7 +157,10 @@ def _preprocess_doxyfile(context):
 
 		# apply regular doxygen settings
 		if 1:
+			df.set_value(r'INPUT', context.sources)
 			df.set_value(r'OUTPUT_DIRECTORY', context.output_dir)
+			df.add_value(r'EXCLUDE', context.html_dir)
+			df.add_value(r'EXCLUDE', context.xml_dir)
 
 			if not context.name:
 				context.name = df.get_value(r'PROJECT_NAME', fallback='')
@@ -156,29 +177,48 @@ def _preprocess_doxyfile(context):
 					if not context.logo.is_absolute():
 						context.logo = Path(context.input_dir, context.logo)
 					context.logo = context.logo.resolve()
+					context.verbose_value(r'Context.logo', context.logo)
 			df.set_value(r'PROJECT_LOGO', context.logo)
 
 			if context.show_includes is None:
 				context.show_includes = df.get_boolean(r'SHOW_INCLUDE_FILES', fallback=True)
+				context.verbose_value(r'Context.show_includes', context.show_includes)
 			df.set_value(r'SHOW_INCLUDE_FILES', context.show_includes)
 
-			if context.warnings.enabled is None:
-				context.warnings.enabled = df.get_boolean(r'WARNINGS', fallback=True)
-			df.set_value(r'WARNINGS', context.warnings.enabled)
+			if context.internal_docs is None:
+				context.internal_docs = df.get_boolean(r'INTERNAL_DOCS', fallback=False)
+				context.verbose_value(r'Context.internal_docs', context.internal_docs)
+			df.set_value(r'INTERNAL_DOCS', context.internal_docs)
+			df.add_value(r'ENABLED_SECTIONS', (r'private', r'internal') if context.internal_docs else (r'public', r'external'))
 
-			if context.warnings.treat_as_errors is None:
-				context.warnings.treat_as_errors = df.get_boolean(r'WARN_AS_ERROR', fallback=False)
-			df.set_value(r'WARN_AS_ERROR', context.warnings.treat_as_errors)
-
-			if context.warnings.undocumented is None:
-				context.warnings.undocumented = df.get_boolean(r'WARN_IF_UNDOCUMENTED', fallback=True)
-			df.set_value(r'WARN_IF_UNDOCUMENTED', context.warnings.undocumented)
-
+			if context.generate_tagfile is None:
+				context.generate_tagfile = not (context.private_repo or context.internal_docs)
+				context.verbose_value(r'Context.generate_tagfile', context.generate_tagfile)
 			if context.generate_tagfile:
 				context.tagfile_path = coerce_path(context.output_dir, rf'{context.name.replace(" ","_")}.tagfile.xml' if context.name else r'tagfile.xml')
 				df.set_value(r'GENERATE_TAGFILE', context.tagfile_path.name)
 			else:
 				df.set_value(r'GENERATE_TAGFILE', None)
+
+			if context.extract_all is None:
+				context.extract_all = df.get_boolean(r'EXTRACT_ALL', fallback=False)
+				context.verbose_value(r'Context.extract_all', context.extract_all)
+			df.set_value(r'EXTRACT_ALL', context.extract_all)
+
+			if context.warnings.enabled is None:
+				context.warnings.enabled = df.get_boolean(r'WARNINGS', fallback=True)
+				context.verbose_value(r'Context.warnings.enabled', context.warnings.enabled)
+			df.set_value(r'WARNINGS', context.warnings.enabled)
+
+			if context.warnings.treat_as_errors is None:
+				context.warnings.treat_as_errors = df.get_boolean(r'WARN_AS_ERROR', fallback=False)
+				context.verbose_value(r'Context.warnings.treat_as_errors', context.warnings.treat_as_errors)
+			df.set_value(r'WARN_AS_ERROR', context.warnings.treat_as_errors)
+
+			if context.warnings.undocumented is None:
+				context.warnings.undocumented = df.get_boolean(r'WARN_IF_UNDOCUMENTED', fallback=True)
+				context.verbose_value(r'Context.warnings.undocumented', context.warnings.undocumented)
+			df.set_value(r'WARN_IF_UNDOCUMENTED', context.warnings.undocumented)
 
 			global _doxygen_overrides
 			df.append()
@@ -187,20 +227,44 @@ def _preprocess_doxyfile(context):
 			df.set_value(r'NUM_PROC_THREADS', context.threads)
 			df.add_value(r'CLANG_OPTIONS', rf'-std=c++{context.cpp%100}')
 			df.add_value(r'CLANG_OPTIONS', r'-Wno-everything')
+			df.add_value(r'STRIP_FROM_PATH', context.strip_paths)
 
-			df.append()
-			df.add_value(r'TAGFILES', [rf'{k}={v}' for k,v in context.tagfiles.items()])
+			if context.tagfiles:
+				df.append()
+				df.add_value(r'TAGFILES', [rf'{k}={v}' for k,v in context.tagfiles.items()])
 
-			df.append()
-			df.add_value(r'ALIASES', [rf'{k}={v}' for k,v in context.aliases.items()])
+			if context.aliases:
+				df.append()
+				df.add_value(r'ALIASES', [rf'{k}={v}' for k,v in context.aliases.items()])
 
-			df.append()
-			df.add_value(r'PREDEFINED', [rf'{k}={v}' for k,v in context.defines.items()])
+			if context.defines:
+				df.append()
+				df.add_value(r'PREDEFINED', [rf'{k}={v}' for k,v in context.defines.items()])
 
 		# apply m.css stuff
 		if 1:
 			df.append()
 			df.append(r'##!')
+			df.append(rf'##! M_SHOW_UNDOCUMENTED        = {"YES" if context.extract_all else "NO"}')
+			df.append(r'##!')
+			if not df.contains(r'M_CLASS_TREE_EXPAND_LEVELS'):
+				df.append(r'##! M_CLASS_TREE_EXPAND_LEVELS = 3')
+				df.append(r'##!')
+			if not df.contains(r'M_FILE_TREE_EXPAND_LEVELS'):
+				df.append(r'##! M_FILE_TREE_EXPAND_LEVELS  = 3')
+				df.append(r'##!')
+			if not df.contains(r'M_EXPAND_INNER_TYPES'):
+				df.append(r'##! M_EXPAND_INNER_TYPES       = YES')
+				df.append(r'##!')
+			if not df.contains(r'M_SEARCH_DOWNLOAD_BINARY'):
+				df.append(r'##! M_SEARCH_DOWNLOAD_BINARY   = NO')
+				df.append(r'##!')
+			if not df.contains(r'M_SEARCH_DISABLED'):
+				df.append(r'##! M_SEARCH_DISABLED          = NO')
+				df.append(r'##!')
+			if not df.contains(r'M_FAVICON'):
+				df.append(rf'##! M_FAVICON                  = "{context.favicon if context.favicon is not None else ""}"')
+				df.append(r'##!')
 			if not df.contains(r'M_LINKS_NAVBAR1') and not df.contains(r'M_LINKS_NAVBAR2'):
 				if context.navbar:
 					bar = [v for v in context.navbar]
@@ -220,28 +284,10 @@ def _preprocess_doxyfile(context):
 					df.append(r'##! M_LINKS_NAVBAR1            = ')
 					df.append(r'##! M_LINKS_NAVBAR2            = ')
 					df.append(r'##!')
-			if not df.contains(r'M_CLASS_TREE_EXPAND_LEVELS'):
-				df.append(r'##! M_CLASS_TREE_EXPAND_LEVELS = 3')
-				df.append(r'##!')
-			if not df.contains(r'M_FILE_TREE_EXPAND_LEVELS'):
-				df.append(r'##! M_FILE_TREE_EXPAND_LEVELS  = 3')
-				df.append(r'##!')
-			if not df.contains(r'M_EXPAND_INNER_TYPES'):
-				df.append(r'##! M_EXPAND_INNER_TYPES       = YES')
-				df.append(r'##!')
-			if not df.contains(r'M_SEARCH_DOWNLOAD_BINARY'):
-				df.append(r'##! M_SEARCH_DOWNLOAD_BINARY   = NO')
-				df.append(r'##!')
-			if not df.contains(r'M_SEARCH_DISABLED'):
-				df.append(r'##! M_SEARCH_DISABLED          = NO')
-				df.append(r'##!')
-			if not df.contains(r'M_FAVICON'):
-				df.append(rf'##! M_FAVICON   = "{context.favicon if context.favicon is not None else ""}"')
-				df.append(r'##!')
 			if not df.contains(r'M_HTML_HEADER'):
 				global _embedded_js
 				df.append(r'##! M_HTML_HEADER              = ''\\')
-				for k, v in context.meta.items():
+				for k, v in context.meta_tags.items():
 					df.append(rf'##!    <meta name="{k}" content="{v}"> ''\\')
 				df.append(r'##!    <link href="dox.css" rel="stylesheet"/> ''\\')
 				df.append(rf'##!    <script src="{context.jquery.name}"></script> ''\\')
@@ -688,17 +734,16 @@ def _postprocess_html(context):
 
 	with ScopeTimer(rf'Post-processing {len(files)} HTML files', print_start=True, print_end=context.verbose_logger):
 		context.fixers = (
-			fixers.DeadLinksFix()
-			, fixers.CodeBlockFix()
-			, fixers.IndexPageFix()
-			, fixers.ModifiersFix1()
-			, fixers.ModifiersFix2()
-			, fixers.AutoDocLinksFix()
-			, fixers.LinksFix()
-			, fixers.TemplateTemplateFix()
-			, fixers.CustomTagsFix()
+			fixers.CodeBlocks()
+			, fixers.IndexPage()
+			, fixers.Modifiers1()
+			, fixers.Modifiers2()
+			, fixers.TemplateTemplate()
+			, fixers.StripIncludes()
+			, fixers.AutoDocLinks()
+			, fixers.Links()
+			, fixers.CustomTags()
 		)
-
 		context.verbose(rf'Post-processing {len(files)} HTML files...')
 		if threads > 1:
 			with futures.ProcessPoolExecutor(max_workers=threads, initializer=_initialize_worker, initargs=(context,)) as executor:

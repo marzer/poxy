@@ -76,8 +76,6 @@ def _format_for_doxyfile(val):
 
 class Doxyfile(object):
 
-	__include = re.compile(r'^\s*@INCLUDE\s*=\s*(.+?)\s*$', re.M)
-
 	def __init__(self, doxyfile_path, cwd=None, logger=None):
 		self.__logger=logger
 		self.__dirty=True
@@ -89,12 +87,16 @@ class Doxyfile(object):
 		self.__cwd = Path.cwd() if cwd is None else coerce_path(cwd).resolve()
 		assert_existing_directory(self.__cwd)
 
-		# read in doxyfile (or generate one)
 		self.__text = ''
+
+		# read in doxyfile
 		if self.path.exists():
 			if not self.path.is_file():
 				raise Exception(f'{self.path} was not a file')
 			self.__text = read_all_text_from_file(self.path, logger=self.__logger).strip()
+			self.cleanup() # expands includes
+
+		# ...or generate one
 		else:
 			log(self.__logger, rf'Warning: doxyfile {self.path} not found! A default one will be generated in-memory.', level=logging.WARNING)
 			result = subprocess.run(
@@ -106,19 +108,6 @@ class Doxyfile(object):
 			)
 			self.__text = result.stdout.strip()
 
-		# expand includes
-		m = self.__include.search(self.__text)
-		while m:
-			inc = m[1].strip(' "')
-			sub = ''
-			if inc:
-				inc = Path(inc)
-				if not inc.is_absolute():
-					inc = Path(self.__cwd, inc)
-				inc = inc.resolve()
-				sub = f'\n\n{read_all_text_from_file(inc, logger=self.__logger).strip()}\n\n'
-			self.__text = self.__text[:m.start()].strip() + sub + self.__text[m.end():].strip()
-			m = self.__include.search(self.__text)
 
 		# simplify regex searches by ensuring there's always leading and trailing newlines
 		self.__text = f'\n{self.__text}\n'
@@ -126,17 +115,18 @@ class Doxyfile(object):
 	def cleanup(self):
 		if not self.__dirty:
 			return
-		log(self.__logger, rf'Invoking doxygen to clean doxyfile')
-		result = subprocess.run(
-			r'doxygen -s -u -'.split(),
-			check=True,
-			capture_output=True,
-			cwd=self.__cwd,
-			encoding='utf-8',
-			input=self.__text
-		)
+		if 1:
+			log(self.__logger, rf'Invoking doxygen to clean doxyfile')
+			result = subprocess.run(
+				r'doxygen -s -u -'.split(),
+				check=True,
+				capture_output=True,
+				cwd=self.__cwd,
+				encoding='utf-8',
+				input=self.__text
+			)
+			self.__text = result.stdout.strip()
 		self.__dirty = False
-		self.__text = result.stdout.strip()
 
 	def flush(self):
 		self.cleanup()
@@ -192,13 +182,16 @@ class Doxyfile(object):
 
 	def set_value(self, key, value=None):
 		if isinstance(value, (list, tuple, set)):
-			first = True
-			for v in value:
-				if first:
-					self.append(rf'{key:<23}=  {_format_for_doxyfile(v)}')
-				else:
-					self.add_value(key, v)
-				first = False
+			if not value:
+				self.append(rf'{key:<23}=')
+			else:
+				first = True
+				for v in value:
+					if first:
+						self.append(rf'{key:<23}=  {_format_for_doxyfile(v)}')
+					else:
+						self.add_value(key, v)
+					first = False
 		else:
 			self.append(rf'{key:<23}=  {_format_for_doxyfile(value)}')
 		self.__dirty = True

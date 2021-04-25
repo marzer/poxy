@@ -5,3 +5,4 @@ pygments
 html5lib
 lxml
 pytomlpp
+schema
