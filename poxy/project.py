@@ -81,6 +81,7 @@ class _Defaults(object):
 		r'[Mm]at(?:rix)?[1-4](?:[xX][1-4])?[hifd]?'
 	}
 	defines = {
+		r'NDEBUG' :						1,
 		r'DOXYGEN' :					1,
 		r'__DOXYGEN__' :				1,
 		r'__doxygen__' :				1,

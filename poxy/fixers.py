@@ -637,7 +637,7 @@ class Links(object):
 
 	def __call__(self, doc, context):
 		changed = False
-		for anchor in doc.body('a', recursive=True, href=True):
+		for anchor in doc.body('a', href=True):
 			href = anchor['href']
 
 			# make sure links to external sources are correctly marked as such
@@ -680,7 +680,7 @@ class Links(object):
 			# make sure internal documentation #id links actually have somewhere to go
 			if (is_mdoc
 					and href.startswith(r'#')
-					and (len(href) == 1 or doc.body.find(id=href[1:], recursive=True) is None)):
+					and (len(href) == 1 or doc.body.find(id=href[1:]) is None)):
 				changed = True
 				soup.remove_class(anchor, 'm-doc')
 				soup.add_class(anchor, 'm-doc-self')
@@ -696,4 +696,20 @@ class Links(object):
 					anchor['href'] = '#' + parent_with_id['id']
 				continue
 
+		return changed
+
+#=======================================================================================================================
+# empty tags
+#=======================================================================================================================
+
+class EmptyTags(object):
+	'''
+	Prunes the tree of various empty tags (happens as a side-effect of some other operations).
+	'''
+	def __call__(self, doc, context):
+		changed = False
+		for tag in doc.body((r'p', r'span')):
+			if not tag.contents or (len(tag.contents) == 1 and isinstance(tag.contents[0], soup.NavigableString) and not tag.string):
+				soup.destroy_node(tag)
+				changed = True
 		return changed

@@ -716,7 +716,7 @@ def _postprocess_html_file(path, context=None):
 		if fix(doc, context):
 			doc.smooth()
 			changed = True
-	if (changed):
+	if changed:
 		doc.flush()
 	return changed
 
@@ -743,6 +743,7 @@ def _postprocess_html(context):
 			, fixers.AutoDocLinks()
 			, fixers.Links()
 			, fixers.CustomTags()
+			, fixers.EmptyTags()
 		)
 		context.verbose(rf'Post-processing {len(files)} HTML files...')
 		if threads > 1:
