@@ -605,6 +605,8 @@ class AutoDocLinks(object):
 			for tag in tags:
 				strings = strings + soup.string_descendants(tag, lambda t: soup.find_parent(t, 'a', tag) is None)
 			for expr, uri in context.autolinks:
+				if uri == doc.path.name: # don't create unnecessary self-links
+					continue
 				i = 0
 				while i < len(strings):
 					string = strings[i]
