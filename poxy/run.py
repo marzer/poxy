@@ -55,9 +55,6 @@ _doxygen_overrides  = (
 		(r'EXTRACT_PRIV_VIRTUAL',	True),
 		(r'EXTRACT_PRIVATE',		False),
 		(r'EXTRACT_STATIC',			False),
-		(r'FILE_PATTERNS',
-			(r'*.h', r'*.hh', r'*.hxx', r'*.hpp', r'*.h++', r'*.inc', r'*.markdown', r'*.md', r'*.dox')
-		),
 		(r'FILTER_PATTERNS',		None),
 		(r'FORCE_LOCAL_INCLUDES',	False),
 		(r'FULL_PATH_NAMES',		True),
@@ -158,6 +155,7 @@ def _preprocess_doxyfile(context):
 		# apply regular doxygen settings
 		if 1:
 			df.set_value(r'INPUT', context.sources)
+			df.set_value(r'FILE_PATTERNS', context.source_patterns)
 			df.set_value(r'OUTPUT_DIRECTORY', context.output_dir)
 			df.add_value(r'EXCLUDE', context.html_dir)
 			df.add_value(r'EXCLUDE', context.xml_dir)

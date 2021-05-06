@@ -550,6 +550,9 @@ class _Defaults(object):
 		r'm_keyword{3}' : r'@xmlonly<mcss:search xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:keyword="\1" mcss:title="\2" mcss:suffix-length="\3" />@endxmlonly',
 		r'm_enum_values_as_keywords' : r'@xmlonly<mcss:search xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:enum-values-as-keywords="true" />@endxmlonly'
 	}
+	source_patterns = {
+		r'*.h', r'*.hh', r'*.hxx', r'*.hpp', r'*.h++', r'*.inc', r'*.markdown', r'*.md', r'*.dox'
+	}
 
 
 
@@ -760,6 +763,7 @@ class Context(object):
 			Optional(r'strip_includes')			: ValueOrArray(str, name=r'strip_includes'),
 			Optional(r'sources')				: ValueOrArray(str, name=r'sources'),
 			Optional(r'recursive_sources')		: ValueOrArray(str, name=r'recursive_sources'),
+			Optional(r'source_patterns')		: ValueOrArray(str, name=r'source_patterns'),
 			Optional(r'meta_tags')				: {str : Or(str, int)},
 			Optional(r'tagfiles')				: {str : str},
 			Optional(r'defines')				: {str : Or(str, int, bool)},
@@ -1109,6 +1113,17 @@ class Context(object):
 			self.sources = list(self.sources)
 			self.sources.sort()
 			self.verbose_value(r'Context.sources', self.sources)
+
+			# sources (FILE_PATTERNS)
+			if 'source_patterns' in config:
+				self.source_patterns = set()
+				for v in coerce_collection(config['source_patterns']):
+					val = v.strip()
+					if val:
+						self.source_patterns.add(val)
+			else:
+				self.source_patterns = copy.deepcopy(_Defaults.source_patterns)
+			self.verbose_value(r'Context.source_patterns', self.source_patterns)
 
 			# m.css navbar
 			if 'navbar' in config:
