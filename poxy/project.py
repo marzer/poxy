@@ -788,6 +788,7 @@ class Context(object):
 		},
 		ignore_extra_keys=True
 	)
+	__namespace_qualified = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*::.+$")
 
 	def is_verbose(self):
 		return self.__verbose
@@ -826,12 +827,15 @@ class Context(object):
 			if val is not None:
 				if isinstance(val, dict):
 					if val:
+						rpad = 0
+						for k in val:
+							rpad = max(rpad, len(str(k)))
 						first = True
 						for k, v in val.items():
 							if not first:
 								print(f'\n{" ":<35}', file=buf, end='')
 							first = False
-							print(rf'{k:<35} => {v}', file=buf, end='')
+							print(rf'{k:<{rpad}} => {v}', file=buf, end='')
 				elif is_collection(val):
 					if val:
 						first = True
@@ -1261,16 +1265,19 @@ class Context(object):
 			self.verbose_value(r'Context.defines', self.defines)
 
 			# autolinks
-			default_autolinks = [(k, v) for k, v in _Defaults.autolinks.items()]
-			user_autolinks = []
+			self.autolinks = [(k, v) for k, v in _Defaults.autolinks.items()]
 			if 'autolinks' in config:
 				for pattern, u in config['autolinks'].items():
 					uri = u.strip()
 					if pattern.strip() and uri:
-						user_autolinks.append((pattern, uri))
-			default_autolinks.sort(key = lambda v: len(v[0]), reverse=True)
-			user_autolinks.sort(key = lambda v: len(v[0]), reverse=True)
-			self.autolinks = tuple(user_autolinks + default_autolinks)
+						self.autolinks.append((pattern, uri))
+			self.autolinks.sort(key = lambda v: (
+				self.__namespace_qualified.fullmatch(v[0]) is None,
+				v[0].find(r'std::') == -1,
+				-len(v[0]),
+				v[0]
+			))
+			self.autolinks = tuple(self.autolinks)
 			self.verbose_value(r'Context.autolinks', self.autolinks)
 
 			# aliases (ALIASES)
