@@ -41,10 +41,10 @@ if Path('HISTORY.md').exists():
 
 setup_args = dict(
 	name=r'poxy',
-	version=r'0.2.1',
+	version=r'0.3.0',
 	description=r'Documentation generator for C++.',
 	long_description_content_type=r'text/markdown',
-	long_description=f'{README}\n\n{HISTORY}'.strip(),
+	long_description=f'{README.strip()}\n\n{HISTORY.strip()}'.strip(),
 	license=r'MIT',
 	packages=find_packages(),
 	author=r'Mark Gillard',

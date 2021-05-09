@@ -22,6 +22,7 @@ import subprocess
 import concurrent.futures as futures
 import argparse
 import tempfile
+import requests
 from lxml import etree
 from io import BytesIO
 
@@ -44,6 +45,7 @@ _doxygen_overrides  = (
 		(r'DISTRIBUTE_GROUP_DOC',	False),
 		(r'DOXYFILE_ENCODING',		r'UTF-8'),
 		(r'ENABLE_PREPROCESSING',	True),
+		(r'EXAMPLE_RECURSIVE',		False),
 		(r'EXCLUDE_SYMLINKS', 		False),
 		(r'EXPAND_ONLY_PREDEF', 	False),
 		(r'EXTERNAL_GROUPS', 		False),
@@ -56,6 +58,8 @@ _doxygen_overrides  = (
 		(r'EXTRACT_PRIVATE',		False),
 		(r'EXTRACT_STATIC',			False),
 		(r'FILTER_PATTERNS',		None),
+		(r'FILTER_SOURCE_FILES',	False),
+		(r'FILTER_SOURCE_PATTERNS',	None),
 		(r'FORCE_LOCAL_INCLUDES',	False),
 		(r'FULL_PATH_NAMES',		True),
 		(r'GENERATE_AUTOGEN_DEF',	False),
@@ -144,22 +148,29 @@ def _preprocess_doxyfile(context):
 	with doxygen.Doxyfile(
 			doxyfile_path = context.doxyfile_path,
 			cwd = context.input_dir,
-			logger = context.verbose_logger
+			logger = context.verbose_logger,
+			doxygen_path = context.doxygen_path,
+			flush_at_exit = not context.dry_run
 		) as df:
 
 		df.append()
 		df.append(r'#---------------------------------------------------------------------------')
 		df.append(r'# marzer/poxy')
-		df.append(r'#---------------------------------------------------------------------------')
+		df.append(r'#---------------------------------------------------------------------------', end='\n\n')
 
 		# apply regular doxygen settings
 		if 1:
-			df.set_value(r'INPUT', context.sources)
-			df.set_value(r'FILE_PATTERNS', context.source_patterns)
-			df.set_value(r'OUTPUT_DIRECTORY', context.output_dir)
-			df.add_value(r'EXCLUDE', context.html_dir)
-			df.add_value(r'EXCLUDE', context.xml_dir)
 
+			df.append(r'# doxygen default overrides', end='\n\n') # ----------------------------------------
+
+			global _doxygen_overrides
+			for k, v in _doxygen_overrides:
+				df.set_value(k, v)
+
+			df.append()
+			df.append(r'# general config', end='\n\n') # ---------------------------------------------------
+
+			df.set_value(r'OUTPUT_DIRECTORY', context.output_dir)
 			if not context.name:
 				context.name = df.get_value(r'PROJECT_NAME', fallback='')
 			df.set_value(r'PROJECT_NAME', context.name)
@@ -198,10 +209,12 @@ def _preprocess_doxyfile(context):
 			else:
 				df.set_value(r'GENERATE_TAGFILE', None)
 
-			if context.extract_all is None:
-				context.extract_all = df.get_boolean(r'EXTRACT_ALL', fallback=False)
-				context.verbose_value(r'Context.extract_all', context.extract_all)
-			df.set_value(r'EXTRACT_ALL', context.extract_all)
+			df.set_value(r'NUM_PROC_THREADS', context.threads)
+			df.add_value(r'CLANG_OPTIONS', rf'-std=c++{context.cpp%100}')
+			df.add_value(r'CLANG_OPTIONS', r'-Wno-everything')
+
+			df.append()
+			df.append(r'# context.warnings', end='\n\n') # ---------------------------------------------------
 
 			if context.warnings.enabled is None:
 				context.warnings.enabled = df.get_boolean(r'WARNINGS', fallback=True)
@@ -211,39 +224,61 @@ def _preprocess_doxyfile(context):
 			if context.warnings.treat_as_errors is None:
 				context.warnings.treat_as_errors = df.get_boolean(r'WARN_AS_ERROR', fallback=False)
 				context.verbose_value(r'Context.warnings.treat_as_errors', context.warnings.treat_as_errors)
-			df.set_value(r'WARN_AS_ERROR', context.warnings.treat_as_errors)
+			df.set_value(r'WARN_AS_ERROR', False) # we do this ourself
 
 			if context.warnings.undocumented is None:
 				context.warnings.undocumented = df.get_boolean(r'WARN_IF_UNDOCUMENTED', fallback=True)
 				context.verbose_value(r'Context.warnings.undocumented', context.warnings.undocumented)
 			df.set_value(r'WARN_IF_UNDOCUMENTED', context.warnings.undocumented)
 
-			global _doxygen_overrides
 			df.append()
-			for k, v in _doxygen_overrides:
-				df.set_value(k, v)
-			df.set_value(r'NUM_PROC_THREADS', context.threads)
-			df.add_value(r'CLANG_OPTIONS', rf'-std=c++{context.cpp%100}')
-			df.add_value(r'CLANG_OPTIONS', r'-Wno-everything')
-			df.add_value(r'STRIP_FROM_PATH', context.strip_paths)
+			df.append(r'# context.sources', end='\n\n') # ----------------------------------------------------
 
-			if context.tagfiles:
-				df.append()
-				df.add_value(r'TAGFILES', [rf'{k}={v}' for k,v in context.tagfiles.items()])
+			df.add_value(r'INPUT', context.sources.paths)
+			df.set_value(r'FILE_PATTERNS', context.sources.patterns)
+			df.add_value(r'EXCLUDE', { context.html_dir, context.xml_dir })
+			df.add_value(r'STRIP_FROM_PATH', context.sources.strip_paths)
 
-			if context.aliases:
+			if context.sources.extract_all is None:
+				context.sources.extract_all = df.get_boolean(r'EXTRACT_ALL', fallback=False)
+				context.verbose_value(r'Context.sources.extract_all', context.sources.extract_all)
+			df.set_value(r'EXTRACT_ALL', context.sources.extract_all)
+
+			df.append()
+			df.append(r'# context.examples', end='\n\n') # ----------------------------------------------------
+
+			df.add_value(r'EXAMPLE_PATH', context.examples.paths)
+			df.set_value(r'EXAMPLE_PATTERNS', context.examples.patterns)
+
+			if context.images.paths: # ----------------------------------------------------
 				df.append()
+				df.append(r'# context.images', end='\n\n')
+				df.add_value(r'IMAGE_PATH', context.images.paths)
+
+			if context.tagfiles: # ----------------------------------------------------
+				df.append()
+				df.append(r'# context.tagfiles', end='\n\n')
+				df.add_value(r'TAGFILES', [rf'{k if isinstance(v, str) else v[0]}={v if isinstance(v, str) else v[1]}' for k,v in context.tagfiles.items()])
+
+			if context.aliases: # ----------------------------------------------------
+				df.append()
+				df.append(r'# context.aliases', end='\n\n')
 				df.add_value(r'ALIASES', [rf'{k}={v}' for k,v in context.aliases.items()])
 
-			if context.defines:
+			if context.defines: # ----------------------------------------------------
 				df.append()
+				df.append(r'# context.defines', end='\n\n')
 				df.add_value(r'PREDEFINED', [rf'{k}={v}' for k,v in context.defines.items()])
 
 		# apply m.css stuff
 		if 1:
 			df.append()
+			df.append(r'# m.css', end='\n\n')
+
 			df.append(r'##!')
-			df.append(rf'##! M_SHOW_UNDOCUMENTED        = {"YES" if context.extract_all else "NO"}')
+			df.append(rf'##! M_SHOW_UNDOCUMENTED        = {"YES" if context.sources.extract_all else "NO"}')
+			df.append(r'##!')
+			df.append(rf'##! M_FAVICON                  = "{context.favicon if context.favicon is not None else ""}"')
 			df.append(r'##!')
 			if not df.contains(r'M_CLASS_TREE_EXPAND_LEVELS'):
 				df.append(r'##! M_CLASS_TREE_EXPAND_LEVELS = 3')
@@ -259,9 +294,6 @@ def _preprocess_doxyfile(context):
 				df.append(r'##!')
 			if not df.contains(r'M_SEARCH_DISABLED'):
 				df.append(r'##! M_SEARCH_DISABLED          = NO')
-				df.append(r'##!')
-			if not df.contains(r'M_FAVICON'):
-				df.append(rf'##! M_FAVICON                  = "{context.favicon if context.favicon is not None else ""}"')
 				df.append(r'##!')
 			if not df.contains(r'M_LINKS_NAVBAR1') and not df.contains(r'M_LINKS_NAVBAR2'):
 				if context.navbar:
@@ -297,6 +329,8 @@ def _preprocess_doxyfile(context):
 				if context.github:
 					top_row.append(rf'<a href="https://github.com/{context.github}/">Github</a>')
 					top_row.append(rf'<a href="https://github.com/{context.github}/issues">Report an issue</a>')
+				if context.license and context.license[r'uri']:
+					top_row.append(rf'<a href="{context.license["uri"]}" target="_blank">License</a>')
 				if context.generate_tagfile:
 					top_row.append(rf'<a href="{context.tagfile_path.name}" target="_blank" type="text/xml" download>Doxygen tagfile</a>')
 				if top_row:
@@ -310,15 +344,13 @@ def _preprocess_doxyfile(context):
 				df.append(r'##!')
 
 		# move to a temp file path
-		if context.temp_file_name:
-			df.path = coerce_path(context.output_dir, context.temp_file_name)
-		else:
-			df.path = coerce_path(context.output_dir, df.path.name + rf'.{df.hash()}.temp')
-		context.doxyfile_path = df.path
-		context.verbose_value(r'Context.doxyfile_path', context.doxyfile_path)
+		df.path = coerce_path(tempfile.gettempdir(), rf'poxy.{df.hash()}.Doxyfile')
+		context.temp_doxyfile_path = df.path
+		context.verbose_value(r'Context.temp_doxyfile_path', context.temp_doxyfile_path)
 
 		# debug dump final doxyfile
-		df.cleanup()
+		if not context.is_verbose() or 1:
+			df.cleanup()
 		if context.dry_run:
 			context.info(r'#====================================================================================')
 			context.info(r'# poxy-generated Doxyfile')
@@ -405,7 +437,7 @@ def _postprocess_xml(context):
 							deleted = True
 
 			extracted_implementation = False
-			tentative_macros = regex_or(context.highlighting.macros)
+			tentative_macros = regex_or(context.code_blocks.macros)
 			macros = set()
 			cpp_tree = CppTree()
 			xml_files = get_all_files(context.xml_dir, any=(r'*.xml'))
@@ -607,11 +639,11 @@ def _postprocess_xml(context):
 					write_xml_to_file(xml, xml_file)
 
 			# add to syntax highlighter
-			context.highlighting.namespaces.add(cpp_tree.matcher(CppTree.NAMESPACES))
-			context.highlighting.types.add(cpp_tree.matcher(CppTree.TYPES))
-			context.highlighting.enums.add(cpp_tree.matcher(CppTree.ENUM_VALUES))
+			context.code_blocks.namespaces.add(cpp_tree.matcher(CppTree.NAMESPACES))
+			context.code_blocks.types.add(cpp_tree.matcher(CppTree.TYPES))
+			context.code_blocks.enums.add(cpp_tree.matcher(CppTree.ENUM_VALUES))
 			for macro in macros:
-				context.highlighting.macros.add(macro)
+				context.code_blocks.macros.add(macro)
 
 			# merge extracted implementations
 			if extracted_implementation:
@@ -767,7 +799,96 @@ def _postprocess_html(context):
 # RUN
 #=======================================================================================================================
 
-def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False, mcss_dir=None, temp_file_name=None, logger=None, dry_run=False):
+def _read_output_streams(stdout, stderr):
+	stdout.seek(0)
+	stderr.seek(0)
+	return {
+		r'stdout' : stdout.read().strip(),
+		r'stderr' : stderr.read().strip()
+	}
+
+
+
+def _dump_output_streams(context, outputs, source=''):
+	if source:
+		source = rf'{source} '
+	if outputs[r'stdout']:
+		context.info(rf'{source}stdout:')
+		context.info(outputs[r'stdout'], indent=r'    ')
+	if outputs[r'stderr']:
+		context.info(rf'{source}stderr:')
+		context.info(outputs[r'stderr'], indent=r'    ')
+
+
+_warnings_regexes = (
+	# doxygen
+	re.compile(r'^(?P<file>.+?):(?P<line>[0-9]+): warning:\s*(?P<text>.+?)\s*$', re.I),
+	# m.css
+	re.compile(r'^WARNING:root:(?P<file>.+[.]xml):\s*(?P<text>.+?)\s*$', re.I),
+	re.compile(r'^WARNING:root:\s*(?P<text>.+?)\s*$', re.I),
+	# catch-all
+	re.compile(r'^(?:Warning|Error):\s*(?P<text>.+?)\s*$', re.I)
+)
+_warnings_trim_suffixes = (
+	r'Skipping it...',
+)
+_warnings_substitutions = (
+	(r'does not exist or is not a file', r'did not exist or was not a file'),
+)
+_warnings_ignored = (
+	r'inline code has multiple lines, fallback to a code block',
+	r'libgs not found'
+)
+def _extract_warnings(outputs):
+	if not outputs:
+		return []
+
+	global _warnings_regexes
+	global _warnings_ignored
+	global _warnings_trim_suffixes
+	global _warnings_substitutions
+
+	warnings = []
+	for k, v in outputs.items():
+		if not v:
+			continue
+		output = v.split('\n')
+		for o in output:
+			for regex in _warnings_regexes:
+				m = regex.fullmatch(o)
+				if m:
+					text = m[r'text'].strip()
+					for suffix in _warnings_trim_suffixes:
+						if text.endswith(suffix):
+							text = text[:-len(suffix)].strip()
+							break
+					for old, new in _warnings_substitutions:
+						text = text.replace(old, new)
+					if not text or text in _warnings_ignored:
+						break
+					groups = m.groupdict()
+					if r'file' in groups:
+						if r'line' in groups:
+							warnings.append(rf"{m[r'file']}:{m[r'line']}: {text}")
+						else:
+							warnings.append(rf"{m[r'file']}: {text}")
+					else:
+						warnings.append(text)
+					break
+	return warnings
+
+
+def run(config_path='.',
+		output_dir='.',
+		threads=-1,
+		cleanup=True,
+		verbose=False,
+		mcss_dir=None,
+		doxygen_path=None,
+		logger=None,
+		dry_run=False,
+		treat_warnings_as_errors=None
+	):
 
 	context = project.Context(
 		config_path = config_path,
@@ -776,9 +897,10 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 		cleanup = cleanup,
 		verbose = verbose,
 		mcss_dir = mcss_dir,
-		temp_file_name = temp_file_name,
+		doxygen_path = doxygen_path,
 		logger = logger,
-		dry_run = dry_run
+		dry_run = dry_run,
+		treat_warnings_as_errors = treat_warnings_as_errors
 	)
 
 	with ScopeTimer(r'All tasks', print_start=False, print_end=context.verbose if dry_run else context.info) as all_tasks_timer:
@@ -796,26 +918,53 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 					delete_directory(context.xml_dir, logger=context.verbose_logger)
 					delete_directory(context.html_dir, logger=context.verbose_logger)
 
+				# resolve any uri tagfiles
+				if context.unresolved_tagfiles:
+					with ScopeTimer(r'Resolving remote tagfiles', print_start=True, print_end=context.verbose_logger) as t:
+						for source, v in context.tagfiles.items():
+							if isinstance(v, str):
+								continue
+							file = Path(v[0])
+							if file.exists():
+								continue
+							context.verbose(rf'Downloading {source} => {file}')
+							response = requests.get(
+								source,
+								allow_redirects=True,
+								stream=False,
+								timeout=30
+							)
+							with open(file, 'w', encoding='utf-8', newline='\n') as f:
+								f.write(response.text)
+
+				make_temp_file = lambda: tempfile.SpooledTemporaryFile(mode='w+', newline='\n', encoding='utf-8')
+
 				# run doxygen to generate the xml
 				if 1:
 					with ScopeTimer(r'Generating XML files with Doxygen', print_start=True, print_end=context.verbose_logger) as t:
-						with tempfile.SpooledTemporaryFile(mode='w+', newline='\n', encoding='utf-8') as file:
+						with make_temp_file() as stdout, make_temp_file() as stderr:
 							try:
 								subprocess.run(
-									['doxygen', str(context.doxyfile_path)],
+									[str(context.doxygen_path), str(context.temp_doxyfile_path)],
 									check=True,
-									stdout=file,
-									stderr=file,
+									stdout=stdout,
+									stderr=stderr,
 									cwd=context.input_dir
 								)
 							except:
-								context.warning(r'Doxygen failed! Output dump:')
-								file.seek(0)
-								context.info(file.read(), indent=r'    ')
+								context.info(r'Doxygen failed!')
+								_dump_output_streams(context, _read_output_streams(stdout, stderr), source=r'Doxygen')
 								raise
-							context.verbose(r'Doxygen output dump:')
-							file.seek(0)
-							context.verbose(file.read(), indent=r'    ')
+							if context.is_verbose() or context.warnings.enabled:
+								outputs = _read_output_streams(stdout, stderr)
+								if context.is_verbose():
+									_dump_output_streams(context, outputs, source=r'Doxygen')
+								if context.warnings.enabled:
+									warnings = _extract_warnings(outputs)
+									for w in warnings:
+										if context.warnings.treat_as_errors:
+											raise Exception(rf'{w} (warning treated as error)')
+										context.warning(w)
 
 						# remove the local paths from the tagfile since they're meaningless (and a privacy breach)
 						if context.tagfile_path is not None and context.tagfile_path.exists():
@@ -828,41 +977,47 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 				if 1:
 					_postprocess_xml(context)
 
-				context.verbose_object(r'Context.highlighting', context.highlighting)
+				context.verbose_object(r'Context.code_blocks', context.code_blocks)
 
 				# compile regexes
 				# (done here because doxygen and xml preprocessing adds additional values to these lists)
-				context.highlighting.namespaces = regex_or(context.highlighting.namespaces, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
-				context.highlighting.types = regex_or(context.highlighting.types, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
-				context.highlighting.enums = regex_or(context.highlighting.enums, pattern_prefix='(?:::)?')
-				context.highlighting.string_literals = regex_or(context.highlighting.string_literals)
-				context.highlighting.numeric_literals = regex_or(context.highlighting.numeric_literals)
-				context.highlighting.macros = regex_or(context.highlighting.macros)
+				context.code_blocks.namespaces = regex_or(context.code_blocks.namespaces, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
+				context.code_blocks.types = regex_or(context.code_blocks.types, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
+				context.code_blocks.enums = regex_or(context.code_blocks.enums, pattern_prefix='(?:::)?')
+				context.code_blocks.string_literals = regex_or(context.code_blocks.string_literals)
+				context.code_blocks.numeric_literals = regex_or(context.code_blocks.numeric_literals)
+				context.code_blocks.macros = regex_or(context.code_blocks.macros)
 				context.autolinks = tuple([(re.compile('(?<![a-zA-Z_])' + expr + '(?![a-zA-Z_])'), uri) for expr, uri in context.autolinks])
 
 				# run m.css to generate the html
 				if 1:
 					with ScopeTimer(r'Generating HTML files with m.css', print_start=True, print_end=context.verbose_logger) as t:
-						with tempfile.SpooledTemporaryFile(mode='w+', newline='\n', encoding='utf-8') as file:
-							doxy_args = [str(context.doxyfile_path), r'--no-doxygen', r'--sort-globbed-files']
+						with make_temp_file() as stdout, make_temp_file() as stderr:
+							doxy_args = [str(context.temp_doxyfile_path), r'--no-doxygen', r'--sort-globbed-files']
 							if context.is_verbose():
 								doxy_args.append(r'--debug')
 							try:
 								run_python_script(
 									coerce_path(context.mcss_dir, r'documentation/doxygen.py'),
 									*doxy_args,
-									stdout=file,
-									stderr=file,
+									stdout=stdout,
+									stderr=stderr,
 									cwd=context.input_dir
 								)
 							except:
-								context.warning(r'm.css failed! Output dump:')
-								file.seek(0)
-								context.info(file.read(), indent=r'    ')
+								context.info(r'm.css failed!')
+								_dump_output_streams(context, _read_output_streams(stdout, stderr), source=r'm.css')
 								raise
-							context.verbose(r'm.css output dump:')
-							file.seek(0)
-							context.verbose(file.read(), indent=r'    ')
+							if context.is_verbose() or context.warnings.enabled:
+								outputs = _read_output_streams(stdout, stderr)
+								if context.is_verbose():
+									_dump_output_streams(context, outputs, source=r'm.css')
+								if context.warnings.enabled:
+									warnings = _extract_warnings(outputs)
+									for w in warnings:
+										if context.warnings.treat_as_errors:
+											raise Exception(rf'{w} (warning treated as error)')
+										context.warning(w)
 
 				# copy extra_files
 				with ScopeTimer(r'Copying extra_files', print_start=True, print_end=context.verbose_logger) as t:
@@ -886,8 +1041,8 @@ def run(config_path='.', output_dir='.', threads=-1, cleanup=True, verbose=False
 
 		# delete the temp doxyfile
 		finally:
-			if context.cleanup:
-				delete_file(context.doxyfile_path, logger=context.verbose_logger)
+			if context.temp_doxyfile_path is not None:
+				delete_file(context.temp_doxyfile_path, logger=context.verbose_logger)
 
 
 
@@ -903,7 +1058,7 @@ def main():
 			type=Path,
 			nargs='?',
 			default=Path('.'),
-			help=r'a path to a Doxyfile, poxy.toml, or a directory containing one/both (default: %(default)s/)'
+			help=r'a path to a poxy.toml, Doxyfile.mcss, Doxyfile, or a directory containing one/any/all (default: %(default)s/)'
 		)
 		args.add_argument(
 			 r'-v', r'--verbose',
@@ -920,18 +1075,29 @@ def main():
 			type=int,
 			default=0,
 			metavar=r'<N>',
-			help=r"sets the number of threads used (default: automatic)"
+			help=r"sets the number of threads to use (default: automatic)"
 		)
 		args.add_argument(
 			r'--m.css',
 			type=Path,
 			default=None,
 			metavar=r'<path>',
-			help=r"overrides the version of m.css used for documentation generation",
+			help=r"specifies the version of m.css to use (default: uses the bundled one)",
 			dest=r'mcss'
 		)
+		args.add_argument(
+			r'--doxygen',
+			type=Path,
+			default=None,
+			metavar=r'<path>',
+			help=r"specifies the Doxygen executable to use (default: finds Doxygen on system path)",
+		)
+		args.add_argument(
+			r'--werror',
+			action=r'store_true',
+			help=r"always treats warnings as errors regardless of config file settings"
+		)
 		args.add_argument(r'--nocleanup', action=r'store_true', help=argparse.SUPPRESS)
-		args.add_argument(r'--temp_file_name', type=str, default=None, metavar=r'<file name>', help=argparse.SUPPRESS)
 		args = args.parse_args()
 		verbose = args.verbose
 		result = run(
@@ -941,9 +1107,10 @@ def main():
 			cleanup = not args.nocleanup,
 			verbose = verbose,
 			mcss_dir = args.mcss,
-			temp_file_name = args.temp_file_name,
+			doxygen_path = args.doxygen,
 			logger=True, # stderr + stdout
-			dry_run=args.dry
+			dry_run=args.dry,
+			treat_warnings_as_errors=True if args.werror else None
 		)
 		if result is None or bool(result):
 			sys.exit(0)
