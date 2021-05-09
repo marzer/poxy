@@ -74,6 +74,20 @@ def enum_subdirs(root):
 
 
 
+def combine_dicts(x, y):
+	z = x.copy()
+	z.update(y)
+	return z
+
+
+
+_is_uri_regex = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]*://.+$')
+def is_uri(s):
+	global _is_uri_regex
+	return _is_uri_regex.fullmatch(str(s)) is not None
+
+
+
 #=======================================================================================================================
 # REGEX REPLACER
 #=======================================================================================================================

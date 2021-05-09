@@ -76,9 +76,11 @@ def _format_for_doxyfile(val):
 
 class Doxyfile(object):
 
-	def __init__(self, doxyfile_path, cwd=None, logger=None):
+	def __init__(self, doxyfile_path, cwd=None, logger=None, doxygen_path=None, flush_at_exit=True):
 		self.__logger=logger
 		self.__dirty=True
+		self.__text = ''
+		self.__autoflush=bool(flush_at_exit)
 
 		# the path of the actual doxyfile
 		self.path = coerce_path(doxyfile_path).resolve()
@@ -87,7 +89,8 @@ class Doxyfile(object):
 		self.__cwd = Path.cwd() if cwd is None else coerce_path(cwd).resolve()
 		assert_existing_directory(self.__cwd)
 
-		self.__text = ''
+		# doxygen itself
+		self.__doxygen = r'doxygen' if doxygen_path is None else coerce_path(doxygen_path)
 
 		# read in doxyfile
 		if self.path.exists():
@@ -100,7 +103,7 @@ class Doxyfile(object):
 		else:
 			log(self.__logger, rf'Warning: doxyfile {self.path} not found! A default one will be generated in-memory.', level=logging.WARNING)
 			result = subprocess.run(
-				r'doxygen -s -g -'.split(),
+				[str(self.__doxygen), r'-s', r'-g', r'-'],
 				check=True,
 				capture_output=True,
 				cwd=self.__cwd,
@@ -118,11 +121,11 @@ class Doxyfile(object):
 		if 1:
 			log(self.__logger, rf'Invoking doxygen to clean doxyfile')
 			result = subprocess.run(
-				r'doxygen -s -u -'.split(),
+				[str(self.__doxygen), r'-s', r'-u', r'-'],
 				check=True,
 				capture_output=True,
 				cwd=self.__cwd,
-				encoding='utf-8',
+				encoding=r'utf-8',
 				input=self.__text
 			)
 			self.__text = result.stdout.strip()
@@ -204,5 +207,5 @@ class Doxyfile(object):
 		return self
 
 	def __exit__(self, type, value, traceback):
-		if traceback is None:
+		if traceback is None and self.__autoflush:
 			self.flush()

@@ -15,7 +15,51 @@ import pytomlpp
 import threading
 import json
 import datetime
+import shutil
+import tempfile
 from schema import Schema, Or, And, Optional
+
+
+
+#=======================================================================================================================
+# schemas
+#=======================================================================================================================
+
+_py2toml = {
+	str : r'string',
+	list : r'array',
+	dict : r'table',
+	int : r'integer',
+	float : r'float',
+	bool : r'boolean',
+	datetime.date : r'date',
+	datetime.time : r'time',
+	datetime.datetime : r'date-time'
+}
+
+
+
+def FixedArrayOf(typ, length, name=''):
+	global _py2toml
+	return And(
+		[typ],
+		lambda v: len(v) == length,
+		error=rf'{name + ": " if name else ""}expected array of {length} {_py2toml[typ]}{"s" if length != 1 else ""}'
+	)
+
+
+
+def ValueOrArray(typ, name='', length=None):
+	global _py2toml
+	if length is None:
+		return Or(typ, [typ], error=rf'{name + ": " if name else ""}expected {_py2toml[typ]} or array of {_py2toml[typ]}s')
+	else:
+		err = rf'{name + ": " if name else ""}expected {_py2toml[typ]} or array of {length} {_py2toml[typ]}{"s" if length != 1 else ""}'
+		return And(
+			Or(typ, [typ], error=err),
+			lambda v: not isinstance(v, list) or len(v) == length,
+			error=err
+		)
 
 
 
@@ -610,6 +654,12 @@ def _assert_no_unexpected_keys(raw, validated, prefix=''):
 
 
 class _Warnings(object):
+	schema = {
+		Optional(r'enabled') 			: bool,
+		Optional(r'treat_as_errors')	: bool,
+		Optional(r'undocumented')		: bool,
+	}
+
 	def __init__(self, config):
 		self.enabled = None
 		self.treat_as_errors = None
@@ -617,21 +667,29 @@ class _Warnings(object):
 
 		if 'warnings' not in config:
 			return
-		vals = config['warnings']
+		config = config['warnings']
 
-		if 'enabled' in vals:
-			self.enabled = bool(vals['enabled'])
+		if 'enabled' in config:
+			self.enabled = bool(config['enabled'])
 
-		if 'treat_as_errors' in vals:
-			self.treat_as_errors = bool(vals['treat_as_errors'])
+		if 'treat_as_errors' in config:
+			self.treat_as_errors = bool(config['treat_as_errors'])
 
-		if 'undocumented' in vals:
-			self.undocumented = bool(vals['undocumented'])
-
-
+		if 'undocumented' in config:
+			self.undocumented = bool(config['undocumented'])
 
 
-class _Highlighting(object):
+
+class _CodeBlocks(object):
+	schema = {
+		Optional(r'types') 				: ValueOrArray(str, name=r'types'),
+		Optional(r'macros') 			: ValueOrArray(str, name=r'macros'),
+		Optional(r'string_literals')	: ValueOrArray(str, name=r'string_literals'),
+		Optional(r'numeric_literals')	: ValueOrArray(str, name=r'numeric_literals'),
+		Optional(r'enums')				: ValueOrArray(str, name=r'enums'),
+		Optional(r'namespaces')			: ValueOrArray(str, name=r'namespaces'),
+	}
+
 	def __init__(self, config, defines):
 		self.types = copy.deepcopy(_Defaults.types)
 		self.macros = copy.deepcopy(_Defaults.macros)
@@ -640,41 +698,41 @@ class _Highlighting(object):
 		self.enums = copy.deepcopy(_Defaults.enums)
 		self.namespaces = copy.deepcopy(_Defaults.namespaces)
 
-		if 'highlighting' in config:
-			vals = config['highlighting']
+		if 'code' in config:
+			config = config['code']
 
-			if 'types' in vals:
-				for t in coerce_collection(vals['types']):
+			if 'types' in config:
+				for t in coerce_collection(config['types']):
 					type_ = t.strip()
 					if type_:
 						self.types.add(type_)
 
-			if 'macros' in vals:
-				for m in coerce_collection(vals['macros']):
+			if 'macros' in config:
+				for m in coerce_collection(config['macros']):
 					macro = m.strip()
 					if macro:
 						self.macros.add(macro)
 
-			if 'string_literals' in vals:
-				for lit in coerce_collection(vals['string_literals']):
+			if 'string_literals' in config:
+				for lit in coerce_collection(config['string_literals']):
 					literal = lit.strip()
 					if literal:
 						self.string_literals.add(literal)
 
-			if 'numeric_literals' in vals:
-				for lit in coerce_collection(vals['numeric_literals']):
+			if 'numeric_literals' in config:
+				for lit in coerce_collection(config['numeric_literals']):
 					literal = lit.strip()
 					if literal:
 						self.numeric_literals.add(literal)
 
-			if 'enums' in vals:
-				for e in coerce_collection(vals['enums']):
+			if 'enums' in config:
+				for e in coerce_collection(config['enums']):
 					enum = e.strip()
 					if enum:
 						self.enums.add(enum)
 
-			if 'namespaces' in vals:
-				for ns in coerce_collection(vals['namespaces']):
+			if 'namespaces' in config:
+				for ns in coerce_collection(config['namespaces']):
 					namespace = ns.strip()
 					if namespace:
 						self.namespaces.add(namespace)
@@ -689,45 +747,102 @@ class _Highlighting(object):
 
 
 
-#=======================================================================================================================
-# schemas
-#=======================================================================================================================
+class _Inputs(object):
+	schema = {
+		Optional(r'paths')				: ValueOrArray(str, name=r'paths'),
+		Optional(r'recursive_paths')	: ValueOrArray(str, name=r'recursive_paths'),
+	}
 
-_py2toml = {
-	str : r'string',
-	list : r'array',
-	dict : r'table',
-	int : r'integer',
-	float : r'float',
-	bool : r'boolean',
-	datetime.date : r'date',
-	datetime.time : r'time',
-	datetime.datetime : r'date-time'
-}
+	def __init__(self, config, key, input_dir):
+		self.paths = []
+
+		if key not in config:
+			return
+		config = config[key]
+
+		paths = set()
+		for recursive in (False, True):
+			key = r'recursive_paths' if recursive else r'paths'
+			if key in config:
+				for v in coerce_collection(config[key]):
+					path = v.strip()
+					if not path:
+						continue
+					path = Path(path)
+					if not path.is_absolute():
+						path = Path(input_dir, path)
+					path = path.resolve()
+					if not path.exists():
+						raise Exception(rf"{key}: '{path}' does not exist")
+					if not (path.is_file() or path.is_dir()):
+						raise Exception(rf"{key}: '{path}' was not a directory or file")
+					paths.add(str(path))
+					if recursive and path.is_dir():
+						for subdir in enum_subdirs(path):
+							paths.add(str(subdir))
+		self.paths = list(paths)
+		self.paths.sort()
 
 
 
-def FixedArrayOf(typ, length, name=''):
-	global _py2toml
-	return And(
-		[typ],
-		lambda v: len(v) == length,
-		error=rf'{name + ": " if name else ""}expected array of {length} {_py2toml[typ]}{"s" if length != 1 else ""}'
-	)
+class _FilteredInputs(_Inputs):
+	schema = combine_dicts(_Inputs.schema, {
+		Optional(r'patterns')			: ValueOrArray(str, name=r'patterns')
+	})
+
+	def __init__(self, config, key, input_dir):
+		super().__init__(config, key, input_dir)
+		self.patterns = None
+
+		if key not in config:
+			return
+		config = config[key]
+
+		if r'patterns' in config:
+			self.patterns = set()
+			for v in coerce_collection(config[r'patterns']):
+				val = v.strip()
+				if val:
+					self.patterns.add(val)
 
 
 
-def ValueOrArray(typ, name='', length=None):
-	global _py2toml
-	if length is None:
-		return Or(typ, [typ], error=rf'{name + ": " if name else ""}expected {_py2toml[typ]} or array of {_py2toml[typ]}s')
-	else:
-		err = rf'{name + ": " if name else ""}expected {_py2toml[typ]} or array of {length} {_py2toml[typ]}{"s" if length != 1 else ""}'
-		return And(
-			Or(typ, [typ], error=err),
-			lambda v: not isinstance(v, list) or len(v) == length,
-			error=err
-		)
+class _Sources(_FilteredInputs):
+	schema = combine_dicts(_FilteredInputs.schema, {
+		Optional(r'strip_paths')		: ValueOrArray(str, name=r'strip_paths'),
+		Optional(r'strip_includes')		: ValueOrArray(str, name=r'strip_includes'),
+		Optional(r'extract_all')		: bool,
+	})
+
+	def __init__(self, config, key, input_dir):
+		super().__init__(config, key, input_dir)
+
+		self.strip_paths = []
+		self.strip_includes = []
+		self.extract_all = None
+		if self.patterns is None:
+			self.patterns = copy.deepcopy(_Defaults.source_patterns)
+
+		if key not in config:
+			return
+		config = config[key]
+
+		if r'strip_paths' in config:
+			for s in coerce_collection(config[r'strip_paths']):
+				path = s.strip()
+				if path:
+					self.strip_paths.append(path)
+
+		if r'strip_includes' in config:
+			for s in coerce_collection(config[r'strip_includes']):
+				path = s.strip().replace('\\', '/')
+				if path:
+					self.strip_includes.append(path)
+			self.strip_includes.sort(key = lambda v: len(v), reverse=True)
+
+		if r'extract_all' in config:
+			self.extract_all = bool(config['extract_all'])
+
 
 
 
@@ -743,48 +858,32 @@ class Context(object):
 	__data_files_lock = threading.Lock()
 	__config_schema = Schema(
 		{
-			Optional(r'name')					: str,
+			Optional(r'aliases')				: {str : str},
+			Optional(r'autolinks')				: {str : str},
+			Optional(r'badges')					: {str : FixedArrayOf(str, 2, name=r'badges') },
+			Optional(r'code_blocks')			: _CodeBlocks.schema,
+			Optional(r'cpp')					: Or(str, int, error=r'cpp: expected string or integer'),
+			Optional(r'defines')				: {str : Or(str, int, bool)},
 			Optional(r'description')			: str,
-			Optional(r'github')					: str,
-			Optional(r'logo')					: str,
+			Optional(r'examples')				: _FilteredInputs.schema,
+			Optional(r'extra_files')			: ValueOrArray(str, name=r'extra_files'),
 			Optional(r'favicon')				: str,
+			Optional(r'generate_tagfile')		: bool,
+			Optional(r'github')					: str,
+			Optional(r'images')					: _Inputs.schema,
+			Optional(r'implementation_headers') : {str : ValueOrArray(str)},
+			Optional(r'inline_namespaces')		: ValueOrArray(str, name=r'inline_namespaces'),
+			Optional(r'internal_docs')			: bool,
+			Optional(r'license')				: ValueOrArray(str, length=2, name=r'license'),
+			Optional(r'logo')					: str,
+			Optional(r'meta_tags')				: {str : Or(str, int)},
+			Optional(r'name')					: str,
+			Optional(r'navbar')					: ValueOrArray(str, name=r'navbar'),
 			Optional(r'private_repo')			: bool,
 			Optional(r'show_includes')			: bool,
-			Optional(r'generate_tagfile')		: bool,
-			Optional(r'internal_docs')			: bool,
-			Optional(r'extract_all')			: bool,
-			Optional(r'cpp')					: Or(str, int, error=r'cpp: expected string or integer'),
-			Optional(r'license')				: ValueOrArray(str, length=2, name=r'license'),
-			Optional(r'badges')					: {str : FixedArrayOf(str, 2, name=r'badges') },
-			Optional(r'navbar')					: ValueOrArray(str, name=r'navbar'),
-			Optional(r'inline_namespaces')		: ValueOrArray(str, name=r'inline_namespaces'),
-			Optional(r'extra_files')			: ValueOrArray(str, name=r'extra_files'),
-			Optional(r'strip_paths')			: ValueOrArray(str, name=r'strip_paths'),
-			Optional(r'strip_includes')			: ValueOrArray(str, name=r'strip_includes'),
-			Optional(r'sources')				: ValueOrArray(str, name=r'sources'),
-			Optional(r'recursive_sources')		: ValueOrArray(str, name=r'recursive_sources'),
-			Optional(r'source_patterns')		: ValueOrArray(str, name=r'source_patterns'),
-			Optional(r'meta_tags')				: {str : Or(str, int)},
+			Optional(r'sources')				: _Sources.schema,
 			Optional(r'tagfiles')				: {str : str},
-			Optional(r'defines')				: {str : Or(str, int, bool)},
-			Optional(r'autolinks')				: {str : str},
-			Optional(r'aliases')				: {str : str},
-			Optional(r'implementation_headers') : {str : ValueOrArray(str)},
-			Optional(r'warnings')				:
-			{
-				Optional(r'enabled') 			: bool,
-				Optional(r'treat_as_errors')	: bool,
-				Optional(r'undocumented')		: bool,
-			},
-			Optional(r'highlighting')			:
-			{
-				Optional(r'types') 				: ValueOrArray(str, name=r'types'),
-				Optional(r'macros') 			: ValueOrArray(str, name=r'macros'),
-				Optional(r'string_literals')	: ValueOrArray(str, name=r'string_literals'),
-				Optional(r'numeric_literals')	: ValueOrArray(str, name=r'numeric_literals'),
-				Optional(r'enums')				: ValueOrArray(str, name=r'enums'),
-				Optional(r'namespaces')			: ValueOrArray(str, name=r'namespaces'),
-			},
+			Optional(r'warnings')				: _Warnings.schema,
 		},
 		ignore_extra_keys=True
 	)
@@ -816,8 +915,11 @@ class Context(object):
 	def info(self, msg, indent=None):
 		self.__log(logging.INFO, msg, indent=indent)
 
-	def warning(self, msg, indent=None):
-		self.__log(logging.WARNING, rf'Warning: {msg}', indent=indent)
+	def warning(self, msg, indent=None, prefix=r'Warning: '):
+		if prefix:
+			self.__log(logging.WARNING, rf'{prefix}{msg}', indent=indent)
+		else:
+			self.__log(logging.WARNING, msg, indent=indent)
 
 	def verbose_value(self, name, val):
 		if not self.__verbose:
@@ -889,7 +991,7 @@ class Context(object):
 		finally:
 			cls.__data_files_lock.release()
 
-	def __init__(self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, temp_file_name, logger, dry_run):
+	def __init__(self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, doxygen_path, logger, dry_run, treat_warnings_as_errors):
 
 		self.logger = logger
 		self.__verbose = bool(verbose)
@@ -898,9 +1000,6 @@ class Context(object):
 
 		self.cleanup = bool(cleanup)
 		self.verbose_value(r'Context.cleanup', self.cleanup)
-
-		self.temp_file_name = str(temp_file_name).strip() if temp_file_name is not None else None
-		self.verbose_value(r'Context.temp_file_name', self.temp_file_name)
 
 		threads = int(threads)
 		if threads <= 0:
@@ -912,6 +1011,8 @@ class Context(object):
 		self.tagfile_path = None
 		self.warnings = None
 
+		now = datetime.datetime.utcnow()
+
 		# resolve paths
 		if 1:
 
@@ -922,9 +1023,7 @@ class Context(object):
 			self.verbose_value(r'Context.data_dir', self.data_dir)
 			if output_dir is None:
 				output_dir = Path.cwd()
-			if not isinstance(output_dir, Path):
-				output_dir = Path(str(output_dir))
-			self.output_dir = output_dir.resolve()
+			self.output_dir = coerce_path(output_dir).resolve()
 			self.verbose_value(r'Context.output_dir', self.output_dir)
 			assert self.output_dir.is_absolute()
 
@@ -932,11 +1031,11 @@ class Context(object):
 			input_dir = None
 			self.config_path = None
 			self.doxyfile_path = None
+			self.temp_doxyfile_path = None
 			if config_path is None:
 				config_path = self.output_dir
 			else:
-				if not isinstance(config_path, Path):
-					config_path = Path(str(config_path))
+				config_path = coerce_path(config_path)
 				if not config_path.is_absolute():
 					config_path = Path(self.output_dir, config_path)
 				config_path = config_path.resolve()
@@ -986,12 +1085,32 @@ class Context(object):
 			self.verbose_value(r'Context.xml_dir', self.xml_dir)
 			self.verbose_value(r'Context.html_dir', self.html_dir)
 
+			# doxygen
+			if doxygen_path is not None:
+				doxygen_path = coerce_path(doxygen_path).resolve()
+				if not doxygen_path.exists() and Path(str(doxygen_path) + r'.exe').exists():
+					doxygen_path = Path(str(doxygen_path) + r'.exe')
+				if doxygen_path.is_dir():
+					p = Path(doxygen_path, 'doxygen.exe')
+					if not p.exists() or not p.is_file() or not os.access(str(p), os.X_OK):
+						p = Path(doxygen_path, 'doxygen')
+					if not p.exists() or not p.is_file() or not os.access(str(p), os.X_OK):
+						raise Exception(rf'Could not find Doxygen executable in {doxygen_path}')
+					doxygen_path = p
+				assert_existing_file(doxygen_path)
+				self.doxygen_path = doxygen_path
+			else:
+				self.doxygen_path = shutil.which(r'doxygen')
+				if self.doxygen_path is None:
+					raise Exception(rf'Could not find Doxygen on system path')
+			if not os.access(str(self.doxygen_path), os.X_OK):
+				raise Exception(rf'{doxygen_path} was not an executable file')
+			self.verbose_value(r'Context.doxygen_path', self.doxygen_path)
+
 			# m.css
 			if mcss_dir is None:
 				mcss_dir = Path(self.data_dir, r'mcss')
-			if not isinstance(mcss_dir, Path):
-				mcss_dir = Path(str(mcss_dir))
-			mcss_dir = mcss_dir.resolve()
+			mcss_dir = coerce_path(mcss_dir).resolve()
 			assert_existing_directory(mcss_dir)
 			assert_existing_file(Path(mcss_dir, 'documentation/doxygen.py'))
 			self.mcss_dir = mcss_dir
@@ -1009,6 +1128,8 @@ class Context(object):
 			config = _assert_no_unexpected_keys(config, self.__config_schema.validate(config))
 
 			self.warnings = _Warnings(config) # printed in run.py post-doxyfile
+			if treat_warnings_as_errors:
+				self.warnings.treat_as_errors = True
 
 			# project name (PROJECT_NAME)
 			self.name = ''
@@ -1061,7 +1182,7 @@ class Context(object):
 
 			# project C++ version
 			# defaults to 'current' cpp year version based on (current year - 2)
-			self.cpp = max(int(datetime.datetime.now().year) - 2, 2011)
+			self.cpp = max(int(now.year) - 2, 2011)
 			self.cpp = self.cpp - ((self.cpp - 2011) % 3)
 			if 'cpp' in config:
 				self.cpp = str(config['cpp']).lstrip('0 \t').rstrip()
@@ -1093,41 +1214,41 @@ class Context(object):
 						self.logo = file.resolve()
 			self.verbose_value(r'Context.logo', self.logo)
 
-			# sources + recursive_sources (INPUT)
-			self.sources = set()
-			for recursive in (False, True):
-				key = r'recursive_sources' if recursive else r'sources'
-				if key in config:
-					for v in coerce_collection(config[key]):
-						path = v.strip()
-						if not path:
-							continue
-						path = Path(path)
-						if not path.is_absolute():
-							path = Path(self.input_dir, path)
-						path = path.resolve()
-						if not path.exists():
-							raise Exception(rf"{key}: '{path}' does not exist")
-						if not (path.is_file() or path.is_dir()):
-							raise Exception(rf"{key}: '{path}' was not a directory or file")
-						self.sources.add(str(path))
-						if recursive and path.is_dir():
-							for subdir in enum_subdirs(path):
-								self.sources.add(str(subdir))
-			self.sources = list(self.sources)
-			self.sources.sort()
-			self.verbose_value(r'Context.sources', self.sources)
+			# sources (INPUT, FILE_PATTERNS, STRIP_FROM_PATH, STRIP_FROM_INC_PATH, EXTRACT_ALL)
+			self.sources = _Sources(config, 'sources', self.input_dir)
+			self.verbose_object(r'Context.sources', self.sources)
 
-			# sources (FILE_PATTERNS)
-			if 'source_patterns' in config:
-				self.source_patterns = set()
-				for v in coerce_collection(config['source_patterns']):
-					val = v.strip()
-					if val:
-						self.source_patterns.add(val)
-			else:
-				self.source_patterns = copy.deepcopy(_Defaults.source_patterns)
-			self.verbose_value(r'Context.source_patterns', self.source_patterns)
+			# images (IMAGE_PATH)
+			self.images = _Inputs(config, 'images', self.input_dir)
+			self.verbose_object(r'Context.images', self.images)
+
+			# examples (EXAMPLES_PATH, EXAMPLE_PATTERNS)
+			self.examples = _FilteredInputs(config, 'examples', self.input_dir)
+			self.verbose_object(r'Context.examples', self.examples)
+
+			# tagfiles (TAGFILES)
+			self.tagfiles = {
+				str(coerce_path(self.data_dir, r'cppreference-doxygen-web.tag.xml')) : r'http://en.cppreference.com/w/'
+			}
+			self.unresolved_tagfiles = False
+			for k,v in _extract_kvps(config, 'tagfiles').items():
+				source = str(k)
+				dest = str(v)
+				if source and dest:
+					if is_uri(source):
+						file = str(Path(tempfile.gettempdir(), rf'poxy.tagfile.{sha1(source)}.{now.year}-{now.isocalendar().week}.xml'))
+						self.tagfiles[source] = (file, dest)
+						self.unresolved_tagfiles = True
+					else:
+						source = Path(source)
+						if not source.is_absolute():
+							source = Path(self.input_dir, source)
+						source = str(source.resolve())
+						self.tagfiles[source] = dest
+			for k, v in self.tagfiles.items():
+				if isinstance(v, str):
+					assert_existing_file(k)
+			self.verbose_value(r'Context.tagfiles', self.tagfiles)
 
 			# m.css navbar
 			if 'navbar' in config:
@@ -1155,15 +1276,6 @@ class Context(object):
 			if self.description and 'description' not in self.meta_tags:
 				self.meta_tags['description'] = self.description
 			self.verbose_value(r'Context.meta_tags', self.meta_tags)
-
-			# tagfiles (TAGFILES)
-			self.tagfiles = {}
-			for k,v in _extract_kvps(config, 'tagfiles').items():
-				self.tagfiles[str(Path(self.input_dir, k).resolve())] = v
-			self.tagfiles[str(Path(self.data_dir, r'cppreference-doxygen-web.tag.xml'))] = r'http://en.cppreference.com/w/'
-			for k, v in self.tagfiles.items():
-				assert_existing_file(k)
-			self.verbose_value(r'Context.tagfiles', self.tagfiles)
 
 			# inline namespaces for old versions of doxygen
 			self.inline_namespaces = copy.deepcopy(_Defaults.inline_namespaces)
@@ -1198,31 +1310,6 @@ class Context(object):
 			if 'internal_docs' in config:
 				self.internal_docs = bool(config['internal_docs'])
 			self.verbose_value(r'Context.internal_docs', self.internal_docs)
-
-			# strip_paths (STRIP_FROM_PATH)
-			self.strip_paths = []
-			if r'strip_paths' in config:
-				for s in coerce_collection(config['strip_paths']):
-					path = s.strip()
-					if path:
-						self.strip_paths.append(path)
-			self.verbose_value(r'Context.strip_paths', self.strip_paths)
-
-			# strip_includes (STRIP_FROM_INC_PATH)
-			self.strip_includes = []
-			if r'strip_includes' in config:
-				for s in coerce_collection(config['strip_includes']):
-					path = s.strip().replace('\\', '/')
-					if path:
-						self.strip_includes.append(path)
-			self.strip_includes.sort(key = lambda v: len(v), reverse=True)
-			self.verbose_value(r'Context.strip_includes', self.strip_includes)
-
-			# extract_all (EXTRACT_ALL)
-			self.extract_all = None
-			if 'extract_all' in config:
-				self.extract_all = bool(config['extract_all'])
-			self.verbose_value(r'Context.extract_all', self.extract_all)
 
 			# generate_tagfile (GENERATE_TAGFILE)
 			self.generate_tagfile = None # not (self.private_repo or self.internal_docs)
@@ -1336,7 +1423,7 @@ class Context(object):
 					raise Exception(rf'extra_files: Multiple source files with the name {f.name}')
 				extra_filenames.add(f.name)
 
-			self.highlighting = _Highlighting(config, non_cpp_def_defines) # printed in run.py post-xml
+			self.code_blocks = _CodeBlocks(config, non_cpp_def_defines) # printed in run.py post-xml
 
 		# initialize other data from files on disk
 		self.__init_data_files(self)

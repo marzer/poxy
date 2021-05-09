@@ -23,8 +23,21 @@ class CustomTags(object):
 	'''
 	Modifies HTML using custom square-bracket [tags].
 	'''
-	__double_tags = re.compile(r"\[\s*(span|div|aside|code|pre|h1|h2|h3|h4|h5|h6|em|strong|b|i|u|li|ul|ol)(.*?)\s*\](.*?)\[\s*/\1\s*\]", re.I | re.S)
-	__single_tags = re.compile(r"\[\s*(/?(?:span|div|aside|code|pre|emoji|(?:parent_)?set_name|(?:parent_)?(?:add|remove|set)_class|br|li|ul|ol|(?:html)?entity))(\s+[^\]]+?)?\s*\]", re.I | re.S)
+	__double_tags = re.compile(
+		r'\[\s*('
+			+ r'span|div|aside|code|pre|h1|h2|h3|h4|h5|h6|em|strong|b|i|u|li|ul|ol'
+			+ r')(.*?)\s*\](.*?)\[\s*/\1\s*\]',
+		re.I | re.S
+	)
+	__single_tags = re.compile(
+		r'\[\s*(/?(?:'
+			+ r'img|span|div|aside|code|pre|emoji'
+			+ r'|(?:parent_)?set_(?:parent_)?(?:name|class)'
+			+ r'|(?:parent_)?(?:add|remove)_(?:parent_)?class'
+			+ r'|br|li|ul|ol|(?:html)?entity)'
+			+ r')(\s+[^\]]+?)?\s*\]',
+		re.I | re.S
+	)
 	__allowed_parents = ('dd', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'aside', 'td')
 
 	@classmethod
@@ -60,7 +73,10 @@ class CustomTags(object):
 				cp = context.emoji[tag_content][0]
 				return f'&#x{cp:X};&#xFE0F;'
 			return ''
-		elif tag_name in ('add_class', 'remove_class', 'set_class', 'parent_add_class', 'parent_remove_class', 'parent_set_class'):
+		elif tag_name in (
+				r'add_class', r'remove_class', r'set_class',
+				r'parent_add_class', r'parent_remove_class', r'parent_set_class',
+				r'add_parent_class', r'remove_parent_class', r'set_parent_class'):
 			classes = []
 			if tag_content:
 				for s in tag_content.split():
@@ -69,7 +85,7 @@ class CustomTags(object):
 			if classes:
 				out.append((tag_name, classes))
 			return ''
-		elif tag_name in ('set_name', 'parent_set_name'):
+		elif tag_name in (r'set_name', r'parent_set_name', r'set_parent_name'):
 			if tag_content:
 				out.append((tag_name, tag_content))
 			return ''
@@ -99,25 +115,25 @@ class CustomTags(object):
 						parent = tag.parent
 						new_tags = soup.replace_tag(tag, str(replacer))
 						for i in range(len(replacer)):
-							if replacer[i][0].startswith('parent_'):
+							if replacer[i][0].find(r'parent_') != -1:
 								if parent is None:
 									continue
-								if replacer[i][0] == 'parent_add_class':
+								if replacer[i][0] in (r'parent_add_class', r'add_parent_class'):
 									soup.add_class(parent, replacer[i][1])
-								elif replacer[i][0] == 'parent_remove_class':
+								elif replacer[i][0] in (r'parent_remove_class', r'remove_parent_class'):
 									soup.remove_class(parent, replacer[i][1])
-								elif replacer[i][0] == 'parent_set_class':
+								elif replacer[i][0] in (r'parent_set_class', r'set_parent_class'):
 									soup.set_class(parent, replacer[i][1])
-								elif replacer[i][0] == 'parent_set_name':
+								elif replacer[i][0] in (r'parent_set_name', r'set_parent_name'):
 									parent.name = replacer[i][1]
 							elif len(new_tags) == 1 and not isinstance(new_tags[0], soup.NavigableString):
-								if replacer[i][0] == 'add_class':
+								if replacer[i][0] == r'add_class':
 									soup.add_class(new_tags[0], replacer[i][1])
-								elif replacer[i][0] == 'remove_class':
+								elif replacer[i][0] == r'remove_class':
 									soup.remove_class(new_tags[0], replacer[i][1])
-								elif replacer[i][0] == 'set_class':
+								elif replacer[i][0] == r'set_class':
 									soup.set_class(new_tags[0], replacer[i][1])
-								elif replacer[i][0] == 'set_name':
+								elif replacer[i][0] == r'set_name':
 									new_tags[0].name = replacer[i][1]
 
 						continue
@@ -247,10 +263,10 @@ class TemplateTemplate(object):
 
 class StripIncludes(object):
 	'''
-	Strips #include <paths/to/headers.h> based on context.strip_includes.
+	Strips #include <paths/to/headers.h> based on context.sources.strip_includes.
 	'''
 	def __call__(self, doc, context):
-		if doc.article is None or not context.strip_includes:
+		if doc.article is None or not context.sources.strip_includes:
 			return False
 		changed = False
 		for include_div in doc.article.find_all(r'div', class_=r'm-doc-include'):
@@ -261,7 +277,7 @@ class StripIncludes(object):
 			if not (text.startswith('<') and text.endswith('>')):
 				continue
 			text = text[1:-1].strip()
-			for strip in context.strip_includes:
+			for strip in context.sources.strip_includes:
 				if len(text) < len(strip) or not text.startswith(strip):
 					continue
 				if len(text) == len(strip):
@@ -360,7 +376,7 @@ class CodeBlocks(object):
 		assert len(tags) == 1 or tags[-1].string != '::'
 		full_str = ''.join([tag.get_text() for tag in tags])
 
-		if context.highlighting.enums.fullmatch(full_str):
+		if context.code_blocks.enums.fullmatch(full_str):
 			soup.set_class(tags[-1], 'ne')
 			del tags[-1]
 			while tags and tags[-1].string == '::':
@@ -369,7 +385,7 @@ class CodeBlocks(object):
 				cls.__colourize_compound_def(tags, context)
 			return True
 
-		if context.highlighting.types.fullmatch(full_str):
+		if context.code_blocks.types.fullmatch(full_str):
 			soup.set_class(tags[-1], 'ut')
 			del tags[-1]
 			while tags and tags[-1].string == '::':
@@ -378,7 +394,7 @@ class CodeBlocks(object):
 				cls.__colourize_compound_def(tags, context)
 			return True
 
-		while not context.highlighting.namespaces.fullmatch(full_str):
+		while not context.code_blocks.namespaces.fullmatch(full_str):
 			del tags[-1]
 			while tags and tags[-1].string == '::':
 				del tags[-1]
@@ -496,17 +512,17 @@ class CodeBlocks(object):
 						or isinstance(prev, soup.NavigableString)
 						or 'class' not in prev.attrs):
 						continue
-					if ('s' in prev['class'] and context.highlighting.string_literals.fullmatch(span.get_text())):
+					if ('s' in prev['class'] and context.code_blocks.string_literals.fullmatch(span.get_text())):
 						soup.set_class(span, 'sa')
 						changed_this_block = True
-					elif (prev['class'][0] in ('mf', 'mi', 'mb', 'mh') and context.highlighting.numeric_literals.fullmatch(span.get_text())):
+					elif (prev['class'][0] in ('mf', 'mi', 'mb', 'mh') and context.code_blocks.numeric_literals.fullmatch(span.get_text())):
 						soup.set_class(span, prev['class'][0])
 						changed_this_block = True
 
 				# preprocessor macros
 				spans = code_block('span', class_=('n', 'nl', 'kt', 'nc', 'nf'), string=True)
 				for span in spans:
-					if context.highlighting.macros.fullmatch(span.get_text()):
+					if context.code_blocks.macros.fullmatch(span.get_text()):
 						soup.set_class(span, 'm')
 						changed_this_block = True
 
