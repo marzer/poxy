@@ -23,28 +23,32 @@ def enum_subdirs(root):
 	return subdirs
 
 package_dir = str(Path(Path(__file__).parent, r'poxy').resolve())
-data_subdirs = enum_subdirs(Path(package_dir, r'data'))
+data_dir = Path(package_dir, r'data')
+data_subdirs = enum_subdirs(data_dir)
 data_subdirs = [str(d)[len(package_dir):].strip('\\/').replace('\\', '/') for d in data_subdirs]
 for excl in (r'/doc/', r'/test/', r'/test_doxygen', r'/test_python', r'/pelican-theme', r'__pycache__'):
 	data_subdirs = [d for d in data_subdirs if d.find(excl) == -1]
 data_subdirs = [rf'{d}/*' for d in data_subdirs]
 
 README = ''
-if Path('README.md').exists():
-	with open('README.md', encoding='utf-8') as file:
-		README = file.read()
+with open('README.md', encoding='utf-8') as file:
+		README = file.read().strip()
 
 HISTORY = ''
 if Path('HISTORY.md').exists():
 	with open('HISTORY.md', encoding='utf-8') as file:
-		HISTORY = file.read()
+		HISTORY = file.read().strip()
+
+VERSION = ''
+with open(Path(data_dir, 'version.txt'), encoding='utf-8') as file:
+		VERSION = file.read().strip()
 
 setup_args = dict(
 	name=r'poxy',
-	version=r'0.3.0',
+	version=VERSION,
 	description=r'Documentation generator for C++.',
 	long_description_content_type=r'text/markdown',
-	long_description=f'{README.strip()}\n\n{HISTORY.strip()}'.strip(),
+	long_description=f'{README}\n\n{HISTORY}'.strip(),
 	license=r'MIT',
 	packages=find_packages(),
 	author=r'Mark Gillard',

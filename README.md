@@ -49,21 +49,22 @@ pip install poxy
 ## Usage
 Poxy is a command-line application.
 ```
-poxy [-h] [-v] [--dry] [--threads <N>] [--m.css <path>] [--doxygen <path>] [--werror] [config]
+poxy [-h] [-v] [--dry] [--threads <N>] [--m.css <path>] [--doxygen <path>] [--werror] [--version] [config]
 
 Generate fancy C++ documentation.
 
 positional arguments:
-  config            a path to a poxy.toml, Doxyfile.mcss, Doxyfile, or a directory containing one/any/all (default: ./)
+  config            path to poxy.toml or a directory containing it (default: .)
 
 optional arguments:
   -h, --help        show this help message and exit
-  -v, --verbose     enables very noisy diagnostic output
-  --dry             does a 'dry run' only, stopping after emitting the effective Doxyfile
-  --threads <N>     sets the number of threads to use (default: automatic)
-  --m.css <path>    specifies the version of m.css to use (default: uses the bundled one)
-  --doxygen <path>  specifies the Doxygen executable to use (default: finds Doxygen on system path)
-  --werror          always treats warnings as errors regardless of config file settings
+  -v, --verbose     enable very noisy diagnostic output
+  --dry             do a 'dry run' only, stopping after emitting the effective Doxyfile
+  --threads <N>     set the number of threads to use (default: automatic)
+  --m.css <path>    specify the version of m.css to use (default: uses the bundled one)
+  --doxygen <path>  specify the Doxygen executable to use (default: finds Doxygen on system path)
+  --werror          always treat warnings as errors regardless of config file settings
+  --version         print the version and exit
 ```
 The basic three-step to using Poxy is similar to Doxygen:
 1. Create your `poxy.toml` (Poxy's answer to the `Doxyfile`)

@@ -68,63 +68,10 @@ def ValueOrArray(typ, name='', length=None):
 #=======================================================================================================================
 
 class _Defaults(object):
-	enums = {
-		r'(?:std::)?ios(?:_base)?::(?:app|binary|in|out|trunc|ate)'
-	}
-	namespaces = {
-		r'std',
-		r'std::chrono',
-		r'std::execution',
-		r'std::filesystem',
-		r'std::(?:literals::)?(?:chrono|complex|string|string_view)_literals',
-		r'std::literals',
-		r'std::numbers',
-		r'std::ranges',
-		r'std::this_thread'
-	}
 	inline_namespaces = {
 		r'std::(?:literals::)?(?:chrono|complex|string|string_view)_literals'
 	}
-	types = {
-		#------ standard/built-in types
-		r'__(?:float|fp)[0-9]{1,3}',
-		r'__m[0-9]{1,3}[di]?',
-		r'_Float[0-9]{1,3}',
-		r'(?:std::)?(?:basic_)?ios(?:_base)?',
-		r'(?:std::)?(?:const_)?(?:reverse_)?iterator',
-		r'(?:std::)?(?:shared_|recursive_)?(?:timed_)?mutex',
-		r'(?:std::)?array',
-		r'(?:std::)?byte',
-		r'(?:std::)?exception',
-		r'(?:std::)?lock_guard',
-		r'(?:std::)?optional',
-		r'(?:std::)?pair',
-		r'(?:std::)?span',
-		r'(?:std::)?streamsize',
-		r'(?:std::)?string(?:_view)?',
-		r'(?:std::)?tuple',
-		r'(?:std::)?vector',
-		r'(?:std::)?(?:unique|shared|scoped)_(?:ptr|lock)',
-		r'(?:std::)?(?:unordered_)?(?:map|set)',
-		r'[a-zA-Z_][a-zA-Z_0-9]*_t(?:ype(?:def)?|raits)?',
-		r'bool',
-		r'char',
-		r'double',
-		r'float',
-		r'int',
-		r'long',
-		r'short',
-		r'signed',
-		r'unsigned',
-		r'(?:std::)?w?(?:(?:(?:i|o)?(?:string|f))|i|o|io)stream',
-		#------ documentation-only types
-		r'[T-V][0-9]',
-		r'Foo',
-		r'Bar',
-		r'[Vv]ec(?:tor)?[1-4][hifd]?',
-		r'[Mm]at(?:rix)?[1-4](?:[xX][1-4])?[hifd]?'
-	}
-	defines = {
+	macros = {
 		r'NDEBUG' :						1,
 		r'DOXYGEN' :					1,
 		r'__DOXYGEN__' :				1,
@@ -135,7 +82,7 @@ class _Defaults(object):
 		r'__has_attribute(...)' :		0,
 		r'__has_cpp_attribute(...)' :	999999,
 	}
-	cpp_builtin_defines = {
+	cpp_builtin_macros = {
 		1998 : {
 			r'__cplusplus' 		: r'199711L',
 			r'__cpp_rtti' 		: 199711,
@@ -368,29 +315,6 @@ class _Defaults(object):
 
 		2029 : dict(),
 	}
-	# syntax highlighting only
-	macros = {
-			# standard builtins:
-			r'__cplusplus(?:_cli|_winrt)?',
-			r'__cpp_[a-zA-Z_]+?',
-			r'__has_(?:(?:cpp_)?attribute|include)',
-			r'assert',
-			r'offsetof',
-			# msvc:
-			r'__(?:'
-				+ r'FILE|LINE|DATE|TIME|COUNTER'
-				+ r'|STDC(?:_HOSTED|_NO_ATOMICS|_NO_COMPLEX|_NO_THREADS|_NO_VLA|_VERSION|_THREADS)?'
-				+ r'|STDCPP_DEFAULT_NEW_ALIGNMENT|INTELLISENSE|ATOM'
-				+ r'|AVX(?:2|512(?:BW|CD|DQ|F|VL)?)?|FUNC(?:TION|DNAME|SIG)'
-				+ r')__',
-			r'_M_(?:AMD64|ARM(?:_ARMV7VE|_FP|64)?|X64|CEE(?:_PURE|_SAFE)?|FP_(?:EXCEPT|FAST|PRECISE|STRICT)|IX86(?:_FP)?)',
-			r'__CLR_VER|_CHAR_UNSIGNED|_CONTROL_FLOW_GUARD|_CPP(?:RTTI|UNWIND)|_DEBUG|_INTEGRAL_MAX_BITS|_ISO_VOLATILE',
-			r'_KERNEL_MODE|_MANAGED|_MSC_(?:BUILD|EXTENSIONS|(?:FULL_)?VER)|NDEBUG|_MSC(?:_FULL)_VER|_MSVC_LANG|_WIN(?:32|64)'
-	}
-	string_literals = {
-		r'sv?'
-	}
-	numeric_literals = set()
 	autolinks = {
 		# builtins
 		r'const_cast' : r'https://en.cppreference.com/w/cpp/language/const_cast',
@@ -597,6 +521,82 @@ class _Defaults(object):
 	source_patterns = {
 		r'*.h', r'*.hh', r'*.hxx', r'*.hpp', r'*.h++', r'*.inc', r'*.markdown', r'*.md', r'*.dox'
 	}
+	# code block syntax highlighting only
+	cb_enums = {
+		r'(?:std::)?ios(?:_base)?::(?:app|binary|in|out|trunc|ate)'
+	}
+	cb_macros = {
+			# standard builtins:
+			r'__cplusplus(?:_cli|_winrt)?',
+			r'__cpp_[a-zA-Z_]+?',
+			r'__has_(?:(?:cpp_)?attribute|include)',
+			r'assert',
+			r'offsetof',
+			# msvc:
+			r'__(?:'
+				+ r'FILE|LINE|DATE|TIME|COUNTER'
+				+ r'|STDC(?:_HOSTED|_NO_ATOMICS|_NO_COMPLEX|_NO_THREADS|_NO_VLA|_VERSION|_THREADS)?'
+				+ r'|STDCPP_DEFAULT_NEW_ALIGNMENT|INTELLISENSE|ATOM'
+				+ r'|AVX(?:2|512(?:BW|CD|DQ|F|VL)?)?|FUNC(?:TION|DNAME|SIG)'
+				+ r')__',
+			r'_M_(?:AMD64|ARM(?:_ARMV7VE|_FP|64)?|X64|CEE(?:_PURE|_SAFE)?|FP_(?:EXCEPT|FAST|PRECISE|STRICT)|IX86(?:_FP)?)',
+			r'__CLR_VER|_CHAR_UNSIGNED|_CONTROL_FLOW_GUARD|_CPP(?:RTTI|UNWIND)|_DEBUG|_INTEGRAL_MAX_BITS|_ISO_VOLATILE',
+			r'_KERNEL_MODE|_MANAGED|_MSC_(?:BUILD|EXTENSIONS|(?:FULL_)?VER)|NDEBUG|_MSC(?:_FULL)_VER|_MSVC_LANG|_WIN(?:32|64)'
+	}
+	cb_namespaces = {
+		r'std',
+		r'std::chrono',
+		r'std::execution',
+		r'std::filesystem',
+		r'std::(?:literals::)?(?:chrono|complex|string|string_view)_literals',
+		r'std::literals',
+		r'std::numbers',
+		r'std::ranges',
+		r'std::this_thread'
+	}
+	cb_numeric_literals = set()
+	cb_string_literals = {
+		r'sv?'
+	}
+	cb_types = {
+		#------ standard/built-in types
+		r'__(?:float|fp)[0-9]{1,3}',
+		r'__m[0-9]{1,3}[di]?',
+		r'_Float[0-9]{1,3}',
+		r'(?:std::)?(?:basic_)?ios(?:_base)?',
+		r'(?:std::)?(?:const_)?(?:reverse_)?iterator',
+		r'(?:std::)?(?:shared_|recursive_)?(?:timed_)?mutex',
+		r'(?:std::)?array',
+		r'(?:std::)?byte',
+		r'(?:std::)?exception',
+		r'(?:std::)?lock_guard',
+		r'(?:std::)?optional',
+		r'(?:std::)?pair',
+		r'(?:std::)?span',
+		r'(?:std::)?streamsize',
+		r'(?:std::)?string(?:_view)?',
+		r'(?:std::)?tuple',
+		r'(?:std::)?vector',
+		r'(?:std::)?(?:unique|shared|scoped)_(?:ptr|lock)',
+		r'(?:std::)?(?:unordered_)?(?:map|set)',
+		r'[a-zA-Z_][a-zA-Z_0-9]*_t(?:ype(?:def)?|raits)?',
+		r'bool',
+		r'char',
+		r'double',
+		r'float',
+		r'int',
+		r'long',
+		r'short',
+		r'signed',
+		r'unsigned',
+		r'(?:std::)?w?(?:(?:(?:i|o)?(?:string|f))|i|o|io)stream',
+		#------ documentation-only types
+		r'[T-V][0-9]',
+		r'Foo',
+		r'Bar',
+		r'[Vv]ec(?:tor)?[1-4][hifd]?',
+		r'[Mm]at(?:rix)?[1-4](?:[xX][1-4])?[hifd]?'
+	}
 
 
 
@@ -690,13 +690,13 @@ class _CodeBlocks(object):
 		Optional(r'namespaces')			: ValueOrArray(str, name=r'namespaces'),
 	}
 
-	def __init__(self, config, defines):
-		self.types = copy.deepcopy(_Defaults.types)
-		self.macros = copy.deepcopy(_Defaults.macros)
-		self.string_literals = copy.deepcopy(_Defaults.string_literals)
-		self.numeric_literals = copy.deepcopy(_Defaults.numeric_literals)
-		self.enums = copy.deepcopy(_Defaults.enums)
-		self.namespaces = copy.deepcopy(_Defaults.namespaces)
+	def __init__(self, config, macros):
+		self.types = copy.deepcopy(_Defaults.cb_types)
+		self.macros = copy.deepcopy(_Defaults.cb_macros)
+		self.string_literals = copy.deepcopy(_Defaults.cb_string_literals)
+		self.numeric_literals = copy.deepcopy(_Defaults.cb_numeric_literals)
+		self.enums = copy.deepcopy(_Defaults.cb_enums)
+		self.namespaces = copy.deepcopy(_Defaults.cb_namespaces)
 
 		if 'code' in config:
 			config = config['code']
@@ -737,7 +737,7 @@ class _CodeBlocks(object):
 					if namespace:
 						self.namespaces.add(namespace)
 
-		for k, v in defines.items():
+		for k, v in macros.items():
 			define = k
 			bracket = define.find('(')
 			if bracket != -1:
@@ -863,7 +863,7 @@ class Context(object):
 			Optional(r'badges')					: {str : FixedArrayOf(str, 2, name=r'badges') },
 			Optional(r'code_blocks')			: _CodeBlocks.schema,
 			Optional(r'cpp')					: Or(str, int, error=r'cpp: expected string or integer'),
-			Optional(r'defines')				: {str : Or(str, int, bool)},
+			Optional(r'defines')				: {str : Or(str, int, bool)}, # legacy
 			Optional(r'description')			: str,
 			Optional(r'examples')				: _FilteredInputs.schema,
 			Optional(r'extra_files')			: ValueOrArray(str, name=r'extra_files'),
@@ -876,6 +876,7 @@ class Context(object):
 			Optional(r'internal_docs')			: bool,
 			Optional(r'license')				: ValueOrArray(str, length=2, name=r'license'),
 			Optional(r'logo')					: str,
+			Optional(r'macros')					: {str : Or(str, int, bool)},
 			Optional(r'meta_tags')				: {str : Or(str, int)},
 			Optional(r'name')					: str,
 			Optional(r'navbar')					: ValueOrArray(str, name=r'navbar'),
@@ -995,10 +996,15 @@ class Context(object):
 
 		self.logger = logger
 		self.__verbose = bool(verbose)
-		self.verbose_logger = logger if self.__verbose else None
-		self.dry_run = dry_run
-
+		self.dry_run = bool(dry_run)
 		self.cleanup = bool(cleanup)
+		self.verbose_logger = logger if self.__verbose else None
+
+		self.version = lib_version()
+		if not self.dry_run or self.__verbose:
+			self.info(rf'Poxy v{".".join(self.version)}')
+
+		self.verbose_value(r'Context.dry_run', self.dry_run)
 		self.verbose_value(r'Context.cleanup', self.cleanup)
 
 		threads = int(threads)
@@ -1333,23 +1339,24 @@ class Context(object):
 					extra_files.append(favicon)
 			self.verbose_value(r'Context.favicon', self.favicon)
 
-			# defines (PREDEFINED)
-			self.defines = copy.deepcopy(_Defaults.defines)
-			for k, v in _extract_kvps(config, 'defines',
-					 value_getter=lambda v: (r'true' if v else r'false') if isinstance(v, bool) else str(v),
-					 allow_blank_values=True,
-				).items():
-				self.defines[k] = v
-			non_cpp_def_defines = copy.deepcopy(self.defines)
+			# macros (PREDEFINED)
+			self.macros = copy.deepcopy(_Defaults.macros)
+			for s in (r'defines', r'macros'):
+				for k, v in _extract_kvps(config, s,
+						value_getter=lambda v: (r'true' if v else r'false') if isinstance(v, bool) else str(v),
+						allow_blank_values=True,
+					).items():
+					self.macros[k] = v
+			non_cpp_def_macros = copy.deepcopy(self.macros)
 			cpp_defs = dict()
 			for ver in (1998, 2003, 2011, 2014, 2017, 2020, 2023, 2026, 2029):
 				if ver > self.cpp:
 					break
-				for k, v in _Defaults.cpp_builtin_defines[ver].items():
+				for k, v in _Defaults.cpp_builtin_macros[ver].items():
 					cpp_defs[k] = v
 			for k, v in cpp_defs.items():
-				self.defines[k] = v
-			self.verbose_value(r'Context.defines', self.defines)
+				self.macros[k] = v
+			self.verbose_value(r'Context.macros', self.macros)
 
 			# autolinks
 			self.autolinks = [(k, v) for k, v in _Defaults.autolinks.items()]
@@ -1423,7 +1430,7 @@ class Context(object):
 					raise Exception(rf'extra_files: Multiple source files with the name {f.name}')
 				extra_filenames.add(f.name)
 
-			self.code_blocks = _CodeBlocks(config, non_cpp_def_defines) # printed in run.py post-xml
+			self.code_blocks = _CodeBlocks(config, non_cpp_def_macros) # printed in run.py post-xml
 
 		# initialize other data from files on disk
 		self.__init_data_files(self)

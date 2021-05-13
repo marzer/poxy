@@ -88,6 +88,20 @@ def is_uri(s):
 
 
 
+_lib_version = None
+def lib_version():
+	global _lib_version
+	if _lib_version is None:
+		data_dir = Path(Path(__file__).resolve().parent, r'data')
+		with open(Path(data_dir, 'version.txt'), encoding='utf-8') as file:
+			_lib_version = [v.strip() for v in file.read().strip().split('.')]
+			_lib_version = [v for v in _lib_version if v]
+			assert len(_lib_version) == 3
+			_lib_version = tuple(_lib_version)
+	return _lib_version
+
+
+
 #=======================================================================================================================
 # REGEX REPLACER
 #=======================================================================================================================

@@ -5,3 +5,6 @@
 # SPDX-License-Identifier: MIT
 
 from .run import run, main
+from .utils import lib_version
+
+__version__ = r'.'.join(lib_version())
