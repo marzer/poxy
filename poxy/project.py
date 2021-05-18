@@ -845,7 +845,6 @@ class _Sources(_FilteredInputs):
 
 
 
-
 #=======================================================================================================================
 # project context
 #=======================================================================================================================
@@ -859,6 +858,7 @@ class Context(object):
 	__config_schema = Schema(
 		{
 			Optional(r'aliases')				: {str : str},
+			Optional(r'author')					: str,
 			Optional(r'autolinks')				: {str : str},
 			Optional(r'badges')					: {str : FixedArrayOf(str, 2, name=r'badges') },
 			Optional(r'code_blocks')			: _CodeBlocks.schema,
@@ -881,6 +881,7 @@ class Context(object):
 			Optional(r'name')					: str,
 			Optional(r'navbar')					: ValueOrArray(str, name=r'navbar'),
 			Optional(r'private_repo')			: bool,
+			Optional(r'robots')					: bool,
 			Optional(r'show_includes')			: bool,
 			Optional(r'sources')				: _Sources.schema,
 			Optional(r'tagfiles')				: {str : str},
@@ -1143,6 +1144,12 @@ class Context(object):
 				self.name = config['name'].strip()
 			self.verbose_value(r'Context.name', self.name)
 
+			# project author
+			self.author = ''
+			if 'author' in config:
+				self.author = config['author'].strip()
+			self.verbose_value(r'Context.author', self.author)
+
 			# project description (PROJECT_BRIEF)
 			self.description = ''
 			if 'description' in config:
@@ -1279,9 +1286,13 @@ class Context(object):
 			self.meta_tags = {}
 			for k, v in _extract_kvps(config, 'meta_tags', allow_blank_values=True).items():
 				self.meta_tags[k] = v
-			if self.description and 'description' not in self.meta_tags:
-				self.meta_tags['description'] = self.description
 			self.verbose_value(r'Context.meta_tags', self.meta_tags)
+
+			# robots (<meta>)
+			self.robots = True
+			if 'robots' in config:
+				self.robots = bool(config['robots'])
+			self.verbose_value(r'Context.robots', self.robots)
 
 			# inline namespaces for old versions of doxygen
 			self.inline_namespaces = copy.deepcopy(_Defaults.inline_namespaces)

@@ -176,8 +176,8 @@ class HTMLDocument(object):
 			self.smooth()
 			self.flush()
 
-	def new_tag(self, name, parent=None, string=None, class_=None, index=None, before=None, after=None, **kwargs):
-		tag = self.__doc.new_tag(name, **kwargs)
+	def new_tag(self, tag_name, parent=None, string=None, class_=None, index=None, before=None, after=None, **kwargs):
+		tag = self.__doc.new_tag(tag_name, **kwargs)
 		if (string is not None):
 			if (tag.string is not None):
 				tag.string.replace_with(string)

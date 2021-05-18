@@ -314,14 +314,6 @@ def _preprocess_doxyfile(context):
 					df.append(r'##! M_LINKS_NAVBAR1            = ')
 					df.append(r'##! M_LINKS_NAVBAR2            = ')
 					df.append(r'##!')
-			if not df.contains(r'M_HTML_HEADER'):
-				df.append(r'##! M_HTML_HEADER              = ''\\')
-				for k, v in context.meta_tags.items():
-					df.append(rf'##!    <meta name="{k}" content="{v}"> ''\\')
-				df.append(r'##!    <link href="poxy.css" rel="stylesheet"/> ''\\')
-				df.append(rf'##!    <script src="{context.jquery.name}"></script> ''\\')
-				df.append(r'##!    <script src="poxy.js"></script>')
-				df.append(r'##!')
 			if not df.contains(r'M_PAGE_FINE_PRINT'):
 				df.append(r'##! M_PAGE_FINE_PRINT          = ''\\')
 				top_row = []
@@ -766,6 +758,7 @@ def _postprocess_html(context):
 			, fixers.Links()
 			, fixers.CustomTags()
 			, fixers.EmptyTags()
+			, fixers.HeadTags()
 		)
 		context.verbose(rf'Post-processing {len(files)} HTML files...')
 		if threads > 1:

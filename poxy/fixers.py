@@ -25,13 +25,13 @@ class CustomTags(object):
 	'''
 	__double_tags = re.compile(
 		r'\[\s*('
-			+ r'span|div|aside|code|pre|h1|h2|h3|h4|h5|h6|em|strong|b|i|u|li|ul|ol'
+			+ r'p|center|span|div|aside|code|pre|h1|h2|h3|h4|h5|h6|em|strong|b|i|u|li|ul|ol'
 			+ r')(.*?)\s*\](.*?)\[\s*/\1\s*\]',
 		re.I | re.S
 	)
 	__single_tags = re.compile(
 		r'\[\s*(/?(?:'
-			+ r'img|span|div|aside|code|pre|emoji'
+			+ r'p|img|span|div|aside|code|pre|emoji'
 			+ r'|(?:parent_)?set_(?:parent_)?(?:name|class)'
 			+ r'|(?:parent_)?(?:add|remove)_(?:parent_)?class'
 			+ r'|br|li|ul|ol|(?:html)?entity)'
@@ -716,6 +716,8 @@ class Links(object):
 
 		return changed
 
+
+
 #=======================================================================================================================
 # empty tags
 #=======================================================================================================================
@@ -731,3 +733,77 @@ class EmptyTags(object):
 				soup.destroy_node(tag)
 				changed = True
 		return changed
+
+
+
+#=======================================================================================================================
+# <head> tags
+#=======================================================================================================================
+
+class HeadTags(object):
+	'''
+	Injects poxy-specific tags into the document's <head> block.
+	'''
+
+	@classmethod
+	def __append(cls, doc, name, attrs):
+		doc.head.append('  ')
+		doc.new_tag(name, parent=doc.head, attrs=attrs)
+		doc.head.append('\n')
+
+	def __call__(self, doc, context):
+
+		# <meta> tags
+		if 1:
+			meta = []
+
+			# name
+			if context.name:
+				if r'twitter:title' not in context.meta_tags:
+					meta.append({ r'name' : r'twitter:title', r'content' : context.name})
+				meta.append({ r'property' : r'og:title', r'content' : context.name})
+				meta.append({ r'itemprop' : r'name', r'content' : context.name})
+
+			# author
+			if context.author:
+				if r'author' not in context.meta_tags:
+					meta.append({ r'name' : r'author', r'content' : context.author})
+				meta.append({ r'property' : r'article:author', r'content' : context.author})
+
+			# description
+			if context.description:
+				if r'description' not in context.meta_tags:
+					meta.append({ r'name' : r'description', r'content' : context.description})
+				if r'twitter:description' not in context.meta_tags:
+					meta.append({ r'name' : r'twitter:description', r'content' : context.description})
+				meta.append({ r'property' : r'og:description', r'content' : context.description})
+				meta.append({ r'itemprop' : r'description', r'content' : context.description})
+
+			# robots
+			if not context.robots:
+				if r'robots' not in context.meta_tags:
+					meta.append({ r'name' : r'robots', r'content' : r'noindex, nofollow'})
+				if r'googlebot' not in context.meta_tags:
+					meta.append({ r'name' : r'googlebot', r'content' : r'noindex, nofollow'})
+
+			# misc
+			if r'format-detection' not in context.meta_tags:
+				meta.append({ r'name' : r'format-detection', r'content' : r'telephone=no'})
+			if r'generator' not in context.meta_tags:
+				meta.append({ r'name' : r'generator', r'content' : rf'Poxy v{".".join(context.version)}'})
+			if r'referrer' not in context.meta_tags:
+				meta.append({ r'name' : r'referrer', r'content' : r'no-referrer-when-downgrade'})
+
+			# additional user-specified meta tags
+			for name, content in context.meta_tags.items():
+				meta.append({ r'name' : name, r'content' : content})
+
+			for tag in meta:
+				self.__append(doc, r'meta', tag)
+
+		# stylesheets and scripts
+		self.__append(doc, r'link', {r'href' : r'poxy.css', r'rel' : r'stylesheet'})
+		self.__append(doc, r'script', {r'src' : r'poxy.js' })
+		self.__append(doc, r'script', {r'src' : context.jquery.name })
+
+		return True
