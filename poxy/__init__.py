@@ -5,6 +5,6 @@
 # SPDX-License-Identifier: MIT
 
 from .run import run, main
-from .utils import lib_version
+from .utils import lib_version, Error, WarningTreatedAsError
 
 __version__ = r'.'.join(lib_version())

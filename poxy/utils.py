@@ -217,3 +217,25 @@ class CppTree(object):
 
 	def matcher(self, type_):
 		return self.root.regex_matcher(type_)
+
+
+
+#=======================================================================================================================
+# Custom exceptions
+#=======================================================================================================================
+
+class Error(Exception):
+	"""Base class for other exceptions."""
+
+	def __init__(self, *message):
+		self.__message = r' '.join([str(m) for m in message])
+		super().__init__(*message)
+
+	def __str__(self):
+		return self.__message
+
+
+
+class WarningTreatedAsError(Error):
+	"""Raised when a warning is generated and the user has chosen to treat warnings as errors."""
+	pass

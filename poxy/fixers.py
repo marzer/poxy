@@ -12,6 +12,7 @@ except:
 	import soup
 
 import html
+import json
 
 
 
@@ -748,8 +749,9 @@ class HeadTags(object):
 	@classmethod
 	def __append(cls, doc, name, attrs):
 		doc.head.append('  ')
-		doc.new_tag(name, parent=doc.head, attrs=attrs)
+		tag = doc.new_tag(name, parent=doc.head, attrs=attrs)
 		doc.head.append('\n')
+		return tag
 
 	def __call__(self, doc, context):
 
@@ -802,8 +804,18 @@ class HeadTags(object):
 				self.__append(doc, r'meta', tag)
 
 		# stylesheets and scripts
-		self.__append(doc, r'link', {r'href' : r'poxy.css', r'rel' : r'stylesheet'})
-		self.__append(doc, r'script', {r'src' : r'poxy.js' })
-		self.__append(doc, r'script', {r'src' : context.jquery.name })
+		self.__append(doc, r'link', { r'href' : r'poxy.css', r'rel' : r'stylesheet' })
+		self.__append(doc, r'script', { r'src' : r'poxy.js' })
+		self.__append(doc, r'script', { r'src' : context.jquery.name })
+
+		# google structured data
+		if doc.path.name in context.compound_pages and context.compound_pages[doc.path.name][r'kind'] == r'page':
+			tag = self.__append(doc, r'script', { r'type' : r'application/ld+json' })
+			data = {}
+			data[r'@context'] = r'https://schema.org'
+			data[r'@type'] = r'Article'
+			data[r'dateModified'] = context.now.isoformat()
+			data[r'headline'] = doc.head.title.string
+			tag.string = json.dumps(data, indent="    ")
 
 		return True

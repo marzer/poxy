@@ -358,6 +358,10 @@ def _postprocess_xml(context):
 	assert context is not None
 	assert isinstance(context, project.Context)
 
+	# delete the new Doxyfile.xml (https://github.com/doxygen/doxygen/pull/8463)
+	# (it breaks m.css otherwise)
+	delete_file(Path(context.xml_dir, r'Doxyfile.xml'), logger=context.verbose_logger)
+
 	xml_files = get_all_files(context.xml_dir, any=(r'*.xml'))
 	if not xml_files:
 		return
@@ -479,10 +483,24 @@ def _postprocess_xml(context):
 						for typedef in typedefs:
 							cpp_tree.add_type(rf'{scope_name}::{typedef.find("name").text}')
 
+					# enumerate all compound pages and their types for use later in the HTML post-process
+					pages = {}
+					for tag in root.findall(r'compound'):
+						refid = tag.get(r'refid')
+						filename = refid
+						if filename == r'indexpage':
+							filename = r'index'
+						filename = filename + r'.html'
+						pages[filename] = { r'kind' : tag.get(r'kind'), r'name' : tag.find(r'name').text, r'refid' : refid }
+					context.__dict__[r'compound_pages'] = pages
+					context.verbose_value(r'Context.compound_pages', pages)
+
 				# some other compound definition
 				else:
 					compounddef = root.find(r'compounddef')
-					assert compounddef is not None
+					if compounddef is None:
+						context.warning(rf'{xml_file} did not contain a <compounddef>!')
+						continue
 					compoundname = compounddef.find(r'compoundname')
 					assert compoundname is not None
 					assert compoundname.text
@@ -618,6 +636,19 @@ def _postprocess_xml(context):
 									for tag in sectiondefs:
 										compounddef.remove(tag)
 										changed = True
+
+					# groups and namespaces
+					if compounddef.get(r'kind') in (r'group', r'namespace'):
+
+						# fix inner(class|namespace|group) sorting
+						inners = [tag for tag in compounddef.iterchildren() if tag.tag.startswith(r'inner')]
+						if inners:
+							changed = True
+							for tag in inners:
+								compounddef.remove(tag)
+							inners.sort(key=lambda tag: tag.text)
+							for tag in inners:
+								compounddef.append(tag)
 
 				if changed:
 					write_xml_to_file(xml, xml_file)
@@ -947,8 +978,6 @@ def run(config_path='.',
 								if context.warnings.enabled:
 									warnings = _extract_warnings(outputs)
 									for w in warnings:
-										if context.warnings.treat_as_errors:
-											raise Exception(rf'{w} (warning treated as error)')
 										context.warning(w)
 
 						# remove the local paths from the tagfile since they're meaningless (and a privacy breach)
@@ -1000,8 +1029,6 @@ def run(config_path='.',
 								if context.warnings.enabled:
 									warnings = _extract_warnings(outputs)
 									for w in warnings:
-										if context.warnings.treat_as_errors:
-											raise Exception(rf'{w} (warning treated as error)')
 										context.warning(w)
 
 				# copy extra_files
@@ -1114,8 +1141,14 @@ def main():
 			sys.exit(0)
 		else:
 			sys.exit(1)
+	except WarningTreatedAsError as err:
+		print(rf'Error: {err} (warning treated as error)', file=sys.stderr)
+		sys.exit(1)
+	except Error as err:
+		print(rf'Error: {err}', file=sys.stderr)
+		sys.exit(1)
 	except Exception as err:
-		print_exception(err, include_type=verbose, include_traceback=verbose, skip_frames=1)
+		print_exception(err, include_type=True, include_traceback=True, skip_frames=1)
 		sys.exit(-1)
 
 

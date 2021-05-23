@@ -95,13 +95,12 @@ class Doxyfile(object):
 		# read in doxyfile
 		if self.path.exists():
 			if not self.path.is_file():
-				raise Exception(f'{self.path} was not a file')
+				raise Error(f'{self.path} was not a file')
 			self.__text = read_all_text_from_file(self.path, logger=self.__logger).strip()
 			self.cleanup() # expands includes
 
 		# ...or generate one
 		else:
-			log(self.__logger, rf'Warning: doxyfile {self.path} not found! A default one will be generated in-memory.', level=logging.WARNING)
 			result = subprocess.run(
 				[str(self.__doxygen), r'-s', r'-g', r'-'],
 				check=True,

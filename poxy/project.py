@@ -623,16 +623,16 @@ def _extract_kvps(config, table,
 			if strip_keys:
 				key = key.strip()
 			if not allow_blank_keys and not key:
-				raise Exception(rf'{table}: keys cannot be blank')
+				raise Error(rf'{table}: keys cannot be blank')
 		if key in out:
-			raise Exception(rf'{table}.{key}: cannot be specified more than once')
+			raise Error(rf'{table}.{key}: cannot be specified more than once')
 
 		value = value_getter(v)
 		if isinstance(value, str):
 			if strip_values and isinstance(value, str):
 				value = value.strip()
 			if not allow_blank_values and not value:
-				raise Exception(rf'{table}.{key}: values cannot be blank')
+				raise Error(rf'{table}.{key}: values cannot be blank')
 
 		if value_type is not None:
 			value = value_type(value)
@@ -646,7 +646,7 @@ def _extract_kvps(config, table,
 def _assert_no_unexpected_keys(raw, validated, prefix=''):
 	for key in raw:
 		if key not in validated:
-			raise Exception(rf"Unknown config property '{prefix}{key}'")
+			raise Error(rf"Unknown config property '{prefix}{key}'")
 		if isinstance(validated[key], dict):
 			_assert_no_unexpected_keys(raw[key], validated[key], prefix=rf'{prefix}{key}.')
 	return validated
@@ -665,18 +665,19 @@ class _Warnings(object):
 		self.treat_as_errors = None
 		self.undocumented = None
 
-		if 'warnings' not in config:
-			return
-		config = config['warnings']
+		if config is not None:
+			if 'warnings' not in config:
+				return
+			config = config['warnings']
 
-		if 'enabled' in config:
-			self.enabled = bool(config['enabled'])
+			if 'enabled' in config:
+				self.enabled = bool(config['enabled'])
 
-		if 'treat_as_errors' in config:
-			self.treat_as_errors = bool(config['treat_as_errors'])
+			if 'treat_as_errors' in config:
+				self.treat_as_errors = bool(config['treat_as_errors'])
 
-		if 'undocumented' in config:
-			self.undocumented = bool(config['undocumented'])
+			if 'undocumented' in config:
+				self.undocumented = bool(config['undocumented'])
 
 
 
@@ -773,9 +774,9 @@ class _Inputs(object):
 						path = Path(input_dir, path)
 					path = path.resolve()
 					if not path.exists():
-						raise Exception(rf"{key}: '{path}' does not exist")
+						raise Error(rf"{key}: '{path}' does not exist")
 					if not (path.is_file() or path.is_dir()):
-						raise Exception(rf"{key}: '{path}' was not a directory or file")
+						raise Error(rf"{key}: '{path}' was not a directory or file")
 					paths.add(str(path))
 					if recursive and path.is_dir():
 						for subdir in enum_subdirs(path):
@@ -917,11 +918,11 @@ class Context(object):
 	def info(self, msg, indent=None):
 		self.__log(logging.INFO, msg, indent=indent)
 
-	def warning(self, msg, indent=None, prefix=r'Warning: '):
-		if prefix:
-			self.__log(logging.WARNING, rf'{prefix}{msg}', indent=indent)
+	def warning(self, msg, indent=None):
+		if self.warnings.treat_as_errors:
+			raise WarningTreatedAsError(msg)
 		else:
-			self.__log(logging.WARNING, msg, indent=indent)
+			self.__log(logging.WARNING, rf'Warning: {msg}', indent=indent)
 
 	def verbose_value(self, name, val):
 		if not self.__verbose:
@@ -1016,9 +1017,12 @@ class Context(object):
 
 		self.fixers = None
 		self.tagfile_path = None
-		self.warnings = None
+		self.warnings = _Warnings(None) # overwritten after reading config; this is for correct 'treat_as_errors' behaviour if we add any pre-config warnings
+		if treat_warnings_as_errors:
+			self.warnings.treat_as_errors = True
 
-		now = datetime.datetime.utcnow()
+		now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
+		self.now = now
 
 		# resolve paths
 		if 1:
@@ -1080,7 +1084,7 @@ class Context(object):
 			assert self.doxyfile_path is not None
 			self.doxyfile_path = self.doxyfile_path.resolve()
 			if self.doxyfile_path.exists() and not self.doxyfile_path.is_file():
-				raise Exception(rf'{doxyfile_path} was not a file')
+				raise Error(rf'{doxyfile_path} was not a file')
 			if self.config_path is not None:
 				self.config_path = self.config_path.resolve()
 			self.verbose_value(r'Context.config_path', self.config_path)
@@ -1102,16 +1106,16 @@ class Context(object):
 					if not p.exists() or not p.is_file() or not os.access(str(p), os.X_OK):
 						p = Path(doxygen_path, 'doxygen')
 					if not p.exists() or not p.is_file() or not os.access(str(p), os.X_OK):
-						raise Exception(rf'Could not find Doxygen executable in {doxygen_path}')
+						raise Error(rf'Could not find Doxygen executable in {doxygen_path}')
 					doxygen_path = p
 				assert_existing_file(doxygen_path)
 				self.doxygen_path = doxygen_path
 			else:
 				self.doxygen_path = shutil.which(r'doxygen')
 				if self.doxygen_path is None:
-					raise Exception(rf'Could not find Doxygen on system path')
+					raise Error(rf'Could not find Doxygen on system path')
 			if not os.access(str(self.doxygen_path), os.X_OK):
-				raise Exception(rf'{doxygen_path} was not an executable file')
+				raise Error(rf'{doxygen_path} was not an executable file')
 			self.verbose_value(r'Context.doxygen_path', self.doxygen_path)
 
 			# m.css
@@ -1209,7 +1213,7 @@ class Context(object):
 					if self.cpp in (3, 11, 14, 17, 20, 23, 26, 29):
 						self.cpp = self.cpp + 2000
 					else:
-						raise Exception(rf"cpp: '{config['cpp']}' is not a valid cpp standard version")
+						raise Error(rf"cpp: '{config['cpp']}' is not a valid cpp standard version")
 			self.verbose_value(r'Context.cpp', self.cpp)
 			badge = rf'poxy-badge-c++{str(self.cpp)[2:]}.svg'
 			badges.append((rf'C++{str(self.cpp)[2:]}', badge, r'https://en.cppreference.com/w/cpp/compiler_support'))
@@ -1393,7 +1397,7 @@ class Context(object):
 					if not alias:
 						continue
 					if alias in self.aliases:
-						raise Exception(rf'aliases.{k}: cannot override a built-in alias')
+						raise Error(rf'aliases.{k}: cannot override a built-in alias')
 						self.aliases[alias] = v
 			self.verbose_value(r'Context.aliases', self.aliases)
 
@@ -1432,13 +1436,13 @@ class Context(object):
 					extra_files[i] = Path(self.input_dir, extra_files[i])
 				extra_files[i] = extra_files[i].resolve()
 				if not extra_files[i].exists() or not extra_files[i].is_file():
-					raise Exception(rf'extra_files: {extra_files[i]} did not exist or was not a file')
+					raise Error(rf'extra_files: {extra_files[i]} did not exist or was not a file')
 			self.extra_files = set(extra_files)
 			self.verbose_value(r'Context.extra_files', self.extra_files)
 			extra_filenames = set()
 			for f in self.extra_files:
 				if f.name in extra_filenames:
-					raise Exception(rf'extra_files: Multiple source files with the name {f.name}')
+					raise Error(rf'extra_files: Multiple source files with the name {f.name}')
 				extra_filenames.add(f.name)
 
 			self.code_blocks = _CodeBlocks(config, non_cpp_def_macros) # printed in run.py post-xml
