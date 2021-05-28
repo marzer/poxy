@@ -17,10 +17,21 @@ import json
 
 
 #=======================================================================================================================
+# base classes
+#=======================================================================================================================
+
+class HTMLFixer(object):
+	pass
+
+class PlainTextFixer(object):
+	pass
+
+
+#=======================================================================================================================
 # custom tags
 #=======================================================================================================================
 
-class CustomTags(object):
+class CustomTags(HTMLFixer):
 	'''
 	Modifies HTML using custom square-bracket [tags].
 	'''
@@ -149,7 +160,7 @@ class CustomTags(object):
 # C++
 #=======================================================================================================================
 
-class _ModifiersBase(object):
+class _ModifiersBase(HTMLFixer):
 	'''
 	Base type for modifier parsing fixers.
 	'''
@@ -241,7 +252,7 @@ class Modifiers2(_ModifiersBase):
 
 
 
-class TemplateTemplate(object):
+class TemplateTemplate(HTMLFixer):
 	'''
 	Spreads consecutive template <> declarations out over multiple lines.
 	'''
@@ -262,7 +273,7 @@ class TemplateTemplate(object):
 
 
 
-class StripIncludes(object):
+class StripIncludes(HTMLFixer):
 	'''
 	Strips #include <paths/to/headers.h> based on context.sources.strip_includes.
 	'''
@@ -291,11 +302,31 @@ class StripIncludes(object):
 		return changed
 
 
+
+class ImplementationDetails(PlainTextFixer):
+	'''
+	Replaces implementation details with appropriate shorthands.
+	'''
+	__shorthands = (
+		(r'POXY_IMPLEMENTATION_DETAIL', r'<code class="m-note m-dim poxy-impl">/* ... */</code>'),
+	)
+	def __call__(self, doc, context):
+		changed = False
+		for shorthand, replacement in self.__shorthands:
+			idx = doc[0].find(shorthand)
+			while idx >= 0:
+				doc[0] = doc[0][:idx] + replacement + doc[0][idx + len(shorthand):]
+				changed = True
+				idx = doc[0].find(shorthand)
+		return changed
+
+
+
 #=======================================================================================================================
 # index.html
 #=======================================================================================================================
 
-class IndexPage(object):
+class IndexPage(HTMLFixer):
 	'''
 	Applies some basic fixes to index.html
 	'''
@@ -325,7 +356,7 @@ class IndexPage(object):
 # <code> blocks
 #=======================================================================================================================
 
-class CodeBlocks(object):
+class CodeBlocks(HTMLFixer):
 	'''
 	Fixes various issues and improves syntax highlighting in <code> blocks.
 	'''
@@ -534,6 +565,25 @@ class CodeBlocks(object):
 						span['class'] = 'k'
 						changed_this_block = True
 
+				# 'using' statements
+				spans = code_block('span', class_=('k'), string=r'using')
+				for using in spans:
+					assign = using.find_next_sibling('span', class_='o', string='=')
+					if assign is None:
+						continue
+					next = using.next_sibling
+					while next != assign:
+						current = next
+						next = current.next_sibling
+						if isinstance(current, soup.NavigableString):
+							if len(current.string.strip()) > 0:
+								break
+							continue
+						if current.name != r'span' or r'class' not in current.attrs or r'n' not in current['class']:
+							continue
+						soup.set_class(current, r'ut')
+						changed_this_block = True
+
 				if changed_this_block:
 					code_block.smooth()
 					changed_this_pass = True
@@ -580,7 +630,7 @@ def _m_doc_anchor_tags(tag):
 
 
 
-class AutoDocLinks(object):
+class AutoDocLinks(HTMLFixer):
 	'''
 	Adds links to additional sources where appropriate.
 	'''
@@ -645,7 +695,7 @@ class AutoDocLinks(object):
 
 
 
-class Links(object):
+class Links(HTMLFixer):
 	'''
 	Fixes various minor issues with anchor tags.
 	'''
@@ -723,7 +773,7 @@ class Links(object):
 # empty tags
 #=======================================================================================================================
 
-class EmptyTags(object):
+class EmptyTags(HTMLFixer):
 	'''
 	Prunes the tree of various empty tags (happens as a side-effect of some other operations).
 	'''
@@ -741,7 +791,7 @@ class EmptyTags(object):
 # <head> tags
 #=======================================================================================================================
 
-class HeadTags(object):
+class HeadTags(HTMLFixer):
 	'''
 	Injects poxy-specific tags into the document's <head> block.
 	'''

@@ -460,3 +460,12 @@ ul.m-doc > li.m-doc-collapsible li
 {
 	color: #CCCCCC !important;
 }
+
+/* implementation detail blocks */
+.poxy-impl
+{
+	padding: 0rem !important;
+	margin: 0rem 0.2rem !important;
+	font-weight: normal;
+	color: rgb(87,166,74) !important;
+}

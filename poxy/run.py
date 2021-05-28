@@ -754,16 +754,31 @@ def _postprocess_html_file(path, context=None):
 	assert context is not None
 	assert isinstance(context, project.Context)
 
+	html_fixers = [f for f in context.fixers if isinstance(f, fixers.HTMLFixer)]
+	plain_text_fixers = [f for f in context.fixers if isinstance(f, fixers.PlainTextFixer)]
+
 	context.verbose(rf'Post-processing {path}')
-	changed = False
-	doc = soup.HTMLDocument(path, logger=context.verbose_logger)
-	for fix in context.fixers:
-		if fix(doc, context):
-			doc.smooth()
-			changed = True
-	if changed:
-		doc.flush()
-	return changed
+	html_changed = False
+	if html_fixers:
+		doc = soup.HTMLDocument(path, logger=context.verbose_logger)
+		for fix in html_fixers:
+			if fix(doc, context):
+				doc.smooth()
+				html_changed = True
+		if html_changed:
+			doc.flush()
+
+	plain_text_changed = False
+	if plain_text_fixers:
+		doc = [ read_all_text_from_file(path, logger=context.verbose_logger) ]
+		for fix in plain_text_fixers:
+			if fix(doc, context):
+				plain_text_changed = True
+		if plain_text_changed:
+			with open(path, 'w', encoding='utf-8', newline='\n') as f:
+				f.write(doc[0])
+
+	return html_changed or plain_text_changed
 
 
 
@@ -790,6 +805,7 @@ def _postprocess_html(context):
 			, fixers.CustomTags()
 			, fixers.EmptyTags()
 			, fixers.HeadTags()
+			, fixers.ImplementationDetails()
 		)
 		context.verbose(rf'Post-processing {len(files)} HTML files...')
 		if threads > 1:
