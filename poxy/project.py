@@ -72,15 +72,17 @@ class _Defaults(object):
 		r'std::(?:literals::)?(?:chrono|complex|string|string_view)_literals'
 	}
 	macros = {
-		r'NDEBUG' :						1,
-		r'DOXYGEN' :					1,
-		r'__DOXYGEN__' :				1,
-		r'__doxygen__' :				1,
-		r'__POXY__' :					1,
-		r'__poxy__' :					1,
-		r'__has_include(...)' :			0,
-		r'__has_attribute(...)' :		0,
-		r'__has_cpp_attribute(...)' :	999999,
+		r'NDEBUG' :								1,
+		r'DOXYGEN' :							1,
+		r'__DOXYGEN__' :						1,
+		r'__doxygen__' :						1,
+		r'__POXY__' :							1,
+		r'__poxy__' :							1,
+		r'__has_include(...)' :					0,
+		r'__has_attribute(...)' :				0,
+		r'__has_cpp_attribute(...)' :			999999,
+		r'POXY_IMPLEMENTATION_DETAIL(...)' :	r'POXY_IMPLEMENTATION_DETAIL_IMPL',
+		r'POXY_IGNORE(...)' :					r'',
 	}
 	cpp_builtin_macros = {
 		1998 : {
@@ -532,6 +534,8 @@ class _Defaults(object):
 			r'__has_(?:(?:cpp_)?attribute|include)',
 			r'assert',
 			r'offsetof',
+			# poxy:
+			r'POXY_[a-zA-Z_]+',
 			# msvc:
 			r'__(?:'
 				+ r'FILE|LINE|DATE|TIME|COUNTER'
@@ -851,7 +855,9 @@ class _Sources(_FilteredInputs):
 #=======================================================================================================================
 
 class Context(object):
-
+	"""
+	The context object passed around during one invocation.
+	"""
 	__emoji = None
 	__emoji_codepoints = None
 	__emoji_uri = re.compile(r".+unicode/([0-9a-fA-F]+)[.]png.*", re.I)
@@ -886,6 +892,7 @@ class Context(object):
 			Optional(r'show_includes')			: bool,
 			Optional(r'sources')				: _Sources.schema,
 			Optional(r'tagfiles')				: {str : str},
+			Optional(r'theme')					: Or(r'dark', r'light'),
 			Optional(r'warnings')				: _Warnings.schema,
 		},
 		ignore_extra_keys=True
@@ -1003,8 +1010,9 @@ class Context(object):
 		self.verbose_logger = logger if self.__verbose else None
 
 		self.version = lib_version()
+		self.version_string = r'.'.join(self.version)
 		if not self.dry_run or self.__verbose:
-			self.info(rf'Poxy v{".".join(self.version)}')
+			self.info(rf'Poxy v{self.version_string}')
 
 		self.verbose_value(r'Context.dry_run', self.dry_run)
 		self.verbose_value(r'Context.cleanup', self.cleanup)
@@ -1037,12 +1045,13 @@ class Context(object):
 			self.output_dir = coerce_path(output_dir).resolve()
 			self.verbose_value(r'Context.output_dir', self.output_dir)
 			assert self.output_dir.is_absolute()
+			self.case_sensitive_paths = not (Path(str(self.data_dir).upper()).exists() and Path(str(self.data_dir).lower()).exists())
+			self.verbose_value(r'Context.case_sensitive_paths', self.case_sensitive_paths)
 
 			# config + doxyfile
 			input_dir = None
 			self.config_path = None
 			self.doxyfile_path = None
-			self.temp_doxyfile_path = None
 			if config_path is None:
 				config_path = self.output_dir
 			else:
@@ -1084,17 +1093,30 @@ class Context(object):
 			assert self.doxyfile_path is not None
 			self.doxyfile_path = self.doxyfile_path.resolve()
 			if self.doxyfile_path.exists() and not self.doxyfile_path.is_file():
-				raise Error(rf'{doxyfile_path} was not a file')
+				raise Error(rf'{self.doxyfile_path} was not a file')
 			if self.config_path is not None:
 				self.config_path = self.config_path.resolve()
 			self.verbose_value(r'Context.config_path', self.config_path)
 			self.verbose_value(r'Context.doxyfile_path', self.doxyfile_path)
 
-			# output folders
-			self.xml_dir = Path(self.output_dir, 'xml')
-			self.html_dir = Path(self.output_dir, 'html')
+			# temp dirs
+			self.global_temp_dir = Path(tempfile.gettempdir(), r'poxy')
+			self.verbose_value(r'Context.global_temp_dir', self.global_temp_dir)
+			self.global_temp_dir.mkdir(exist_ok=True)
+			temp_dir_hash_source = str(self.input_dir)
+			if not self.case_sensitive_paths:
+				temp_dir_hash_source = temp_dir_hash_source.upper()
+			self.temp_dir = Path(self.global_temp_dir, sha1(temp_dir_hash_source))
+			self.temp_dir.mkdir(exist_ok=True)
+			self.verbose_value(r'Context.temp_dir', self.temp_dir)
+
+			# output paths
+			self.xml_dir = Path(self.temp_dir, 'xml')
 			self.verbose_value(r'Context.xml_dir', self.xml_dir)
+			self.html_dir = Path(self.output_dir, 'html')
 			self.verbose_value(r'Context.html_dir', self.html_dir)
+			self.mcss_conf_path = Path(self.temp_dir, 'conf.py')
+			self.verbose_value(r'Context.mcss_conf_path', self.mcss_conf_path)
 
 			# doxygen
 			if doxygen_path is not None:
@@ -1123,7 +1145,7 @@ class Context(object):
 				mcss_dir = Path(self.data_dir, r'mcss')
 			mcss_dir = coerce_path(mcss_dir).resolve()
 			assert_existing_directory(mcss_dir)
-			assert_existing_file(Path(mcss_dir, 'documentation/doxygen.py'))
+			assert_existing_file(Path(mcss_dir, r'documentation/doxygen.py'))
 			self.mcss_dir = mcss_dir
 			self.verbose_value(r'Context.mcss_dir', self.mcss_dir)
 
@@ -1221,7 +1243,7 @@ class Context(object):
 
 			# project logo
 			self.logo = None
-			if 'logo' in config:
+			if r'logo' in config:
 				if config['logo']:
 					file = config['logo'].strip()
 					if file:
@@ -1230,6 +1252,12 @@ class Context(object):
 							file = Path(self.input_dir, file)
 						self.logo = file.resolve()
 			self.verbose_value(r'Context.logo', self.logo)
+
+			# theme (M_THEME_COLOR)
+			self.theme = r'dark'
+			if r'theme' in config:
+				self.theme = str(config[r'theme'])
+			self.verbose_value(r'Context.theme', self.theme)
 
 			# sources (INPUT, FILE_PATTERNS, STRIP_FROM_PATH, STRIP_FROM_INC_PATH, EXTRACT_ALL)
 			self.sources = _Sources(config, 'sources', self.input_dir)
@@ -1253,7 +1281,7 @@ class Context(object):
 				dest = str(v)
 				if source and dest:
 					if is_uri(source):
-						file = str(Path(tempfile.gettempdir(), rf'poxy.tagfile.{sha1(source)}.{now.year}-{now.isocalendar().week}.xml'))
+						file = str(Path(self.global_temp_dir, rf'tagfile_{sha1(source)}_{now.year}_{now.isocalendar().week}.xml'))
 						self.tagfiles[source] = (file, dest)
 						self.unresolved_tagfiles = True
 					else:
@@ -1268,7 +1296,7 @@ class Context(object):
 			self.verbose_value(r'Context.tagfiles', self.tagfiles)
 
 			# m.css navbar
-			if 'navbar' in config:
+			if r'navbar' in config:
 				self.navbar = []
 				for v in coerce_collection(config['navbar']):
 					val = v.strip().lower()
@@ -1422,35 +1450,48 @@ class Context(object):
 						extra_files.append(Path(file))
 
 			# add built-ins to extra files
-			extra_files.append(Path(self.data_dir, r'poxy.css'))
-			extra_files.append(Path(self.data_dir, r'poxy.js'))
-			extra_files.append(Path(self.data_dir, r'poxy-github-icon.png'))
+			extra_files.append((rf'poxy-{self.version_string}.css', Path(self.data_dir, r'poxy.css')))
+			extra_files.append((rf'poxy-{self.version_string}-{self.theme}.css', Path(self.data_dir, rf'poxy-{self.theme}.css')))
+			extra_files.append((rf'poxy-{self.version_string}.js',  Path(self.data_dir, r'poxy.js')))
+			extra_files.append((r'poxy-github.svg', Path(self.data_dir, rf'poxy-github-{"black" if self.theme == "light" else "white"}.svg')))
 
 			# add jquery
-			self.jquery = Path(self.data_dir, r'jquery-3.6.0.slim.min.js')
+			self.jquery = get_all_files(self.data_dir, any=(r'jquery*.js'))[0]
+			self.verbose_value(r'Context.jquery', self.jquery)
 			extra_files.append(self.jquery)
 
-			# check extra files
+			# finalize extra_files
+			self.extra_files = {}
 			for i in range(len(extra_files)):
-				if not extra_files[i].is_absolute():
-					extra_files[i] = Path(self.input_dir, extra_files[i])
-				extra_files[i] = extra_files[i].resolve()
-				if not extra_files[i].exists() or not extra_files[i].is_file():
-					raise Error(rf'extra_files: {extra_files[i]} did not exist or was not a file')
-			self.extra_files = set(extra_files)
+				file = extra_files[i]
+				if not isinstance(file, tuple):
+					path = coerce_path(file)
+					file = (path.name, path)
+				if not file[1].is_absolute():
+					file = (file[0], Path(self.input_dir, file[1]))
+				file = (file[0], file[1].resolve())
+				if not file[1].exists() or not file[1].is_file():
+					raise Error(rf'extra_files: {file[1]} did not exist or was not a file')
+				if file[0] in extra_files:
+					raise Error(rf'extra_files: Multiple files with the name {file[0]}')
+				self.extra_files[file[0]] = file[1]
 			self.verbose_value(r'Context.extra_files', self.extra_files)
-			extra_filenames = set()
-			for f in self.extra_files:
-				if f.name in extra_filenames:
-					raise Error(rf'extra_files: Multiple source files with the name {f.name}')
-				extra_filenames.add(f.name)
 
+			# code_blocks
 			self.code_blocks = _CodeBlocks(config, non_cpp_def_macros) # printed in run.py post-xml
 
 		# initialize other data from files on disk
 		self.__init_data_files(self)
 		self.emoji = self.__emoji
 		self.emoji_codepoints = self.__emoji_codepoints
+
+
+	def __enter__(self):
+		return self
+
+	def __exit__(self, type, value, traceback):
+		if self.cleanup and self.temp_dir is not None:
+			delete_directory(self.temp_dir, logger=self.verbose_logger)
 
 	def __bool__(self):
 		return True

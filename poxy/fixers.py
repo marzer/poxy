@@ -308,7 +308,7 @@ class ImplementationDetails(PlainTextFixer):
 	Replaces implementation details with appropriate shorthands.
 	'''
 	__shorthands = (
-		(r'POXY_IMPLEMENTATION_DETAIL', r'<code class="m-note m-dim poxy-impl">/* ... */</code>'),
+		(r'POXY_IMPLEMENTATION_DETAIL_IMPL', r'<code class="m-note m-dim poxy-impl">/* ... */</code>'),
 	)
 	def __call__(self, doc, context):
 		changed = False
@@ -842,7 +842,7 @@ class HeadTags(HTMLFixer):
 			if r'format-detection' not in context.meta_tags:
 				meta.append({ r'name' : r'format-detection', r'content' : r'telephone=no'})
 			if r'generator' not in context.meta_tags:
-				meta.append({ r'name' : r'generator', r'content' : rf'Poxy v{".".join(context.version)}'})
+				meta.append({ r'name' : r'generator', r'content' : rf'Poxy v{context.version_string}'})
 			if r'referrer' not in context.meta_tags:
 				meta.append({ r'name' : r'referrer', r'content' : r'no-referrer-when-downgrade'})
 
@@ -854,8 +854,9 @@ class HeadTags(HTMLFixer):
 				self.__append(doc, r'meta', tag)
 
 		# stylesheets and scripts
-		self.__append(doc, r'link', { r'href' : r'poxy.css', r'rel' : r'stylesheet' })
-		self.__append(doc, r'script', { r'src' : r'poxy.js' })
+		self.__append(doc, r'link', { r'href' :  rf'poxy-{context.version_string}.css', r'rel' : r'stylesheet' })
+		self.__append(doc, r'link', { r'href' :  rf'poxy-{context.version_string}-{context.theme}.css', r'rel' : r'stylesheet' })
+		self.__append(doc, r'script', { r'src' : rf'poxy-{context.version_string}.js' })
 		self.__append(doc, r'script', { r'src' : context.jquery.name })
 
 		# google structured data

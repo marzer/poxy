@@ -34,10 +34,10 @@ README = ''
 with open('README.md', encoding='utf-8') as file:
 		README = file.read().strip()
 
-HISTORY = ''
-if Path('HISTORY.md').exists():
-	with open('HISTORY.md', encoding='utf-8') as file:
-		HISTORY = file.read().strip()
+CHANGELOG = ''
+if Path('CHANGELOG.md').exists():
+	with open('CHANGELOG.md', encoding='utf-8') as file:
+		CHANGELOG = file.read().strip()
 
 VERSION = ''
 with open(Path(data_dir, 'version.txt'), encoding='utf-8') as file:
@@ -48,7 +48,7 @@ setup_args = dict(
 	version=VERSION,
 	description=r'Documentation generator for C++.',
 	long_description_content_type=r'text/markdown',
-	long_description=f'{README}\n\n{HISTORY}'.strip(),
+	long_description=f'{README}\n\n{CHANGELOG}'.strip(),
 	license=r'MIT',
 	packages=find_packages(),
 	author=r'Mark Gillard',

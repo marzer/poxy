@@ -1,0 +1,139 @@
+/* detail section headers */
+article section.m-doc-details > div > h3:first-child
+{
+	background-color: #ffe1d6;
+}
+
+/* 'light' caption text */
+.m-doc-template,
+dl.m-doc dd,
+ul.m-doc li > span.m-doc
+{
+    color: #939393;
+}
+.m-doc-template a,
+dl.m-doc dd a,
+ul.m-doc li > span.m-doc a
+{
+    color: #666;
+}
+
+/* "Parameters", "Returns", subheadings inside description blocks, etc */
+.m-doc-details div > h4,
+.m-doc-details div > h5,
+.m-doc-details div > h6,
+.m-doc-details div > table.m-table th,
+.m-doc-details div > table.m-table td > h3,
+.m-doc-details div > table.m-table td > h4,
+.m-doc-details div > table.m-table td > h5,
+.m-doc-details div > table.m-table td > h6,
+.m-doc-details div > table.m-table td > strong > em,
+.m-doc-details div > table.m-table td > p > strong > em
+{
+	color: #ea7944;
+}
+
+/* 'dim' blocks and notes */
+.m-block.m-dim,
+.m-text.m-dim,
+.m-label.m-flat.m-dim
+{
+	color: #939393;
+}
+.m-block.m-dim a,
+.m-text.m-dim a,
+.m-label.m-flat.m-dim a
+{
+	color: #666;
+}
+.m-block.m-dim pre.m-code,
+.m-note.m-dim pre.m-code
+{
+	opacity: 0.75;
+}
+
+/* ====================================================
+  code blocks
+==================================================== */
+
+pre.m-code
+{
+	background-color: #fdfdfd;
+	border: 1px solid #cccccc;
+}
+
+/* keywords */
+.m-code .k
+{
+	color: rgb(0, 0, 255);
+}
+
+/* identifier names */
+.m-code .n
+{
+	color: #111111;
+}
+
+/* punctuators (brackets etc) */
+.m-code .p
+{
+	color: rgb(120,120,120);
+}
+
+/* user types and typedefs */
+.m-code .ut,
+.m-code .nc
+{
+	color: rgb(43, 145, 175);
+}
+
+/* int and float literals, enum values */
+.m-code .mb,
+.m-code .mi,
+.m-code .mf,
+.m-code .mh,
+.m-code .ne
+{
+	color: rgb(47, 79, 79);
+}
+
+/* string literals, "includes" */
+.m-code .s,
+.m-code .sa,
+.m-code .dl,
+.m-code .cpf
+{
+	color: rgb(163, 21, 21);
+}
+
+/* macros */
+.m-code .m
+{
+	color: rgb(138, 27, 255);
+}
+
+/* comments */
+.m-code .c1,
+.m-code .cm
+{
+	color: rgb(0, 128, 0) !important;
+}
+
+/* preprocessor directives */
+.m-code .cp
+{
+	color: rgb(128, 128, 128);
+}
+
+/* namespace::scopes:: */
+.m-code .ns
+{
+	color: rgb(140,140,140);
+}
+
+/* implementation detail blocks */
+pre.poxy-impl,
+code.poxy-impl
+{
+	color: rgb(0, 128, 0) !important;
+}
