@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.4.1 - 2020-05-30
+- Fixed `.dirs` being glommed as source paths
+- Added config option `scripts`
+- Added config option `stylesheets`
+- Added config option `jquery`
+- Added `custom` theme
+- Added ability to use `HOME.md` as main page
+- Added additional fix for inline `<code>` blocks
+- Added `.poxy-toc` to table-of-contents elements
+- Added floating page table-of-contents
+- Removed m.css favicon fallback
+- Made improvements to the `light` and `dark` themes
+- Updated C++ doxygen tagfile
+
 ## v0.4.0 - 2020-05-29
 - Added config option `theme`
 - Added version number to CSS and javascript filenames to prevent browser cache issues

@@ -1024,6 +1024,10 @@
     <class kind="class">std::bad_weak_ptr</class>
     <class kind="class">std::basic_common_reference</class>
     <class kind="class">std::basic_filebuf</class>
+    <class kind="class">std::basic_format_arg</class>
+    <class kind="class">std::basic_format_args</class>
+    <class kind="class">std::basic_format_context</class>
+    <class kind="class">std::basic_format_parse_context</class>
     <class kind="class">std::basic_fstream</class>
     <class kind="class">std::basic_ifstream</class>
     <class kind="class">std::basic_ios</class>
@@ -2123,6 +2127,40 @@
       <anchor></anchor>
       <arglist>(T... args)</arglist>
     </member>
+    <member kind="function">
+      <type>T</type>
+      <name>format</name>
+      <anchorfile>cpp/utility/format/format</anchorfile>
+      <anchor></anchor>
+      <arglist>(T... args)</arglist>
+    </member>
+    <class kind="class">std::format_args</class>
+    <class kind="class">std::format_args_t</class>
+    <class kind="class">std::format_context</class>
+    <class kind="class">std::format_error</class>
+    <class kind="class">std::format_parse_context</class>
+    <member kind="function">
+      <type>T</type>
+      <name>format_to</name>
+      <anchorfile>cpp/utility/format/format_to</anchorfile>
+      <anchor></anchor>
+      <arglist>(T... args)</arglist>
+    </member>
+    <member kind="function">
+      <type>T</type>
+      <name>format_to_n</name>
+      <anchorfile>cpp/utility/format/format_to_n</anchorfile>
+      <anchor></anchor>
+      <arglist>(T... args)</arglist>
+    </member>
+    <member kind="function">
+      <type>T</type>
+      <name>formatted_size</name>
+      <anchorfile>cpp/utility/format/formatted_size</anchorfile>
+      <anchor></anchor>
+      <arglist>(T... args)</arglist>
+    </member>
+    <class kind="class">std::formatter</class>
     <member kind="function">
       <type>T</type>
       <name>forward</name>
@@ -3911,6 +3949,13 @@
     </member>
     <member kind="function">
       <type>T</type>
+      <name>make_format_args</name>
+      <anchorfile>cpp/utility/format/make_format_args</anchorfile>
+      <anchor></anchor>
+      <arglist>(T... args)</arglist>
+    </member>
+    <member kind="function">
+      <type>T</type>
       <name>make_from_tuple</name>
       <anchorfile>cpp/utility/make_from_tuple</anchorfile>
       <anchor></anchor>
@@ -3985,6 +4030,13 @@
     </member>
     <class kind="class">std::make_unsigned</class>
     <class kind="class">std::make_unsigned_t</class>
+    <member kind="function">
+      <type>T</type>
+      <name>make_wformat_args</name>
+      <anchorfile>cpp/utility/format/make_format_args</anchorfile>
+      <anchor></anchor>
+      <arglist>(T... args)</arglist>
+    </member>
     <member kind="function">
       <type>T</type>
       <name>malloc</name>
@@ -6155,6 +6207,20 @@
     <class kind="class">std::vector</class>
     <member kind="function">
       <type>T</type>
+      <name>vformat</name>
+      <anchorfile>cpp/utility/format/vformat</anchorfile>
+      <anchor></anchor>
+      <arglist>(T... args)</arglist>
+    </member>
+    <member kind="function">
+      <type>T</type>
+      <name>vformat_to</name>
+      <anchorfile>cpp/utility/format/vformat_to</anchorfile>
+      <anchor></anchor>
+      <arglist>(T... args)</arglist>
+    </member>
+    <member kind="function">
+      <type>T</type>
       <name>vfprintf</name>
       <anchorfile>cpp/io/c/vfprintf</anchorfile>
       <anchor></anchor>
@@ -6185,6 +6251,13 @@
       <type>T</type>
       <name>visit</name>
       <anchorfile>cpp/utility/variant/visit</anchorfile>
+      <anchor></anchor>
+      <arglist>(T... args)</arglist>
+    </member>
+    <member kind="function">
+      <type>T</type>
+      <name>visit_format_arg</name>
+      <anchorfile>cpp/utility/format/visit_format_arg</anchorfile>
       <anchor></anchor>
       <arglist>(T... args)</arglist>
     </member>
@@ -6511,6 +6584,9 @@
     <class kind="class">std::weak_ptr</class>
     <class kind="class">std::weibull_distribution</class>
     <class kind="class">std::wfilebuf</class>
+    <class kind="class">std::wformat_args</class>
+    <class kind="class">std::wformat_context</class>
+    <class kind="class">std::wformat_parse_context</class>
     <class kind="class">std::wfstream</class>
     <class kind="class">std::wifstream</class>
     <class kind="class">std::wiostream</class>
@@ -15147,6 +15223,22 @@
       <anchor></anchor>
       <arglist>(T... args)</arglist>
     </member>
+  </compound>
+  <compound kind="class">
+    <name>std::basic_format_arg</name>
+    <filename>cpp/utility/format/basic_format_arg</filename>
+  </compound>
+  <compound kind="class">
+    <name>std::basic_format_args</name>
+    <filename>cpp/utility/format/basic_format_args</filename>
+  </compound>
+  <compound kind="class">
+    <name>std::basic_format_context</name>
+    <filename>cpp/utility/format/basic_format_context</filename>
+  </compound>
+  <compound kind="class">
+    <name>std::basic_format_parse_context</name>
+    <filename>cpp/utility/format/basic_format_parse_context</filename>
   </compound>
   <compound kind="class">
     <name>std::basic_fstream</name>
@@ -29381,6 +29473,30 @@
       <anchor></anchor>
       <arglist>(T... args)</arglist>
     </member>
+  </compound>
+  <compound kind="class">
+    <name>std::format_args</name>
+    <filename>cpp/utility/format/basic_format_args</filename>
+  </compound>
+  <compound kind="class">
+    <name>std::format_args_t</name>
+    <filename>cpp/utility/format/basic_format_args</filename>
+  </compound>
+  <compound kind="class">
+    <name>std::format_context</name>
+    <filename>cpp/utility/format/basic_format_context</filename>
+  </compound>
+  <compound kind="class">
+    <name>std::format_error</name>
+    <filename>cpp/utility/format/format_error</filename>
+  </compound>
+  <compound kind="class">
+    <name>std::format_parse_context</name>
+    <filename>cpp/utility/format/basic_format_parse_context</filename>
+  </compound>
+  <compound kind="class">
+    <name>std::formatter</name>
+    <filename>cpp/utility/format/formatter</filename>
   </compound>
   <compound kind="class">
     <name>std::forward_iterator_tag</name>
@@ -54517,6 +54633,18 @@
       <anchor></anchor>
       <arglist>(T... args)</arglist>
     </member>
+  </compound>
+  <compound kind="class">
+    <name>std::wformat_args</name>
+    <filename>cpp/utility/format/basic_format_args</filename>
+  </compound>
+  <compound kind="class">
+    <name>std::wformat_context</name>
+    <filename>cpp/utility/format/basic_format_context</filename>
+  </compound>
+  <compound kind="class">
+    <name>std::wformat_parse_context</name>
+    <filename>cpp/utility/format/basic_format_parse_context</filename>
   </compound>
   <compound kind="class">
     <name>std::wfstream</name>

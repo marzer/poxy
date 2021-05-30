@@ -783,7 +783,7 @@ class _Inputs(object):
 						raise Error(rf"{key}: '{path}' was not a directory or file")
 					paths.add(str(path))
 					if recursive and path.is_dir():
-						for subdir in enum_subdirs(path):
+						for subdir in enum_subdirs(path, filter=lambda p: not p.name.startswith(r'.')):
 							paths.add(str(subdir))
 		self.paths = list(paths)
 		self.paths.sort()
@@ -881,6 +881,7 @@ class Context(object):
 			Optional(r'implementation_headers') : {str : ValueOrArray(str)},
 			Optional(r'inline_namespaces')		: ValueOrArray(str, name=r'inline_namespaces'),
 			Optional(r'internal_docs')			: bool,
+			Optional(r'jquery')					: bool,
 			Optional(r'license')				: ValueOrArray(str, length=2, name=r'license'),
 			Optional(r'logo')					: str,
 			Optional(r'macros')					: {str : Or(str, int, bool)},
@@ -889,10 +890,12 @@ class Context(object):
 			Optional(r'navbar')					: ValueOrArray(str, name=r'navbar'),
 			Optional(r'private_repo')			: bool,
 			Optional(r'robots')					: bool,
+			Optional(r'scripts')				: ValueOrArray(str, name=r'scripts'),
 			Optional(r'show_includes')			: bool,
 			Optional(r'sources')				: _Sources.schema,
+			Optional(r'stylesheets')			: ValueOrArray(str, name=r'stylesheets'),
 			Optional(r'tagfiles')				: {str : str},
-			Optional(r'theme')					: Or(r'dark', r'light'),
+			Optional(r'theme')					: Or(r'dark', r'light', r'custom'),
 			Optional(r'warnings')				: _Warnings.schema,
 		},
 		ignore_extra_keys=True
@@ -1102,13 +1105,18 @@ class Context(object):
 			# temp dirs
 			self.global_temp_dir = Path(tempfile.gettempdir(), r'poxy')
 			self.verbose_value(r'Context.global_temp_dir', self.global_temp_dir)
-			self.global_temp_dir.mkdir(exist_ok=True)
-			temp_dir_hash_source = str(self.input_dir)
-			if not self.case_sensitive_paths:
-				temp_dir_hash_source = temp_dir_hash_source.upper()
-			self.temp_dir = Path(self.global_temp_dir, sha1(temp_dir_hash_source))
-			self.temp_dir.mkdir(exist_ok=True)
+			self.temp_dir = re.sub(r'''[!@#$%^&*()+={}<>;:'"_\\/\n\t -]+''', r'_', str(self.input_dir).strip(r'\/'))
+			if len(self.temp_dir) > 256:
+				self.temp_dir = str(self.input_dir)
+				if not self.case_sensitive_paths:
+					self.temp_dir = self.temp_dir.upper()
+				self.temp_dir = sha1(self.temp_dir)
+			self.temp_dir = Path(self.global_temp_dir, self.temp_dir)
 			self.verbose_value(r'Context.temp_dir', self.temp_dir)
+			self.blog_dir = Path(self.temp_dir, r'blog')
+			self.verbose_value(r'Context.blog_dir', self.blog_dir)
+			self.pages_dir = Path(self.temp_dir, r'pages')
+			self.verbose_value(r'Context.pages_dir', self.pages_dir)
 
 			# output paths
 			self.xml_dir = Path(self.temp_dir, 'xml')
@@ -1153,6 +1161,8 @@ class Context(object):
 		if 1:
 			extra_files = []
 			badges = []
+			self.scripts = []
+			self.stylesheets = []
 
 			config = dict()
 			if self.config_path is not None:
@@ -1253,14 +1263,58 @@ class Context(object):
 						self.logo = file.resolve()
 			self.verbose_value(r'Context.logo', self.logo)
 
-			# theme (M_THEME_COLOR)
+			# theme (HTML_EXTRA_STYLESHEETS, M_THEME_COLOR)
 			self.theme = r'dark'
 			if r'theme' in config:
 				self.theme = str(config[r'theme'])
+			if self.theme != r'custom':
+				extra_files.append((rf'poxy-{self.version_string}.css', Path(self.data_dir, r'poxy.css')))
+				extra_files.append((rf'poxy-{self.version_string}-{self.theme}.css', Path(self.data_dir, rf'poxy-{self.theme}.css')))
+				extra_files.append((r'poxy-github.svg', Path(self.data_dir, rf'poxy-github-{"black" if self.theme == "light" else "white"}.svg')))
+				self.stylesheets.append(rf'poxy-{self.version_string}.css')
+				self.stylesheets.append(rf'poxy-{self.version_string}-{self.theme}.css')
 			self.verbose_value(r'Context.theme', self.theme)
+
+			# stylesheets (HTML_EXTRA_STYLESHEETS)
+			if r'stylesheets' in config:
+				for f in coerce_collection(config[r'stylesheets']):
+					file = f.strip()
+					if file:
+						if is_uri(file):
+							self.stylesheets.append(file)
+						else:
+							file = Path(file)
+							self.stylesheets.append(file.name)
+							extra_files.append(file)
+			self.verbose_value(r'Context.stylesheets', self.stylesheets)
+
+			# jquery
+			if r'jquery' in config and config[r'jquery']:
+				jquery = get_all_files(self.data_dir, any=(r'jquery*.js'))[0]
+				if jquery is not None:
+					extra_files.append(jquery)
+					self.scripts.append(jquery.name)
+
+			# scripts
+			self.scripts.append(rf'poxy-{self.version_string}.js')
+			extra_files.append((rf'poxy-{self.version_string}.js',  Path(self.data_dir, r'poxy.js')))
+			if r'scripts' in config:
+				for f in coerce_collection(config[r'scripts']):
+					file = f.strip()
+					if file:
+						if is_uri(file):
+							self.scripts.append(file)
+						else:
+							file = Path(file)
+							self.scripts.append(file.name)
+							extra_files.append(file)
+			self.verbose_value(r'Context.scripts', self.scripts)
 
 			# sources (INPUT, FILE_PATTERNS, STRIP_FROM_PATH, STRIP_FROM_INC_PATH, EXTRACT_ALL)
 			self.sources = _Sources(config, 'sources', self.input_dir)
+			self.sources.paths.append(str(self.blog_dir))
+			self.sources.paths.append(str(self.pages_dir))
+			self.sources.paths.sort()
 			self.verbose_object(r'Context.sources', self.sources)
 
 			# images (IMAGE_PATH)
@@ -1442,23 +1496,12 @@ class Context(object):
 			self.badges = tuple(badges + user_badges)
 			self.verbose_value(r'Context.badges', self.badges)
 
-			# extra_files (HTML_EXTRA_FILES)
-			if 'extra_files' in config:
+			# user-specified extra_files (HTML_EXTRA_FILES)
+			if r'extra_files' in config:
 				for f in coerce_collection(config['extra_files']):
 					file = f.strip()
 					if file:
 						extra_files.append(Path(file))
-
-			# add built-ins to extra files
-			extra_files.append((rf'poxy-{self.version_string}.css', Path(self.data_dir, r'poxy.css')))
-			extra_files.append((rf'poxy-{self.version_string}-{self.theme}.css', Path(self.data_dir, rf'poxy-{self.theme}.css')))
-			extra_files.append((rf'poxy-{self.version_string}.js',  Path(self.data_dir, r'poxy.js')))
-			extra_files.append((r'poxy-github.svg', Path(self.data_dir, rf'poxy-github-{"black" if self.theme == "light" else "white"}.svg')))
-
-			# add jquery
-			self.jquery = get_all_files(self.data_dir, any=(r'jquery*.js'))[0]
-			self.verbose_value(r'Context.jquery', self.jquery)
-			extra_files.append(self.jquery)
 
 			# finalize extra_files
 			self.extra_files = {}
@@ -1472,7 +1515,7 @@ class Context(object):
 				file = (file[0], file[1].resolve())
 				if not file[1].exists() or not file[1].is_file():
 					raise Error(rf'extra_files: {file[1]} did not exist or was not a file')
-				if file[0] in extra_files:
+				if file[0] in self.extra_files:
 					raise Error(rf'extra_files: Multiple files with the name {file[0]}')
 				self.extra_files[file[0]] = file[1]
 			self.verbose_value(r'Context.extra_files', self.extra_files)
@@ -1487,10 +1530,19 @@ class Context(object):
 
 
 	def __enter__(self):
+		if not self.dry_run:
+			if self.cleanup:
+				delete_directory(self.temp_dir, logger=self.verbose_logger)
+				delete_directory(self.html_dir, logger=self.verbose_logger)
+				delete_directory(self.xml_dir, logger=self.verbose_logger)
+			self.global_temp_dir.mkdir(exist_ok=True)
+			self.temp_dir.mkdir(exist_ok=True)
+			self.blog_dir.mkdir(exist_ok=True)
+			self.pages_dir.mkdir(exist_ok=True)
 		return self
 
 	def __exit__(self, type, value, traceback):
-		if self.cleanup and self.temp_dir is not None:
+		if self.cleanup and not self.dry_run:
 			delete_directory(self.temp_dir, logger=self.verbose_logger)
 
 	def __bool__(self):

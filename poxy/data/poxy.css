@@ -43,7 +43,7 @@ a
 
 article div > section
 {
-	margin-top: 3rem;
+	margin-top: 4rem;
 }
 
 article div > section > section
@@ -241,19 +241,6 @@ figure.m-figure::before
 	font-size: 1em;
 }
 
-/* lists inside blocks and notes */
-.m-block li,
-.m-note li
-{
-	margin-bottom: 0.2rem;
-}
-
-.m-block li:last-child,
-.m-note li:last-child
-{
-	margin-bottom: initial;
-}
-
 /* m-special (purple) */
 .m-note.m-special,
 table.m-table tr.m-special td,
@@ -337,6 +324,24 @@ h6:last-child
 .m-doc-details table img.m-image
 {
 	margin-left: inherit;
+}
+
+/* table of contents */
+@media screen and (min-width: 1350px) and (min-height: 900px)
+{
+	.poxy-toc
+	{
+		position: fixed;
+		top: 9rem;
+		left: calc(50% + 430px);
+		min-width: 200px;
+		z-index: 5;
+		margin: 0px 20px 0px 0px !important;
+	}
+	div.poxy-toc + section
+	{
+		margin-top: 2rem;
+	}
 }
 
 /* ====================================================

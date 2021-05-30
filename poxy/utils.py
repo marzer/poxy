@@ -62,14 +62,16 @@ def log(logger, msg, level=logging.INFO):
 
 
 
-def enum_subdirs(root):
+def enum_subdirs(root, filter=None):
 	root = coerce_path(root)
 	assert root.is_dir()
 	subdirs = []
 	for p in root.iterdir():
 		if p.is_dir():
+			if filter is not None and not filter(p):
+				continue
 			subdirs.append(p)
-			subdirs = subdirs + enum_subdirs(p)
+			subdirs = subdirs + enum_subdirs(p, filter=filter)
 	return subdirs
 
 

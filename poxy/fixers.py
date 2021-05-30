@@ -598,9 +598,9 @@ class CodeBlocks(HTMLFixer):
 			for code_block in code_blocks:
 				parent = code_block.parent
 				if (parent is None
-					or parent.name != 'p'
+					or parent.name != r'p'
 					or parent.parent is None
-					or parent.parent.name != 'div'):
+					or parent.parent.name not in (r'div', r'section')):
 					continue
 				changed_this_pass = True
 				code_block.name = 'pre'
@@ -853,12 +853,6 @@ class HeadTags(HTMLFixer):
 			for tag in meta:
 				self.__append(doc, r'meta', tag)
 
-		# stylesheets and scripts
-		self.__append(doc, r'link', { r'href' :  rf'poxy-{context.version_string}.css', r'rel' : r'stylesheet' })
-		self.__append(doc, r'link', { r'href' :  rf'poxy-{context.version_string}-{context.theme}.css', r'rel' : r'stylesheet' })
-		self.__append(doc, r'script', { r'src' : rf'poxy-{context.version_string}.js' })
-		self.__append(doc, r'script', { r'src' : context.jquery.name })
-
 		# google structured data
 		if doc.path.name in context.compound_pages and context.compound_pages[doc.path.name][r'kind'] == r'page':
 			tag = self.__append(doc, r'script', { r'type' : r'application/ld+json' })
@@ -867,6 +861,31 @@ class HeadTags(HTMLFixer):
 			data[r'@type'] = r'Article'
 			data[r'dateModified'] = context.now.isoformat()
 			data[r'headline'] = doc.head.title.string
-			tag.string = json.dumps(data, indent="    ")
+			tag.string = json.dumps(data, indent=r'    ')
 
+		# stylesheets
+		for stylesheet in context.stylesheets:
+			self.__append(doc, r'link', { r'href' :  stylesheet, r'rel' : r'stylesheet' })
+
+		# scripts
+		for script in context.scripts:
+			self.__append(doc, r'script', { r'src' : script })
+
+
+		return True
+
+
+
+#=======================================================================================================================
+# misc
+#=======================================================================================================================
+
+class MarkTOC(HTMLFixer):
+	'''
+	Marks any table-of-contents with a custom class.
+	'''
+	def __call__(self, doc, context):
+		if doc.table_of_contents is None:
+			return False
+		soup.add_class(doc.table_of_contents, r'poxy-toc')
 		return True

@@ -135,6 +135,7 @@ _doxygen_overrides  = (
 		(r'TYPEDEF_HIDES_STRUCT',	False),
 		(r'UML_LOOK',				False),
 		(r'USE_HTAGS',				False),
+		(r'USE_MDFILE_AS_MAINPAGE',	None),
 		(r'VERBATIM_HEADERS',		False),
 		(r'WARN_IF_DOC_ERROR',		True),
 		(r'WARN_IF_INCOMPLETE_DOC',	True),
@@ -221,9 +222,25 @@ def _preprocess_doxyfile(context):
 			df.add_value(r'CLANG_OPTIONS', rf'-std=c++{context.cpp%100}')
 			df.add_value(r'CLANG_OPTIONS', r'-Wno-everything')
 
+			# these are necessary here to suppress m.css' automatic inclusion of the dark theme
+			# (otherwise I'd add them to context.extra_files and context.stylesheets)
 			if context.theme == r'light':
 				df.add_value(r'HTML_EXTRA_STYLESHEET', r'https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i,700,700i%7CSource+Code+Pro:400,400i,600')
 				df.add_value(r'HTML_EXTRA_STYLESHEET', r'../css/m-light+documentation.compiled.css')
+			elif context.theme == r'custom':
+				df.add_value(r'HTML_EXTRA_STYLESHEET', Path(context.data_dir, r'poxy-custom-theme-base.css'))
+
+			home_md_path = None
+			for home_md in (r'HOME.md', r'home.md', r'INDEX.md', r'index.md', r'README.md', r'readme.md'):
+				p = Path(context.input_dir, home_md)
+				if p.exists() and p.is_file():
+					home_md_path = p
+					break
+			if home_md_path is not None:
+				home_md_temp_path = Path(context.pages_dir, r'home.poxy_md')
+				if not context.dry_run:
+					copy_file(home_md_path, home_md_temp_path, logger=context.verbose_logger)
+				df.set_value(r'USE_MDFILE_AS_MAINPAGE', home_md_temp_path)
 
 			df.append()
 			df.append(r'# context.warnings', end='\n\n') # ---------------------------------------------------
@@ -248,6 +265,7 @@ def _preprocess_doxyfile(context):
 
 			df.add_value(r'INPUT', context.sources.paths)
 			df.set_value(r'FILE_PATTERNS', context.sources.patterns)
+			df.add_value(r'FILE_PATTERNS', [ r'*.poxy_blog', r'*.poxy_md', r'*.poxy_cpp', r'*.poxy_h', r'*.poxy_dox' ])
 			df.add_value(r'EXCLUDE', context.html_dir)
 			df.add_value(r'STRIP_FROM_PATH', context.sources.strip_paths)
 
@@ -261,6 +279,7 @@ def _preprocess_doxyfile(context):
 
 			df.add_value(r'EXAMPLE_PATH', context.examples.paths)
 			df.set_value(r'EXAMPLE_PATTERNS', context.examples.patterns)
+			df.add_value(r'EXTENSION_MAPPING', [ r'poxy_blog=md', r'poxy_md=md', r'poxy_cpp=C++', r'poxy_h=C++', r'poxy_dox=C++' ])
 
 			if context.images.paths: # ----------------------------------------------------
 				df.append()
@@ -286,9 +305,12 @@ def _preprocess_doxyfile(context):
 		if 1:
 			conf = lambda s='', end='\n': print(s, file=conf_py, end=end)
 			conf(rf"DOXYFILE                  = r'{context.doxyfile_path}'")
-			conf(rf"""THEME_COLOR               = r'{"#cb4b16" if context.theme == "light" else "#22272e"}'""")
-			if not df.contains(r'M_FAVICON') and context.favicon:
-				conf(rf'FAVICON        = {context.favicon}')
+			if context.theme == r'custom':
+				conf(rf"""THEME_COLOR               = r''""")
+			else:
+				conf(rf"""THEME_COLOR               = r'{"#cb4b16" if context.theme == "light" else "#22272e"}'""")
+			if not df.contains(r'M_FAVICON'):
+				conf(rf"""FAVICON                   = r'{context.favicon if context.favicon else ""}'""")
 			if not df.contains(r'M_SHOW_UNDOCUMENTED'):
 				conf(rf'SHOW_UNDOCUMENTED         = {context.sources.extract_all}')
 			if not df.contains(r'M_CLASS_TREE_EXPAND_LEVELS'):
@@ -428,8 +450,9 @@ def _postprocess_xml(context):
 
 			# pre-pass to delete file and dir entries where appropriate:
 			if 1:
-				dox_files = (r'dox', r'md')
-				dox_files = [rf'*_8{ext}.xml' for ext in dox_files]
+				dox_files = (r'.dox', r'.md', r'.poxy_md', r'.poxy_blog', r'.poxy_dox')
+				dox_files = [rf'*{doxygen.mangle_name(ext)}.xml' for ext in dox_files]
+				dox_files.append(r'md_home.xml')
 				for xml_file in get_all_files(context.xml_dir, any=dox_files):
 					delete_file(xml_file, logger=context.verbose_logger)
 				deleted = True
@@ -814,18 +837,19 @@ def _postprocess_html(context):
 
 	with ScopeTimer(rf'Post-processing {len(files)} HTML files', print_start=True, print_end=context.verbose_logger):
 		context.fixers = (
-			fixers.CodeBlocks()
-			, fixers.IndexPage()
-			, fixers.Modifiers1()
-			, fixers.Modifiers2()
-			, fixers.TemplateTemplate()
-			, fixers.StripIncludes()
-			, fixers.AutoDocLinks()
-			, fixers.Links()
-			, fixers.CustomTags()
-			, fixers.EmptyTags()
-			, fixers.HeadTags()
-			, fixers.ImplementationDetails()
+			fixers.MarkTOC(),
+			fixers.CodeBlocks(),
+			fixers.IndexPage(),
+			fixers.Modifiers1(),
+			fixers.Modifiers2(),
+			fixers.TemplateTemplate(),
+			fixers.StripIncludes(),
+			fixers.AutoDocLinks(),
+			fixers.Links(),
+			fixers.CustomTags(),
+			fixers.EmptyTags(),
+			fixers.HeadTags(),
+			fixers.ImplementationDetails(),
 		)
 		context.verbose(rf'Post-processing {len(files)} HTML files...')
 		if threads > 1:
@@ -959,13 +983,8 @@ def run(config_path='.',
 		_preprocess_doxyfile(context)
 		context.verbose_object(r'Context.warnings', context.warnings)
 
-		if dry_run:
+		if context.dry_run:
 			return
-
-		# delete any leftovers from the previous run
-		if 1:
-			delete_directory(context.xml_dir, logger=context.verbose_logger)
-			delete_directory(context.html_dir, logger=context.verbose_logger)
 
 		# resolve any uri tagfiles
 		if context.unresolved_tagfiles:

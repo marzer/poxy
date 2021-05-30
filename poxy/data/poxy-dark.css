@@ -45,6 +45,31 @@ ul.m-doc > li.m-doc-collapsible li
 	opacity: 0.85;
 }
 
+/* lists */
+.m-block li,
+.m-note li,
+section > ul li,
+section > ol li
+{
+	margin-bottom: 0.2rem;
+}
+.m-block li:last-child,
+.m-note li:last-child,
+section > ul li:last-child,
+section > ol li:last-child
+{
+	margin-bottom: initial;
+}
+
+/* nested lists */
+.m-block li > ul > li:first-child,
+.m-note li > ul > li:first-child,
+.m-block li > ol > li:first-child,
+.m-note li > ol > li:first-child
+{
+	margin-top: 0.2rem;
+}
+
 /* ====================================================
   code blocks
 ==================================================== */
