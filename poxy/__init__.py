@@ -4,7 +4,14 @@
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 
-from .run import run, main
+from .run import run
 from .utils import lib_version, Error, WarningTreatedAsError
+
+__all__ = [
+	r'run',
+	r'lib_version',
+	r'Error',
+	r'WarningTreatedAsError'
+]
 
 __version__ = r'.'.join(lib_version())

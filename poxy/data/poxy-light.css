@@ -144,6 +144,28 @@ section > ol li:last-child
 	margin-top: 0.4rem;
 }
 
+/* figures and top-level images */
+figure.m-figure
+{
+	margin-top: 1.5rem !important;
+}
+section > img
+{
+	margin-top: 2rem !important;
+	margin-bottom: 2rem !important;
+}
+
+/* solid m-success boxes */
+.m-note.m-success a
+{
+	color: #ffffff !important;
+	font-weight: bold;
+}
+.m-note.m-success a:hover
+{
+	text-decoration: underline !important;
+}
+
 /* ====================================================
   code blocks
 ==================================================== */

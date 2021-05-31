@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.3 - 2020-05-31
+- Fixed regression in `[code_blocks]` functionality
+- Fixed minor issues in syntax highlighter
+- Added symbols from doxygen tagfiles to the syntax highlighter
+- Minor style tweaks
+
 ## v0.4.1 - 2020-05-30
 - Fixed `.dirs` being glommed as source paths
 - Added config option `scripts`

@@ -90,7 +90,10 @@ setup_args = dict(
 		]
 	},
 	entry_points = {
-		r'console_scripts' : [ r'poxy = poxy.__main__:main' ]
+		r'console_scripts' : [
+			r'poxy = poxy.main:_run',
+			r'poxyblog = poxy.main:_make_blog_post'
+		]
 	}
 )
 

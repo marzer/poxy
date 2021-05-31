@@ -494,6 +494,7 @@ class _Defaults(object):
 		r'detail' : r'@details',
 		r'inline_subheading{1}' : r'[h4]\1[/h4]',
 		r'conditional_return{1}' : r'<strong><em>\1:</em></strong> ',
+		r'inline_success' : r'[set_class m-note m-success]',
 		r'inline_note' : r'[set_class m-note m-info]',
 		r'inline_warning' : r'[set_class m-note m-danger]',
 		r'inline_attention' : r'[set_class m-note m-warning]',
@@ -563,26 +564,10 @@ class _Defaults(object):
 		r'sv?'
 	}
 	cb_types = {
-		#------ standard/built-in types
+		#------ built-in types
 		r'__(?:float|fp)[0-9]{1,3}',
 		r'__m[0-9]{1,3}[di]?',
 		r'_Float[0-9]{1,3}',
-		r'(?:std::)?(?:basic_)?ios(?:_base)?',
-		r'(?:std::)?(?:const_)?(?:reverse_)?iterator',
-		r'(?:std::)?(?:shared_|recursive_)?(?:timed_)?mutex',
-		r'(?:std::)?array',
-		r'(?:std::)?byte',
-		r'(?:std::)?exception',
-		r'(?:std::)?lock_guard',
-		r'(?:std::)?optional',
-		r'(?:std::)?pair',
-		r'(?:std::)?span',
-		r'(?:std::)?streamsize',
-		r'(?:std::)?string(?:_view)?',
-		r'(?:std::)?tuple',
-		r'(?:std::)?vector',
-		r'(?:std::)?(?:unique|shared|scoped)_(?:ptr|lock)',
-		r'(?:std::)?(?:unordered_)?(?:map|set)',
 		r'[a-zA-Z_][a-zA-Z_0-9]*_t(?:ype(?:def)?|raits)?',
 		r'bool',
 		r'char',
@@ -593,9 +578,8 @@ class _Defaults(object):
 		r'short',
 		r'signed',
 		r'unsigned',
-		r'(?:std::)?w?(?:(?:(?:i|o)?(?:string|f))|i|o|io)stream',
 		#------ documentation-only types
-		r'[T-V][0-9]',
+		r'[S-Z][0-9]?',
 		r'Foo',
 		r'Bar',
 		r'[Vv]ec(?:tor)?[1-4][hifd]?',
@@ -703,8 +687,8 @@ class _CodeBlocks(object):
 		self.enums = copy.deepcopy(_Defaults.cb_enums)
 		self.namespaces = copy.deepcopy(_Defaults.cb_namespaces)
 
-		if 'code' in config:
-			config = config['code']
+		if 'code_blocks' in config:
+			config = config['code_blocks']
 
 			if 'types' in config:
 				for t in coerce_collection(config['types']):
@@ -758,34 +742,39 @@ class _Inputs(object):
 		Optional(r'recursive_paths')	: ValueOrArray(str, name=r'recursive_paths'),
 	}
 
-	def __init__(self, config, key, input_dir):
+	def __init__(self, config, key, input_dir, additional_inputs=None, additional_recursive_inputs=None):
 		self.paths = []
 
-		if key not in config:
-			return
-		config = config[key]
+		if key in config:
+			config = config[key]
+		else:
+			config = None
 
-		paths = set()
+		all_paths = set()
 		for recursive in (False, True):
 			key = r'recursive_paths' if recursive else r'paths'
-			if key in config:
-				for v in coerce_collection(config[key]):
-					path = v.strip()
-					if not path:
-						continue
-					path = Path(path)
-					if not path.is_absolute():
-						path = Path(input_dir, path)
-					path = path.resolve()
-					if not path.exists():
-						raise Error(rf"{key}: '{path}' does not exist")
-					if not (path.is_file() or path.is_dir()):
-						raise Error(rf"{key}: '{path}' was not a directory or file")
-					paths.add(str(path))
-					if recursive and path.is_dir():
-						for subdir in enum_subdirs(path, filter=lambda p: not p.name.startswith(r'.')):
-							paths.add(str(subdir))
-		self.paths = list(paths)
+			paths = []
+			if not recursive and additional_inputs is not None:
+				paths = paths + [p for p in coerce_collection(additional_inputs)]
+			if recursive and additional_recursive_inputs is not None:
+				paths = paths + [p for p in coerce_collection(additional_recursive_inputs)]
+			if config is not None and key in config:
+				paths = paths + [p for p in coerce_collection(config[key])]
+			paths = [p for p in paths if p]
+			paths = [str(p).strip() for p in paths]
+			paths = [Path(p) for p in paths if p]
+			paths = [Path(input_dir, p) if not p.is_absolute() else p for p in paths]
+			paths = [p.resolve() for p in paths]
+			for path in paths:
+				if not path.exists():
+					raise Error(rf"{key}: '{path}' does not exist")
+				if not (path.is_file() or path.is_dir()):
+					raise Error(rf"{key}: '{path}' was not a directory or file")
+				all_paths.add(path)
+				if recursive and path.is_dir():
+					for subdir in enum_subdirs(path, filter=lambda p: not p.name.startswith(r'.'), recursive=True):
+						all_paths.add(subdir)
+		self.paths = list(all_paths)
 		self.paths.sort()
 
 
@@ -795,8 +784,14 @@ class _FilteredInputs(_Inputs):
 		Optional(r'patterns')			: ValueOrArray(str, name=r'patterns')
 	})
 
-	def __init__(self, config, key, input_dir):
-		super().__init__(config, key, input_dir)
+	def __init__(self, config, key, input_dir, additional_inputs=None, additional_recursive_inputs=None):
+		super().__init__(
+			config,
+			key,
+			input_dir,
+			additional_inputs=additional_inputs,
+			additional_recursive_inputs=additional_recursive_inputs
+		)
 		self.patterns = None
 
 		if key not in config:
@@ -819,8 +814,14 @@ class _Sources(_FilteredInputs):
 		Optional(r'extract_all')		: bool,
 	})
 
-	def __init__(self, config, key, input_dir):
-		super().__init__(config, key, input_dir)
+	def __init__(self, config, key, input_dir, additional_inputs=None, additional_recursive_inputs=None):
+		super().__init__(
+			config,
+			key,
+			input_dir,
+			additional_inputs=additional_inputs,
+			additional_recursive_inputs=additional_recursive_inputs
+		)
 
 		self.strip_paths = []
 		self.strip_includes = []
@@ -950,7 +951,7 @@ class Context(object):
 							if not first:
 								print(f'\n{" ":<35}', file=buf, end='')
 							first = False
-							print(rf'{k:<{rpad}} => {v}', file=buf, end='')
+							print(rf'{str(k):<{rpad}} => {v}', file=buf, end='')
 				elif is_collection(val):
 					if val:
 						first = True
@@ -966,8 +967,11 @@ class Context(object):
 	def verbose_object(self, name, obj):
 		if not self.__verbose:
 			return
-		for k, v in obj.__dict__.items():
-			self.verbose_value(rf'{name}.{k}', v)
+		if isinstance(obj, (tuple, list, dict)):
+			self.verbose_value(name, obj)
+		else:
+			for k, v in obj.__dict__.items():
+				self.verbose_value(rf'{name}.{k}', v)
 
 	@classmethod
 	def __init_data_files(cls, context):
@@ -1032,8 +1036,7 @@ class Context(object):
 		if treat_warnings_as_errors:
 			self.warnings.treat_as_errors = True
 
-		now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
-		self.now = now
+		self.now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
 
 		# resolve paths
 		if 1:
@@ -1101,6 +1104,8 @@ class Context(object):
 				self.config_path = self.config_path.resolve()
 			self.verbose_value(r'Context.config_path', self.config_path)
 			self.verbose_value(r'Context.doxyfile_path', self.doxyfile_path)
+			self.blog_dir = Path(self.input_dir, r'blog')
+			self.verbose_value(r'Context.blog_dir', self.blog_dir)
 
 			# temp dirs
 			self.global_temp_dir = Path(tempfile.gettempdir(), r'poxy')
@@ -1113,10 +1118,8 @@ class Context(object):
 				self.temp_dir = sha1(self.temp_dir)
 			self.temp_dir = Path(self.global_temp_dir, self.temp_dir)
 			self.verbose_value(r'Context.temp_dir', self.temp_dir)
-			self.blog_dir = Path(self.temp_dir, r'blog')
-			self.verbose_value(r'Context.blog_dir', self.blog_dir)
-			self.pages_dir = Path(self.temp_dir, r'pages')
-			self.verbose_value(r'Context.pages_dir', self.pages_dir)
+			self.temp_pages_dir = Path(self.temp_dir, r'pages')
+			self.verbose_value(r'Context.temp_pages_dir', self.temp_pages_dir)
 
 			# output paths
 			self.xml_dir = Path(self.temp_dir, 'xml')
@@ -1156,6 +1159,21 @@ class Context(object):
 			assert_existing_file(Path(mcss_dir, r'documentation/doxygen.py'))
 			self.mcss_dir = mcss_dir
 			self.verbose_value(r'Context.mcss_dir', self.mcss_dir)
+
+			# misc
+			self.cppref_tagfile = coerce_path(self.data_dir, r'cppreference-doxygen-web.tag.xml')
+			self.verbose_value(r'Context.cppref_tagfile', self.cppref_tagfile)
+			assert_existing_file(self.cppref_tagfile)
+
+			# initialize temp + output dirs
+			if not self.dry_run:
+				delete_directory(self.html_dir, logger=self.verbose_logger)
+				delete_directory(self.xml_dir, logger=self.verbose_logger)
+				if self.cleanup:
+					delete_directory(self.temp_dir, logger=self.verbose_logger)
+				self.global_temp_dir.mkdir(exist_ok=True)
+				self.temp_dir.mkdir(exist_ok=True)
+				self.temp_pages_dir.mkdir(exist_ok=True)
 
 		# read + check config
 		if 1:
@@ -1231,7 +1249,7 @@ class Context(object):
 
 			# project C++ version
 			# defaults to 'current' cpp year version based on (current year - 2)
-			self.cpp = max(int(now.year) - 2, 2011)
+			self.cpp = max(int(self.now.year) - 2, 2011)
 			self.cpp = self.cpp - ((self.cpp - 2011) % 3)
 			if 'cpp' in config:
 				self.cpp = str(config['cpp']).lstrip('0 \t').rstrip()
@@ -1310,24 +1328,57 @@ class Context(object):
 							extra_files.append(file)
 			self.verbose_value(r'Context.scripts', self.scripts)
 
+			# enumerate blog files (need to add them to the doxygen sources)
+			self.blog_files = []
+			if self.blog_dir.exists() and self.blog_dir.is_dir():
+				self.blog_files = get_all_files(self.blog_dir, any=(r'*.md', r'*.markdown'), recursive=True)
+				sep = re.compile(r'[-֊‐‑‒–—―−_ ,;.]+')
+				expr = re.compile(
+					rf'^(?:blog{sep.pattern})?((?:[0-9]{{4}}){sep.pattern}(?:[0-9]{{2}}){sep.pattern}(?:[0-9]{{2}})){sep.pattern}[a-zA-Z0-9_ -]+$'
+				)
+				for i in range(len(self.blog_files)):
+					f = self.blog_files[i]
+					m = expr.fullmatch(f.stem)
+					if not m:
+						raise Error(rf"blog post filename '{f.name}' was not formatted correctly; "
+						+ r"it should be of the form 'YYYY-MM-DD_this_is_a_post.md'.")
+					try:
+						d = datetime.datetime.strptime(sep.sub('-', m[1]), r'%Y-%m-%d').date()
+						self.blog_files[i] = (f, d)
+					except Exception as exc:
+						raise Error(rf"failed to parse date from blog post filename '{f.name}': {str(exc)}")
+			self.verbose_value(r'Context.blog_files', self.blog_files)
+
 			# sources (INPUT, FILE_PATTERNS, STRIP_FROM_PATH, STRIP_FROM_INC_PATH, EXTRACT_ALL)
-			self.sources = _Sources(config, 'sources', self.input_dir)
-			self.sources.paths.append(str(self.blog_dir))
-			self.sources.paths.append(str(self.pages_dir))
-			self.sources.paths.sort()
+			self.sources = _Sources(
+				config,
+				r'sources',
+				self.input_dir,
+				additional_inputs=[ self.temp_pages_dir, *[f for f,d in self.blog_files] ]
+			)
 			self.verbose_object(r'Context.sources', self.sources)
 
 			# images (IMAGE_PATH)
-			self.images = _Inputs(config, 'images', self.input_dir)
+			self.images = _Inputs(
+				config,
+				r'images',
+				self.input_dir,
+				additional_recursive_inputs=[ self.blog_dir if self.blog_files else None ]
+			)
 			self.verbose_object(r'Context.images', self.images)
 
 			# examples (EXAMPLES_PATH, EXAMPLE_PATTERNS)
-			self.examples = _FilteredInputs(config, 'examples', self.input_dir)
+			self.examples = _FilteredInputs(
+				config,
+				r'examples',
+				self.input_dir,
+				additional_recursive_inputs=[ self.blog_dir if self.blog_files else None ]
+			)
 			self.verbose_object(r'Context.examples', self.examples)
 
 			# tagfiles (TAGFILES)
 			self.tagfiles = {
-				str(coerce_path(self.data_dir, r'cppreference-doxygen-web.tag.xml')) : r'http://en.cppreference.com/w/'
+				self.cppref_tagfile : (self.cppref_tagfile, r'http://en.cppreference.com/w/')
 			}
 			self.unresolved_tagfiles = False
 			for k,v in _extract_kvps(config, 'tagfiles').items():
@@ -1335,17 +1386,17 @@ class Context(object):
 				dest = str(v)
 				if source and dest:
 					if is_uri(source):
-						file = str(Path(self.global_temp_dir, rf'tagfile_{sha1(source)}_{now.year}_{now.isocalendar().week}.xml'))
+						file = Path(self.global_temp_dir, rf'tagfile_{sha1(source)}_{self.now.year}_{self.now.isocalendar().week}.xml')
 						self.tagfiles[source] = (file, dest)
 						self.unresolved_tagfiles = True
 					else:
 						source = Path(source)
 						if not source.is_absolute():
 							source = Path(self.input_dir, source)
-						source = str(source.resolve())
-						self.tagfiles[source] = dest
+						source = source.resolve()
+						self.tagfiles[str(source)] = (source, dest)
 			for k, v in self.tagfiles.items():
-				if isinstance(v, str):
+				if isinstance(v, (Path, str)):
 					assert_existing_file(k)
 			self.verbose_value(r'Context.tagfiles', self.tagfiles)
 
@@ -1528,17 +1579,7 @@ class Context(object):
 		self.emoji = self.__emoji
 		self.emoji_codepoints = self.__emoji_codepoints
 
-
 	def __enter__(self):
-		if not self.dry_run:
-			if self.cleanup:
-				delete_directory(self.temp_dir, logger=self.verbose_logger)
-				delete_directory(self.html_dir, logger=self.verbose_logger)
-				delete_directory(self.xml_dir, logger=self.verbose_logger)
-			self.global_temp_dir.mkdir(exist_ok=True)
-			self.temp_dir.mkdir(exist_ok=True)
-			self.blog_dir.mkdir(exist_ok=True)
-			self.pages_dir.mkdir(exist_ok=True)
 		return self
 
 	def __exit__(self, type, value, traceback):

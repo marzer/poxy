@@ -20,12 +20,11 @@ except:
 import os
 import subprocess
 import concurrent.futures as futures
-import argparse
+
 import tempfile
 import requests
 from lxml import etree
 from io import BytesIO, StringIO
-from schema import SchemaError
 
 
 #=======================================================================================================================
@@ -144,6 +143,8 @@ _doxygen_overrides  = (
 		(r'XML_PROGRAMLISTING',		False),
 	)
 
+
+
 def _preprocess_doxyfile(context):
 	assert context is not None
 	assert isinstance(context, project.Context)
@@ -237,7 +238,7 @@ def _preprocess_doxyfile(context):
 					home_md_path = p
 					break
 			if home_md_path is not None:
-				home_md_temp_path = Path(context.pages_dir, r'home.poxy_md')
+				home_md_temp_path = Path(context.temp_pages_dir, r'home.md')
 				if not context.dry_run:
 					copy_file(home_md_path, home_md_temp_path, logger=context.verbose_logger)
 				df.set_value(r'USE_MDFILE_AS_MAINPAGE', home_md_temp_path)
@@ -265,7 +266,6 @@ def _preprocess_doxyfile(context):
 
 			df.add_value(r'INPUT', context.sources.paths)
 			df.set_value(r'FILE_PATTERNS', context.sources.patterns)
-			df.add_value(r'FILE_PATTERNS', [ r'*.poxy_blog', r'*.poxy_md', r'*.poxy_cpp', r'*.poxy_h', r'*.poxy_dox' ])
 			df.add_value(r'EXCLUDE', context.html_dir)
 			df.add_value(r'STRIP_FROM_PATH', context.sources.strip_paths)
 
@@ -279,7 +279,6 @@ def _preprocess_doxyfile(context):
 
 			df.add_value(r'EXAMPLE_PATH', context.examples.paths)
 			df.set_value(r'EXAMPLE_PATTERNS', context.examples.patterns)
-			df.add_value(r'EXTENSION_MAPPING', [ r'poxy_blog=md', r'poxy_md=md', r'poxy_cpp=C++', r'poxy_h=C++', r'poxy_dox=C++' ])
 
 			if context.images.paths: # ----------------------------------------------------
 				df.append()
@@ -289,7 +288,7 @@ def _preprocess_doxyfile(context):
 			if context.tagfiles: # ----------------------------------------------------
 				df.append()
 				df.append(r'# context.tagfiles', end='\n\n')
-				df.add_value(r'TAGFILES', [rf'{k if isinstance(v, str) else v[0]}={v if isinstance(v, str) else v[1]}' for k,v in context.tagfiles.items()])
+				df.add_value(r'TAGFILES', [rf'{file}={dest}' for _,(file, dest) in context.tagfiles.items()])
 
 			if context.aliases: # ----------------------------------------------------
 				df.append()
@@ -394,7 +393,6 @@ def _preprocess_doxyfile(context):
 
 
 
-
 def _postprocess_xml(context):
 	assert context is not None
 	assert isinstance(context, project.Context)
@@ -407,7 +405,7 @@ def _postprocess_xml(context):
 	if not xml_files:
 		return
 
-	with ScopeTimer(rf'Post-processing {len(xml_files)} XML files', print_start=True, print_end=context.verbose_logger):
+	with ScopeTimer(rf'Post-processing {len(xml_files) + len(context.tagfiles)} XML files', print_start=True, print_end=context.verbose_logger):
 
 		pretty_print_xml = False
 		xml_parser = etree.XMLParser(
@@ -450,7 +448,7 @@ def _postprocess_xml(context):
 
 			# pre-pass to delete file and dir entries where appropriate:
 			if 1:
-				dox_files = (r'.dox', r'.md', r'.poxy_md', r'.poxy_blog', r'.poxy_dox')
+				dox_files = (r'.dox', r'.md')
 				dox_files = [rf'*{doxygen.mangle_name(ext)}.xml' for ext in dox_files]
 				dox_files.append(r'md_home.xml')
 				for xml_file in get_all_files(context.xml_dir, any=dox_files):
@@ -478,6 +476,8 @@ def _postprocess_xml(context):
 			macros = set()
 			cpp_tree = CppTree()
 			xml_files = get_all_files(context.xml_dir, any=(r'*.xml'))
+			tagfiles = [f for _,(f,_) in context.tagfiles.items()]
+			xml_files = xml_files + tagfiles
 			for xml_file in xml_files:
 				context.verbose(rf'Pre-processing {xml_file}')
 				xml = etree.parse(str(xml_file), parser=xml_parser)
@@ -536,6 +536,32 @@ def _postprocess_xml(context):
 						pages[filename] = { r'kind' : tag.get(r'kind'), r'name' : tag.find(r'name').text, r'refid' : refid }
 					context.__dict__[r'compound_pages'] = pages
 					context.verbose_value(r'Context.compound_pages', pages)
+
+				# a tag file
+				elif root.tag == r'tagfile':
+					for compound in [tag for tag in root.findall(r'compound') if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')]:
+
+						compound_name = compound.find(r'name').text
+						if compound_name.find(r'<') != -1:
+							continue
+
+						compound_type = compound.get(r'kind')
+						if compound_type in (r'class', r'struct', r'union'):
+							cpp_tree.add_type(compound_name)
+						else:
+							cpp_tree.add_namespace(compound_name)
+
+						for member in [tag for tag in compound.findall(r'member') if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')]:
+
+							member_name = member.find(r'name').text
+							if member_name.find(r'<') != -1:
+								continue
+
+							member_type = member.get(r'kind')
+							if member_type in (r'class', r'struct', r'union'):
+								cpp_tree.add_type(compound_name)
+							else:
+								cpp_tree.add_namespace(compound_name)
 
 				# some other compound definition
 				else:
@@ -896,6 +922,7 @@ def _dump_output_streams(context, outputs, source=''):
 		context.info(outputs[r'stderr'], indent=r'    ')
 
 
+
 _warnings_regexes = (
 	# doxygen
 	re.compile(r'^(?P<file>.+?):(?P<line>[0-9]+): warning:\s*(?P<text>.+?)\s*$', re.I),
@@ -954,6 +981,7 @@ def _extract_warnings(outputs):
 	return warnings
 
 
+
 def run(config_path='.',
 		output_dir='.',
 		threads=-1,
@@ -989,11 +1017,8 @@ def run(config_path='.',
 		# resolve any uri tagfiles
 		if context.unresolved_tagfiles:
 			with ScopeTimer(r'Resolving remote tagfiles', print_start=True, print_end=context.verbose_logger) as t:
-				for source, v in context.tagfiles.items():
-					if isinstance(v, str):
-						continue
-					file = Path(v[0])
-					if file.exists():
+				for source, (file, _) in context.tagfiles.items():
+					if file.exists() or not is_uri(source):
 						continue
 					context.verbose(rf'Downloading {source} => {file}')
 					response = requests.get(
@@ -1100,106 +1125,3 @@ def run(config_path='.',
 		# post-process html files
 		if 1:
 			_postprocess_html(context)
-
-
-
-
-def main():
-	verbose = False
-	try:
-		args = argparse.ArgumentParser(
-			description=r'Generate fancy C++ documentation.',
-			formatter_class=argparse.RawTextHelpFormatter
-		)
-		args.add_argument(
-			r'config',
-			type=Path,
-			nargs='?',
-			default=Path('.'),
-			help=r'path to poxy.toml or a directory containing it (default: %(default)s)'
-		)
-		args.add_argument(
-			 r'-v', r'--verbose',
-			action=r'store_true',
-			help=r"enable very noisy diagnostic output"
-		)
-		args.add_argument(
-			r'--dry',
-			action=r'store_true',
-			help=r"do a 'dry run' only, stopping after emitting the effective Doxyfile",
-			dest=r'dry_run'
-		)
-		args.add_argument(
-			r'--threads',
-			type=int,
-			default=0,
-			metavar=r'<N>',
-			help=r"set the number of threads to use (default: automatic)"
-		)
-		args.add_argument(
-			r'--m.css',
-			type=Path,
-			default=None,
-			metavar=r'<path>',
-			help=r"specify the version of m.css to use (default: uses the bundled one)",
-			dest=r'mcss'
-		)
-		args.add_argument(
-			r'--doxygen',
-			type=Path,
-			default=None,
-			metavar=r'<path>',
-			help=r"specify the Doxygen executable to use (default: finds Doxygen on system path)",
-		)
-		args.add_argument(
-			r'--werror',
-			action=r'store_true',
-			help=r"always treat warnings as errors regardless of config file settings",
-			dest=r'treat_warnings_as_errors'
-		)
-		args.add_argument(
-			r'--version',
-			action=r'store_true',
-			help=r"print the version and exit",
-			dest=r'print_version'
-		)
-		args.add_argument(r'--nocleanup', action=r'store_true', help=argparse.SUPPRESS)
-		args = args.parse_args()
-
-		if args.print_version:
-			print(r'.'.join(lib_version()))
-			sys.exit(0)
-
-		verbose = args.verbose
-		with ScopeTimer(r'All tasks', print_start=False, print_end=not args.dry_run) as timer:
-			run(
-				config_path = args.config,
-				output_dir = Path.cwd(),
-				threads = args.threads,
-				cleanup = not args.nocleanup,
-				verbose = verbose,
-				mcss_dir = args.mcss,
-				doxygen_path = args.doxygen,
-				logger=True, # stderr + stdout
-				dry_run=args.dry_run,
-				treat_warnings_as_errors=True if args.treat_warnings_as_errors else None
-			)
-		sys.exit(0)
-
-	except WarningTreatedAsError as err:
-		print(rf'Error: {err} (warning treated as error)', file=sys.stderr)
-		sys.exit(1)
-	except SchemaError as err:
-		print(err, file=sys.stderr)
-		sys.exit(1)
-	except Error as err:
-		print(rf'Error: {err}', file=sys.stderr)
-		sys.exit(1)
-	except Exception as err:
-		print_exception(err, include_type=True, include_traceback=True, skip_frames=1)
-		sys.exit(-1)
-
-
-
-if __name__ == '__main__':
-	main()

@@ -444,10 +444,24 @@ class CodeBlocks(HTMLFixer):
 
 		return False
 
+	@classmethod
+	def __adjacent_maybe_by_whitespace(cls, a, b):
+		mid = a.next_sibling
+		if mid is b:
+			return True
+		if not mid.next_sibling is b:
+			return False
+		if not isinstance(mid, soup.NavigableString):
+			return False
+		if len(mid.string.strip()) > 0:
+			return False
+		return True
+
 	def __call__(self, doc, context):
+		changed = False
+
 		# fix up syntax highlighting
 		code_blocks = doc.body(('pre','code'), class_='m-code')
-		changed = False
 		changed_this_pass = True
 		while changed_this_pass:
 			changed_this_pass = False
@@ -490,10 +504,10 @@ class CodeBlocks(HTMLFixer):
 				for i in range(0, len(spans)):
 
 					current = spans[i]
-					if current in compound_name_evaluated_tags:
+					if id(current) in compound_name_evaluated_tags:
 						continue
 
-					compound_name_evaluated_tags.add(current)
+					compound_name_evaluated_tags.add(id(current))
 					tags = [ current ]
 					while True:
 						prev = current.previous_sibling
@@ -506,7 +520,7 @@ class CodeBlocks(HTMLFixer):
 							break
 						current = prev
 						tags.insert(0, current)
-						compound_name_evaluated_tags.add(current)
+						compound_name_evaluated_tags.add(id(current))
 
 					current = spans[i]
 					while True:
@@ -520,7 +534,7 @@ class CodeBlocks(HTMLFixer):
 							break
 						current = nxt
 						tags.append(current)
-						compound_name_evaluated_tags.add(current)
+						compound_name_evaluated_tags.add(id(current))
 
 					full_str = ''.join([tag.get_text() for tag in tags])
 					if self.__ns_full_expr.fullmatch(full_str):
@@ -555,33 +569,30 @@ class CodeBlocks(HTMLFixer):
 				spans = code_block('span', class_=('n', 'nl', 'kt', 'nc', 'nf'), string=True)
 				for span in spans:
 					if context.code_blocks.macros.fullmatch(span.get_text()):
-						soup.set_class(span, 'm')
+						soup.set_class(span, r'm')
 						changed_this_block = True
 
 				# misidentifed keywords
 				spans = code_block('span', class_=('nf', 'nb', 'kt', 'ut', 'kr'), string=True)
 				for span in spans:
 					if (span.string in self.__keywords):
-						span['class'] = 'k'
+						soup.set_class(span, r'k')
 						changed_this_block = True
 
 				# 'using' statements
-				spans = code_block('span', class_=('k'), string=r'using')
-				for using in spans:
-					assign = using.find_next_sibling('span', class_='o', string='=')
-					if assign is None:
-						continue
-					next = using.next_sibling
-					while next != assign:
-						current = next
-						next = current.next_sibling
-						if isinstance(current, soup.NavigableString):
-							if len(current.string.strip()) > 0:
-								break
+				if 1:
+					spans = code_block(r'span', class_=r'k', string=r'using')
+					for using in spans:
+						next_identifier = using.find_next_sibling(r'span', class_=r'n', string=True)
+						if next_identifier is None:
 							continue
-						if current.name != r'span' or r'class' not in current.attrs or r'n' not in current['class']:
+						next_assign = next_identifier.find_next_sibling(r'span', class_=r'o', string=r'=')
+						if next_assign is None:
 							continue
-						soup.set_class(current, r'ut')
+						if not (self.__adjacent_maybe_by_whitespace(using, next_identifier)
+								and self.__adjacent_maybe_by_whitespace(next_identifier, next_assign)):
+							continue
+						soup.set_class(next_identifier, r'ut')
 						changed_this_block = True
 
 				if changed_this_block:
@@ -591,7 +602,6 @@ class CodeBlocks(HTMLFixer):
 
 		# fix doxygen butchering code blocks as inline nonsense
 		code_blocks = doc.body('code', class_=('m-code', 'm-console'))
-		changed = False
 		changed_this_pass = True
 		while changed_this_pass:
 			changed_this_pass = False
@@ -610,7 +620,6 @@ class CodeBlocks(HTMLFixer):
 					or (len(parent.contents) == 1
 						and parent.contents[0].string.strip() == '')):
 					soup.destroy_node(parent)
-
 			changed = changed or changed_this_pass
 
 		return changed
