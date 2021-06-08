@@ -49,7 +49,8 @@ pip install poxy
 ## Usage
 Poxy is a command-line application.
 ```
-poxy [-h] [-v] [--dry] [--threads <N>] [--m.css <path>] [--doxygen <path>] [--werror] [--version] [config]
+poxy [-h] [-v] [--doxygen <path>] [--dry] [--mcss <path>] [--threads <N>] [--version]
+     [--werror] [--xmlonly] [config]
 
 Generate fancy C++ documentation.
 
@@ -59,12 +60,13 @@ positional arguments:
 optional arguments:
   -h, --help        show this help message and exit
   -v, --verbose     enable very noisy diagnostic output
+  --doxygen <path>  specify the Doxygen executable to use (default: find on system path)
   --dry             do a 'dry run' only, stopping after emitting the effective Doxyfile
+  --mcss <path>     specify the version of m.css to use (default: uses the bundled one)
   --threads <N>     set the number of threads to use (default: automatic)
-  --m.css <path>    specify the version of m.css to use (default: uses the bundled one)
-  --doxygen <path>  specify the Doxygen executable to use (default: finds Doxygen on system path)
-  --werror          always treat warnings as errors regardless of config file settings
   --version         print the version and exit
+  --werror          always treat warnings as errors regardless of config file settings
+  --xmlonly         stop after generating and preprocessing the Doxygen xml
 ```
 The basic three-step to using Poxy is similar to Doxygen:
 1. Create your `poxy.toml` (Poxy's answer to the `Doxyfile`)

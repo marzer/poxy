@@ -397,10 +397,6 @@ def _postprocess_xml(context):
 	assert context is not None
 	assert isinstance(context, project.Context)
 
-	# delete the new Doxyfile.xml (https://github.com/doxygen/doxygen/pull/8463)
-	# (it breaks m.css otherwise)
-	delete_file(Path(context.xml_dir, r'Doxyfile.xml'), logger=context.verbose_logger)
-
 	xml_files = get_all_files(context.xml_dir, any=(r'*.xml'))
 	if not xml_files:
 		return
@@ -446,13 +442,21 @@ def _postprocess_xml(context):
 
 		if 1:
 
-			# pre-pass to delete file and dir entries where appropriate:
+			# pre-pass to delete junk files
 			if 1:
+				# delete the new Doxyfile.xml (https://github.com/doxygen/doxygen/pull/8463)
+				# (it breaks m.css otherwise)
+				if not context.xml_only:
+					delete_file(Path(context.xml_dir, r'Doxyfile.xml'), logger=context.verbose_logger)
+
+				# 'file' entries for markdown and dox files
 				dox_files = (r'.dox', r'.md')
 				dox_files = [rf'*{doxygen.mangle_name(ext)}.xml' for ext in dox_files]
 				dox_files.append(r'md_home.xml')
 				for xml_file in get_all_files(context.xml_dir, any=dox_files):
 					delete_file(xml_file, logger=context.verbose_logger)
+
+				# 'dir' entries which contain nothing
 				deleted = True
 				while deleted:
 					deleted = False
@@ -479,7 +483,11 @@ def _postprocess_xml(context):
 			tagfiles = [f for _,(f,_) in context.tagfiles.items()]
 			xml_files = xml_files + tagfiles
 			for xml_file in xml_files:
+
 				context.verbose(rf'Pre-processing {xml_file}')
+				if xml_file.name == r'Doxyfile.xml':
+					continue
+
 				xml = etree.parse(str(xml_file), parser=xml_parser)
 				root = xml.getroot()
 				changed = False
@@ -673,11 +681,12 @@ def _postprocess_xml(context):
 					# files
 					if compounddef.get(r'kind') == r'file':
 
-						# simplify the XML by removing unnecessary junk
-						for tag in (r'includes', r'includedby', r'incdepgraph', r'invincdepgraph'):
-							for t in compounddef.findall(tag):
-								compounddef.remove(t)
-								changed = True
+						# simplify the XML by removing junk not used by mcss
+						if not context.xml_only:
+							for tag in (r'includes', r'includedby', r'incdepgraph', r'invincdepgraph'):
+								for t in compounddef.findall(tag):
+									compounddef.remove(t)
+									changed = True
 
 						# get any macros for the syntax highlighter
 						for sectiondef in [tag for tag in compounddef.findall(r'sectiondef') if tag.get(r'kind') == r'define']:
@@ -991,6 +1000,7 @@ def run(config_path='.',
 		doxygen_path=None,
 		logger=None,
 		dry_run=False,
+		xml_only=False,
 		treat_warnings_as_errors=None
 	):
 
@@ -1004,6 +1014,7 @@ def run(config_path='.',
 		doxygen_path = doxygen_path,
 		logger = logger,
 		dry_run = dry_run,
+		xml_only = xml_only,
 		treat_warnings_as_errors = treat_warnings_as_errors
 	) as context:
 
@@ -1069,6 +1080,9 @@ def run(config_path='.',
 		# post-process xml files
 		if 1:
 			_postprocess_xml(context)
+
+		if context.xml_only:
+			return
 
 		context.verbose_object(r'Context.code_blocks', context.code_blocks)
 

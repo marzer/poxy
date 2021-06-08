@@ -1008,11 +1008,12 @@ class Context(object):
 		finally:
 			cls.__data_files_lock.release()
 
-	def __init__(self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, doxygen_path, logger, dry_run, treat_warnings_as_errors):
+	def __init__(self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, doxygen_path, logger, dry_run, xml_only, treat_warnings_as_errors):
 
 		self.logger = logger
 		self.__verbose = bool(verbose)
 		self.dry_run = bool(dry_run)
+		self.xml_only = bool(xml_only)
 		self.cleanup = bool(cleanup)
 		self.verbose_logger = logger if self.__verbose else None
 
@@ -1022,6 +1023,7 @@ class Context(object):
 			self.info(rf'Poxy v{self.version_string}')
 
 		self.verbose_value(r'Context.dry_run', self.dry_run)
+		self.verbose_value(r'Context.xml_only', self.xml_only)
 		self.verbose_value(r'Context.cleanup', self.cleanup)
 
 		threads = int(threads)
@@ -1122,11 +1124,11 @@ class Context(object):
 			self.verbose_value(r'Context.temp_pages_dir', self.temp_pages_dir)
 
 			# output paths
-			self.xml_dir = Path(self.temp_dir, 'xml')
+			self.xml_dir = Path(self.output_dir, r'xml')
 			self.verbose_value(r'Context.xml_dir', self.xml_dir)
-			self.html_dir = Path(self.output_dir, 'html')
+			self.html_dir = Path(self.output_dir, r'html')
 			self.verbose_value(r'Context.html_dir', self.html_dir)
-			self.mcss_conf_path = Path(self.temp_dir, 'conf.py')
+			self.mcss_conf_path = Path(self.temp_dir, r'conf.py')
 			self.verbose_value(r'Context.mcss_conf_path', self.mcss_conf_path)
 
 			# doxygen
@@ -1167,8 +1169,9 @@ class Context(object):
 
 			# initialize temp + output dirs
 			if not self.dry_run:
-				delete_directory(self.html_dir, logger=self.verbose_logger)
 				delete_directory(self.xml_dir, logger=self.verbose_logger)
+				if not self.xml_only:
+					delete_directory(self.html_dir, logger=self.verbose_logger)
 				if self.cleanup:
 					delete_directory(self.temp_dir, logger=self.verbose_logger)
 				self.global_temp_dir.mkdir(exist_ok=True)
@@ -1583,7 +1586,9 @@ class Context(object):
 		return self
 
 	def __exit__(self, type, value, traceback):
-		if self.cleanup and not self.dry_run:
+		if not self.dry_run and self.cleanup:
+			if not self.xml_only:
+				delete_directory(self.xml_dir, logger=self.verbose_logger)
 			delete_directory(self.temp_dir, logger=self.verbose_logger)
 
 	def __bool__(self):

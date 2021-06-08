@@ -62,10 +62,24 @@ def _run(invoker=True):
 		help=r"enable very noisy diagnostic output"
 	)
 	args.add_argument(
+		r'--doxygen',
+		type=Path,
+		default=None,
+		metavar=r'<path>',
+		help=r"specify the Doxygen executable to use (default: find on system path)",
+	)
+	args.add_argument(
 		r'--dry',
 		action=r'store_true',
 		help=r"do a 'dry run' only, stopping after emitting the effective Doxyfile",
 		dest=r'dry_run'
+	)
+	args.add_argument(
+		r'--mcss',
+		type=Path,
+		default=None,
+		metavar=r'<path>',
+		help=r"specify the version of m.css to use (default: uses the bundled one)"
 	)
 	args.add_argument(
 		r'--threads',
@@ -75,19 +89,10 @@ def _run(invoker=True):
 		help=r"set the number of threads to use (default: automatic)"
 	)
 	args.add_argument(
-		r'--m.css',
-		type=Path,
-		default=None,
-		metavar=r'<path>',
-		help=r"specify the version of m.css to use (default: uses the bundled one)",
-		dest=r'mcss'
-	)
-	args.add_argument(
-		r'--doxygen',
-		type=Path,
-		default=None,
-		metavar=r'<path>',
-		help=r"specify the Doxygen executable to use (default: finds Doxygen on system path)",
+		r'--version',
+		action=r'store_true',
+		help=r"print the version and exit",
+		dest=r'print_version'
 	)
 	args.add_argument(
 		r'--werror',
@@ -96,10 +101,10 @@ def _run(invoker=True):
 		dest=r'treat_warnings_as_errors'
 	)
 	args.add_argument(
-		r'--version',
+		r'--xmlonly',
 		action=r'store_true',
-		help=r"print the version and exit",
-		dest=r'print_version'
+		help=r"stop after generating and preprocessing the Doxygen xml",
+		dest=r'xml_only'
 	)
 	args.add_argument(r'--nocleanup', action=r'store_true', help=argparse.SUPPRESS)
 	args = args.parse_args()
@@ -119,6 +124,7 @@ def _run(invoker=True):
 			doxygen_path = args.doxygen,
 			logger=True, # stderr + stdout
 			dry_run=args.dry_run,
+			xml_only=args.xml_only,
 			treat_warnings_as_errors=True if args.treat_warnings_as_errors else None
 		)
 
