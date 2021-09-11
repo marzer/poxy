@@ -57,7 +57,7 @@ def _run(invoker=True):
 		help=r'path to poxy.toml or a directory containing it (default: %(default)s)'
 	)
 	args.add_argument(
-			r'-v', r'--verbose',
+		r'-v', r'--verbose',
 		action=r'store_true',
 		help=r"enable very noisy diagnostic output"
 	)

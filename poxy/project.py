@@ -740,6 +740,7 @@ class _Inputs(object):
 	schema = {
 		Optional(r'paths')				: ValueOrArray(str, name=r'paths'),
 		Optional(r'recursive_paths')	: ValueOrArray(str, name=r'recursive_paths'),
+		Optional(r'ignore')				: ValueOrArray(str, name=r'ignore'),
 	}
 
 	def __init__(self, config, key, input_dir, additional_inputs=None, additional_recursive_inputs=None):
@@ -761,7 +762,7 @@ class _Inputs(object):
 			if config is not None and key in config:
 				paths = paths + [p for p in coerce_collection(config[key])]
 			paths = [p for p in paths if p]
-			paths = [str(p).strip() for p in paths]
+			paths = [str(p).strip().replace('\\', '/') for p in paths]
 			paths = [Path(p) for p in paths if p]
 			paths = [Path(input_dir, p) if not p.is_absolute() else p for p in paths]
 			paths = [p.resolve() for p in paths]
@@ -774,6 +775,15 @@ class _Inputs(object):
 				if recursive and path.is_dir():
 					for subdir in enum_subdirs(path, filter=lambda p: not p.name.startswith(r'.'), recursive=True):
 						all_paths.add(subdir)
+
+		ignores = set()
+		if config is not None and r'ignore' in config:
+			for s in coerce_collection(config[r'ignore']):
+				ignore = s.strip()
+			ignores = [re.compile(i) for i in ignores]
+		for ignore in ignores:
+			all_paths = [p for p in all_paths if not ignore.search(str(p))]
+
 		self.paths = list(all_paths)
 		self.paths.sort()
 
@@ -811,7 +821,7 @@ class _Sources(_FilteredInputs):
 	schema = combine_dicts(_FilteredInputs.schema, {
 		Optional(r'strip_paths')		: ValueOrArray(str, name=r'strip_paths'),
 		Optional(r'strip_includes')		: ValueOrArray(str, name=r'strip_includes'),
-		Optional(r'extract_all')		: bool,
+		Optional(r'extract_all')		: bool
 	})
 
 	def __init__(self, config, key, input_dir, additional_inputs=None, additional_recursive_inputs=None):
@@ -1447,12 +1457,12 @@ class Context(object):
 			self.implementation_headers = []
 			if 'implementation_headers' in config:
 				for k, v in config['implementation_headers'].items():
-					header = k.strip()
+					header = k.strip().replace('\\', '/')
 					impls = coerce_collection(v)
-					impls = [i.strip() for i in impls]
+					impls = [i.strip().replace('\\', '/') for i in impls]
 					impls = [i for i in impls if i]
 					if header and impls:
-						self.implementation_headers .append((header, impls))
+						self.implementation_headers.append((header, impls))
 			self.implementation_headers = tuple(self.implementation_headers)
 			self.verbose_value(r'Context.implementation_headers', self.implementation_headers)
 

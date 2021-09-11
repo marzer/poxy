@@ -421,6 +421,8 @@ def _postprocess_xml(context):
 		implementation_header_mappings = None
 		implementation_header_innernamespaces = None
 		implementation_header_sectiondefs = None
+		implementation_header_unused_keys = None
+		implementation_header_unused_values = None
 		if context.implementation_headers:
 			implementation_header_data = [
 				(
@@ -431,6 +433,13 @@ def _postprocess_xml(context):
 				)
 				for hp, impl in context.implementation_headers
 			]
+			implementation_header_unused_keys = set()
+			for hp, impl in context.implementation_headers:
+				implementation_header_unused_keys.add(hp)
+			implementation_header_unused_values = dict()
+			for hdata in implementation_header_data:
+				for (ip, ifn, iid) in hdata[3]:
+					implementation_header_unused_values[iid] = (ip, hdata[0])
 			implementation_header_mappings = dict()
 			implementation_header_innernamespaces = dict()
 			implementation_header_sectiondefs = dict()
@@ -440,23 +449,23 @@ def _postprocess_xml(context):
 				for (ip, ifn, iid) in hdata[3]:
 					implementation_header_mappings[iid] = hdata
 
+		# process xml files
 		if 1:
 
 			# pre-pass to delete junk files
 			if 1:
-				# delete the new Doxyfile.xml (https://github.com/doxygen/doxygen/pull/8463)
+				# delete Doxyfile.xml (https://github.com/doxygen/doxygen/pull/8463)
 				# (it breaks m.css otherwise)
 				if not context.xml_only:
 					delete_file(Path(context.xml_dir, r'Doxyfile.xml'), logger=context.verbose_logger)
 
 				# 'file' entries for markdown and dox files
-				dox_files = (r'.dox', r'.md')
-				dox_files = [rf'*{doxygen.mangle_name(ext)}.xml' for ext in dox_files]
+				dox_files = [rf'*{doxygen.mangle_name(ext)}.xml' for ext in (r'.dox', r'.md')]
 				dox_files.append(r'md_home.xml')
 				for xml_file in get_all_files(context.xml_dir, any=dox_files):
 					delete_file(xml_file, logger=context.verbose_logger)
 
-				# 'dir' entries which contain nothing
+				# 'dir' entries for empty directories
 				deleted = True
 				while deleted:
 					deleted = False
@@ -697,12 +706,15 @@ def _postprocess_xml(context):
 
 						# rip the good bits out of implementation headers
 						if context.implementation_headers:
-							if compounddef.get(r'id') in implementation_header_mappings:
-								hid = implementation_header_mappings[compounddef.get("id")][2]
+							iid = compounddef.get(r'id')
+							if iid in implementation_header_mappings:
+								hid = implementation_header_mappings[iid][2]
 								innernamespaces = compounddef.findall(r'innernamespace')
 								if innernamespaces:
 									implementation_header_innernamespaces[hid] = implementation_header_innernamespaces[hid] + innernamespaces
 									extracted_implementation = True
+									if iid in implementation_header_unused_values:
+										del implementation_header_unused_values[iid]
 									for tag in innernamespaces:
 										compounddef.remove(tag)
 										changed = True
@@ -710,6 +722,8 @@ def _postprocess_xml(context):
 								if sectiondefs:
 									implementation_header_sectiondefs[hid] = implementation_header_sectiondefs[hid] + sectiondefs
 									extracted_implementation = True
+									if iid in implementation_header_unused_values:
+										del implementation_header_unused_values[iid]
 									for tag in sectiondefs:
 										compounddef.remove(tag)
 										changed = True
@@ -787,7 +801,17 @@ def _postprocess_xml(context):
 							changed = True
 
 					if changed:
+						implementation_header_unused_keys.remove(hp)
 						write_xml_to_file(xml, xml_file)
+
+			# sanity-check implementation header state
+			if implementation_header_unused_keys:
+				for key in implementation_header_unused_keys:
+					context.warning(rf"implementation_header: nothing extracted for '{key}'")
+			if implementation_header_unused_values:
+				for iid, idata in implementation_header_unused_values.items():
+					context.warning(rf"implementation_header: nothing extracted from '{idata[0]}' for '{idata[1]}'")
+
 
 		# delete the impl header xml files
 		if 1 and context.implementation_headers:
@@ -836,25 +860,33 @@ def _postprocess_html_file(path, context=None):
 
 	context.verbose(rf'Post-processing {path}')
 	html_changed = False
-	if html_fixers:
-		doc = soup.HTMLDocument(path, logger=context.verbose_logger)
-		for fix in html_fixers:
-			if fix(doc, context):
-				doc.smooth()
-				html_changed = True
-		if html_changed:
-			doc.flush()
-
 	plain_text_changed = False
-	if plain_text_fixers:
-		doc = [ read_all_text_from_file(path, logger=context.verbose_logger) ]
-		for fix in plain_text_fixers:
-			if fix(doc, context):
-				plain_text_changed = True
-		if plain_text_changed:
-			context.verbose(rf'Writing {path}')
-			with open(path, 'w', encoding='utf-8', newline='\n') as f:
-				f.write(doc[0])
+
+	try:
+		if html_fixers:
+			doc = soup.HTMLDocument(path, logger=context.verbose_logger)
+			for fix in html_fixers:
+				if fix(doc, context):
+					doc.smooth()
+					html_changed = True
+			if html_changed:
+				doc.flush()
+
+		if plain_text_fixers:
+			doc = [ read_all_text_from_file(path, logger=context.verbose_logger) ]
+			for fix in plain_text_fixers:
+				if fix(doc, context):
+					plain_text_changed = True
+			if plain_text_changed:
+				context.verbose(rf'Writing {path}')
+				with open(path, 'w', encoding='utf-8', newline='\n') as f:
+					f.write(doc[0])
+	except Exception as e:
+		context.info(rf'{type(e).__name__} raised while post-processing {path}')
+		raise
+	except:
+		context.info(rf'Error occurred while post-processing {path}')
+		raise
 
 	return html_changed or plain_text_changed
 
