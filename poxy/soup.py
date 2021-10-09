@@ -47,7 +47,8 @@ def replace_tag(tag, new_tag_str):
 	if new_tag_str:
 		doc = bs4.BeautifulSoup(new_tag_str, 'html5lib')
 		if len(doc.body.contents) > 0:
-			newTags = [f.extract() for f in doc.body.contents]
+			newTags = [f for f in doc.body.contents]
+			newTags = [f.extract() for f in newTags]
 			prev = tag
 			for newTag in newTags:
 				prev.insert_after(newTag)
