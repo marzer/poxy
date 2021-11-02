@@ -1,6 +1,18 @@
 # Changelog
 
-## v0.4.4 - 2021-06-08
+## v0.5.2 - 2021-11-02
+- Fixed over-eager link-replacement for internal `#anchor` links
+- Added command-line options `--ppinclude` and `--ppexclude`
+
+## v0.5.1 - 2021-10-09
+- Fixed over-eager link replacement causing text to be deleted
+
+## v0.5.0 - 2021-09-11
+- Fixed a crash during HTML post-processing
+- Fixed `implementation_headers` not working when paths use backslashes
+- Added warnings when `implementation_headers` doesn't match anything
+
+## v0.4.5 - 2021-06-08
 - Added command-line option `--xmlonly`
 
 ## v0.4.3 - 2021-05-31

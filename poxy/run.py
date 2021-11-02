@@ -392,6 +392,13 @@ def _preprocess_doxyfile(context):
 			context.verbose(conf_py.getvalue(), indent=r'    ##! ')
 
 
+def _filter_filenames(files, include, exclude):
+	if include is not None:
+		files = [f for f in files if include.search(f.name) is not None]
+	if exclude is not None:
+		files = [f for f in files if exclude.search(f.name) is None]
+	return files
+
 
 def _postprocess_xml(context):
 	assert context is not None
@@ -896,7 +903,11 @@ def _postprocess_html(context):
 	assert context is not None
 	assert isinstance(context, project.Context)
 
-	files = get_all_files(context.html_dir, any=('*.html', '*.htm'))
+	files = _filter_filenames(
+		get_all_files(context.html_dir, any=('*.html', '*.htm')),
+		context.html_include,
+		context.html_exclude
+	)
 	if not files:
 		return
 
@@ -1033,6 +1044,8 @@ def run(config_path='.',
 		logger=None,
 		dry_run=False,
 		xml_only=False,
+		html_include=None,
+		html_exclude=None,
 		treat_warnings_as_errors=None
 	):
 
@@ -1047,6 +1060,8 @@ def run(config_path='.',
 		logger = logger,
 		dry_run = dry_run,
 		xml_only = xml_only,
+		html_include = html_include,
+		html_exclude = html_exclude,
 		treat_warnings_as_errors = treat_warnings_as_errors
 	) as context:
 

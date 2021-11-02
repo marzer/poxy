@@ -1018,7 +1018,7 @@ class Context(object):
 		finally:
 			cls.__data_files_lock.release()
 
-	def __init__(self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, doxygen_path, logger, dry_run, xml_only, treat_warnings_as_errors):
+	def __init__(self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, doxygen_path, logger, dry_run, xml_only, html_include, html_exclude, treat_warnings_as_errors):
 
 		self.logger = logger
 		self.__verbose = bool(verbose)
@@ -1047,6 +1047,13 @@ class Context(object):
 		self.warnings = _Warnings(None) # overwritten after reading config; this is for correct 'treat_as_errors' behaviour if we add any pre-config warnings
 		if treat_warnings_as_errors:
 			self.warnings.treat_as_errors = True
+
+		if html_include is not None:
+			html_include = re.compile(str(html_include))
+		self.html_include = html_include
+		if html_exclude is not None:
+			html_exclude = re.compile(str(html_exclude))
+		self.html_exclude = html_exclude
 
 		self.now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
 

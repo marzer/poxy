@@ -65,55 +65,65 @@ def _run(invoker=True):
 		r'--doxygen',
 		type=Path,
 		default=None,
-		metavar=r'<path>',
-		help=r"specify the Doxygen executable to use (default: find on system path)",
+		metavar=r'"path"',
+		help=r"specify the Doxygen executable to use (default: find on system path)"
 	)
 	args.add_argument(
 		r'--dry',
 		action=r'store_true',
-		help=r"do a 'dry run' only, stopping after emitting the effective Doxyfile",
-		dest=r'dry_run'
+		help=r"do a 'dry run' only, stopping after emitting the effective Doxyfile"
 	)
 	args.add_argument(
 		r'--mcss',
 		type=Path,
 		default=None,
-		metavar=r'<path>',
+		metavar=r'"path"',
 		help=r"specify the version of m.css to use (default: uses the bundled one)"
 	)
 	args.add_argument(
 		r'--threads',
 		type=int,
 		default=0,
-		metavar=r'<N>',
+		metavar=r'N',
 		help=r"set the number of threads to use (default: automatic)"
 	)
 	args.add_argument(
 		r'--version',
 		action=r'store_true',
-		help=r"print the version and exit",
-		dest=r'print_version'
+		help=r"print the version and exit"
 	)
 	args.add_argument(
 		r'--werror',
 		action=r'store_true',
-		help=r"always treat warnings as errors regardless of config file settings",
-		dest=r'treat_warnings_as_errors'
+		help=r"always treat warnings as errors regardless of config file settings"
 	)
 	args.add_argument(
 		r'--xmlonly',
 		action=r'store_true',
-		help=r"stop after generating and preprocessing the Doxygen xml",
-		dest=r'xml_only'
+		help=r"stop after generating and preprocessing the Doxygen xml"
+	)
+	args.add_argument(
+		r'--ppinclude',
+		type=str,
+		default=None,
+		metavar=r'"regex"',
+		help=r"pattern matching HTML file names to post-process (default: all)"
+	)
+	args.add_argument(
+		r'--ppexclude',
+		type=str,
+		default=None,
+		metavar=r'"regex"',
+		help=r"pattern matching HTML file names to exclude from post-processing (default: none)"
 	)
 	args.add_argument(r'--nocleanup', action=r'store_true', help=argparse.SUPPRESS)
 	args = args.parse_args()
 
-	if args.print_version:
+	if args.version:
 		print(r'.'.join(lib_version()))
 		return
 
-	with ScopeTimer(r'All tasks', print_start=False, print_end=not args.dry_run) as timer:
+	with ScopeTimer(r'All tasks', print_start=False, print_end=not args.dry) as timer:
 		run(
 			config_path = args.config,
 			output_dir = Path.cwd(),
@@ -123,9 +133,11 @@ def _run(invoker=True):
 			mcss_dir = args.mcss,
 			doxygen_path = args.doxygen,
 			logger=True, # stderr + stdout
-			dry_run=args.dry_run,
-			xml_only=args.xml_only,
-			treat_warnings_as_errors=True if args.treat_warnings_as_errors else None
+			dry_run=args.dry,
+			xml_only=args.xmlonly,
+			html_include=args.ppinclude,
+			html_exclude=args.ppexclude,
+			treat_warnings_as_errors=True if args.werror else None
 		)
 
 

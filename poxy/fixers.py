@@ -663,14 +663,26 @@ class AutoDocLinks(HTMLFixer):
 				done = False
 				s = link.get_text()
 				for expr, uri in context.autolinks:
-					if ((not link.has_attr('href') or link['href'] != uri) and expr.fullmatch(s)):
-						link['href'] = uri
-						soup.set_class(link, ['m-doc', 'poxy-injected'])
-						if uri.startswith('http'):
-							soup.add_class(link, 'poxy-external')
-						done = True
-						changed = True
-						break
+					# check that it's a match for the replacement expression
+					if not expr.fullmatch(s):
+						continue
+					# check the existing href against the target first
+					if link.has_attr('href'):
+						href = str(link['href'])
+						anchor = href.rfind('#')
+						if anchor == 0:
+							continue # don't override internal self-links
+						if anchor != -1:
+							href = href[:anchor]
+						if href == uri or href == doc.path.name: # don't override internal self-links
+							continue
+					link['href'] = uri
+					soup.set_class(link, ['m-doc', 'poxy-injected'])
+					if uri.startswith('http'):
+						soup.add_class(link, 'poxy-external')
+					done = True
+					changed = True
+					break
 				if done:
 					continue
 
