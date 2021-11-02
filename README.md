@@ -50,7 +50,7 @@ pip install poxy
 Poxy is a command-line application.
 ```
 poxy [-h] [-v] [--doxygen "path"] [--dry] [--mcss "path"] [--threads N] [--version] [--werror]
-            [--xmlonly] [--htmlinclude "expr"] [--htmlexclude "expr"]
+            [--xmlonly] [--ppinclude "regex"] [--ppexclude "regex"]
             [config]
 
 Generate fancy C++ documentation.
@@ -68,8 +68,8 @@ optional arguments:
   --version            print the version and exit
   --werror             always treat warnings as errors regardless of config file settings
   --xmlonly            stop after generating and preprocessing the Doxygen xml
-  --ppinclude "regex"  pattern matching HTML file names to post-process (default: all)
-  --ppexclude "regex"  pattern matching HTML file names to exclude from post-processing (default: none)
+  --ppinclude "regex"  match HTML file names to post-process (default: all)
+  --ppexclude "regex"  match HTML file names to exclude from post-processing (default: none)
 ```
 The basic three-step to using Poxy is similar to Doxygen:
 1. Create your `poxy.toml` (Poxy's answer to the `Doxyfile`)
