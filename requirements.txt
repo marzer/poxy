@@ -5,4 +5,4 @@ pygments
 html5lib
 lxml
 pytomlpp
-schema
+schema!=0.7.5

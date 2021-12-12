@@ -640,6 +640,40 @@ def _postprocess_xml(context):
 										changed = True
 										break
 
+							# fix functions where keywords like 'friend' have been erroneously included in the return type
+							if 1:
+								members = [m for m in section.findall(r'memberdef') if m.get(r'kind') in (r'friend', r'function')]
+								keywords_behaving_badly = (
+									(r'constexpr ', r'constexpr', r'yes'),
+									(r'consteval ', r'constexpr', r'yes'),
+									(r'explicit ', r'explicit', r'yes'),
+									(r'static ', r'static', r'yes'),
+									(r'friend ', None, None),
+									(r'inline ', r'inline', r'yes'),
+								)
+								for member in members:
+									type = member.find(r'type')
+									if type is None or type.text is None:
+										continue
+									matched_bad_keyword = True
+									removed_constexpr = False
+									while matched_bad_keyword:
+										matched_bad_keyword = False
+										for kw, attr, attr_value in keywords_behaving_badly:
+											if type.text.startswith(kw):
+												matched_bad_keyword = True
+												changed = True
+												type.text = type.text[len(kw):]
+												if attr is not None:
+													member.set(attr, attr_value)
+												elif kw == r'friend ':
+													member.set(r'kind', r'friend')
+												if kw == r'constexpr ':
+													removed_constexpr = True
+									# hack: m.css seems to need 'constexpr' to be a part of the type and ignores the xml attribute O_o
+									if removed_constexpr and not context.xml_only:
+										type.text = rf'constexpr {type.text}'
+
 							# re-sort members to override Doxygen's weird and stupid sorting 'rules'
 							if 1:
 								sort_members_by_name = lambda tag: tag.find(r'name').text
