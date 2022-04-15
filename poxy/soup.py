@@ -153,9 +153,12 @@ class HTMLDocument(object):
 		try:
 			self.article = self.__doc.body.main.article
 			self.article_content = self.article.div.div.div
-			for div in self.article_content('div', class_='m-block m-default', recursive=False):
-				if div.h3 and div.h3.string == 'Contents':
-					self.table_of_contents = div
+			for toc_tag in ('nav', 'div'):
+				for tag in self.article_content(toc_tag, class_='m-block m-default', recursive=False):
+					if tag.h3 and tag.h3.string == 'Contents':
+						self.table_of_contents = tag
+						break
+				if self.table_of_contents is not None:
 					break
 			self.sections = self.article_content('section', recursive=False)
 		except:

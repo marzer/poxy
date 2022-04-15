@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.4 - 2022-04-15
+- Updated m.css
+- Updated emoji database
+
 ## v0.5.3 - 2021-12-12
 - Fixed Doxygen bug that would sometimes treat keywords like `friend` as part of a function's return type
 - Blacklisted schema 0.7.5 because [it's broken](https://github.com/keleshev/schema/issues/272)

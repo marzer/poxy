@@ -1001,8 +1001,10 @@ class Context(object):
 							emoji[key] = [ cp, uri ]
 							cls.__emoji_codepoints.add(cp)
 					aliases = [
-						('sundae', 'ice_cream'),
-						('info', 'information_source')
+						('sundae',			'ice_cream'),
+						('info',			'information_source'),
+						('man_in_tuxedo',	'person_in_tuxedo'),
+						('bride_with_veil',	'person_with_veil')
 					]
 					for alias, key in aliases:
 						emoji[alias] = emoji[key]

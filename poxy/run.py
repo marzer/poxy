@@ -461,11 +461,6 @@ def _postprocess_xml(context):
 
 			# pre-pass to delete junk files
 			if 1:
-				# delete Doxyfile.xml (https://github.com/doxygen/doxygen/pull/8463)
-				# (it breaks m.css otherwise)
-				if not context.xml_only:
-					delete_file(Path(context.xml_dir, r'Doxyfile.xml'), logger=context.verbose_logger)
-
 				# 'file' entries for markdown and dox files
 				dox_files = [rf'*{doxygen.mangle_name(ext)}.xml' for ext in (r'.dox', r'.md')]
 				dox_files.append(r'md_home.xml')

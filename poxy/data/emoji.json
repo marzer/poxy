@@ -128,6 +128,7 @@
         9884,
         9888,
         9889,
+        9895,
         9898,
         9899,
         9904,
@@ -1024,6 +1025,8 @@
         128721,
         128722,
         128725,
+        128726,
+        128727,
         128736,
         128737,
         128738,
@@ -1042,6 +1045,8 @@
         128760,
         128761,
         128762,
+        128763,
+        128764,
         128992,
         128993,
         128994,
@@ -1054,6 +1059,7 @@
         129001,
         129002,
         129003,
+        129292,
         129293,
         129294,
         129295,
@@ -1153,10 +1159,13 @@
         129391,
         129392,
         129393,
+        129394,
         129395,
         129396,
         129397,
         129398,
+        129399,
+        129400,
         129402,
         129403,
         129404,
@@ -1198,12 +1207,17 @@
         129440,
         129441,
         129442,
+        129443,
+        129444,
         129445,
         129446,
         129447,
         129448,
         129449,
         129450,
+        129451,
+        129452,
+        129453,
         129454,
         129455,
         129460,
@@ -1229,6 +1243,7 @@
         129480,
         129481,
         129482,
+        129483,
         129485,
         129486,
         129487,
@@ -1284,18 +1299,59 @@
         129649,
         129650,
         129651,
+        129652,
         129656,
         129657,
         129658,
         129664,
         129665,
         129666,
+        129667,
+        129668,
+        129669,
+        129670,
         129680,
         129681,
         129682,
         129683,
         129684,
-        129685
+        129685,
+        129686,
+        129687,
+        129688,
+        129689,
+        129690,
+        129691,
+        129692,
+        129693,
+        129694,
+        129695,
+        129696,
+        129697,
+        129698,
+        129699,
+        129700,
+        129701,
+        129702,
+        129703,
+        129704,
+        129712,
+        129713,
+        129714,
+        129715,
+        129716,
+        129717,
+        129718,
+        129728,
+        129729,
+        129730,
+        129744,
+        129745,
+        129746,
+        129747,
+        129748,
+        129749,
+        129750
     ],
     "__processed": true,
     "a": [
@@ -1321,6 +1377,10 @@
     "accept": [
         127569,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f251.png?v8"
+    ],
+    "accordion": [
+        129687,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa97.png?v8"
     ],
     "adhesive_bandage": [
         129657,
@@ -1357,6 +1417,10 @@
     "amphora": [
         127994,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3fa.png?v8"
+    ],
+    "anatomical_heart": [
+        129728,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fac0.png?v8"
     ],
     "anchor": [
         9875,
@@ -1650,6 +1714,10 @@
         129492,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9d4.png?v8"
     ],
+    "beaver": [
+        129451,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9ab.png?v8"
+    ],
     "bed": [
         128719,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6cf.png?v8"
@@ -1667,8 +1735,8 @@
         "https://github.githubassets.com/images/icons/emoji/unicode/1f37b.png?v8"
     ],
     "beetle": [
-        128030,
-        "https://github.githubassets.com/images/icons/emoji/unicode/1f41e.png?v8"
+        129714,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fab2.png?v8"
     ],
     "beginner": [
         128304,
@@ -1677,6 +1745,10 @@
     "bell": [
         128276,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f514.png?v8"
+    ],
+    "bell_pepper": [
+        129745,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fad1.png?v8"
     ],
     "bellhop_bell": [
         128718,
@@ -1717,6 +1789,10 @@
     "birthday": [
         127874,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f382.png?v8"
+    ],
+    "bison": [
+        129452,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9ac.png?v8"
     ],
     "black_circle": [
         9899,
@@ -1786,6 +1862,10 @@
         128998,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f7e6.png?v8"
     ],
+    "blueberries": [
+        129744,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fad0.png?v8"
+    ],
     "blush": [
         128522,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f60a.png?v8"
@@ -1825,6 +1905,10 @@
     "boom": [
         128165,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4a5.png?v8"
+    ],
+    "boomerang": [
+        129667,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa83.png?v8"
     ],
     "boot": [
         128098,
@@ -1913,6 +1997,14 @@
     "brown_square": [
         129003,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f7eb.png?v8"
+    ],
+    "bubble_tea": [
+        129483,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9cb.png?v8"
+    ],
+    "bucket": [
+        129699,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1faa3.png?v8"
     ],
     "bug": [
         128027,
@@ -2049,6 +2141,10 @@
     "carousel_horse": [
         127904,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3a0.png?v8"
+    ],
+    "carpentry_saw": [
+        129690,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa9a.png?v8"
     ],
     "carrot": [
         129365,
@@ -2342,6 +2438,10 @@
         129509,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9e5.png?v8"
     ],
+    "cockroach": [
+        129715,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fab3.png?v8"
+    ],
     "cocktail": [
         127864,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f378.png?v8"
@@ -2357,6 +2457,10 @@
     "coffin": [
         9904,
         "https://github.githubassets.com/images/icons/emoji/unicode/26b0.png?v8"
+    ],
+    "coin": [
+        129689,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa99.png?v8"
     ],
     "cold_face": [
         129398,
@@ -2662,6 +2766,10 @@
         128549,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f625.png?v8"
     ],
+    "disguised_face": [
+        129400,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f978.png?v8"
+    ],
     "diving_mask": [
         129343,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f93f.png?v8"
@@ -2685,6 +2793,10 @@
     "do_not_litter": [
         128687,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6af.png?v8"
+    ],
+    "dodo": [
+        129444,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9a4.png?v8"
     ],
     "dog": [
         128054,
@@ -2822,13 +2934,17 @@
         128024,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f418.png?v8"
     ],
+    "elevator": [
+        128727,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f6d7.png?v8"
+    ],
     "elf": [
         129501,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9dd.png?v8"
     ],
     "email": [
-        9993,
-        "https://github.githubassets.com/images/icons/emoji/unicode/2709.png?v8"
+        128231,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f4e7.png?v8"
     ],
     "end": [
         128282,
@@ -2929,6 +3045,10 @@
     "fearful": [
         128552,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f628.png?v8"
+    ],
+    "feather": [
+        129718,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fab6.png?v8"
     ],
     "feet": [
         128062,
@@ -3042,6 +3162,10 @@
         129407,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f97f.png?v8"
     ],
+    "flatbread": [
+        129747,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fad3.png?v8"
+    ],
     "fleur_de_lis": [
         9884,
         "https://github.githubassets.com/images/icons/emoji/unicode/269c.png?v8"
@@ -3070,6 +3194,10 @@
         128563,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f633.png?v8"
     ],
+    "fly": [
+        129712,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fab0.png?v8"
+    ],
     "flying_disc": [
         129359,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f94f.png?v8"
@@ -3085,6 +3213,10 @@
     "foggy": [
         127745,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f301.png?v8"
+    ],
+    "fondue": [
+        129749,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fad5.png?v8"
     ],
     "foot": [
         129462,
@@ -3378,6 +3510,10 @@
         127911,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3a7.png?v8"
     ],
+    "headstone": [
+        129702,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1faa6.png?v8"
+    ],
     "hear_no_evil": [
         128585,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f649.png?v8"
@@ -3494,6 +3630,10 @@
         128029,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f41d.png?v8"
     ],
+    "hook": [
+        129693,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa9d.png?v8"
+    ],
     "horse": [
         128052,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f434.png?v8"
@@ -3553,6 +3693,10 @@
     "hushed": [
         128559,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f62f.png?v8"
+    ],
+    "hut": [
+        128726,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f6d6.png?v8"
     ],
     "ice_cream": [
         127848,
@@ -3738,6 +3882,10 @@
         128298,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f52a.png?v8"
     ],
+    "knot": [
+        129698,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1faa2.png?v8"
+    ],
     "koala": [
         128040,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f428.png?v8"
@@ -3757,6 +3905,14 @@
     "lacrosse": [
         129357,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f94d.png?v8"
+    ],
+    "ladder": [
+        129692,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa9c.png?v8"
+    ],
+    "lady_beetle": [
+        128030,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f41e.png?v8"
     ],
     "lantern": [
         127982,
@@ -3886,6 +4042,10 @@
         127853,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f36d.png?v8"
     ],
+    "long_drum": [
+        129688,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa98.png?v8"
+    ],
     "loop": [
         10175,
         "https://github.githubassets.com/images/icons/emoji/unicode/27bf.png?v8"
@@ -3926,6 +4086,10 @@
         129523,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9f3.png?v8"
     ],
+    "lungs": [
+        129729,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fac1.png?v8"
+    ],
     "lying_face": [
         129317,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f925.png?v8"
@@ -3945,6 +4109,10 @@
     "mage": [
         129497,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9d9.png?v8"
+    ],
+    "magic_wand": [
+        129668,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa84.png?v8"
     ],
     "magnet": [
         129522,
@@ -3973,6 +4141,10 @@
     "male_sign": [
         9794,
         "https://github.githubassets.com/images/icons/emoji/unicode/2642.png?v8"
+    ],
+    "mammoth": [
+        129443,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9a3.png?v8"
     ],
     "man": [
         128104,
@@ -4102,6 +4274,10 @@
         128405,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f595.png?v8"
     ],
+    "military_helmet": [
+        129686,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa96.png?v8"
+    ],
     "milk_glass": [
         129371,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f95b.png?v8"
@@ -4117,6 +4293,10 @@
     "minidisc": [
         128189,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4bd.png?v8"
+    ],
+    "mirror": [
+        129694,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa9e.png?v8"
     ],
     "mobile_phone_off": [
         128244,
@@ -4222,6 +4402,10 @@
         128001,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f401.png?v8"
     ],
+    "mouse_trap": [
+        129700,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1faa4.png?v8"
+    ],
     "movie_camera": [
         127909,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3a5.png?v8"
@@ -4290,6 +4474,10 @@
         129299,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f913.png?v8"
     ],
+    "nesting_dolls": [
+        129670,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa86.png?v8"
+    ],
     "neutral_face": [
         128528,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f610.png?v8"
@@ -4325,6 +4513,10 @@
     "night_with_stars": [
         127747,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f303.png?v8"
+    ],
+    "ninja": [
+        129399,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f977.png?v8"
     ],
     "no_bell": [
         128277,
@@ -4441,6 +4633,10 @@
     "older_woman": [
         128117,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f475.png?v8"
+    ],
+    "olive": [
+        129746,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fad2.png?v8"
     ],
     "om": [
         128329,
@@ -4674,6 +4870,10 @@
         128532,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f614.png?v8"
     ],
+    "people_hugging": [
+        129730,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fac2.png?v8"
+    ],
     "performing_arts": [
         127917,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3ad.png?v8"
@@ -4686,9 +4886,17 @@
         129338,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f93a.png?v8"
     ],
+    "person_in_tuxedo": [
+        129333,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f935.png?v8"
+    ],
     "person_with_turban": [
         128115,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f473.png?v8"
+    ],
+    "person_with_veil": [
+        128112,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f470.png?v8"
     ],
     "petri_dish": [
         129515,
@@ -4701,6 +4909,10 @@
     "pick": [
         9935,
         "https://github.githubassets.com/images/icons/emoji/unicode/26cf.png?v8"
+    ],
+    "pickup_truck": [
+        128763,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f6fb.png?v8"
     ],
     "pie": [
         129383,
@@ -4722,6 +4934,14 @@
         128138,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f48a.png?v8"
     ],
+    "pinata": [
+        129669,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa85.png?v8"
+    ],
+    "pinched_fingers": [
+        129292,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f90c.png?v8"
+    ],
     "pinching_hand": [
         129295,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f90f.png?v8"
@@ -4742,6 +4962,10 @@
         127829,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f355.png?v8"
     ],
+    "placard": [
+        129703,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1faa7.png?v8"
+    ],
     "place_of_worship": [
         128720,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6d0.png?v8"
@@ -4757,6 +4981,10 @@
     "pleading_face": [
         129402,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f97a.png?v8"
+    ],
+    "plunger": [
+        129696,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1faa0.png?v8"
     ],
     "point_down": [
         128071,
@@ -4817,6 +5045,10 @@
     "potato": [
         129364,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f954.png?v8"
+    ],
+    "potted_plant": [
+        129716,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fab4.png?v8"
     ],
     "pouch": [
         128093,
@@ -5106,6 +5338,10 @@
         129302,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f916.png?v8"
     ],
+    "rock": [
+        129704,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1faa8.png?v8"
+    ],
     "rocket": [
         128640,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f680.png?v8"
@@ -5125,6 +5361,10 @@
     "roller_coaster": [
         127906,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3a2.png?v8"
+    ],
+    "roller_skate": [
+        128764,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f6fc.png?v8"
     ],
     "rooster": [
         128019,
@@ -5262,9 +5502,17 @@
         128576,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f640.png?v8"
     ],
+    "screwdriver": [
+        129691,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa9b.png?v8"
+    ],
     "scroll": [
         128220,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4dc.png?v8"
+    ],
+    "seal": [
+        129453,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9ad.png?v8"
     ],
     "seat": [
         128186,
@@ -5285,6 +5533,10 @@
     "selfie": [
         129331,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f933.png?v8"
+    ],
+    "sewing_needle": [
+        129697,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1faa1.png?v8"
     ],
     "shallow_pan_of_food": [
         129368,
@@ -5461,6 +5713,10 @@
     "smiley_cat": [
         128570,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f63a.png?v8"
+    ],
+    "smiling_face_with_tear": [
+        129394,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f972.png?v8"
     ],
     "smiling_face_with_three_hearts": [
         129392,
@@ -5826,6 +6082,10 @@
         129377,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f961.png?v8"
     ],
+    "tamale": [
+        129748,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fad4.png?v8"
+    ],
     "tanabata_tree": [
         127883,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f38b.png?v8"
@@ -5845,6 +6105,10 @@
     "tea": [
         127861,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f375.png?v8"
+    ],
+    "teapot": [
+        129750,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fad6.png?v8"
     ],
     "teddy_bear": [
         129528,
@@ -5881,6 +6145,10 @@
     "thinking": [
         129300,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f914.png?v8"
+    ],
+    "thong_sandal": [
+        129652,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa74.png?v8"
     ],
     "thought_balloon": [
         128173,
@@ -5954,6 +6222,10 @@
         129463,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9b7.png?v8"
     ],
+    "toothbrush": [
+        129701,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1faa5.png?v8"
+    ],
     "top": [
         128285,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f51d.png?v8"
@@ -5989,6 +6261,10 @@
     "tram": [
         128650,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f68a.png?v8"
+    ],
+    "transgender_symbol": [
+        9895,
+        "https://github.githubassets.com/images/icons/emoji/unicode/26a7.png?v8"
     ],
     "triangular_flag_on_post": [
         128681,
@@ -6338,6 +6614,10 @@
         127788,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f32c.png?v8"
     ],
+    "window": [
+        129695,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fa9f.png?v8"
+    ],
     "wine_glass": [
         127863,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f377.png?v8"
@@ -6374,6 +6654,10 @@
         128698,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6ba.png?v8"
     ],
+    "wood": [
+        129717,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fab5.png?v8"
+    ],
     "woozy_face": [
         129396,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f974.png?v8"
@@ -6381,6 +6665,10 @@
     "world_map": [
         128506,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f5fa.png?v8"
+    ],
+    "worm": [
+        129713,
+        "https://github.githubassets.com/images/icons/emoji/unicode/1fab1.png?v8"
     ],
     "worried": [
         128543,
