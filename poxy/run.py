@@ -471,7 +471,7 @@ def _postprocess_xml(context):
 				deleted = True
 				while deleted:
 					deleted = False
-					for xml_file in get_all_files(context.xml_dir, all=(r'dir_*.xml')):
+					for xml_file in get_all_files(context.xml_dir, all=(r'dir*.xml')):
 						xml = etree.parse(str(xml_file), parser=xml_parser)
 						compounddef = xml.getroot().find(r'compounddef')
 						if compounddef is None or compounddef.get(r'kind') != r'dir':
@@ -485,6 +485,22 @@ def _postprocess_xml(context):
 						if not existing_inners:
 							delete_file(xml_file, logger=context.verbose_logger)
 							deleted = True
+
+				# concepts - not currently supported by m.css
+				if not context.xml_only:
+					for xml_file in get_all_files(context.xml_dir, all=(r'concept*.xml')):
+						xml = etree.parse(str(xml_file), parser=xml_parser)
+						compounddef = xml.getroot().find(r'compounddef')
+						if compounddef is None or compounddef.get(r'kind') != r'concept':
+							continue
+						compoundname = compounddef.find(r'compoundname')
+						assert compoundname is not None
+						assert compoundname.text
+						context.warning(
+							rf"C++20 concepts are not currently supported! No documentation will be generated for '{compoundname.text}'."
+							+ r" Surround your concepts in a '@cond poxy_supports_concepts' block to suppress this warning until"
+							+ r" poxy is updated to support them.")
+						delete_file(xml_file, logger=context.verbose_logger)
 
 			extracted_implementation = False
 			tentative_macros = regex_or(context.code_blocks.macros)
@@ -507,7 +523,7 @@ def _postprocess_xml(context):
 				if root.tag == r'doxygenindex':
 
 					# remove entries for files we might have explicitly deleted above
-					for compound in [tag for tag in root.findall(r'compound') if tag.get(r'kind') in (r'file', r'dir')]:
+					for compound in [tag for tag in root.findall(r'compound') if tag.get(r'kind') in (r'file', r'dir', r'concept')]:
 						ref_file = Path(context.xml_dir, rf'{compound.get(r"refid")}.xml')
 						if not ref_file.exists():
 							root.remove(compound)
@@ -665,7 +681,7 @@ def _postprocess_xml(context):
 													member.set(r'kind', r'friend')
 												if kw == r'constexpr ':
 													removed_constexpr = True
-									# hack: m.css seems to need 'constexpr' to be a part of the type and ignores the xml attribute O_o
+									# hack: m.css currently needs 'constexpr' to be a part of the type and ignores the xml attribute
 									if removed_constexpr and not context.xml_only:
 										type.text = rf'constexpr {type.text}'
 

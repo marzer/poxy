@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.5.5 - 2022-04-16
+- Fixed C++20 concepts causing a crash in m.css (they are now skipped with a warning) (#1) (@jake-arkinstall)
+
 ## v0.5.4 - 2022-04-15
 - Updated m.css
 - Updated emoji database
