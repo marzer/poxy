@@ -4,10 +4,11 @@
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 
-try:
-	from poxy.utils import *
-except:
-	from utils import *
+"""
+Helpers for working with HTML using BeautifulSoup.
+"""
+
+from .utils import *
 
 import bs4
 from bs4 import NavigableString

@@ -4,12 +4,12 @@
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 
-try:
-	from poxy.utils import *
-	import poxy.soup as soup
-except:
-	from utils import *
-	import soup
+"""
+'Fixer' function objects used during various post-process steps.
+"""
+
+from .utils import *
+from . import soup
 
 import html
 import json

@@ -4,10 +4,11 @@
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 
-try:
-	from poxy.utils import *
-except:
-	from utils import *
+"""
+Everything relating to the 'project context' object that describes the project for which the documentation is being generated.
+"""
+
+from .utils import *
 
 import os
 import copy
@@ -67,7 +68,7 @@ def ValueOrArray(typ, name='', length=None):
 # internal helpers
 #=======================================================================================================================
 
-class _Defaults(object):
+class Defaults(object):
 	inline_namespaces = {
 		r'std::(?:literals::)?(?:chrono|complex|string|string_view)_literals'
 	}
@@ -483,14 +484,32 @@ class _Defaults(object):
 	aliases = {
 		# poxy
 		r'cpp' : r'@code{.cpp}',
-		r'ecpp' : r'@endcode',
-		r'endcpp' : r'@endcode',
+			r'ecpp' : r'@endcode',
+			r'endcpp' : r'@endcode',
 		r'out' : r'@code{.shell-session}',
-		r'eout' : r'@endcode',
-		r'endout' : r'@endcode',
+			r'eout' : r'@endcode',
+			r'endout' : r'@endcode',
+		r'python' : r'@code{.py}',
+			r'epython' : r'@endcode',
+			r'endpython' : r'@endcode',
+		r'meson' : r'@code{.py}',
+			r'emeson' : r'@endcode',
+			r'endmeson' : r'@endcode',
+		r'cmake' : r'@code{.cmake}',
+			r'ecmake' : r'@endcode',
+			r'endcmake' : r'@endcode',
+		r'javascript' : r'@code{.js}',
+			r'ejavascript' : r'@endcode',
+			r'endjavascript' : r'@endcode',
+		r'json' : r'@code{.js}',
+			r'ejson' : r'@endcode',
+			r'endjson' : r'@endcode',
+		r'shell' : r'@code{.shell-session}',
+			r'eshell' : r'@endcode',
+			r'endshell' : r'@endcode',
 		r'bash' : r'@code{.sh}',
-		r'ebash' : r'@endcode',
-		r'endbash' : r'@endcode',
+			r'ebash' : r'@endcode',
+			r'endbash' : r'@endcode',
 		r'detail' : r'@details',
 		r'inline_subheading{1}' : r'[h4]\1[/h4]',
 		r'conditional_return{1}' : r'<strong><em>\1:</em></strong> ',
@@ -588,7 +607,7 @@ class _Defaults(object):
 
 
 
-def _extract_kvps(config, table,
+def extract_kvps(config, table,
 		key_getter=str,
 		value_getter=str,
 		strip_keys=True,
@@ -631,17 +650,17 @@ def _extract_kvps(config, table,
 
 
 
-def _assert_no_unexpected_keys(raw, validated, prefix=''):
+def assert_no_unexpected_keys(raw, validated, prefix=''):
 	for key in raw:
 		if key not in validated:
 			raise Error(rf"Unknown config property '{prefix}{key}'")
 		if isinstance(validated[key], dict):
-			_assert_no_unexpected_keys(raw[key], validated[key], prefix=rf'{prefix}{key}.')
+			assert_no_unexpected_keys(raw[key], validated[key], prefix=rf'{prefix}{key}.')
 	return validated
 
 
 
-class _Warnings(object):
+class Warnings(object):
 	schema = {
 		Optional(r'enabled') 			: bool,
 		Optional(r'treat_as_errors')	: bool,
@@ -669,7 +688,7 @@ class _Warnings(object):
 
 
 
-class _CodeBlocks(object):
+class CodeBlocks(object):
 	schema = {
 		Optional(r'types') 				: ValueOrArray(str, name=r'types'),
 		Optional(r'macros') 			: ValueOrArray(str, name=r'macros'),
@@ -680,12 +699,12 @@ class _CodeBlocks(object):
 	}
 
 	def __init__(self, config, macros):
-		self.types = copy.deepcopy(_Defaults.cb_types)
-		self.macros = copy.deepcopy(_Defaults.cb_macros)
-		self.string_literals = copy.deepcopy(_Defaults.cb_string_literals)
-		self.numeric_literals = copy.deepcopy(_Defaults.cb_numeric_literals)
-		self.enums = copy.deepcopy(_Defaults.cb_enums)
-		self.namespaces = copy.deepcopy(_Defaults.cb_namespaces)
+		self.types = copy.deepcopy(Defaults.cb_types)
+		self.macros = copy.deepcopy(Defaults.cb_macros)
+		self.string_literals = copy.deepcopy(Defaults.cb_string_literals)
+		self.numeric_literals = copy.deepcopy(Defaults.cb_numeric_literals)
+		self.enums = copy.deepcopy(Defaults.cb_enums)
+		self.namespaces = copy.deepcopy(Defaults.cb_namespaces)
 
 		if 'code_blocks' in config:
 			config = config['code_blocks']
@@ -736,7 +755,7 @@ class _CodeBlocks(object):
 
 
 
-class _Inputs(object):
+class Inputs(object):
 	schema = {
 		Optional(r'paths')				: ValueOrArray(str, name=r'paths'),
 		Optional(r'recursive_paths')	: ValueOrArray(str, name=r'recursive_paths'),
@@ -756,11 +775,11 @@ class _Inputs(object):
 			key = r'recursive_paths' if recursive else r'paths'
 			paths = []
 			if not recursive and additional_inputs is not None:
-				paths = paths + [p for p in coerce_collection(additional_inputs)]
+				paths = paths + [p for p in coerce_collection(additional_inputs) if p is not None]
 			if recursive and additional_recursive_inputs is not None:
-				paths = paths + [p for p in coerce_collection(additional_recursive_inputs)]
+				paths = paths + [p for p in coerce_collection(additional_recursive_inputs) if p is not None]
 			if config is not None and key in config:
-				paths = paths + [p for p in coerce_collection(config[key])]
+				paths = paths + [p for p in coerce_collection(config[key]) if p is not None]
 			paths = [p for p in paths if p]
 			paths = [str(p).strip().replace('\\', '/') for p in paths]
 			paths = [Path(p) for p in paths if p]
@@ -789,8 +808,8 @@ class _Inputs(object):
 
 
 
-class _FilteredInputs(_Inputs):
-	schema = combine_dicts(_Inputs.schema, {
+class FilteredInputs(Inputs):
+	schema = combine_dicts(Inputs.schema, {
 		Optional(r'patterns')			: ValueOrArray(str, name=r'patterns')
 	})
 
@@ -817,8 +836,8 @@ class _FilteredInputs(_Inputs):
 
 
 
-class _Sources(_FilteredInputs):
-	schema = combine_dicts(_FilteredInputs.schema, {
+class Sources(FilteredInputs):
+	schema = combine_dicts(FilteredInputs.schema, {
 		Optional(r'strip_paths')		: ValueOrArray(str, name=r'strip_paths'),
 		Optional(r'strip_includes')		: ValueOrArray(str, name=r'strip_includes'),
 		Optional(r'extract_all')		: bool
@@ -837,7 +856,7 @@ class _Sources(_FilteredInputs):
 		self.strip_includes = []
 		self.extract_all = None
 		if self.patterns is None:
-			self.patterns = copy.deepcopy(_Defaults.source_patterns)
+			self.patterns = copy.deepcopy(Defaults.source_patterns)
 
 		if key not in config:
 			return
@@ -879,16 +898,16 @@ class Context(object):
 			Optional(r'author')					: str,
 			Optional(r'autolinks')				: {str : str},
 			Optional(r'badges')					: {str : FixedArrayOf(str, 2, name=r'badges') },
-			Optional(r'code_blocks')			: _CodeBlocks.schema,
+			Optional(r'code_blocks')			: CodeBlocks.schema,
 			Optional(r'cpp')					: Or(str, int, error=r'cpp: expected string or integer'),
 			Optional(r'defines')				: {str : Or(str, int, bool)}, # legacy
 			Optional(r'description')			: str,
-			Optional(r'examples')				: _FilteredInputs.schema,
+			Optional(r'examples')				: FilteredInputs.schema,
 			Optional(r'extra_files')			: ValueOrArray(str, name=r'extra_files'),
 			Optional(r'favicon')				: str,
 			Optional(r'generate_tagfile')		: bool,
 			Optional(r'github')					: str,
-			Optional(r'images')					: _Inputs.schema,
+			Optional(r'images')					: Inputs.schema,
 			Optional(r'implementation_headers') : {str : ValueOrArray(str)},
 			Optional(r'inline_namespaces')		: ValueOrArray(str, name=r'inline_namespaces'),
 			Optional(r'internal_docs')			: bool,
@@ -903,11 +922,11 @@ class Context(object):
 			Optional(r'robots')					: bool,
 			Optional(r'scripts')				: ValueOrArray(str, name=r'scripts'),
 			Optional(r'show_includes')			: bool,
-			Optional(r'sources')				: _Sources.schema,
+			Optional(r'sources')				: Sources.schema,
 			Optional(r'stylesheets')			: ValueOrArray(str, name=r'stylesheets'),
 			Optional(r'tagfiles')				: {str : str},
 			Optional(r'theme')					: Or(r'dark', r'light', r'custom'),
-			Optional(r'warnings')				: _Warnings.schema,
+			Optional(r'warnings')				: Warnings.schema,
 		},
 		ignore_extra_keys=True
 	)
@@ -1041,12 +1060,12 @@ class Context(object):
 		threads = int(threads)
 		if threads <= 0:
 			threads = os.cpu_count()
-		self.threads = max(1, min(32, os.cpu_count(), threads))
+		self.threads = max(1, min(os.cpu_count(), threads))
 		self.verbose_value(r'Context.threads', self.threads)
 
 		self.fixers = None
 		self.tagfile_path = None
-		self.warnings = _Warnings(None) # overwritten after reading config; this is for correct 'treat_as_errors' behaviour if we add any pre-config warnings
+		self.warnings = Warnings(None) # overwritten after reading config; this is for correct 'treat_as_errors' behaviour if we add any pre-config warnings
 		if treat_warnings_as_errors:
 			self.warnings.treat_as_errors = True
 
@@ -1174,7 +1193,7 @@ class Context(object):
 
 			# m.css
 			if mcss_dir is None:
-				mcss_dir = Path(self.data_dir, r'mcss')
+				mcss_dir = Path(self.data_dir, r'm.css')
 			mcss_dir = coerce_path(mcss_dir).resolve()
 			assert_existing_directory(mcss_dir)
 			assert_existing_file(Path(mcss_dir, r'documentation/doxygen.py'))
@@ -1208,9 +1227,9 @@ class Context(object):
 			if self.config_path is not None:
 				assert_existing_file(self.config_path)
 				config = pytomlpp.loads(read_all_text_from_file(self.config_path, logger=self.verbose_logger if dry_run else self.logger))
-			config = _assert_no_unexpected_keys(config, self.__config_schema.validate(config))
+			config = assert_no_unexpected_keys(config, self.__config_schema.validate(config))
 
-			self.warnings = _Warnings(config) # printed in run.py post-doxyfile
+			self.warnings = Warnings(config) # printed in run.py post-doxyfile
 			if treat_warnings_as_errors:
 				self.warnings.treat_as_errors = True
 
@@ -1372,16 +1391,16 @@ class Context(object):
 			self.verbose_value(r'Context.blog_files', self.blog_files)
 
 			# sources (INPUT, FILE_PATTERNS, STRIP_FROM_PATH, STRIP_FROM_INC_PATH, EXTRACT_ALL)
-			self.sources = _Sources(
+			self.sources = Sources(
 				config,
 				r'sources',
 				self.input_dir,
-				additional_inputs=[ self.temp_pages_dir, *[f for f,d in self.blog_files] ]
+				additional_inputs=[ self.temp_pages_dir if not self.dry_run else None, *[f for f,d in self.blog_files] ]
 			)
 			self.verbose_object(r'Context.sources', self.sources)
 
 			# images (IMAGE_PATH)
-			self.images = _Inputs(
+			self.images = Inputs(
 				config,
 				r'images',
 				self.input_dir,
@@ -1390,7 +1409,7 @@ class Context(object):
 			self.verbose_object(r'Context.images', self.images)
 
 			# examples (EXAMPLES_PATH, EXAMPLE_PATTERNS)
-			self.examples = _FilteredInputs(
+			self.examples = FilteredInputs(
 				config,
 				r'examples',
 				self.input_dir,
@@ -1403,7 +1422,7 @@ class Context(object):
 				self.cppref_tagfile : (self.cppref_tagfile, r'http://en.cppreference.com/w/')
 			}
 			self.unresolved_tagfiles = False
-			for k,v in _extract_kvps(config, 'tagfiles').items():
+			for k,v in extract_kvps(config, 'tagfiles').items():
 				source = str(k)
 				dest = str(v)
 				if source and dest:
@@ -1430,7 +1449,7 @@ class Context(object):
 					if val:
 						self.navbar.append(val)
 			else:
-				self.navbar = copy.deepcopy(_Defaults.navbar)
+				self.navbar = copy.deepcopy(Defaults.navbar)
 			for i in range(len(self.navbar)):
 				if self.navbar[i] == 'classes':
 					self.navbar[i] = 'annotated'
@@ -1443,7 +1462,7 @@ class Context(object):
 
 			# <meta> tags
 			self.meta_tags = {}
-			for k, v in _extract_kvps(config, 'meta_tags', allow_blank_values=True).items():
+			for k, v in extract_kvps(config, 'meta_tags', allow_blank_values=True).items():
 				self.meta_tags[k] = v
 			self.verbose_value(r'Context.meta_tags', self.meta_tags)
 
@@ -1454,7 +1473,7 @@ class Context(object):
 			self.verbose_value(r'Context.robots', self.robots)
 
 			# inline namespaces for old versions of doxygen
-			self.inline_namespaces = copy.deepcopy(_Defaults.inline_namespaces)
+			self.inline_namespaces = copy.deepcopy(Defaults.inline_namespaces)
 			if 'inline_namespaces' in config:
 				for ns in coerce_collection(config['inline_namespaces']):
 					namespace = ns.strip()
@@ -1510,9 +1529,9 @@ class Context(object):
 			self.verbose_value(r'Context.favicon', self.favicon)
 
 			# macros (PREDEFINED)
-			self.macros = copy.deepcopy(_Defaults.macros)
+			self.macros = copy.deepcopy(Defaults.macros)
 			for s in (r'defines', r'macros'):
-				for k, v in _extract_kvps(config, s,
+				for k, v in extract_kvps(config, s,
 						value_getter=lambda v: (r'true' if v else r'false') if isinstance(v, bool) else str(v),
 						allow_blank_values=True,
 					).items():
@@ -1522,14 +1541,14 @@ class Context(object):
 			for ver in (1998, 2003, 2011, 2014, 2017, 2020, 2023, 2026, 2029):
 				if ver > self.cpp:
 					break
-				for k, v in _Defaults.cpp_builtin_macros[ver].items():
+				for k, v in Defaults.cpp_builtin_macros[ver].items():
 					cpp_defs[k] = v
 			for k, v in cpp_defs.items():
 				self.macros[k] = v
 			self.verbose_value(r'Context.macros', self.macros)
 
 			# autolinks
-			self.autolinks = [(k, v) for k, v in _Defaults.autolinks.items()]
+			self.autolinks = [(k, v) for k, v in Defaults.autolinks.items()]
 			if 'autolinks' in config:
 				for pattern, u in config['autolinks'].items():
 					uri = u.strip()
@@ -1545,7 +1564,7 @@ class Context(object):
 			self.verbose_value(r'Context.autolinks', self.autolinks)
 
 			# aliases (ALIASES)
-			self.aliases = copy.deepcopy(_Defaults.aliases)
+			self.aliases = copy.deepcopy(Defaults.aliases)
 			if 'aliases' in config:
 				for k, v in config['aliases'].items():
 					alias = k.strip()
@@ -1594,7 +1613,7 @@ class Context(object):
 			self.verbose_value(r'Context.extra_files', self.extra_files)
 
 			# code_blocks
-			self.code_blocks = _CodeBlocks(config, non_cpp_def_macros) # printed in run.py post-xml
+			self.code_blocks = CodeBlocks(config, non_cpp_def_macros) # printed in run.py post-xml
 
 		# initialize other data from files on disk
 		self.__init_data_files(self)

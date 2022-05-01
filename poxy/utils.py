@@ -4,6 +4,10 @@
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 
+"""
+Low-level helper functions and useful bits.
+"""
+
 import sys
 import re
 import io
@@ -102,6 +106,15 @@ def lib_version():
 			assert len(_lib_version) == 3
 			_lib_version = tuple(_lib_version)
 	return _lib_version
+
+
+
+def filter_filenames(files, include, exclude):
+	if include is not None:
+		files = [f for f in files if include.search(f.name) is not None]
+	if exclude is not None:
+		files = [f for f in files if exclude.search(f.name) is None]
+	return files
 
 
 

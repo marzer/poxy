@@ -5,11 +5,9 @@
 # SPDX-License-Identifier: MIT
 
 try:
-	from poxy.main import _run
-except:
-	from main import _run
-
-
+	from . import main as m
+except ImportError:
+	import poxy.main as m
 
 if __name__ == '__main__':
-	_run()
+	m.main()

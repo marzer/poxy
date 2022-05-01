@@ -4,10 +4,11 @@
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 
-try:
-	from poxy.utils import *
-except:
-	from utils import *
+"""
+Functions and classes for working with doxygen's Doxyfile format.
+"""
+
+from .utils import *
 
 import subprocess
 
@@ -54,13 +55,13 @@ def mangle_name(name):
 	return name
 
 
-def _format_for_doxyfile(val):
+def format_for_doxyfile(val):
 	if val is None:
 		return ''
 	elif isinstance(val, str):
 		return '"' + val.replace('"','\\"') + '"'
 	elif isinstance(val, Path):
-		return _format_for_doxyfile(str(val))
+		return format_for_doxyfile(str(val))
 	elif isinstance(val, bool):
 		return r'YES' if val else r'NO'
 	elif isinstance(val, (int, float)):
@@ -176,9 +177,9 @@ class Doxyfile(object):
 				if value:
 					for v in value:
 						if v is not None:
-							self.append(rf'{key:<23}+= {_format_for_doxyfile(v)}')
+							self.append(rf'{key:<23}+= {format_for_doxyfile(v)}')
 			else:
-				self.append(rf'{key:<23}+= {_format_for_doxyfile(value)}')
+				self.append(rf'{key:<23}+= {format_for_doxyfile(value)}')
 			self.__dirty = True
 		return self
 
@@ -190,12 +191,12 @@ class Doxyfile(object):
 				first = True
 				for v in value:
 					if first:
-						self.append(rf'{key:<23}=  {_format_for_doxyfile(v)}')
+						self.append(rf'{key:<23}=  {format_for_doxyfile(v)}')
 					else:
 						self.add_value(key, v)
 					first = False
 		else:
-			self.append(rf'{key:<23}=  {_format_for_doxyfile(value)}')
+			self.append(rf'{key:<23}=  {format_for_doxyfile(value)}')
 		self.__dirty = True
 		return self
 

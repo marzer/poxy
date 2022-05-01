@@ -1,3 +1,5 @@
-[submodule "poxy/data/mcss"]
-	path = poxy/data/mcss
-	url = https://github.com/mosra/m.css.git
+[submodule "poxy/data/m.css"]
+	path = poxy/data/m.css
+	url = https://github.com/marzer/m.css.git
+	shallow = true
+	branch = doygen-func-keyword-fixes

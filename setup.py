@@ -82,17 +82,17 @@ setup_args = dict(
 			r'.istanbul.yaml',
 			r'*.rst',
 			r'*.pyc',
-			r'data/mcss/doc/*',
-			r'data/mcss/documentation/test/*',
-			r'data/mcss/documentation/test_doxygen/*',
-			r'data/mcss/documentation/test_python/*',
-			r'data/mcss/package/*',
+			r'data/m.css/doc/*',
+			r'data/m.css/documentation/test/*',
+			r'data/m.css/documentation/test_doxygen/*',
+			r'data/m.css/documentation/test_python/*',
+			r'data/m.css/package/*',
 		]
 	},
 	entry_points = {
 		r'console_scripts' : [
-			r'poxy = poxy.main:_run',
-			r'poxyblog = poxy.main:_make_blog_post'
+			r'poxy = poxy.main:main',
+			r'poxyblog = poxy.main:main_blog_post'
 		]
 	}
 )

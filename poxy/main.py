@@ -4,12 +4,12 @@
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 
-try:
-	from poxy.utils import *
-	import poxy.run as run
-except:
-	from utils import *
-	import run
+"""
+The various entry-point methods used when poxy is invoked from the command line.
+"""
+
+from .utils import *
+from .run import run
 
 import re
 import argparse
@@ -37,12 +37,12 @@ def _invoker(func, **kwargs):
 
 
 
-def _run(invoker=True):
+def main(invoker=True):
 	"""
 	The entry point when the library is invoked as `poxy`.
 	"""
 	if invoker:
-		_invoker(_run, invoker=False)
+		_invoker(main, invoker=False)
 		return
 
 	args = argparse.ArgumentParser(
@@ -65,7 +65,7 @@ def _run(invoker=True):
 		r'--doxygen',
 		type=Path,
 		default=None,
-		metavar=r'"path"',
+		metavar=r'<path>',
 		help=r"specify the Doxygen executable to use (default: find on system path)"
 	)
 	args.add_argument(
@@ -74,11 +74,19 @@ def _run(invoker=True):
 		help=r"do a 'dry run' only, stopping after emitting the effective Doxyfile"
 	)
 	args.add_argument(
+		r'--m.css',
+		type=Path,
+		default=None,
+		metavar=r'<path>',
+		help=r"specify the version of m.css to use (default: uses the bundled one)",
+		dest=r'mcss'
+	)
+	args.add_argument(
 		r'--mcss',
 		type=Path,
 		default=None,
-		metavar=r'"path"',
-		help=r"specify the version of m.css to use (default: uses the bundled one)"
+		dest=r'mcss_deprecated_old_arg',
+		help=argparse.SUPPRESS
 	)
 	args.add_argument(
 		r'--threads',
@@ -106,17 +114,21 @@ def _run(invoker=True):
 		r'--ppinclude',
 		type=str,
 		default=None,
-		metavar=r'"regex"',
+		metavar=r'<regex>',
 		help=r"pattern matching HTML file names to post-process (default: all)"
 	)
 	args.add_argument(
 		r'--ppexclude',
 		type=str,
 		default=None,
-		metavar=r'"regex"',
+		metavar=r'<regex>',
 		help=r"pattern matching HTML file names to exclude from post-processing (default: none)"
 	)
-	args.add_argument(r'--nocleanup', action=r'store_true', help=argparse.SUPPRESS)
+	args.add_argument(
+		r'--nocleanup',
+		action=r'store_true',
+		help=r"does not clean up after itself, leaving the XML and other temp files intact"
+	)
 	args = args.parse_args()
 
 	if args.version:
@@ -130,7 +142,7 @@ def _run(invoker=True):
 			threads = args.threads,
 			cleanup = not args.nocleanup,
 			verbose = args.verbose,
-			mcss_dir = args.mcss,
+			mcss_dir = args.mcss if args.mcss is not None else args.mcss_deprecated_old_arg,
 			doxygen_path = args.doxygen,
 			logger=True, # stderr + stdout
 			dry_run=args.dry,
@@ -142,12 +154,12 @@ def _run(invoker=True):
 
 
 
-def _make_blog_post(invoker=True):
+def main_blog_post(invoker=True):
 	"""
 	The entry point when the library is invoked as `poxyblog`.
 	"""
 	if invoker:
-		_invoker(_make_blog_post, invoker=False)
+		_invoker(main_blog_post, invoker=False)
 		return
 
 	args = argparse.ArgumentParser(
@@ -213,4 +225,4 @@ def _make_blog_post(invoker=True):
 
 
 if __name__ == '__main__':
-	_run()
+	main()
