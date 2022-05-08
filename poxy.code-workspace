@@ -9,6 +9,7 @@
 			"**/__pycache__": true,
 			"**/build": true,
 			"**/*.egg-info": true,
+			"**/poxy/html": true,
 		}
 	}
 }

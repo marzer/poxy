@@ -1,0 +1,82 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.py'
+      - '**.css'
+      - '**.js'
+      - '**.json'
+      - '**.xml'
+      - '**/poxy/data/*'
+      - '**/workflows/**.yaml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**.py'
+      - '**.css'
+      - '**.js'
+      - '**.json'
+      - '**.xml'
+      - '**/poxy/data/*'
+      - '**/workflows/**.yaml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - clang
+          # - 'g++'
+        linker:
+          - lld
+        doxygen_tag:
+          - 'Release_1_9_4'
+          - 'Release_1_9_3'
+          - 'Release_1_9_2'
+          - 'Release_1_9_1'
+          - 'Release_1_9_0'
+          - 'Release_1_8_20'
+          - 'Release_1_8_19'
+          - 'Release_1_8_18'
+          - 'Release_1_8_17'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install system dependencies
+        run: |
+          sudo apt -y update
+          sudo apt -y install --no-install-recommends ${{ matrix.compiler }} ${{ matrix.linker }} git python3 python3-pip cmake flex bison
+
+      - uses: actions/checkout@v3
+        with:
+          path: poxy
+
+      - name: Install python dependencies
+        run: |
+          cd "${{ github.workspace }}/poxy"
+          sudo pip3 install --upgrade --requirement requirements.txt
+
+      - name: Build and install doxygen
+        run: |
+          cd "${{ github.workspace }}"
+          git clone --depth 1 --branch ${{ matrix.doxygen_tag }} https://github.com/doxygen/doxygen.git
+          cd doxygen
+          mkdir build
+          cd build
+          if [ ${{ matrix.compiler }} = clang ]; then cpp_compiler=clang++; else cpp_compiler=${{ matrix.compiler }}; fi
+          if [ ${{ matrix.compiler }} = g++ ];   then   c_compiler=gcc;     else   c_compiler=${{ matrix.compiler }}; fi
+          CC=$c_compiler CC_LD=${{ matrix.linker }} CXX=$cpp_compiler CXX_LD=${{ matrix.linker }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=MinSizeRel ..
+          CC=$c_compiler CC_LD=${{ matrix.linker }} CXX=$cpp_compiler CXX_LD=${{ matrix.linker }} make -j
+          CC=$c_compiler CC_LD=${{ matrix.linker }} CXX=$cpp_compiler CXX_LD=${{ matrix.linker }} sudo make install
