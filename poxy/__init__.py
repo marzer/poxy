@@ -14,4 +14,4 @@ __all__ = [
 	r'WarningTreatedAsError'
 ]
 
-__version__ = r'.'.join(lib_version())
+__version__ = r'.'.join([str(v) for v in lib_version()])

@@ -8,8 +8,6 @@
 Everything relating to the 'project context' object that describes the project for which the documentation is being generated.
 """
 
-from .utils import *
-
 import os
 import copy
 import pytomlpp
@@ -19,7 +17,9 @@ import datetime
 import shutil
 import tempfile
 from schema import Schema, Or, And, Optional
+from .utils import *
 
+__all__ = []
 
 
 #=======================================================================================================================
@@ -792,7 +792,7 @@ class Inputs(object):
 					raise Error(rf"{key}: '{path}' was not a directory or file")
 				all_paths.add(path)
 				if recursive and path.is_dir():
-					for subdir in enum_subdirs(path, filter=lambda p: not p.name.startswith(r'.'), recursive=True):
+					for subdir in enumerate_directories(path, filter=lambda p: not p.name.startswith(r'.'), recursive=True):
 						all_paths.add(subdir)
 
 		ignores = set()
@@ -884,6 +884,7 @@ class Sources(FilteredInputs):
 # project context
 #=======================================================================================================================
 
+__all__.append(r'Context')
 class Context(object):
 	"""
 	The context object passed around during one invocation.
@@ -1049,7 +1050,7 @@ class Context(object):
 		self.verbose_logger = logger if self.__verbose else None
 
 		self.version = lib_version()
-		self.version_string = r'.'.join(self.version)
+		self.version_string = r'.'.join([str(v) for v in lib_version()])
 		if not self.dry_run or self.__verbose:
 			self.info(rf'Poxy v{self.version_string}')
 
@@ -1181,14 +1182,16 @@ class Context(object):
 					if not p.exists() or not p.is_file() or not os.access(str(p), os.X_OK):
 						raise Error(rf'Could not find Doxygen executable in {doxygen_path}')
 					doxygen_path = p
-				assert_existing_file(doxygen_path)
-				self.doxygen_path = doxygen_path
 			else:
-				self.doxygen_path = shutil.which(r'doxygen')
-				if self.doxygen_path is None:
+				doxygen_path = shutil.which(r'doxygen')
+				if doxygen_path is None:
 					raise Error(rf'Could not find Doxygen on system path')
-			if not os.access(str(self.doxygen_path), os.X_OK):
+			assert doxygen_path is not None
+			doxygen_path = coerce_path(doxygen_path).resolve()
+			assert_existing_file(doxygen_path)
+			if not os.access(str(doxygen_path), os.X_OK):
 				raise Error(rf'{doxygen_path} was not an executable file')
+			self.doxygen_path = doxygen_path
 			self.verbose_value(r'Context.doxygen_path', self.doxygen_path)
 
 			# m.css

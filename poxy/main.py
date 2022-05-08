@@ -8,13 +8,14 @@
 The various entry-point methods used when poxy is invoked from the command line.
 """
 
-from .utils import *
-from .run import run
-
 import re
 import argparse
 import datetime
 from schema import SchemaError
+from .utils import *
+from .run import run
+
+__all__ = []
 
 
 
@@ -37,6 +38,7 @@ def _invoker(func, **kwargs):
 
 
 
+__all__.append(r'main')
 def main(invoker=True):
 	"""
 	The entry point when the library is invoked as `poxy`.
@@ -98,7 +100,8 @@ def main(invoker=True):
 	args.add_argument(
 		r'--version',
 		action=r'store_true',
-		help=r"print the version and exit"
+		help=r"print the version and exit",
+		dest=r'print_version'
 	)
 	args.add_argument(
 		r'--werror',
@@ -131,8 +134,8 @@ def main(invoker=True):
 	)
 	args = args.parse_args()
 
-	if args.version:
-		print(r'.'.join(lib_version()))
+	if args.print_version:
+		print(r'.'.join([str(v) for v in lib_version()]))
 		return
 
 	with ScopeTimer(r'All tasks', print_start=False, print_end=not args.dry) as timer:
@@ -154,6 +157,7 @@ def main(invoker=True):
 
 
 
+__all__.append(r'main_blog_post')
 def main_blog_post(invoker=True):
 	"""
 	The entry point when the library is invoked as `poxyblog`.
@@ -185,7 +189,7 @@ def main_blog_post(invoker=True):
 	args = args.parse_args()
 
 	if args.print_version:
-		print(r'.'.join(lib_version()))
+		print(r'.'.join([str(v) for v in lib_version()]))
 		return
 
 	date = datetime.datetime.now().date()

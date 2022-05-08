@@ -32,16 +32,15 @@ data_subdirs = [rf'{d}/*' for d in data_subdirs]
 
 README = ''
 with open('README.md', encoding='utf-8') as file:
-		README = file.read().strip()
+	README = file.read().strip()
 
 CHANGELOG = ''
-if Path('CHANGELOG.md').exists():
-	with open('CHANGELOG.md', encoding='utf-8') as file:
-		CHANGELOG = file.read().strip()
+with open('CHANGELOG.md', encoding='utf-8') as file:
+	CHANGELOG = file.read().strip()
 
 VERSION = ''
 with open(Path(data_dir, 'version.txt'), encoding='utf-8') as file:
-		VERSION = file.read().strip()
+	VERSION = file.read().strip()
 
 setup_args = dict(
 	name=r'poxy',

@@ -12,33 +12,16 @@ import sys
 import re
 import io
 import logging
+from typing import Tuple
 from pathlib import Path
 from io import StringIO
 from misk import *
 
+# __all__ = []
 
 #=======================================================================================================================
 # FUNCTIONS
 #=======================================================================================================================
-
-def coerce_path(arg, *args):
-	assert arg is not None
-	if args is not None and len(args):
-		return Path(str(arg), *[str(a) for a in args])
-	else:
-		if not isinstance(arg, Path):
-			arg = Path(str(arg))
-		return arg
-
-
-
-def coerce_collection(val):
-	assert val is not None
-	if not is_collection(val):
-		val = ( val, )
-	return val
-
-
 
 def regex_or(patterns, pattern_prefix = '', pattern_suffix = '', flags=0):
 	patterns = [str(r) for r in patterns if r is not None and r]
@@ -66,21 +49,6 @@ def log(logger, msg, level=logging.INFO):
 
 
 
-def enum_subdirs(root, filter=None, recursive=False):
-	root = coerce_path(root)
-	assert root.is_dir()
-	subdirs = []
-	for p in root.iterdir():
-		if p.is_dir():
-			if filter is not None and not filter(p):
-				continue
-			subdirs.append(p)
-			if recursive:
-				subdirs = subdirs + enum_subdirs(p, filter=filter, recursive=True)
-	return subdirs
-
-
-
 def combine_dicts(x, y):
 	z = x.copy()
 	z.update(y)
@@ -96,13 +64,12 @@ def is_uri(s):
 
 
 _lib_version = None
-def lib_version():
+def lib_version() -> Tuple[int, int, int]:
 	global _lib_version
 	if _lib_version is None:
 		data_dir = Path(Path(__file__).resolve().parent, r'data')
 		with open(Path(data_dir, 'version.txt'), encoding='utf-8') as file:
-			_lib_version = [v.strip() for v in file.read().strip().split('.')]
-			_lib_version = [v for v in _lib_version if v]
+			_lib_version = [int(v.strip()) for v in file.read().strip().split('.')]
 			assert len(_lib_version) == 3
 			_lib_version = tuple(_lib_version)
 	return _lib_version

@@ -8,11 +8,13 @@
 'Fixer' function objects used during various post-process steps.
 """
 
+import html
+import json
+from bs4 import NavigableString
 from .utils import *
 from . import soup
 
-import html
-import json
+__all__ = []
 
 
 
@@ -20,9 +22,13 @@ import json
 # base classes
 #=======================================================================================================================
 
+__all__.append(r'HTMLFixer')
 class HTMLFixer(object):
 	pass
 
+
+
+__all__.append(r'PlainTextFixer')
 class PlainTextFixer(object):
 	pass
 
@@ -31,6 +37,7 @@ class PlainTextFixer(object):
 # custom tags
 #=======================================================================================================================
 
+__all__.append(r'CustomTags')
 class CustomTags(HTMLFixer):
 	'''
 	Modifies HTML using custom square-bracket [tags].
@@ -138,7 +145,7 @@ class CustomTags(HTMLFixer):
 									soup.set_class(parent, replacer[i][1])
 								elif replacer[i][0] in (r'parent_set_name', r'set_parent_name'):
 									parent.name = replacer[i][1]
-							elif len(new_tags) == 1 and not isinstance(new_tags[0], soup.NavigableString):
+							elif len(new_tags) == 1 and not isinstance(new_tags[0], NavigableString):
 								if replacer[i][0] == r'add_class':
 									soup.add_class(new_tags[0], replacer[i][1])
 								elif replacer[i][0] == r'remove_class':
@@ -180,6 +187,7 @@ class _ModifiersBase(HTMLFixer):
 
 
 
+__all__.append(r'Modifiers1')
 class Modifiers1(_ModifiersBase):
 	'''
 	Fixes improperly-parsed modifiers on function signatures in the various 'detail view' sections.
@@ -206,6 +214,7 @@ class Modifiers1(_ModifiersBase):
 
 
 
+__all__.append(r'Modifiers2')
 class Modifiers2(_ModifiersBase):
 	'''
 	Fixes improperly-parsed modifiers on function signatures in the 'Function documentation' section.
@@ -252,6 +261,7 @@ class Modifiers2(_ModifiersBase):
 
 
 
+__all__.append(r'TemplateTemplate')
 class TemplateTemplate(HTMLFixer):
 	'''
 	Spreads consecutive template <> declarations out over multiple lines.
@@ -273,6 +283,7 @@ class TemplateTemplate(HTMLFixer):
 
 
 
+__all__.append(r'StripIncludes')
 class StripIncludes(HTMLFixer):
 	'''
 	Strips #include <paths/to/headers.h> based on context.sources.strip_includes.
@@ -296,13 +307,14 @@ class StripIncludes(HTMLFixer):
 					soup.destroy_node(include_div)
 				else:
 					anchor.contents.clear()
-					anchor.contents.append(soup.NavigableString(rf'<{text[len(strip):]}>'))
+					anchor.contents.append(NavigableString(rf'<{text[len(strip):]}>'))
 				changed = True
 				break
 		return changed
 
 
 
+__all__.append(r'ImplementationDetails')
 class ImplementationDetails(PlainTextFixer):
 	'''
 	Replaces implementation details with appropriate shorthands.
@@ -326,6 +338,7 @@ class ImplementationDetails(PlainTextFixer):
 # index.html
 #=======================================================================================================================
 
+__all__.append(r'IndexPage')
 class IndexPage(HTMLFixer):
 	'''
 	Applies some basic fixes to index.html
@@ -356,6 +369,7 @@ class IndexPage(HTMLFixer):
 # <code> blocks
 #=======================================================================================================================
 
+__all__.append(r'CodeBlocks')
 class CodeBlocks(HTMLFixer):
 	'''
 	Fixes various issues and improves syntax highlighting in <code> blocks.
@@ -451,7 +465,7 @@ class CodeBlocks(HTMLFixer):
 			return True
 		if not mid.next_sibling is b:
 			return False
-		if not isinstance(mid, soup.NavigableString):
+		if not isinstance(mid, NavigableString):
 			return False
 		if len(mid.string.strip()) > 0:
 			return False
@@ -513,7 +527,7 @@ class CodeBlocks(HTMLFixer):
 						prev = current.previous_sibling
 						if (prev is None
 							or prev.string is None
-							or isinstance(prev, soup.NavigableString)
+							or isinstance(prev, NavigableString)
 							or 'class' not in prev.attrs
 							or prev['class'][0] not in ('n', 'nl', 'kt', 'o')
 							or not self.__ns_token_expr.fullmatch(prev.string)):
@@ -527,7 +541,7 @@ class CodeBlocks(HTMLFixer):
 						nxt = current.next_sibling
 						if (nxt is None
 							or nxt.string is None
-							or isinstance(nxt, soup.NavigableString)
+							or isinstance(nxt, NavigableString)
 							or 'class' not in nxt.attrs
 							or nxt['class'][0] not in ('n', 'nl', 'kt', 'o')
 							or not self.__ns_token_expr.fullmatch(nxt.string)):
@@ -555,7 +569,7 @@ class CodeBlocks(HTMLFixer):
 				for span in spans:
 					prev = span.previous_sibling
 					if (prev is None
-						or isinstance(prev, soup.NavigableString)
+						or isinstance(prev, NavigableString)
 						or 'class' not in prev.attrs):
 						continue
 					if ('s' in prev['class'] and context.code_blocks.string_literals.fullmatch(span.get_text())):
@@ -639,6 +653,7 @@ def _m_doc_anchor_tags(tag):
 
 
 
+__all__.append(r'AutoDocLinks')
 class AutoDocLinks(HTMLFixer):
 	'''
 	Adds links to additional sources where appropriate.
@@ -717,6 +732,7 @@ class AutoDocLinks(HTMLFixer):
 
 
 
+__all__.append(r'Links')
 class Links(HTMLFixer):
 	'''
 	Fixes various minor issues with anchor tags.
@@ -795,6 +811,7 @@ class Links(HTMLFixer):
 # empty tags
 #=======================================================================================================================
 
+__all__.append(r'EmptyTags')
 class EmptyTags(HTMLFixer):
 	'''
 	Prunes the tree of various empty tags (happens as a side-effect of some other operations).
@@ -802,7 +819,7 @@ class EmptyTags(HTMLFixer):
 	def __call__(self, doc, context):
 		changed = False
 		for tag in doc.body((r'p', r'span')):
-			if not tag.contents or (len(tag.contents) == 1 and isinstance(tag.contents[0], soup.NavigableString) and not tag.string):
+			if not tag.contents or (len(tag.contents) == 1 and isinstance(tag.contents[0], NavigableString) and not tag.string):
 				soup.destroy_node(tag)
 				changed = True
 		return changed
@@ -813,6 +830,7 @@ class EmptyTags(HTMLFixer):
 # <head> tags
 #=======================================================================================================================
 
+__all__.append(r'HeadTags')
 class HeadTags(HTMLFixer):
 	'''
 	Injects poxy-specific tags into the document's <head> block.
@@ -902,6 +920,7 @@ class HeadTags(HTMLFixer):
 # misc
 #=======================================================================================================================
 
+__all__.append(r'MarkTOC')
 class MarkTOC(HTMLFixer):
 	'''
 	Marks any table-of-contents with a custom class.

@@ -8,12 +8,6 @@
 The 'actually do the thing' module.
 """
 
-from .utils import *
-from . import project
-from . import doxyfile
-from. import soup
-from. import fixers
-
 import os
 import subprocess
 import concurrent.futures as futures
@@ -21,6 +15,13 @@ import tempfile
 import requests
 from lxml import etree
 from io import BytesIO, StringIO
+from .utils import *
+from . import project
+from . import doxyfile
+from . import soup
+from . import fixers
+
+__all__ = []
 
 
 #=======================================================================================================================
@@ -1068,6 +1069,7 @@ def extract_warnings(outputs):
 
 
 
+__all__.append(r'run')
 def run(config_path='.',
 		output_dir='.',
 		threads=-1,

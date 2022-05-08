@@ -8,9 +8,10 @@
 Functions and classes for working with doxygen's Doxyfile format.
 """
 
+import subprocess
 from .utils import *
 
-import subprocess
+__all__ = []
 
 
 
@@ -18,6 +19,7 @@ import subprocess
 # functions
 #=======================================================================================================================
 
+__all__.append(r'mangle_name')
 def mangle_name(name):
 	'''
 	A lightweight version of doxygen's escapeCharsInString()
@@ -55,6 +57,8 @@ def mangle_name(name):
 	return name
 
 
+
+__all__.append(r'format_for_doxyfile')
 def format_for_doxyfile(val):
 	if val is None:
 		return ''
@@ -75,6 +79,7 @@ def format_for_doxyfile(val):
 # Doxyfile
 #=======================================================================================================================
 
+__all__.append(r'Doxyfile')
 class Doxyfile(object):
 
 	def __init__(self, doxyfile_path, cwd=None, logger=None, doxygen_path=None, flush_at_exit=True):
