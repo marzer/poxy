@@ -36,10 +36,10 @@ jobs:
       fail-fast: false
       matrix:
         compiler:
-          - clang
+          - 'clang++'
           # - 'g++'
         linker:
-          - lld
+          - 'lld'
         doxygen_tag:
           - 'Release_1_8_17'
           - 'Release_1_8_18'
@@ -57,7 +57,8 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt -y update
-          sudo apt -y install --no-install-recommends ${{ matrix.compiler }} ${{ matrix.linker }} git python3 python3-pip cmake flex bison
+          if [ ${{ matrix.compiler }} = clang++ ]; then compiler=clang; else compiler=${{ matrix.compiler }}; fi
+          sudo apt -y install --no-install-recommends $compiler ${{ matrix.linker }} git python3 python3-pip cmake flex bison
 
       - uses: actions/checkout@v3
         with:
@@ -76,8 +77,6 @@ jobs:
           cd doxygen
           mkdir build
           cd build
-          if [ ${{ matrix.compiler }} = clang ]; then cpp_compiler=clang++; else cpp_compiler=${{ matrix.compiler }}; fi
-          if [ ${{ matrix.compiler }} = g++ ];   then   c_compiler=gcc;     else   c_compiler=${{ matrix.compiler }}; fi
-          CC=$c_compiler CC_LD=${{ matrix.linker }} CXX=$cpp_compiler CXX_LD=${{ matrix.linker }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=MinSizeRel ..
-          CC=$c_compiler CC_LD=${{ matrix.linker }} CXX=$cpp_compiler CXX_LD=${{ matrix.linker }} make -j
-          CC=$c_compiler CC_LD=${{ matrix.linker }} CXX=$cpp_compiler CXX_LD=${{ matrix.linker }} sudo make install
+          CXX=${{ matrix.compiler }} CXX_LD=${{ matrix.linker }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=MinSizeRel ..
+          CXX=${{ matrix.compiler }} CXX_LD=${{ matrix.linker }} make -j
+          CXX=${{ matrix.compiler }} CXX_LD=${{ matrix.linker }} sudo make install

@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.6 - 2022-05-14
+- Fixed path error when using `--dry`
+- Fixed `friend` keyword sometimes leaking into function return types
+- Added additional language code block aliases
+- Added `--nocleanup` to `--help` output
+- Added support for C++20's `consteval` keyword
+
 ## v0.5.5 - 2022-04-16
 - Fixed C++20 concepts causing a crash in m.css (they are now skipped with a warning) (#1) (@jake-arkinstall)
 
