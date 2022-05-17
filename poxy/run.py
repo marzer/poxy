@@ -216,7 +216,7 @@ def preprocess_doxyfile(context):
 			else:
 				df.set_value(r'GENERATE_TAGFILE', None)
 
-			df.set_value(r'NUM_PROC_THREADS', context.threads)
+			df.set_value(r'NUM_PROC_THREADS', min(context.threads, 32))
 			df.add_value(r'CLANG_OPTIONS', rf'-std=c++{context.cpp%100}')
 			df.add_value(r'CLANG_OPTIONS', r'-Wno-everything')
 

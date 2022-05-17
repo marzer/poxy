@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.5.7 - 2022-05-17
+- Fixed being able to pass >= 33 threads to Doxygen's `NUM_PROC_THREADS`
+
 ## v0.5.6 - 2022-05-14
 - Fixed path error when using `--dry`
 - Fixed `friend` keyword sometimes leaking into function return types
