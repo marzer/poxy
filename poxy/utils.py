@@ -78,9 +78,9 @@ def lib_version() -> Tuple[int, int, int]:
 
 def filter_filenames(files, include, exclude):
 	if include is not None:
-		files = [f for f in files if include.search(f.name) is not None]
+		files = [f for f in files if include.search(f.name)]
 	if exclude is not None:
-		files = [f for f in files if exclude.search(f.name) is None]
+		files = [f for f in files if not exclude.search(f.name)]
 	return files
 
 

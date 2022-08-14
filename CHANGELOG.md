@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.0 - 2022-08-14
+- Fixed malformed error messages in some circumstances
+- Added builtin C++ standard macros for C++23
+- Added `changelog` config option
+- Updated cppreference.com tagfile
+
 ## v0.5.7 - 2022-05-17
 - Fixed being able to pass >= 33 threads to Doxygen's `NUM_PROC_THREADS`
 

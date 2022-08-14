@@ -128,6 +128,7 @@ _doxygen_overrides  = (
 		(r'STRICT_PROTO_MATCHING',	False),
 		(r'SUBGROUPING', 			True),
 		(r'TAB_SIZE',				4),
+		(r'TOC_INCLUDE_HEADINGS',	3),
 		(r'TYPEDEF_HIDES_STRUCT',	False),
 		(r'UML_LOOK',				False),
 		(r'USE_HTAGS',				False),
@@ -350,6 +351,8 @@ def preprocess_doxyfile(context):
 				if context.github:
 					footer.append(rf'<a href="https://github.com/{context.github}/">Github</a>')
 					footer.append(rf'<a href="https://github.com/{context.github}/issues">Report an issue</a>')
+				if context.changelog:
+					footer.append(rf'<a href="md_poxy_changelog.html">Changelog</a>')
 				if context.license and context.license[r'uri']:
 					footer.append(rf'<a href="{context.license["uri"]}" target="_blank">License</a>')
 				if context.generate_tagfile:
@@ -898,32 +901,24 @@ def postprocess_html_file(path, context=None):
 	assert context is not None
 	assert isinstance(context, project.Context)
 
-	html_fixers = [f for f in context.fixers if isinstance(f, fixers.HTMLFixer)]
-	plain_text_fixers = [f for f in context.fixers if isinstance(f, fixers.PlainTextFixer)]
-
-	context.verbose(rf'Post-processing {path}')
-	html_changed = False
-	plain_text_changed = False
-
+	context.info(rf'Post-processing {path}')
+	changed = False
 	try:
-		if html_fixers:
-			doc = soup.HTMLDocument(path, logger=context.verbose_logger)
-			for fix in html_fixers:
+		for fix in context.fixers:
+			if isinstance(fix, fixers.HTMLFixer):
+				doc = soup.HTMLDocument(path, logger=context.verbose_logger)
 				if fix(doc, context):
 					doc.smooth()
-					html_changed = True
-			if html_changed:
-				doc.flush()
-
-		if plain_text_fixers:
-			doc = [ read_all_text_from_file(path, logger=context.verbose_logger) ]
-			for fix in plain_text_fixers:
+					doc.flush()
+					changed = True
+			elif isinstance(fix, fixers.PlainTextFixer):
+				doc = [ read_all_text_from_file(path, logger=context.verbose_logger), path ]
 				if fix(doc, context):
-					plain_text_changed = True
-			if plain_text_changed:
-				context.verbose(rf'Writing {path}')
-				with open(path, 'w', encoding='utf-8', newline='\n') as f:
-					f.write(doc[0])
+					context.verbose(rf'Writing {path}')
+					with open(path, 'w', encoding='utf-8', newline='\n') as f:
+						f.write(doc[0])
+					changed = True
+
 	except Exception as e:
 		context.info(rf'{type(e).__name__} raised while post-processing {path}')
 		raise
@@ -931,7 +926,7 @@ def postprocess_html_file(path, context=None):
 		context.info(rf'Error occurred while post-processing {path}')
 		raise
 
-	return html_changed or plain_text_changed
+	return changed
 
 
 
@@ -964,6 +959,7 @@ def postprocess_html(context):
 			fixers.EmptyTags(),
 			fixers.HeadTags(),
 			fixers.ImplementationDetails(),
+			fixers.MarkdownPages(),
 		)
 		context.verbose(rf'Post-processing {len(files)} HTML files...')
 		if threads > 1:
@@ -1127,6 +1123,23 @@ def run(config_path='.',
 						f.write(response.text)
 
 		make_temp_file = lambda: tempfile.SpooledTemporaryFile(mode='w+', newline='\n', encoding='utf-8')
+
+		# precondition the change log page (at this point it is already a temp copy)
+		if context.changelog:
+			text = read_all_text_from_file(context.changelog, logger=context.verbose_logger).strip()
+			text = text.replace('\r\n', 		'\n')
+			text = text.replace(r'&amp;',		r'__poxy_thiswasan_amp')
+			text = text.replace(r'@',			r'__poxy_thiswasan_at')
+			text = text.replace(r'&#xFE0F;', 	r'__poxy_thiswasan_fe0f')
+			if text.find(r'@tableofcontents') == -1 and text.find('\\tableofcontents') == -1 and text.find('[TOC]') == -1:
+				#text = f'[TOC]\n\n{text}'
+				nlnl = text.find('\n\n')
+				if nlnl != -1:
+					text = f'{text[:nlnl]}\n\n\\tableofcontents\n\n{text[nlnl:]}'
+				pass
+			text += '\n\n'
+			with open(context.changelog, r'w', encoding=r'utf-8', newline='\n') as f:
+				f.write(text)
 
 		# run doxygen to generate the xml
 		if 1:

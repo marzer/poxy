@@ -57,6 +57,7 @@ class CustomTags(HTMLFixer):
 			+ r')(\s+[^\]]+?)?\s*\]',
 		re.I | re.S
 	)
+	__hex_entity = re.compile(r'(?:[0#]?[xX])?([a-fA-F0-9]+)')
 	__allowed_parents = ('dd', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'aside', 'td')
 
 	@classmethod
@@ -70,12 +71,14 @@ class CustomTags(HTMLFixer):
 		if tag_name == 'htmlentity' or tag_name == 'entity':
 			if not tag_content:
 				return ''
-			try:
-				cp = int(tag_content, 16)
-				if cp <= 0x10FFFF:
-					return f'&#x{cp:X};'
-			except:
-				pass
+			hex_match = cls.__hex_entity.fullmatch(tag_content)
+			if hex_match:
+				try:
+					cp = int(hex_match[1], 16)
+					if cp <= 0x10FFFF:
+						return f'&#x{hex_match[1]};'
+				except:
+					pass
 			return f'&{tag_content};'
 		elif tag_name == 'emoji':
 			tag_content = tag_content.lower()
@@ -331,6 +334,23 @@ class ImplementationDetails(PlainTextFixer):
 				changed = True
 				idx = doc[0].find(shorthand)
 		return changed
+
+
+
+__all__.append(r'MarkdownPages')
+class MarkdownPages(PlainTextFixer):
+	'''
+	Cleans up some HTML snafus from markdown-based pages.
+	'''
+	def __call__(self, doc, context):
+		if not doc[1].name.lower().startswith(r'md_') and not doc[1].name.lower().startswith(r'm_d__'):
+			return False
+
+		doc[0] = doc[0].replace(r'__poxy_thiswasan_amp', r'&amp;')
+		doc[0] = doc[0].replace(r'__poxy_thiswasan_at', r'@')
+		doc[0] = doc[0].replace(r'__poxy_thiswasan_fe0f', r'&#xFE0F;')
+
+		return True
 
 
 

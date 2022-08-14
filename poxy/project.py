@@ -81,6 +81,8 @@ class Defaults(object):
 		r'__poxy__' :							1,
 		r'__has_include(...)' :					0,
 		r'__has_attribute(...)' :				0,
+		r'__has_builtin(...)' :					0,
+		r'__has_feature(...)' :					0,
 		r'__has_cpp_attribute(...)' :			999999,
 		r'POXY_IMPLEMENTATION_DETAIL(...)' :	r'POXY_IMPLEMENTATION_DETAIL_IMPL',
 		r'POXY_IGNORE(...)' :					r'',
@@ -228,10 +230,10 @@ class Defaults(object):
 			r'__cplusplus'								: r'202002L',
 			r'__cpp_aggregate_paren_init'				: 201902,
 			r'__cpp_char8_t'							: 201811,
-			r'__cpp_concepts'							: 201907,
+			r'__cpp_concepts'							: 202002,
 			r'__cpp_conditional_explicit'				: 201806,
 			r'__cpp_consteval'							: 201811,
-			r'__cpp_constexpr'							: 201907,
+			r'__cpp_constexpr'							: 202002,
 			r'__cpp_constexpr_dynamic_alloc'			: 201907,
 			r'__cpp_constexpr_in_decltype'				: 201711,
 			r'__cpp_constinit'							: 201907,
@@ -312,11 +314,45 @@ class Defaults(object):
 			r'__cpp_using_enum'							: 201907,
 		},
 
-		2023 : dict(),
+		2023 : {
+			r'__cplusplus'									: r'202300L',
+			r'__cpp_constexpr'								: 202110,
+			r'__cpp_explicit_this_parameter'				: 202110,
+			r'__cpp_if_consteval'							: 202106,
+			r'__cpp_lib_adaptor_iterator_pair_constructor'	: 202106,
+			r'__cpp_lib_allocate_at_least'					: 202106,
+			r'__cpp_lib_associative_heterogeneous_erasure'	: 202110,
+			r'__cpp_lib_byteswap'							: 202110,
+			r'__cpp_lib_constexpr_typeinfo'					: 202106,
+			r'__cpp_lib_format'								: 202110,
+			r'__cpp_lib_invoke_r'							: 202106,
+			r'__cpp_lib_is_scoped_enum'						: 202011,
+			r'__cpp_lib_monadic_optional'					: 202110,
+			r'__cpp_lib_move_only_function'					: 202110,
+			r'__cpp_lib_optional'							: 202106,
+			r'__cpp_lib_out_ptr'							: 202106,
+			r'__cpp_lib_ranges'								: 202110,
+			r'__cpp_lib_ranges_starts_ends_with'			: 202106,
+			r'__cpp_lib_ranges_zip'							: 202110,
+			r'__cpp_lib_spanstream'							: 202106,
+			r'__cpp_lib_stacktrace'							: 202011,
+			r'__cpp_lib_stdatomic_h'						: 202011,
+			r'__cpp_lib_string_contains'					: 202011,
+			r'__cpp_lib_string_resize_and_overwrite'		: 202110,
+			r'__cpp_lib_to_underlying'						: 202102,
+			r'__cpp_lib_variant'							: 202102,
+			r'__cpp_lib_variant'							: 202106,
+			r'__cpp_multidimensional_subscript'				: 202110,
+			r'__cpp_size_t_suffix'							: 202011,
+		},
 
-		2026 : dict(),
+		2026 : {
+			r'__cplusplus'									: r'202600L',
+		},
 
-		2029 : dict(),
+		2029 : {
+			r'__cplusplus'									: r'202900L',
+		},
 	}
 	autolinks = {
 		# builtins
@@ -479,6 +515,14 @@ class Defaults(object):
 		r'(?:::)?FVector4s?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FVector4/index.html',
 		r'(?:::)?FVectors?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FVector/index.html',
 		r'(?:::)?TMatrix(?:es|ices)?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/TMatrix/index.html',
+		r'(?:::)?UStaticMesh(?:es)?' : r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/Engine/UStaticMesh/',
+		r'(?:::)?FStaticMeshLODResources' : r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/FStaticMeshLODResources/',
+		r'(?:::)?FRawStaticIndexBuffer(?:s)?' : r'https://docs.unrealengine.com/4.26/en-US/API/Runtime/Engine/FRawStaticIndexBuffer/',
+		r'(?:::)?FStaticMeshVertexBuffers' : r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/FStaticMeshVertexBuffers/',
+		r'(?:::)?FStaticMeshVertexBuffer' : r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/Rendering/FStaticMeshVertexBuffer/',
+		r'(?:::)?FPositionVertexBuffer(?:s)?' : r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/Rendering/FPositionVertexBuffer/',
+		r'(?:::)?TArrayView(?:s)?' : r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Core/Containers/TArrayView/',
+		r'(?:::)?TArray(?:s)?' : r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Core/Containers/TArray/',
 	}
 	navbar = [r'files', r'groups', r'namespaces', r'classes']
 	aliases = {
@@ -843,7 +887,7 @@ class Sources(FilteredInputs):
 		Optional(r'extract_all')		: bool
 	})
 
-	def __init__(self, config, key, input_dir, additional_inputs=None, additional_recursive_inputs=None):
+	def __init__(self, config, key, input_dir, additional_inputs=None, additional_recursive_inputs=None, additional_strip_paths=None):
 		super().__init__(
 			config,
 			key,
@@ -862,9 +906,17 @@ class Sources(FilteredInputs):
 			return
 		config = config[key]
 
-		if r'strip_paths' in config:
-			for s in coerce_collection(config[r'strip_paths']):
-				path = s.strip()
+		strip_path_sources = (
+			 coerce_collection(config[r'strip_paths']) if r'strip_paths' in config else None,
+			 coerce_collection(additional_strip_paths) if additional_strip_paths is not None else None
+		)
+		for sps in strip_path_sources:
+			if sps is None:
+				continue
+			for s in sps:
+				if s is None:
+					continue
+				path = str(s).strip()
 				if path:
 					self.strip_paths.append(path)
 
@@ -899,6 +951,7 @@ class Context(object):
 			Optional(r'author')					: str,
 			Optional(r'autolinks')				: {str : str},
 			Optional(r'badges')					: {str : FixedArrayOf(str, 2, name=r'badges') },
+			Optional(r'changelog')				: Or(str, bool),
 			Optional(r'code_blocks')			: CodeBlocks.schema,
 			Optional(r'cpp')					: Or(str, int, error=r'cpp: expected string or integer'),
 			Optional(r'defines')				: {str : Or(str, int, bool)}, # legacy
@@ -1136,6 +1189,7 @@ class Context(object):
 			self.input_dir = input_dir
 			self.verbose_value(r'Context.input_dir', self.input_dir)
 			assert_existing_directory(self.input_dir)
+			assert self.input_dir.is_absolute()
 
 			assert self.doxyfile_path is not None
 			self.doxyfile_path = self.doxyfile_path.resolve()
@@ -1145,8 +1199,22 @@ class Context(object):
 				self.config_path = self.config_path.resolve()
 			self.verbose_value(r'Context.config_path', self.config_path)
 			self.verbose_value(r'Context.doxyfile_path', self.doxyfile_path)
+			assert self.config_path.is_absolute()
+			assert self.doxyfile_path.is_absolute()
+
+			# output paths
+			self.xml_dir = Path(self.output_dir, r'xml')
+			self.verbose_value(r'Context.xml_dir', self.xml_dir)
+			self.html_dir = Path(self.output_dir, r'html')
+			self.verbose_value(r'Context.html_dir', self.html_dir)
+			assert self.output_dir.is_absolute()
+			assert self.xml_dir.is_absolute()
+			assert self.html_dir.is_absolute()
+
+			# blog dir
 			self.blog_dir = Path(self.input_dir, r'blog')
 			self.verbose_value(r'Context.blog_dir', self.blog_dir)
+			assert self.blog_dir.is_absolute()
 
 			# temp dirs
 			self.global_temp_dir = Path(tempfile.gettempdir(), r'poxy')
@@ -1161,14 +1229,9 @@ class Context(object):
 			self.verbose_value(r'Context.temp_dir', self.temp_dir)
 			self.temp_pages_dir = Path(self.temp_dir, r'pages')
 			self.verbose_value(r'Context.temp_pages_dir', self.temp_pages_dir)
-
-			# output paths
-			self.xml_dir = Path(self.output_dir, r'xml')
-			self.verbose_value(r'Context.xml_dir', self.xml_dir)
-			self.html_dir = Path(self.output_dir, r'html')
-			self.verbose_value(r'Context.html_dir', self.html_dir)
-			self.mcss_conf_path = Path(self.temp_dir, r'conf.py')
-			self.verbose_value(r'Context.mcss_conf_path', self.mcss_conf_path)
+			assert self.global_temp_dir.is_absolute()
+			assert self.temp_dir.is_absolute()
+			assert self.temp_pages_dir.is_absolute()
 
 			# doxygen
 			if doxygen_path is not None:
@@ -1193,6 +1256,7 @@ class Context(object):
 				raise Error(rf'{doxygen_path} was not an executable file')
 			self.doxygen_path = doxygen_path
 			self.verbose_value(r'Context.doxygen_path', self.doxygen_path)
+			assert self.doxygen_path.is_absolute()
 
 			# m.css
 			if mcss_dir is None:
@@ -1202,11 +1266,16 @@ class Context(object):
 			assert_existing_file(Path(mcss_dir, r'documentation/doxygen.py'))
 			self.mcss_dir = mcss_dir
 			self.verbose_value(r'Context.mcss_dir', self.mcss_dir)
+			self.mcss_conf_path = Path(self.temp_dir, r'conf.py')
+			self.verbose_value(r'Context.mcss_conf_path', self.mcss_conf_path)
+			assert self.mcss_conf_path.is_absolute()
+			assert self.mcss_dir.is_absolute()
 
 			# misc
-			self.cppref_tagfile = coerce_path(self.data_dir, r'cppreference-doxygen-web.tag.xml')
+			self.cppref_tagfile = coerce_path(self.data_dir, r'cppreference-doxygen-web.tag.xml').resolve()
 			self.verbose_value(r'Context.cppref_tagfile', self.cppref_tagfile)
 			assert_existing_file(self.cppref_tagfile)
+			assert self.cppref_tagfile.is_absolute()
 
 			# initialize temp + output dirs
 			if not self.dry_run:
@@ -1293,19 +1362,22 @@ class Context(object):
 
 			# project C++ version
 			# defaults to 'current' cpp year version based on (current year - 2)
-			self.cpp = max(int(self.now.year) - 2, 2011)
-			self.cpp = self.cpp - ((self.cpp - 2011) % 3)
+			# 1998, 2003, *range(2011, 2300, 3)
+			default_cpp_year = max(int(self.now.year) - 2, 2011)
+			default_cpp_year = default_cpp_year - ((default_cpp_year - 2011) % 3)
+			self.cpp = default_cpp_year
 			if 'cpp' in config:
 				self.cpp = str(config['cpp']).lstrip('0 \t').rstrip()
 				if not self.cpp:
-					self.cpp = 20
+					self.cpp = default_cpp_year
 				self.cpp = int(self.cpp)
 				if self.cpp in (1998, 98):
 					self.cpp = 1998
 				else:
-					self.cpp = self.cpp % 2000
-					if self.cpp in (3, 11, 14, 17, 20, 23, 26, 29):
-						self.cpp = self.cpp + 2000
+					if self.cpp > 2000:
+						self.cpp -= 2000
+					if self.cpp in [3, *range(11, 300, 3)]:
+						self.cpp += 2000
 					else:
 						raise Error(rf"cpp: '{config['cpp']}' is not a valid cpp standard version")
 			self.verbose_value(r'Context.cpp', self.cpp)
@@ -1393,12 +1465,56 @@ class Context(object):
 						raise Error(rf"failed to parse date from blog post filename '{f.name}': {str(exc)}")
 			self.verbose_value(r'Context.blog_files', self.blog_files)
 
+			# changelog
+			self.changelog = ''
+			if r'changelog' in config:
+				if isinstance(config['changelog'], bool):
+					if config['changelog']:
+						candidate_names = (
+							r'CHANGELOG.md',
+							r'CHANGELOG.txt',
+							r'CHANGELOG',
+							r'HISTORY.md',
+							r'HISTORY.txt',
+							r'HISTORY'
+						)
+						candidate_dir = self.input_dir
+						while True:
+							for name in candidate_names:
+								candidate_file = Path(candidate_dir, name)
+								if candidate_file.exists() and candidate_file.is_file() and candidate_file.stat().st_size <= 1024 * 1024 * 2:
+									self.changelog = candidate_file
+									break
+							if self.changelog or candidate_dir.parent == candidate_dir:
+								break
+							candidate_dir = candidate_dir.parent
+						if not self.changelog and not self.dry_run:
+							self.warning(rf'changelog: Option was set to true but no file with a known changelog file name could be found! Consider using an explicit path.')
+
+				else:
+					self.changelog = coerce_path(config['changelog'])
+					if not self.changelog.is_absolute():
+						self.changelog = Path(self.input_dir, self.changelog)
+					if not self.changelog.exists() or not self.changelog.is_file():
+						raise Error(rf'changelog: {config["changelog"]} did not exist or was not a file')
+			self.verbose_value(r'Context.changelog', self.changelog)
+			if self.changelog and not self.dry_run:
+				copy_file(self.changelog, Path(self.temp_pages_dir, r'poxy_changelog.md'), logger=self.verbose_logger)
+				self.changelog = Path(self.temp_pages_dir, r'poxy_changelog.md')
+
 			# sources (INPUT, FILE_PATTERNS, STRIP_FROM_PATH, STRIP_FROM_INC_PATH, EXTRACT_ALL)
 			self.sources = Sources(
 				config,
 				r'sources',
 				self.input_dir,
-				additional_inputs=[ self.temp_pages_dir if not self.dry_run else None, *[f for f,d in self.blog_files] ]
+				additional_inputs=(
+					self.temp_pages_dir if not self.dry_run else None,
+					self.changelog if self.changelog and not self.dry_run else None,
+					*[f for f,d in self.blog_files]
+				),
+				additional_strip_paths=(
+					self.temp_pages_dir if not self.dry_run else None,
+				)
 			)
 			self.verbose_object(r'Context.sources', self.sources)
 
@@ -1541,12 +1657,16 @@ class Context(object):
 					self.macros[k] = v
 			non_cpp_def_macros = copy.deepcopy(self.macros)
 			cpp_defs = dict()
-			for ver in (1998, 2003, 2011, 2014, 2017, 2020, 2023, 2026, 2029):
+			for ver in [1998, 2003, *range(2011, 2300, 3)]:
 				if ver > self.cpp:
 					break
+				if ver not in Defaults.cpp_builtin_macros:
+					continue
 				for k, v in Defaults.cpp_builtin_macros[ver].items():
 					cpp_defs[k] = v
-			for k, v in cpp_defs.items():
+			cpp_defs = [(k, v) for k, v in cpp_defs.items()]
+			cpp_defs.sort(key=lambda kvp: k[0])
+			for k, v in cpp_defs:
 				self.macros[k] = v
 			self.verbose_value(r'Context.macros', self.macros)
 
