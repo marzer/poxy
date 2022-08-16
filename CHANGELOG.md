@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.6.1 - 2022-08-16
+- Fixed multi-row navbar occluding page content (#3) (@wroyca)
+
 ## v0.6.0 - 2022-08-14
 - Fixed malformed error messages in some circumstances
 - Added builtin C++ standard macros for C++23
