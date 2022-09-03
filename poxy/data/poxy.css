@@ -47,11 +47,6 @@ a
 	text-decoration: none !important;
 }
 
-article div > section
-{
-	margin-top: 4rem;
-}
-
 article div > section > section
 {
 	margin-bottom: 2.25rem;
