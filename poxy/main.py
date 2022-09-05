@@ -132,6 +132,12 @@ def main(invoker=True):
 		action=r'store_true',
 		help=r"does not clean up after itself, leaving the XML and other temp files intact"
 	)
+	args.add_argument(
+		r'--theme',
+		choices=[r'auto', r'light', r'dark', r'custom'],
+		default=r'auto',
+		help=r'the CSS theme to use (default: %(default)s)'
+	)
 	args = args.parse_args()
 
 	if args.print_version:
@@ -152,7 +158,8 @@ def main(invoker=True):
 			xml_only=args.xmlonly,
 			html_include=args.ppinclude,
 			html_exclude=args.ppexclude,
-			treat_warnings_as_errors=True if args.werror else None
+			treat_warnings_as_errors=True if args.werror else None,
+			theme = None if args.theme == r'auto' else args.theme
 		)
 
 

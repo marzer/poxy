@@ -50,27 +50,29 @@ pip install poxy
 Poxy is a command-line application.
 ```
 poxy [-h] [-v] [--doxygen <path>] [--dry] [--m.css <path>] [--threads N] [--version] [--werror] [--xmlonly]
-            [--ppinclude <regex>] [--ppexclude <regex>] [--nocleanup]
+            [--ppinclude <regex>] [--ppexclude <regex>] [--nocleanup] [--theme {auto,light,dark,custom}]
             [config]
 
 Generate fancy C++ documentation.
 
 positional arguments:
-  config               path to poxy.toml or a directory containing it (default: .)
+  config                path to poxy.toml or a directory containing it (default: .)
 
 options:
-  -h, --help           show this help message and exit
-  -v, --verbose        enable very noisy diagnostic output
-  --doxygen <path>     specify the Doxygen executable to use (default: find on system path)
-  --dry                do a 'dry run' only, stopping after emitting the effective Doxyfile
-  --m.css <path>       specify the version of m.css to use (default: uses the bundled one)
-  --threads N          set the number of threads to use (default: automatic)
-  --version            print the version and exit
-  --werror             always treat warnings as errors regardless of config file settings
-  --xmlonly            stop after generating and preprocessing the Doxygen xml
-  --ppinclude <regex>  pattern matching HTML file names to post-process (default: all)
-  --ppexclude <regex>  pattern matching HTML file names to exclude from post-processing (default: none)
-  --nocleanup          does not clean up after itself, leaving the XML and other temp files intact
+  -h, --help            show this help message and exit
+  -v, --verbose         enable very noisy diagnostic output
+  --doxygen <path>      specify the Doxygen executable to use (default: find on system path)
+  --dry                 do a 'dry run' only, stopping after emitting the effective Doxyfile
+  --m.css <path>        specify the version of m.css to use (default: uses the bundled one)
+  --threads N           set the number of threads to use (default: automatic)
+  --version             print the version and exit
+  --werror              always treat warnings as errors regardless of config file settings
+  --xmlonly             stop after generating and preprocessing the Doxygen xml
+  --ppinclude <regex>   pattern matching HTML file names to post-process (default: all)
+  --ppexclude <regex>   pattern matching HTML file names to exclude from post-processing (default: none)
+  --nocleanup           does not clean up after itself, leaving the XML and other temp files intact
+  --theme {auto,light,dark,custom}
+                        the CSS theme to use (default: auto)
 ```
 The basic three-step to using Poxy is similar to Doxygen:
 1. Create your `poxy.toml` (Poxy's answer to the `Doxyfile`)

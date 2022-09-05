@@ -1093,7 +1093,7 @@ class Context(object):
 		finally:
 			cls.__data_files_lock.release()
 
-	def __init__(self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, doxygen_path, logger, dry_run, xml_only, html_include, html_exclude, treat_warnings_as_errors):
+	def __init__(self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, doxygen_path, logger, dry_run, xml_only, html_include, html_exclude, treat_warnings_as_errors, theme):
 
 		self.logger = logger
 		self.__verbose = bool(verbose)
@@ -1350,7 +1350,7 @@ class Context(object):
 
 			# project github repo
 			self.github = ''
-			if 'github' in config:
+			if r'github' in config:
 				self.github = config['github'].strip().replace('\\', '/').strip('/')
 			self.verbose_value(r'Context.github', self.github)
 			if self.github and not self.private_repo:
@@ -1366,7 +1366,7 @@ class Context(object):
 			default_cpp_year = max(int(self.now.year) - 2, 2011)
 			default_cpp_year = default_cpp_year - ((default_cpp_year - 2011) % 3)
 			self.cpp = default_cpp_year
-			if 'cpp' in config:
+			if r'cpp' in config:
 				self.cpp = str(config['cpp']).lstrip('0 \t').rstrip()
 				if not self.cpp:
 					self.cpp = default_cpp_year
@@ -1399,14 +1399,26 @@ class Context(object):
 
 			# theme (HTML_EXTRA_STYLESHEETS, M_THEME_COLOR)
 			self.theme = r'dark'
-			if r'theme' in config:
+			if theme is not None:
+				self.theme = theme
+			elif r'theme' in config:
 				self.theme = str(config[r'theme'])
 			if self.theme != r'custom':
-				extra_files.append((rf'poxy-{self.version_string}.css', Path(self.data_dir, r'poxy.css')))
-				extra_files.append((rf'poxy-{self.version_string}-{self.theme}.css', Path(self.data_dir, rf'poxy-{self.theme}.css')))
-				extra_files.append((r'poxy-github.svg', Path(self.data_dir, rf'poxy-github-{"black" if self.theme == "light" else "white"}.svg')))
-				self.stylesheets.append(rf'poxy-{self.version_string}.css')
-				self.stylesheets.append(rf'poxy-{self.version_string}-{self.theme}.css')
+				# m-css stylesheets for the base theme + vars
+				for stylesheet in enumerate_files(
+						coerce_path(self.mcss_dir, r'css'),
+						all=r'*.css',
+						none=(r'*compiled*', r'*debug*')
+					):
+					extra_files.append((stylesheet.name, stylesheet))
+				# poxy stylesheets
+				for stylesheet in enumerate_files(self.data_dir, all=r'*.css'):
+					extra_files.append((stylesheet.name, stylesheet))
+				self.stylesheets.append(rf'poxy-{self.theme}.css')
+				# github logos
+				if self.github:
+					extra_files.append((r'poxy-github-black.svg', coerce_path(self.data_dir, rf'poxy-github-black.svg')))
+					extra_files.append((r'poxy-github-white.svg', coerce_path(self.data_dir, rf'poxy-github-white.svg')))
 			self.verbose_value(r'Context.theme', self.theme)
 
 			# stylesheets (HTML_EXTRA_STYLESHEETS)
@@ -1424,14 +1436,14 @@ class Context(object):
 
 			# jquery
 			if r'jquery' in config and config[r'jquery']:
-				jquery = get_all_files(self.data_dir, any=(r'jquery*.js'))[0]
+				jquery = enumerate_files(self.data_dir, any=r'jquery*.js')[0]
 				if jquery is not None:
 					extra_files.append(jquery)
 					self.scripts.append(jquery.name)
 
 			# scripts
-			self.scripts.append(rf'poxy-{self.version_string}.js')
-			extra_files.append((rf'poxy-{self.version_string}.js',  Path(self.data_dir, r'poxy.js')))
+			self.scripts.append(rf'poxy.js')
+			extra_files.append((rf'poxy.js',  Path(self.data_dir, r'poxy.js')))
 			if r'scripts' in config:
 				for f in coerce_collection(config[r'scripts']):
 					file = f.strip()
@@ -1447,7 +1459,7 @@ class Context(object):
 			# enumerate blog files (need to add them to the doxygen sources)
 			self.blog_files = []
 			if self.blog_dir.exists() and self.blog_dir.is_dir():
-				self.blog_files = get_all_files(self.blog_dir, any=(r'*.md', r'*.markdown'), recursive=True)
+				self.blog_files = enumerate_files(self.blog_dir, any=(r'*.md', r'*.markdown'), recursive=True)
 				sep = re.compile(r'[-֊‐‑‒–—―−_ ,;.]+')
 				expr = re.compile(
 					rf'^(?:blog{sep.pattern})?((?:[0-9]{{4}}){sep.pattern}(?:[0-9]{{2}}){sep.pattern}(?:[0-9]{{2}})){sep.pattern}[a-zA-Z0-9_ -]+$'

@@ -221,14 +221,6 @@ def preprocess_doxyfile(context):
 			df.add_value(r'CLANG_OPTIONS', rf'-std=c++{context.cpp%100}')
 			df.add_value(r'CLANG_OPTIONS', r'-Wno-everything')
 
-			# these are necessary here to suppress m.css' automatic inclusion of the dark theme
-			# (otherwise I'd add them to context.extra_files and context.stylesheets)
-			if context.theme == r'light':
-				df.add_value(r'HTML_EXTRA_STYLESHEET', r'https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i,700,700i%7CSource+Code+Pro:400,400i,600')
-				df.add_value(r'HTML_EXTRA_STYLESHEET', r'../css/m-light+documentation.compiled.css')
-			elif context.theme == r'custom':
-				df.add_value(r'HTML_EXTRA_STYLESHEET', Path(context.data_dir, r'poxy-custom-theme-base.css'))
-
 			home_md_path = None
 			for home_md in (r'HOME.md', r'home.md', r'INDEX.md', r'index.md', r'README.md', r'readme.md'):
 				p = Path(context.input_dir, home_md)
@@ -300,26 +292,38 @@ def preprocess_doxyfile(context):
 
 		# build m.css conf.py
 		if 1:
-			conf = lambda s='', end='\n': print(s, file=conf_py, end=end)
-			conf(rf"DOXYFILE                  = r'{context.doxyfile_path}'")
-			if context.theme == r'custom':
-				conf(rf"""THEME_COLOR               = r''""")
-			else:
-				conf(rf"""THEME_COLOR               = r'{"#cb4b16" if context.theme == "light" else "#22272e"}'""")
+			conf = lambda s='', end='\n': print(reindent(s, indent=''), file=conf_py, end=end)
+			conf(rf"DOXYFILE = r'{context.doxyfile_path}'")
+			conf(r"STYLESHEETS = []") # suppress the default behaviour
+			HTML_HEADER = ''
+			for stylesheet in context.stylesheets:
+				HTML_HEADER += f'<link href="{stylesheet}" rel="stylesheet"/>\n'
+			for script in context.scripts:
+				HTML_HEADER += f'<script src="{script}"></script>\n'
+			conf(f'HTML_HEADER = """{HTML_HEADER}"""')
+			if context.theme == r'dark':
+				conf(r"THEME_COLOR = '#22272e'")
+			elif context.theme == r'light':
+				conf(r"THEME_COLOR = '#cb4b16'")
 			if not df.contains(r'M_FAVICON'):
-				conf(rf"""FAVICON                   = r'{context.favicon if context.favicon else ""}'""")
+				if context.favicon:
+					conf(rf"FAVICON = r'{context.favicon}'")
+				elif context.theme == r'dark':
+					conf(rf"FAVICON = 'favicon-dark.png'")
+				elif context.theme == r'light':
+					conf(rf"FAVICON = 'favicon-light.png'")
 			if not df.contains(r'M_SHOW_UNDOCUMENTED'):
-				conf(rf'SHOW_UNDOCUMENTED         = {context.sources.extract_all}')
+				conf(rf'SHOW_UNDOCUMENTED = {context.sources.extract_all}')
 			if not df.contains(r'M_CLASS_TREE_EXPAND_LEVELS'):
 				conf(r'CLASS_INDEX_EXPAND_LEVELS = 3')
 			if not df.contains(r'M_FILE_TREE_EXPAND_LEVELS'):
-				conf(r'FILE_INDEX_EXPAND_LEVELS  = 3')
+				conf(r'FILE_INDEX_EXPAND_LEVELS = 3')
 			if not df.contains(r'M_EXPAND_INNER_TYPES'):
-				conf(r'CLASS_INDEX_EXPAND_INNER  = True')
+				conf(r'CLASS_INDEX_EXPAND_INNER = True')
 			if not df.contains(r'M_SEARCH_DOWNLOAD_BINARY'):
-				conf(r'SEARCH_DOWNLOAD_BINARY    = False')
+				conf(r'SEARCH_DOWNLOAD_BINARY = False')
 			if not df.contains(r'M_SEARCH_DISABLED'):
-				conf(r'SEARCH_DISABLED           = False')
+				conf(r'SEARCH_DISABLED = False')
 			if not df.contains(r'M_LINKS_NAVBAR1') and not df.contains(r'M_LINKS_NAVBAR2'):
 				navbars = ([],[])
 				if context.navbar:
@@ -340,8 +344,8 @@ def preprocess_doxyfile(context):
 								navbars[i].append((None, b[j], []))
 				for i in (0, 1):
 					if navbars[i]:
-						conf(f'LINKS_NAVBAR{i+1} = [\n    ', end='')
-						conf(',\n    '.join([rf'{b}' for b in navbars[i]]))
+						conf(f'LINKS_NAVBAR{i+1} = [\n\t', end='')
+						conf(',\n\t'.join([rf'{b}' for b in navbars[i]]))
 						conf(r']')
 					else:
 						conf(rf'LINKS_NAVBAR{i+1} = []')
@@ -366,10 +370,13 @@ def preprocess_doxyfile(context):
 					conf(rf"    {footer[i]}")
 				conf(r"'''")
 
-			if not context.dry_run:
-				context.verbose(rf'Writing {context.mcss_conf_path}')
-				with open(context.mcss_conf_path, r'w', encoding=r'utf-8', newline='\n') as f:
-					f.write(conf_py.getvalue())
+		conf_py_text = conf_py.getvalue()
+
+		# write conf.py
+		if not context.dry_run:
+			context.verbose(rf'Writing {context.mcss_conf_path}')
+			with open(context.mcss_conf_path, r'w', encoding=r'utf-8', newline='\n') as f:
+				f.write(conf_py_text)
 
 		# clean and debug dump final doxyfile
 		df.cleanup()
@@ -381,7 +388,7 @@ def preprocess_doxyfile(context):
 			context.info(r'## ---------------------------------------------------------------------------------')
 			context.info(r'## m.css conf.py:')
 			context.info(r'## ---------------------------------------------------------------------------------')
-			context.info(conf_py.getvalue(), indent=r'## ')
+			context.info(conf_py_text, indent='## ')
 			context.info(r'#====================================================================================')
 		else:
 			context.verbose(r'Effective Doxyfile:')
@@ -389,7 +396,7 @@ def preprocess_doxyfile(context):
 			context.verbose(r'    ## --------------------------------------------------------------------------')
 			context.verbose(r'    ## m.css conf.py:')
 			context.verbose(r'    ## --------------------------------------------------------------------------')
-			context.verbose(conf_py.getvalue(), indent=r'    ## ')
+			context.verbose(conf_py_text, indent='## ')
 
 
 
@@ -1079,7 +1086,8 @@ def run(config_path='.',
 		xml_only=False,
 		html_include=None,
 		html_exclude=None,
-		treat_warnings_as_errors=None
+		treat_warnings_as_errors=None,
+		theme=None
 	):
 
 	with project.Context(
@@ -1095,7 +1103,8 @@ def run(config_path='.',
 		xml_only = xml_only,
 		html_include = html_include,
 		html_exclude = html_exclude,
-		treat_warnings_as_errors = treat_warnings_as_errors
+		treat_warnings_as_errors = treat_warnings_as_errors,
+		theme=theme
 	) as context:
 
 		# preprocess the doxyfile

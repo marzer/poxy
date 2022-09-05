@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+- Fixed `css` and `js` files not being included in `<head>` when a file was excluded from post-processing
+- Added `theme` command-line option
+
 ## v0.6.1 - 2022-08-16
 - Fixed multi-row navbar occluding page content (#3) (@wroyca)
 

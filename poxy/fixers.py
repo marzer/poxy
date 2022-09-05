@@ -923,15 +923,6 @@ class HeadTags(HTMLFixer):
 			data[r'headline'] = doc.head.title.string
 			tag.string = json.dumps(data, indent=r'    ')
 
-		# stylesheets
-		for stylesheet in context.stylesheets:
-			self.__append(doc, r'link', { r'href' :  stylesheet, r'rel' : r'stylesheet' })
-
-		# scripts
-		for script in context.scripts:
-			self.__append(doc, r'script', { r'src' : script })
-
-
 		return True
 
 

@@ -1,4 +1,4 @@
-misk>=0.6.1
+misk>=0.7.0
 bs4
 jinja2
 pygments
