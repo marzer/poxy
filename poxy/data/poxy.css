@@ -75,11 +75,13 @@ nav .m-thin
 }
 nav .github
 {
-	padding-left: 44px !important;
+	margin-left: 15px !important;
+	background-image: url("poxy-github.svg");
 	background-repeat: no-repeat;
-	background-size: 25px 25px;
-	background-position: -30px center;
-	background-origin: content-box;
+	background-size: 15px 15px;
+	background-position: center center;
+	color: transparent !important;
+	width: 50px !important;
 }
 @media screen and (max-width: 576px)
 {
