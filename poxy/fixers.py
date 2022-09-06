@@ -346,9 +346,11 @@ class MarkdownPages(PlainTextFixer):
 		if not doc[1].name.lower().startswith(r'md_') and not doc[1].name.lower().startswith(r'm_d__'):
 			return False
 
-		doc[0] = doc[0].replace(r'__poxy_thiswasan_amp', r'&amp;')
-		doc[0] = doc[0].replace(r'__poxy_thiswasan_at', r'@')
-		doc[0] = doc[0].replace(r'__poxy_thiswasan_fe0f', r'&#xFE0F;')
+		WBR = r'(?:<wbr[ \t]*/?>)?'
+		PREFIX = rf'_{WBR}_{WBR}poxy_{WBR}thiswasan_{WBR}'
+		doc[0] = re.sub(rf'{PREFIX}amp',	r'&amp;', 		doc[0])
+		doc[0] = re.sub(rf'{PREFIX}at',		r'@', 			doc[0])
+		doc[0] = re.sub(rf'{PREFIX}fe0f',	r'&#xFE0F;', 	doc[0])
 
 		return True
 
@@ -843,87 +845,6 @@ class EmptyTags(HTMLFixer):
 				soup.destroy_node(tag)
 				changed = True
 		return changed
-
-
-
-#=======================================================================================================================
-# <head> tags
-#=======================================================================================================================
-
-__all__.append(r'HeadTags')
-class HeadTags(HTMLFixer):
-	'''
-	Injects poxy-specific tags into the document's <head> block.
-	'''
-
-	@classmethod
-	def __append(cls, doc, name, attrs):
-		doc.head.append('  ')
-		tag = doc.new_tag(name, parent=doc.head, attrs=attrs)
-		doc.head.append('\n')
-		return tag
-
-	def __call__(self, doc, context):
-
-		# <meta> tags
-		if 1:
-			meta = []
-
-			# name
-			if context.name:
-				if r'twitter:title' not in context.meta_tags:
-					meta.append({ r'name' : r'twitter:title', r'content' : context.name})
-				meta.append({ r'property' : r'og:title', r'content' : context.name})
-				meta.append({ r'itemprop' : r'name', r'content' : context.name})
-
-			# author
-			if context.author:
-				if r'author' not in context.meta_tags:
-					meta.append({ r'name' : r'author', r'content' : context.author})
-				meta.append({ r'property' : r'article:author', r'content' : context.author})
-
-			# description
-			if context.description:
-				if r'description' not in context.meta_tags:
-					meta.append({ r'name' : r'description', r'content' : context.description})
-				if r'twitter:description' not in context.meta_tags:
-					meta.append({ r'name' : r'twitter:description', r'content' : context.description})
-				meta.append({ r'property' : r'og:description', r'content' : context.description})
-				meta.append({ r'itemprop' : r'description', r'content' : context.description})
-
-			# robots
-			if not context.robots:
-				if r'robots' not in context.meta_tags:
-					meta.append({ r'name' : r'robots', r'content' : r'noindex, nofollow'})
-				if r'googlebot' not in context.meta_tags:
-					meta.append({ r'name' : r'googlebot', r'content' : r'noindex, nofollow'})
-
-			# misc
-			if r'format-detection' not in context.meta_tags:
-				meta.append({ r'name' : r'format-detection', r'content' : r'telephone=no'})
-			if r'generator' not in context.meta_tags:
-				meta.append({ r'name' : r'generator', r'content' : rf'Poxy v{context.version_string}'})
-			if r'referrer' not in context.meta_tags:
-				meta.append({ r'name' : r'referrer', r'content' : r'no-referrer-when-downgrade'})
-
-			# additional user-specified meta tags
-			for name, content in context.meta_tags.items():
-				meta.append({ r'name' : name, r'content' : content})
-
-			for tag in meta:
-				self.__append(doc, r'meta', tag)
-
-		# google structured data
-		if doc.path.name in context.compound_pages and context.compound_pages[doc.path.name][r'kind'] == r'page':
-			tag = self.__append(doc, r'script', { r'type' : r'application/ld+json' })
-			data = {}
-			data[r'@context'] = r'https://schema.org'
-			data[r'@type'] = r'Article'
-			data[r'dateModified'] = context.now.isoformat()
-			data[r'headline'] = doc.head.title.string
-			tag.string = json.dumps(data, indent=r'    ')
-
-		return True
 
 
 

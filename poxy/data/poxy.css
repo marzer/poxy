@@ -47,6 +47,10 @@ a
 	text-decoration: none !important;
 }
 
+article div > section
+{
+	margin-top: 2rem;
+}
 article div > section > section
 {
 	margin-bottom: 2.25rem;
@@ -73,17 +77,18 @@ nav .m-thin
 {
 	margin-left: 0.5em;
 }
-nav .github
+nav .poxy-icon img,
+nav .poxy-icon svg
 {
-	margin-left: 15px !important;
-	background-image: url("poxy-github.svg");
-	background-repeat: no-repeat;
-	background-size: 15px 15px;
-	background-position: center center;
-	color: transparent !important;
-	width: 50px !important;
+	width: 1.75rem;
+	height: 1.75rem;
+	vertical-align: -22.5%;
 }
-@media screen and (max-width: 576px)
+nav #m-navbar-brand img
+{
+	vertical-align: -17.5% !important;
+}
+@media screen and (max-width: 768px)
 {
 	nav .m-thin, nav .github
 	{

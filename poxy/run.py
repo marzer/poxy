@@ -290,17 +290,62 @@ def preprocess_doxyfile(context):
 				df.append(r'# context.macros', end='\n\n')
 				df.add_value(r'PREDEFINED', [rf'{k}={v}' for k,v in context.macros.items()])
 
+		# build HTML_HEADER
+		html_header = ''
+		if 1:
+			for stylesheet in context.stylesheets:
+				html_header += f'<link href="{stylesheet}" rel="stylesheet" referrerpolicy="no-referrer" />\n'
+			for script in context.scripts:
+				html_header += f'<script src="{script}"></script>\n'
+			# metadata
+			def add_meta_kvp(key_name, key, content):
+				nonlocal html_header
+				html_header += f'<meta {key_name}="{key}" content="{content}">\n'
+			add_meta = lambda key, content: add_meta_kvp(r'name', key, content)
+			add_property = lambda key, content: add_meta_kvp(r'property', key, content)
+			add_itemprop = lambda key, content: add_meta_kvp(r'itemprop', key, content)
+			# metadata - project name
+			if context.name:
+				if r'twitter:title' not in context.meta_tags:
+					add_meta(r'twitter:title', context.name)
+				add_property(r'og:title', context.name)
+				add_itemprop(r'name', context.name)
+			# metadata - project author
+			if context.author:
+				if r'author' not in context.meta_tags:
+					add_meta(r'author', context.author)
+				add_property(r'article:author', context.author)
+			# metadata - project description
+			if context.description:
+				if r'description' not in context.meta_tags:
+					add_meta(r'description', context.description)
+				if r'twitter:description' not in context.meta_tags:
+					add_meta(r'twitter:description', context.description)
+				add_property(r'og:description', context.description)
+				add_itemprop(r'description', context.description)
+			# metadata - robots
+			if not context.robots:
+				if r'robots' not in context.meta_tags:
+					add_meta(r'robots', r'noindex, nofollow')
+				if r'googlebot' not in context.meta_tags:
+					add_meta(r'googlebot', r'noindex, nofollow')
+			# metadata - misc
+			if r'format-detection' not in context.meta_tags:
+				add_meta(r'format-detection', r'telephone=no')
+			if r'generator' not in context.meta_tags:
+				add_meta(r'generator', rf'Poxy v{context.version_string}')
+			if r'referrer' not in context.meta_tags:
+				add_meta(r'referrer', r'strict-origin-when-cross-origin')
+			# metadata - additional user-specified tags
+			for name, content in context.meta_tags.items():
+				add_meta(name, content)
+
 		# build m.css conf.py
 		if 1:
 			conf = lambda s='', end='\n': print(reindent(s, indent=''), file=conf_py, end=end)
 			conf(rf"DOXYFILE = r'{context.doxyfile_path}'")
 			conf(r"STYLESHEETS = []") # suppress the default behaviour
-			HTML_HEADER = ''
-			for stylesheet in context.stylesheets:
-				HTML_HEADER += f'<link href="{stylesheet}" rel="stylesheet"/>\n'
-			for script in context.scripts:
-				HTML_HEADER += f'<script src="{script}"></script>\n'
-			conf(f'HTML_HEADER = """{HTML_HEADER}"""')
+			conf(rf'HTML_HEADER = """{html_header}"""')
 			if context.theme == r'dark':
 				conf(r"THEME_COLOR = '#22272e'")
 			elif context.theme == r'light':
@@ -331,7 +376,7 @@ def preprocess_doxyfile(context):
 					for i in range(len(bar)):
 						if bar[i] == r'github':
 							if context.github:
-								bar[i] = (rf'<a target="_blank" href="https://github.com/{context.github}/" class="github">Github</a>' , [])
+								bar[i] = (rf'<a target="_blank" href="https://github.com/{context.github}/" class="poxy-icon github">{read_all_text_from_file(Path(context.data_dir, "poxy-icon-github.svg"), logger=context.verbose_logger)}</a>', [])
 							else:
 								bar[i] = None
 					bar = [b for b in bar if b is not None]
@@ -964,7 +1009,6 @@ def postprocess_html(context):
 			fixers.Links(),
 			fixers.CustomTags(),
 			fixers.EmptyTags(),
-			fixers.HeadTags(),
 			fixers.ImplementationDetails(),
 			fixers.MarkdownPages(),
 		)
@@ -1136,13 +1180,17 @@ def run(config_path='.',
 		# precondition the change log page (at this point it is already a temp copy)
 		if context.changelog:
 			text = read_all_text_from_file(context.changelog, logger=context.verbose_logger).strip()
-			text = text.replace('\r\n', 		'\n')
-			text = text.replace(r'&amp;',		r'__poxy_thiswasan_amp')
-			text = text.replace(r'@',			r'__poxy_thiswasan_at')
-			text = text.replace(r'&#xFE0F;', 	r'__poxy_thiswasan_fe0f')
-			if text.find(r'@tableofcontents') == -1 and text.find('\\tableofcontents') == -1 and text.find('[TOC]') == -1:
+			text = text.replace('\r\n', 			'\n')
+			text = re.sub(r'\n<br[ \t]*/?><br[ \t]*/?>\n',	r'', text)
+			if context.github:
+				text = re.sub(r'#([0-9]+)', 		rf'[#\1](https://github.com/{context.github}/issues/\1)', text)
+				text = re.sub(r'@([a-zA-Z0-9_-]+)',	rf'[@\1](https://github.com/\1)', text)
+			text = text.replace(r'&amp;',			r'__poxy_thiswasan_amp')
+			text = text.replace(r'&#xFE0F;', 		r'__poxy_thiswasan_fe0f')
+			text = text.replace(r'@',				r'__poxy_thiswasan_at')
+			if text.find(r'@tableofcontents') == -1 and text.find('\\tableofcontents') == -1 and text.find(r'[TOC]') == -1:
 				#text = f'[TOC]\n\n{text}'
-				nlnl = text.find('\n\n')
+				nlnl = text.find(r'\n\n')
 				if nlnl != -1:
 					text = f'{text[:nlnl]}\n\n\\tableofcontents\n\n{text[nlnl:]}'
 				pass

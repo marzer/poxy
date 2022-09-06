@@ -70,12 +70,6 @@ section > ol li:last-child
 	margin-top: 0.2rem;
 }
 
-nav .github
-{
-	background-image: url("poxy-github-white.svg");
-}
-
-
 /* ====================================================
   code blocks
 ==================================================== */

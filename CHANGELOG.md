@@ -1,8 +1,12 @@
 # Changelog
 
 ## Unreleased
-- Fixed `css` and `js` files not being included in `<head>` when a file was excluded from post-processing
+- Fixed some `<link>`, `<meta>` and `<script>` tags not being included in `<head>` when a file was excluded from post-processing
 - Added `theme` command-line option
+- Added automatic generation of github links in changelog when config option `github` is set
+- Removed text from github icon on navbar (#5) (@wroyca)
+- Removed excessive spacing between article sections (#5) (@wroyca)
+- Minor visual tweaks to navbar
 
 ## v0.6.1 - 2022-08-16
 - Fixed multi-row navbar occluding page content (#3) (@wroyca)

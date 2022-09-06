@@ -1415,10 +1415,6 @@ class Context(object):
 				for stylesheet in enumerate_files(self.data_dir, all=r'*.css'):
 					extra_files.append((stylesheet.name, stylesheet))
 				self.stylesheets.append(rf'poxy-{self.theme}.css')
-				# github logos
-				if self.github:
-					extra_files.append((r'poxy-github-black.svg', coerce_path(self.data_dir, rf'poxy-github-black.svg')))
-					extra_files.append((r'poxy-github-white.svg', coerce_path(self.data_dir, rf'poxy-github-white.svg')))
 			self.verbose_value(r'Context.theme', self.theme)
 
 			# stylesheets (HTML_EXTRA_STYLESHEETS)
