@@ -17,7 +17,6 @@ from pathlib import Path
 from io import StringIO
 from misk import *
 
-# __all__ = []
 
 #=======================================================================================================================
 # FUNCTIONS
@@ -113,6 +112,36 @@ class RegexReplacer(object):
 	def __getitem__(self, index):
 		return self.__out_data[index]
 
+
+
+#=======================================================================================================================
+# core directory helper methods
+#=======================================================================================================================
+
+_package_dir = None
+def find_package_dir() -> Path:
+	global _package_dir
+	if _package_dir is None:
+		_package_dir = Path(__file__).resolve().parent
+		assert_existing_directory(_package_dir)
+	return _package_dir
+
+_data_dir = None
+def find_data_dir() -> Path:
+	global _data_dir
+	if _data_dir is None:
+		_data_dir = Path(find_package_dir(), r'data')
+		assert_existing_directory(_data_dir)
+	return _data_dir
+
+_mcss_dir = None
+def find_mcss_dir() -> Path:
+	global _mcss_dir
+	if _mcss_dir is None:
+		_mcss_dir = Path(find_data_dir(), r'm.css')
+		assert_existing_directory(_mcss_dir)
+		assert_existing_file(Path(_mcss_dir, r'documentation/doxygen.py'))
+	return _mcss_dir
 
 
 #=======================================================================================================================

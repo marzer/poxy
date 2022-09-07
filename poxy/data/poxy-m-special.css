@@ -1,0 +1,180 @@
+/*
+	WHAT IS THIS?
+
+	I hacked an additional colour class into m.css: the 'special' theme colour. it's purple.
+*/
+
+.m-special a
+{
+	color: var(--special-color);
+}
+.m-special a:hover,
+.m-special a:focus,
+.m-special a:active
+{
+	color: var(--special-link-active-color);
+}
+
+table.m-table td.m-special,
+table.m-table th.m-special {
+	padding-left: 0.4375rem;
+	padding-right: 0.4375rem;
+	border-left-width: 0.0625rem;
+}
+
+table.m-table.m-big td.m-special,
+table.m-table.m-big th.m-special {
+	padding-left: 0.9375rem;
+	padding-right: 0.9375rem;
+	border-left-width: 0.0625rem;
+}
+
+table.m-table tr.m-special td,
+table.m-table td.m-special,
+table.m-table tr.m-special th,
+table.m-table th.m-special {
+	border-color: var(--background-color);
+}
+
+table.m-table tr.m-special pre,
+table.m-table tr.m-special code,
+table.m-table td.m-special pre,
+table.m-table td.m-special code,
+table.m-table th.m-special pre,
+table.m-table th.m-special code {
+	background-color: var(--code-note-background-color);
+}
+
+.m-block.m-special {
+	border-left-color: var(--special-color);
+}
+
+.m-block.m-special h3,
+.m-block.m-special h4,
+.m-block.m-special h5,
+.m-block.m-special h6,
+.m-block.m-special h3 a,
+.m-block.m-special h4 a,
+.m-block.m-special h5 a,
+.m-block.m-special h6 a,
+.m-text.m-special,
+.m-label.m-flat.m-special {
+	color: var(--special-color);
+}
+
+.m-block.m-special h3 a:hover,
+.m-block.m-special h3 a:focus,
+.m-block.m-special h3 a:active,
+.m-block.m-special h4 a:hover,
+.m-block.m-special h4 a:focus,
+.m-block.m-special h4 a:active,
+.m-block.m-special h5 a:hover,
+.m-block.m-special h5 a:focus,
+.m-block.m-special h5 a:active,
+.m-block.m-special h6 a:hover,
+.m-block.m-special h6 a:focus,
+.m-block.m-special h6 a:active {
+	color: var(--special-link-active-color);
+}
+
+div.m-button.m-special a,
+.m-label:not(.m-flat).m-special {
+	background-color: var(--special-color);
+}
+
+div.m-button.m-special a:hover,
+div.m-button.m-special a:focus,
+div.m-button.m-special a:active {
+	background-color: var(--special-link-active-color);
+}
+
+.m-note.m-special,
+table.m-table tr.m-special td,
+table.m-table td.m-special,
+table.m-table tr.m-special th,
+table.m-table th.m-special {
+	background-color: var(--special-filled-background-color);
+	color: var(--special-filled-color);
+}
+
+.m-note.m-special a,
+table.m-table tr.m-special td a,
+table.m-table td.m-special a,
+table.m-table tr.m-special th a,
+table.m-table th.m-special a {
+	color: var(--special-filled-link-color);
+}
+
+.m-note.m-special a:hover,
+table.m-table tr.m-special td a:hover,
+table.m-table td.m-special a:hover,
+table.m-table tr.m-special th a:hover,
+table.m-table th.m-special a:hover,
+.m-note.m-special a:focus,
+table.m-table tr.m-special td a:focus,
+table.m-table td.m-special a:focus,
+table.m-table tr.m-special th a:focus,
+table.m-table th.m-special a:focus,
+.m-note.m-special a:active,
+table.m-table tr.m-special td a:active,
+table.m-table td.m-special a:active,
+table.m-table tr.m-special th a:active,
+table.m-table th.m-special a:active {
+	color: var(--special-filled-link-active-color);
+}
+
+figure.m-figure.m-special::before {
+	border-color: var(--special-filled-background-color);
+}
+
+figure.m-figure.m-special figcaption {
+	color: var(--special-color);
+}
+
+figure.m-figure.m-special figcaption .m-figure-description {
+	color: var(--default-color);
+}
+
+.m-math.m-special,
+.m-math g.m-special,
+.m-math rect.m-special,
+div.m-plot svg .m-bar.m-special,
+.m-graph.m-special g.m-edge polygon,
+.m-graph.m-special g.m-node:not(.m-flat) ellipse,
+.m-graph.m-special g.m-node:not(.m-flat) polygon,
+.m-graph.m-special g.m-edge text,
+.m-graph.m-special g.m-node.m-flat text,
+.m-graph.m-special g.m-cluster text {
+	fill: var(--special-color);
+}
+
+.m-graph.m-special g.m-edge polygon,
+.m-graph.m-special g.m-edge path,
+.m-graph.m-special g.m-node ellipse,
+.m-graph.m-special g.m-node polygon,
+.m-graph.m-special g.m-node polyline,
+.m-graph.m-special g.m-cluster polygon {
+	stroke: var(--special-color);
+}
+
+.m-graph g.m-edge.m-special polygon,
+.m-graph g.m-node.m-special:not(.m-flat) ellipse,
+.m-graph g.m-node.m-special:not(.m-flat) polygon,
+.m-graph g.m-edge.m-special text,
+.m-graph g.m-node.m-special.m-flat text,
+.m-graph g.m-cluster.m-special text {
+	fill: var(--special-color);
+}
+
+.m-graph g.m-edge.m-special polygon,
+.m-graph g.m-edge.m-special path,
+.m-graph g.m-node.m-special ellipse,
+.m-graph g.m-node.m-special polygon,
+.m-graph g.m-node.m-special polyline,
+.m-graph g.m-cluster.m-special polygon {
+	stroke: var(--special-color);
+}
+
+.m-container-inflatable section:target .m-note.m-info {
+	border-color: var(--info-color);
+}

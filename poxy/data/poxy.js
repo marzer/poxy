@@ -4,6 +4,30 @@ function do_with_debounce(fn)
 	setTimeout(function() { fn(); }, 200);
 }
 
+function set_theme(theme)
+{
+	localStorage.setItem('poxy-theme', theme);
+	document.documentElement.className = 'poxy-theme-' + theme;
+	console.log("poxy theme set to '" + theme + "'");
+}
+
+function initialize_theme(default_theme)
+{
+	current = localStorage.getItem('poxy-theme');
+	if (!current)
+		current = default_theme
+	set_theme(current);
+}
+
+function toggle_theme()
+{
+	current = localStorage.getItem('poxy-theme');
+	if (!current || current === 'light')
+		set_theme('dark');
+	else
+		set_theme('light');
+}
+
 /*
 $(function()
 {

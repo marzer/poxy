@@ -154,6 +154,7 @@ class HTMLDocument(object):
 		self.path = path
 		with open(self.path, 'r', encoding='utf-8') as f:
 			self.__doc = bs4.BeautifulSoup(f, 'html5lib', from_encoding='utf-8')
+		self.html = self.__doc.html
 		self.head = self.__doc.head
 		self.body = self.__doc.body
 		self.article = None

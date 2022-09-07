@@ -14,6 +14,7 @@ import datetime
 from schema import SchemaError
 from .utils import *
 from .run import run
+from . import css
 
 __all__ = []
 
@@ -138,10 +139,21 @@ def main(invoker=True):
 		default=r'auto',
 		help=r'the CSS theme to use (default: %(default)s)'
 	)
+	args.add_argument(
+		r'--themegen',
+		action=r'store_true',
+		help=argparse.SUPPRESS
+	)
 	args = args.parse_args()
 
 	if args.print_version:
 		print(r'.'.join([str(v) for v in lib_version()]))
+		return
+
+	mcss_dir = args.mcss if args.mcss is not None else args.mcss_deprecated_old_arg
+
+	if args.themegen:
+		css.regenerate_builtin_themes(mcss_dir = mcss_dir)
 		return
 
 	with ScopeTimer(r'All tasks', print_start=False, print_end=not args.dry) as timer:
@@ -151,7 +163,7 @@ def main(invoker=True):
 			threads = args.threads,
 			cleanup = not args.nocleanup,
 			verbose = args.verbose,
-			mcss_dir = args.mcss if args.mcss is not None else args.mcss_deprecated_old_arg,
+			mcss_dir = mcss_dir,
 			doxygen_path = args.doxygen,
 			logger=True, # stderr + stdout
 			dry_run=args.dry,

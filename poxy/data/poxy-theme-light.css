@@ -1,3 +1,24 @@
-:root {
+.poxy-theme-light
+{
+	--code-font: 'Consolas', 'Source Code Pro', monospace;
+	--code-color-comments: #008000;
+	--code-color-keywords: #0000ff;
+	--code-color-identifiers: #151414;
+	--code-color-typenames: #2b91af;
+	--code-color-namespaces: #808080;
+	--code-color-operators: #404040;
+	--code-color-punctuation: #404040;
+	--code-color-numbers: #74531f;
+	--code-color-strings: #a31515;
+	--code-color-escapes: #b776fb;
+	--code-color-preprocessor: #808080;
 
+	--special-color: #b65ad7;
+	--special-link-active-color: #e4a8ff;
+	--special-filled-color: #fafafa;
+	--special-filled-background-color: #683b7d;
+	--special-filled-link-color: #C57CDF;
+	--special-filled-link-active-color: #F2D6FF;
+
+	--detail-section-background-color: rgba(255, 255, 255, 0.3);
 }

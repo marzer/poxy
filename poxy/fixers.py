@@ -357,33 +357,49 @@ class MarkdownPages(PlainTextFixer):
 
 
 #=======================================================================================================================
-# index.html
+# index.html banner
 #=======================================================================================================================
 
-__all__.append(r'IndexPage')
-class IndexPage(HTMLFixer):
+__all__.append(r'Banner')
+class Banner(HTMLFixer):
 	'''
-	Applies some basic fixes to index.html
+	Makes the first image on index.html a 'banner'
 	'''
 	def __call__(self, doc, context):
 		if doc.article_content is None or doc.path.name.lower() != 'index.html':
 			return False
 		parent = doc.article_content
-		banner = parent.find('img')
-		if banner:
-			banner = banner.extract()
-			parent.find('h1').replace_with(banner)
-			if context.badges:
-				parent = doc.new_tag('div', class_='gh-badges', after=banner)
-				for (alt, src, href) in context.badges:
-					if alt is None and src is None and href is None:
-						doc.new_tag('br', parent=parent)
-					else:
-						anchor = doc.new_tag('a', parent=parent, href=href, target='_blank')
-						doc.new_tag('img', parent=anchor, src=src, alt=alt)
-				soup.add_class(banner, 'main_page_banner')
-			return True
-		return False
+
+		h1 = parent.find('h1', recursive=False)
+		banner = parent.find('img', recursive=False)
+		if not banner or not h1 or r'src' not in banner.attrs or not banner[r'src']:
+			return False
+
+		# ensure it's the first image in the page, before any subsections or headings
+		for sibling_tag in ('section','h2','h3','h4','h5','h6'):
+			sibling = banner.find_previous_sibling(sibling_tag)
+			if sibling is not None:
+				return False
+
+		banner = banner.extract()
+		h1.replace_with(banner)
+
+		# if the image was a local SVG we can sub it into the HTML directly
+		if not is_uri(banner[r'src']) and banner[r'src'].lower().endswith('.svg'):
+			src_path = Path(doc.path.parent, banner[r'src'])
+			if src_path.exists() and src_path.is_file():
+				banner = soup.replace_tag(banner, r'<div>'+read_all_text_from_file(src_path)+r'</div>')[0]
+
+		if context.badges:
+			parent = doc.new_tag('div', class_='gh-badges', after=banner)
+			for (alt, src, href) in context.badges:
+				if alt is None and src is None and href is None:
+					doc.new_tag('br', parent=parent)
+				else:
+					anchor = doc.new_tag('a', parent=parent, href=href, target='_blank')
+					doc.new_tag('img', parent=anchor, src=src, alt=alt)
+			soup.add_class(banner, 'poxy-main-banner')
+		return True
 
 
 
@@ -454,7 +470,7 @@ class CodeBlocks(HTMLFixer):
 			return True
 
 		if context.code_blocks.types.fullmatch(full_str):
-			soup.set_class(tags[-1], 'ut')
+			soup.set_class(tags[-1], 'nc')
 			del tags[-1]
 			while tags and tags[-1].string == '::':
 				del tags[-1]
@@ -475,7 +491,7 @@ class CodeBlocks(HTMLFixer):
 				tags.pop().decompose()
 			tags[0].string = full_str
 			if soup.remove_class(tags[0], ('n', 'nl', 'kt')):
-				soup.add_class(tags[0], 'ns')
+				soup.add_class(tags[0], 'nn')
 			return True
 
 		return False
@@ -609,7 +625,7 @@ class CodeBlocks(HTMLFixer):
 						changed_this_block = True
 
 				# misidentifed keywords
-				spans = code_block('span', class_=('nf', 'nb', 'kt', 'ut', 'kr'), string=True)
+				spans = code_block('span', class_=('nf', 'nb', 'kt', 'nc', 'kr'), string=True)
 				for span in spans:
 					if (span.string in self.__keywords):
 						soup.set_class(span, r'k')
@@ -628,7 +644,7 @@ class CodeBlocks(HTMLFixer):
 						if not (self.__adjacent_maybe_by_whitespace(using, next_identifier)
 								and self.__adjacent_maybe_by_whitespace(next_identifier, next_assign)):
 							continue
-						soup.set_class(next_identifier, r'ut')
+						soup.set_class(next_identifier, r'nc')
 						changed_this_block = True
 
 				if changed_this_block:
@@ -849,7 +865,7 @@ class EmptyTags(HTMLFixer):
 
 
 #=======================================================================================================================
-# misc
+# marks the table of contents
 #=======================================================================================================================
 
 __all__.append(r'MarkTOC')

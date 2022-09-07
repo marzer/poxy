@@ -293,10 +293,14 @@ def preprocess_doxyfile(context):
 		# build HTML_HEADER
 		html_header = ''
 		if 1:
+			# stylesheets
 			for stylesheet in context.stylesheets:
 				html_header += f'<link href="{stylesheet}" rel="stylesheet" referrerpolicy="no-referrer" />\n'
+			# scripts
 			for script in context.scripts:
 				html_header += f'<script src="{script}"></script>\n'
+			if context.theme != r'custom':
+				html_header += f'<script>initialize_theme("{context.theme}");</script>\n'
 			# metadata
 			def add_meta_kvp(key_name, key, content):
 				nonlocal html_header
@@ -339,6 +343,11 @@ def preprocess_doxyfile(context):
 			# metadata - additional user-specified tags
 			for name, content in context.meta_tags.items():
 				add_meta(name, content)
+			# html_header
+			if context.html_header:
+				html_header += f'{context.html_header}\n'
+			html_header = html_header.rstrip()
+
 
 		# build m.css conf.py
 		if 1:
@@ -375,10 +384,9 @@ def preprocess_doxyfile(context):
 					bar = [v for v in context.navbar]
 					for i in range(len(bar)):
 						if bar[i] == r'github':
-							if context.github:
-								bar[i] = (rf'<a target="_blank" href="https://github.com/{context.github}/" class="poxy-icon github">{read_all_text_from_file(Path(context.data_dir, "poxy-icon-github.svg"), logger=context.verbose_logger)}</a>', [])
-							else:
-								bar[i] = None
+							bar[i] = (rf'<a target="_blank" href="https://github.com/{context.github}/" class="poxy-icon github">{read_all_text_from_file(Path(context.data_dir, "poxy-icon-github.svg"), logger=context.verbose_logger)}</a>', [])
+						elif bar[i] == r'theme':
+							bar[i] = (rf'<a id="poxy-theme-switch" href="#poxy-theme-switch" class="poxy-icon theme" onClick="toggle_theme();">{read_all_text_from_file(Path(context.data_dir, "poxy-icon-theme.svg"), logger=context.verbose_logger)}</a>', [])
 					bar = [b for b in bar if b is not None]
 					split = min(max(int(len(bar)/2) + len(bar)%2, 2), len(bar))
 					for b, i in ((bar[:split], 0), (bar[split:], 1)):
@@ -1000,7 +1008,7 @@ def postprocess_html(context):
 		context.fixers = (
 			fixers.MarkTOC(),
 			fixers.CodeBlocks(),
-			fixers.IndexPage(),
+			fixers.Banner(),
 			fixers.Modifiers1(),
 			fixers.Modifiers2(),
 			fixers.TemplateTemplate(),

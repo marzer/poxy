@@ -572,7 +572,7 @@ class Defaults(object):
 		r'availability' : r'@par [parent_set_class m-block m-special]Conditional availability ^^',
 		r'figure{1}' : r'@image html \1',
 		r'figure{2}' : r'@image html \1 "\2"',
-		# m-css
+		# m.css
 		r'm_div{1}' : r'@xmlonly<mcss:div xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:class="\1">@endxmlonly',
 		r'm_enddiv' : r'@xmlonly</mcss:div>@endxmlonly',
 		r'm_span{1}' : r'@xmlonly<mcss:span xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:class="\1">@endxmlonly',
@@ -961,6 +961,7 @@ class Context(object):
 			Optional(r'favicon')				: str,
 			Optional(r'generate_tagfile')		: bool,
 			Optional(r'github')					: str,
+			Optional(r'html_header')			: str,
 			Optional(r'images')					: Inputs.schema,
 			Optional(r'implementation_headers') : {str : ValueOrArray(str)},
 			Optional(r'inline_namespaces')		: ValueOrArray(str, name=r'inline_namespaces'),
@@ -1136,9 +1137,9 @@ class Context(object):
 		if 1:
 
 			# environment
-			self.package_dir = Path(__file__).resolve().parent
+			self.package_dir = find_package_dir()
 			self.verbose_value(r'Context.package_dir', self.package_dir)
-			self.data_dir = Path(self.package_dir, r'data')
+			self.data_dir = find_data_dir()
 			self.verbose_value(r'Context.data_dir', self.data_dir)
 			if output_dir is None:
 				output_dir = Path.cwd()
@@ -1260,10 +1261,11 @@ class Context(object):
 
 			# m.css
 			if mcss_dir is None:
-				mcss_dir = Path(self.data_dir, r'm.css')
-			mcss_dir = coerce_path(mcss_dir).resolve()
-			assert_existing_directory(mcss_dir)
-			assert_existing_file(Path(mcss_dir, r'documentation/doxygen.py'))
+				mcss_dir = find_mcss_dir()
+			else:
+				mcss_dir = coerce_path(mcss_dir).resolve()
+				assert_existing_directory(mcss_dir)
+				assert_existing_file(Path(mcss_dir, r'documentation/doxygen.py'))
 			self.mcss_dir = mcss_dir
 			self.verbose_value(r'Context.mcss_dir', self.mcss_dir)
 			self.mcss_conf_path = Path(self.temp_dir, r'conf.py')
@@ -1404,17 +1406,8 @@ class Context(object):
 			elif r'theme' in config:
 				self.theme = str(config[r'theme'])
 			if self.theme != r'custom':
-				# m-css stylesheets for the base theme + vars
-				for stylesheet in enumerate_files(
-						coerce_path(self.mcss_dir, r'css'),
-						all=r'*.css',
-						none=(r'*compiled*', r'*debug*')
-					):
-					extra_files.append((stylesheet.name, stylesheet))
-				# poxy stylesheets
-				for stylesheet in enumerate_files(self.data_dir, all=r'*.css'):
-					extra_files.append((stylesheet.name, stylesheet))
-				self.stylesheets.append(rf'poxy-{self.theme}.css')
+				extra_files.append((r'poxy.css', Path(self.data_dir, r'generated', r'poxy.css')))
+				self.stylesheets.append(rf'poxy.css')
 			self.verbose_value(r'Context.theme', self.theme)
 
 			# stylesheets (HTML_EXTRA_STYLESHEETS)
@@ -1582,8 +1575,16 @@ class Context(object):
 					self.navbar[i] = 'annotated'
 				elif self.navbar[i] == 'groups':
 					self.navbar[i] = 'modules'
-			if self.github and 'github' not in self.navbar:
-				self.navbar.append('github')
+			# github button
+			if self.github and r'github' not in self.navbar:
+				self.navbar.append(r'github')
+			if not self.github and r'github' in self.navbar:
+				self.navbar.remove(r'github')
+			# theme button
+			if self.theme != r'custom' and r'theme' not in self.navbar:
+				self.navbar.append(r'theme')
+			if self.theme == r'custom' and r'theme' in self.navbar:
+				self.navbar.remove(r'theme')
 			self.navbar = tuple(self.navbar)
 			self.verbose_value(r'Context.navbar', self.navbar)
 
@@ -1745,6 +1746,12 @@ class Context(object):
 
 			# code_blocks
 			self.code_blocks = CodeBlocks(config, non_cpp_def_macros) # printed in run.py post-xml
+
+			# html_header (HTML_HEADER in m.css)
+			self.html_header = ''
+			if r'html_header' in config:
+				self.html_header = str(config[r'html_header']).strip()
+			self.verbose_value(r'Context.html_header', self.html_header)
 
 		# initialize other data from files on disk
 		self.__init_data_files(self)
