@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.7.1 - 2022-08-17
+- fixed crash on python &lt;= 3.8 (#9) (@wroyca)
+
 ## v0.7.0 - 2022-08-16
 - fixed some `<link>`, `<meta>` and `<script>` tags not being included in `<head>` when a file was excluded from post-processing
 - added `theme` command-line option

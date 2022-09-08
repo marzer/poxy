@@ -140,7 +140,7 @@ def main(invoker=True):
 		help=r'the CSS theme to use (default: %(default)s)'
 	)
 	args.add_argument(
-		r'--themegen',
+		r'--genstyles',
 		action=r'store_true',
 		help=argparse.SUPPRESS
 	)
@@ -152,8 +152,8 @@ def main(invoker=True):
 
 	mcss_dir = args.mcss if args.mcss is not None else args.mcss_deprecated_old_arg
 
-	if args.themegen:
-		css.regenerate_builtin_themes(mcss_dir = mcss_dir)
+	if args.genstyles:
+		css.regenerate_builtin_styles(mcss_dir = mcss_dir)
 		return
 
 	with ScopeTimer(r'All tasks', print_start=False, print_end=not args.dry) as timer:

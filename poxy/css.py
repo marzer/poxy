@@ -10,6 +10,7 @@ Functions for working with CSS files.
 
 import re
 from .utils import *
+from typing import Tuple
 
 
 RX_COMMENT = re.compile(r'''/[*].+?[*]/''', flags=re.DOTALL)
@@ -25,7 +26,7 @@ def strip_comments(text) -> str:
 
 
 
-def resolve_imports(text, cwd=None, mcss_dir = None) -> tuple[str, bool]:
+def resolve_imports(text, cwd=None, mcss_dir = None) -> Tuple[str, bool]:
 	if cwd is None:
 		cwd = Path.cwd()
 	cwd = coerce_path(cwd).resolve()
@@ -139,7 +140,7 @@ def minify(text) -> str:
 
 
 
-def regenerate_builtin_themes(mcss_dir = None):
+def regenerate_builtin_styles(mcss_dir = None):
 	if mcss_dir is None:
 		mcss_dir = find_mcss_dir()
 	else:
