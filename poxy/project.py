@@ -585,7 +585,7 @@ class Defaults(object):
 		r'm_enum_values_as_keywords' : r'@xmlonly<mcss:search xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:enum-values-as-keywords="true" />@endxmlonly'
 	}
 	source_patterns = {
-		r'*.h', r'*.hh', r'*.hxx', r'*.hpp', r'*.h++', r'*.inc', r'*.markdown', r'*.md', r'*.dox'
+		r'*.h', r'*.hh', r'*.hxx', r'*.hpp', r'*.h++', r'*.ixx', r'*.inc', r'*.markdown', r'*.md', r'*.dox'
 	}
 	# code block syntax highlighting only
 	cb_enums = {
