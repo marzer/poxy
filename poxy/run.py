@@ -8,6 +8,7 @@
 The 'actually do the thing' module.
 """
 
+from distutils.dir_util import copy_tree
 import os
 import subprocess
 import concurrent.futures as futures
@@ -1290,6 +1291,10 @@ def run(config_path='.',
 		with ScopeTimer(r'Copying extra_files', print_start=True, print_end=context.verbose_logger) as t:
 			for dest_name, source_path in context.extra_files.items():
 				copy_file(source_path, Path(context.html_dir, dest_name), logger=context.verbose_logger)
+
+		# copy fonts
+		with ScopeTimer(r'Copying fonts', print_start=True, print_end=context.verbose_logger) as t:
+			copy_tree(str(Path(find_generated_dir(), r'fonts')), str(Path(context.html_dir, r'fonts')))
 
 		# move the tagfile into the html directory
 		if context.generate_tagfile:

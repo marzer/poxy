@@ -1,6 +1,10 @@
 # poxy
 Documentation generator for C++ based on Doxygen and [mosra/m.css](https://mcss.mosra.cz/).
 
+[![Gitter](https://badges.gitter.im/marzer/poxy.svg)](https://gitter.im/marzer/poxy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
+
+
  - [Overview](#overview)
  - [Example](#example)
  - [Installation](#installation)

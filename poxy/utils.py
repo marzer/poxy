@@ -134,6 +134,13 @@ def find_data_dir() -> Path:
 		assert_existing_directory(_data_dir)
 	return _data_dir
 
+_generated_dir = None
+def find_generated_dir() -> Path:
+	global _generated_dir
+	if _generated_dir is None:
+		_generated_dir = Path(find_data_dir(), r'generated')
+	return _generated_dir
+
 _mcss_dir = None
 def find_mcss_dir() -> Path:
 	global _mcss_dir

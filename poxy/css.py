@@ -9,20 +9,31 @@ Functions for working with CSS files.
 """
 
 import re
+import requests
 from .utils import *
 from typing import Tuple
 
 
 RX_COMMENT = re.compile(r'''/[*].+?[*]/''', flags=re.DOTALL)
-RX_IMPORT = re.compile(r'''@import\s+url\(\s*['"](.+?)['"]\s*\)\s*;''')
+RX_IMPORT = re.compile(r'''@import\s+url\(\s*['"]?(.+?)['"]?\s*\)\s*;''')
 RX_MCSS_FILE = re.compile(r'(?:m|pygments)-[a-zA-Z0-9_-]+[.]css')
 RX_MCSS_THEME = re.compile(r'm-theme-([a-zA-Z0-9_-]+)[.]css')
+RX_GOOGLE_FONT = re.compile(r'''url\(\s*['"]?(https://fonts[.]gstatic[.]com/[a-zA-Z0-9_/%+?:-]+?[.]woff2)['"]?\s*\)''')
 
 
 
 def strip_comments(text) -> str:
 	global RX_COMMENT
 	return RX_COMMENT.sub('', text)
+
+
+
+def strip_quotes(text):
+	if text.startswith(r'"') or text.startswith(r"'"):
+		text = text[1:]
+	if text.endswith(r'"') or text.endswith(r"'"):
+		text = text[:-2]
+	return text
 
 
 
@@ -47,35 +58,45 @@ def resolve_imports(text, cwd=None, mcss_dir = None) -> Tuple[str, bool]:
 		nonlocal mcss_dir
 		nonlocal had_mcss_files
 
-		# skip uris altogether for now (todo: cache them? unroll google fonts?)
-		if is_uri(m[1]):
-			return m[0]
-
+		import_path = strip_quotes(m[1].strip())
 		path = None
+		path_ok = lambda: path is not None and path.exists() and path.is_file()
+
+		# download + cache uris locally
+		if is_uri(import_path):
+			find_generated_dir().mkdir(exist_ok=True)
+			path = Path(find_generated_dir(), rf'{sha1(import_path.lower())}.css')
+			if not path_ok():
+				print(rf"Downloading {import_path}")
+				headers = { r'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0' }
+				response = requests.get(import_path, headers=headers, timeout=10)
+				with open(path, 'w', encoding='utf-8', newline='\n') as f:
+					f.write(response.text)
+
 
 		# m-css stylesheets get special handling;
 		# - first we check for any identically-named versions in poxy's data dir
 		# - then check the m-css css dir
 		had_mcss_filename = False
 		was_mcss_file = False
-		if RX_MCSS_FILE.fullmatch(m[1]):
-			path = Path(find_data_dir(), m[1])
-			if not path.exists() or not path.is_file():
-				path = Path(mcss_dir, 'css', m[1])
+		if not path_ok() is None and RX_MCSS_FILE.fullmatch(import_path):
+			path = Path(find_data_dir(), import_path)
+			if not path_ok():
+				path = Path(mcss_dir, r'css', import_path)
 				was_mcss_file = True
 			had_mcss_filename = True
 
 		# otherwise just check cwd
-		if path is None or not path.exists() or not path.is_file():
-			path = Path(cwd, m[1])
+		if not path_ok():
+			path = Path(cwd, import_path)
 			was_mcss_file = False
 
 		# if we still haven't found a match just leave the @import statement as it was
-		if not path.exists() or not path.is_file():
+		if not path_ok():
 			return m[0]
 
 		text = strip_comments(read_all_text_from_file(path, logger=True)).strip()
-		header = rf'/*==== {m[1]} {"="*(110-len(m[1]))}*/'
+		header = rf'/*==== {import_path} {"="*(110-len(import_path))}*/'
 		text = f'\n\n{header}\n{text}\n\n'
 
 		# more m.css special-handling
@@ -93,6 +114,28 @@ def resolve_imports(text, cwd=None, mcss_dir = None) -> Tuple[str, bool]:
 
 	global RX_IMPORT
 	return (RX_IMPORT.sub(match_handler, text), had_mcss_files)
+
+
+
+def resolve_google_fonts(text) -> str:
+	def match_handler(m):
+		global RX_GOOGLE_FONT
+		uri = strip_quotes(m[1].strip())
+		file_name = uri[uri.rfind('/')+1:]
+		fonts_dir = Path(find_generated_dir(), 'fonts')
+		fonts_dir.mkdir(exist_ok=True)
+		path = Path(fonts_dir, rf'{file_name}')
+		if not path.exists():
+			print(rf"Downloading {uri}")
+			headers = { r'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0' }
+			response = requests.get(uri, headers=headers, timeout=10)
+			with open(path, 'wb') as f:
+				f.write(response.content)
+
+		return rf"url('fonts/{file_name}')"
+
+	global RX_GOOGLE_FONT
+	return RX_GOOGLE_FONT.sub(match_handler, text)
 
 
 
@@ -135,7 +178,6 @@ def minify(text) -> str:
 
 	text = re.sub(r'[{]\s+?[}]', r'{}', text)
 	text = re.sub(r'[ \t][ \t]+', ' ', text)
-
 	return text
 
 
@@ -149,7 +191,7 @@ def regenerate_builtin_styles(mcss_dir = None):
 		assert_existing_file(Path(mcss_dir, r'documentation/doxygen.py'))
 
 	data_dir = find_data_dir()
-	output_dir = Path(data_dir, 'generated')
+	output_dir = find_generated_dir()
 	output_dir.mkdir(exist_ok=True)
 
 	THEMES = (
@@ -158,6 +200,7 @@ def regenerate_builtin_styles(mcss_dir = None):
 	for theme_source_file in THEMES:
 		text = strip_comments(read_all_text_from_file(theme_source_file, logger=True))
 		text, had_mcss_files = resolve_imports(text, theme_source_file.parent)
+		text = resolve_google_fonts(text)
 		text = re.sub(r':(before|after)', r'::\1', text)
 		text = re.sub(r':::+(before|after)', r'::\1', text)
 		text = text.replace('\r\n', '\n')
