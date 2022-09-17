@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+- improved doxygen location discovery on Windows
+- moved all poxy assets in the generated HTML to `html/poxy` 
+- self-hosted google fonts in generated HTML (instead of requiring additional HTTP requests on page load)
+
 ## v0.7.1 - 2022-08-17
 - fixed crash on python &lt;= 3.8 (#9) (@wroyca)
 

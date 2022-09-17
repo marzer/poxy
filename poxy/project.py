@@ -1207,6 +1207,7 @@ class Context(object):
 			self.xml_dir = Path(self.output_dir, r'xml')
 			self.verbose_value(r'Context.xml_dir', self.xml_dir)
 			self.html_dir = Path(self.output_dir, r'html')
+			self.assets_dir = Path(self.html_dir, r'poxy')
 			self.verbose_value(r'Context.html_dir', self.html_dir)
 			assert self.output_dir.is_absolute()
 			assert self.xml_dir.is_absolute()
@@ -1234,24 +1235,31 @@ class Context(object):
 			assert self.temp_dir.is_absolute()
 			assert self.temp_pages_dir.is_absolute()
 
-			# doxygen
+			# doxygen 
 			if doxygen_path is not None:
 				doxygen_path = coerce_path(doxygen_path).resolve()
 				if not doxygen_path.exists() and Path(str(doxygen_path) + r'.exe').exists():
 					doxygen_path = Path(str(doxygen_path) + r'.exe')
-				if doxygen_path.is_dir():
-					p = Path(doxygen_path, 'doxygen.exe')
-					if not p.exists() or not p.is_file() or not os.access(str(p), os.X_OK):
-						p = Path(doxygen_path, 'doxygen')
-					if not p.exists() or not p.is_file() or not os.access(str(p), os.X_OK):
-						raise Error(rf'Could not find Doxygen executable in {doxygen_path}')
-					doxygen_path = p
 			else:
 				doxygen_path = shutil.which(r'doxygen')
-				if doxygen_path is None:
-					raise Error(rf'Could not find Doxygen on system path')
+				if doxygen_path is not None:
+					doxygen_path = coerce_path(doxygen_path)
+				if doxygen_path is None or not doxygen_path.exists():
+					try:
+						doxygen_path = Path('C:\\Program Files\\doxygen\\bin\\doxygen.exe') # todo: get 'program files' path programatically
+					except: # path will be invalid on non-windows
+						pass
+				if doxygen_path is None or not doxygen_path.exists():
+					raise Error(rf'Could not find Doxygen on system path')				
 			assert doxygen_path is not None
 			doxygen_path = coerce_path(doxygen_path).resolve()
+			if doxygen_path.is_dir():
+				p = Path(doxygen_path, r'doxygen.exe')
+				if not p.exists() or not p.is_file() or not os.access(str(p), os.X_OK):
+					p = Path(doxygen_path, r'doxygen')
+				if not p.exists() or not p.is_file() or not os.access(str(p), os.X_OK):
+					raise Error(rf'Could not find Doxygen executable in {doxygen_path}')
+				doxygen_path = p
 			assert_existing_file(doxygen_path)
 			if not os.access(str(doxygen_path), os.X_OK):
 				raise Error(rf'{doxygen_path} was not an executable file')
@@ -1297,6 +1305,13 @@ class Context(object):
 			self.scripts = []
 			self.stylesheets = []
 
+			def add_internal_asset(p):
+				nonlocal extra_files
+				p = coerce_path(p)
+				if not p.is_absolute():
+					p = Path(self.data_dir, p)
+				extra_files.append((p, rf'poxy/{p.name}'))
+
 			config = dict()
 			if self.config_path is not None:
 				assert_existing_file(self.config_path)
@@ -1341,8 +1356,8 @@ class Context(object):
 					self.verbose(rf"Finding badge SVG for license '{spdx}'...")
 					if badge.exists():
 						self.verbose(rf'Badge file found at {badge}')
-						extra_files.append(badge)
-						badges.append((spdx, badge.name, uri))
+						add_internal_asset(badge)
+						badges.append((spdx, rf'poxy/{badge.name}', uri))
 			self.verbose_value(r'Context.license', self.license)
 
 			# project repo access level
@@ -1384,8 +1399,8 @@ class Context(object):
 						raise Error(rf"cpp: '{config['cpp']}' is not a valid cpp standard version")
 			self.verbose_value(r'Context.cpp', self.cpp)
 			badge = rf'poxy-badge-c++{str(self.cpp)[2:]}.svg'
-			badges.append((rf'C++{str(self.cpp)[2:]}', badge, r'https://en.cppreference.com/w/cpp/compiler_support'))
-			extra_files.append(Path(self.data_dir, badge))
+			badges.append((rf'C++{str(self.cpp)[2:]}', rf'poxy/{badge}', r'https://en.cppreference.com/w/cpp/compiler_support'))
+			add_internal_asset(badge)
 
 			# project logo
 			self.logo = None
@@ -1406,8 +1421,8 @@ class Context(object):
 			elif r'theme' in config:
 				self.theme = str(config[r'theme'])
 			if self.theme != r'custom':
-				extra_files.append((r'poxy.css', Path(self.data_dir, r'generated', r'poxy.css')))
-				self.stylesheets.append(rf'poxy.css')
+				add_internal_asset(Path(self.data_dir, r'generated', r'poxy.css'))
+				self.stylesheets.append(rf'poxy/poxy.css')
 			self.verbose_value(r'Context.theme', self.theme)
 
 			# stylesheets (HTML_EXTRA_STYLESHEETS)
@@ -1431,8 +1446,8 @@ class Context(object):
 					self.scripts.append(jquery.name)
 
 			# scripts
-			self.scripts.append(rf'poxy.js')
-			extra_files.append((rf'poxy.js',  Path(self.data_dir, r'poxy.js')))
+			self.scripts.append(rf'poxy/poxy.js')
+			add_internal_asset(r'poxy.js')
 			if r'scripts' in config:
 				for f in coerce_collection(config[r'scripts']):
 					file = f.strip()
@@ -1733,15 +1748,17 @@ class Context(object):
 				file = extra_files[i]
 				if not isinstance(file, tuple):
 					path = coerce_path(file)
-					file = (path.name, path)
-				if not file[1].is_absolute():
-					file = (file[0], Path(self.input_dir, file[1]))
-				file = (file[0], file[1].resolve())
-				if not file[1].exists() or not file[1].is_file():
-					raise Error(rf'extra_files: {file[1]} did not exist or was not a file')
-				if file[0] in self.extra_files:
-					raise Error(rf'extra_files: Multiple files with the name {file[0]}')
-				self.extra_files[file[0]] = file[1]
+					file = (path, path.name)
+				else:
+					assert len(file) == 2
+					file = (coerce_path(file[0]), file[1])
+				if not file[0].is_absolute():
+					file = (Path(self.input_dir, file[0]).resolve(), file[1])
+				if not file[0].exists() or not file[0].is_file():
+					raise Error(rf'extra_files: {file[0]} did not exist or was not a file')
+				if file[1] in self.extra_files:
+					raise Error(rf'extra_files: Multiple files with the name {file[1]}')
+				self.extra_files[file[1]] = file[0]
 			self.verbose_value(r'Context.extra_files', self.extra_files)
 
 			# code_blocks

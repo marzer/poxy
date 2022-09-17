@@ -1290,11 +1290,13 @@ def run(config_path='.',
 		# copy extra_files
 		with ScopeTimer(r'Copying extra_files', print_start=True, print_end=context.verbose_logger) as t:
 			for dest_name, source_path in context.extra_files.items():
-				copy_file(source_path, Path(context.html_dir, dest_name), logger=context.verbose_logger)
+				dest_path = Path(context.html_dir, dest_name).resolve()
+				dest_path.parent.mkdir(exist_ok=True)
+				copy_file(source_path, dest_path, logger=context.verbose_logger)
 
 		# copy fonts
 		with ScopeTimer(r'Copying fonts', print_start=True, print_end=context.verbose_logger) as t:
-			copy_tree(str(Path(find_generated_dir(), r'fonts')), str(Path(context.html_dir, r'fonts')))
+			copy_tree(str(Path(find_generated_dir(), r'fonts')), str(Path(context.assets_dir, r'fonts')))
 
 		# move the tagfile into the html directory
 		if context.generate_tagfile:
