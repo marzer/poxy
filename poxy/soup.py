@@ -3,26 +3,22 @@
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
-
 """
 Helpers for working with HTML using BeautifulSoup.
 """
 
 import bs4
-from bs4 import NavigableString
 from .utils import *
-
-__all__ = []
-
 
 #=======================================================================================================================
 # BS4 HELPER FUNCTIONS
 #=======================================================================================================================
 
-__all__.append(r'find_parent')
+
+
 def find_parent(tag, names, cutoff=None):
 	if not is_collection(names):
-		names = ( names, )
+		names = (names, )
 	parent = tag.parent
 	while (parent is not None):
 		if (cutoff is not None and parent is cutoff):
@@ -34,17 +30,15 @@ def find_parent(tag, names, cutoff=None):
 
 
 
-__all__.append(r'destroy_node')
 def destroy_node(node):
 	assert node is not None
-	if (isinstance(node, NavigableString)):
+	if (isinstance(node, bs4.NavigableString)):
 		node.extract()
 	else:
 		node.decompose()
 
 
 
-__all__.append(r'replace_tag')
 def replace_tag(tag, new_tag_str):
 	assert tag.parent is not None
 	newTags = []
@@ -62,21 +56,20 @@ def replace_tag(tag, new_tag_str):
 
 
 
-__all__.append(r'shallow_search')
-def shallow_search(starting_tag, names, filter = None):
-	if isinstance(starting_tag, NavigableString):
+def shallow_search(starting_tag, names, filter=None):
+	if isinstance(starting_tag, bs4.NavigableString):
 		return []
 
 	if not is_collection(names):
-		names = ( names, )
+		names = (names, )
 
 	if starting_tag.name in names:
 		if filter is None or filter(starting_tag):
-			return [ starting_tag ]
+			return [starting_tag]
 
 	results = []
 	for tag in starting_tag.children:
-		if isinstance(tag, NavigableString):
+		if isinstance(tag, bs4.NavigableString):
 			continue
 		if tag.name in names:
 			if filter is None or filter(tag):
@@ -87,15 +80,14 @@ def shallow_search(starting_tag, names, filter = None):
 
 
 
-__all__.append(r'string_descendants')
-def string_descendants(starting_tag, filter = None):
-	if isinstance(starting_tag, NavigableString):
+def string_descendants(starting_tag, filter=None):
+	if isinstance(starting_tag, bs4.NavigableString):
 		if filter is None or filter(starting_tag):
-			return [ starting_tag ]
+			return [starting_tag]
 
 	results = []
 	for tag in starting_tag.children:
-		if isinstance(tag, NavigableString):
+		if isinstance(tag, bs4.NavigableString):
 			if filter is None or filter(tag):
 				results.append(tag)
 		else:
@@ -104,13 +96,12 @@ def string_descendants(starting_tag, filter = None):
 
 
 
-__all__.append(r'add_class')
 def add_class(tag, classes):
 	appended = False
 	if 'class' not in tag.attrs:
 		tag['class'] = []
 	if not is_collection(classes):
-		classes = (classes,)
+		classes = (classes, )
 	for class_ in classes:
 		if class_ not in tag['class']:
 			tag['class'].append(class_)
@@ -119,12 +110,11 @@ def add_class(tag, classes):
 
 
 
-__all__.append(r'remove_class')
 def remove_class(tag, classes):
 	removed = False
 	if 'class' in tag.attrs:
 		if not is_collection(classes):
-			classes = (classes,)
+			classes = (classes, )
 		for class_ in classes:
 			if class_ in tag['class']:
 				tag['class'].remove(class_)
@@ -135,7 +125,6 @@ def remove_class(tag, classes):
 
 
 
-__all__.append(r'set_class')
 def set_class(tag, classes):
 	tag['class'] = []
 	add_class(tag, classes)
@@ -146,7 +135,8 @@ def set_class(tag, classes):
 # HTML DOCUMENT
 #=======================================================================================================================
 
-__all__.append(r'HTMLDocument')
+
+
 class HTMLDocument(object):
 
 	def __init__(self, path, logger):
@@ -197,7 +187,7 @@ class HTMLDocument(object):
 			if (tag.string is not None):
 				tag.string.replace_with(string)
 			else:
-				tag.string = NavigableString(string)
+				tag.string = bs4.NavigableString(string)
 		if (class_ is not None):
 			tag['class'] = class_
 		if (before is not None):
@@ -223,7 +213,7 @@ class HTMLDocument(object):
 			if include_toc and self.table_of_contents is not None:
 				sections = [self.table_of_contents, *sections]
 			for sect in sections:
-				matches = sect(name, **kwargs) if name is not None else [ sect ]
+				matches = sect(name, **kwargs) if name is not None else [sect]
 				if (select is not None):
 					newMatches = []
 					for match in matches:

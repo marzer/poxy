@@ -104,7 +104,7 @@ nav a.poxy-icon.theme:focus
 }
 @media screen and (max-width: 768px)
 {
-	nav .m-thin, nav .github
+	nav .m-thin, nav .repo
 	{
 		display: none;
 	}

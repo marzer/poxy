@@ -3,7 +3,6 @@
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
-
 """
 Low-level helper functions and useful bits.
 """
@@ -14,21 +13,21 @@ import io
 import logging
 from typing import Tuple
 from pathlib import Path
-from io import StringIO
 from misk import *
-
 
 #=======================================================================================================================
 # FUNCTIONS
 #=======================================================================================================================
 
-def regex_or(patterns, pattern_prefix = '', pattern_suffix = '', flags=0):
+
+
+def regex_or(patterns, pattern_prefix='', pattern_suffix='', flags=0):
 	patterns = [str(r) for r in patterns if r is not None and r]
 	patterns.sort()
 	pattern = ''
 	if patterns:
 		pattern = '(?:(?:' + ')|(?:'.join(patterns) + '))'
-	patterns = re.compile(pattern_prefix + pattern + pattern_suffix, flags=flags)
+	patterns = re.compile(rf'{pattern_prefix}{pattern}{pattern_suffix}', flags=flags)
 	return patterns
 
 
@@ -55,23 +54,55 @@ def combine_dicts(x, y):
 
 
 
-_is_uri_regex = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]*://.+$')
+RX_IS_URI = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]*://.+$')
+
+
+
 def is_uri(s):
-	global _is_uri_regex
-	return _is_uri_regex.fullmatch(str(s)) is not None
+	global RX_IS_URI
+	return RX_IS_URI.fullmatch(str(s)) is not None
 
 
 
-_lib_version = None
+def find_package_dir() -> Path:
+	if not hasattr(find_package_dir, "dir"):
+		find_package_dir.dir = Path(__file__).resolve().parent
+		assert_existing_directory(find_package_dir.dir)
+	return find_package_dir.dir
+
+
+
+def find_data_dir() -> Path:
+	if not hasattr(find_data_dir, "dir"):
+		find_data_dir.dir = Path(find_package_dir(), r'data')
+		assert_existing_directory(find_data_dir.dir)
+	return find_data_dir.dir
+
+
+
+def find_generated_dir() -> Path:
+	if not hasattr(find_generated_dir, "dir"):
+		find_generated_dir.dir = Path(find_data_dir(), r'generated')
+	return find_generated_dir.dir
+
+
+
+def find_mcss_dir() -> Path:
+	if not hasattr(find_mcss_dir, "dir"):
+		find_mcss_dir.dir = Path(find_data_dir(), r'm.css')
+		assert_existing_directory(find_mcss_dir.dir)
+		assert_existing_file(Path(find_mcss_dir.dir, r'documentation/doxygen.py'))
+	return find_mcss_dir.dir
+
+
+
 def lib_version() -> Tuple[int, int, int]:
-	global _lib_version
-	if _lib_version is None:
-		data_dir = Path(Path(__file__).resolve().parent, r'data')
-		with open(Path(data_dir, 'version.txt'), encoding='utf-8') as file:
-			_lib_version = [int(v.strip()) for v in file.read().strip().split('.')]
-			assert len(_lib_version) == 3
-			_lib_version = tuple(_lib_version)
-	return _lib_version
+	if not hasattr(lib_version, "val"):
+		with open(Path(find_data_dir(), 'version.txt'), encoding='utf-8') as file:
+			lib_version.val = [int(v.strip()) for v in file.read().strip().split('.')]
+			assert len(lib_version.val) == 3
+			lib_version.val = tuple(lib_version.val)
+	return lib_version.val
 
 
 
@@ -87,6 +118,8 @@ def filter_filenames(files, include, exclude):
 #=======================================================================================================================
 # REGEX REPLACER
 #=======================================================================================================================
+
+
 
 class RegexReplacer(object):
 
@@ -115,45 +148,10 @@ class RegexReplacer(object):
 
 
 #=======================================================================================================================
-# core directory helper methods
-#=======================================================================================================================
-
-_package_dir = None
-def find_package_dir() -> Path:
-	global _package_dir
-	if _package_dir is None:
-		_package_dir = Path(__file__).resolve().parent
-		assert_existing_directory(_package_dir)
-	return _package_dir
-
-_data_dir = None
-def find_data_dir() -> Path:
-	global _data_dir
-	if _data_dir is None:
-		_data_dir = Path(find_package_dir(), r'data')
-		assert_existing_directory(_data_dir)
-	return _data_dir
-
-_generated_dir = None
-def find_generated_dir() -> Path:
-	global _generated_dir
-	if _generated_dir is None:
-		_generated_dir = Path(find_data_dir(), r'generated')
-	return _generated_dir
-
-_mcss_dir = None
-def find_mcss_dir() -> Path:
-	global _mcss_dir
-	if _mcss_dir is None:
-		_mcss_dir = Path(find_data_dir(), r'm.css')
-		assert_existing_directory(_mcss_dir)
-		assert_existing_file(Path(_mcss_dir, r'documentation/doxygen.py'))
-	return _mcss_dir
-
-
-#=======================================================================================================================
 # CppTree
 #=======================================================================================================================
+
+
 
 class CppTree(object):
 
@@ -163,7 +161,7 @@ class CppTree(object):
 
 	class Node(object):
 
-		def __init__(self, val, parent, type_ = 0):
+		def __init__(self, val, parent, type_=0):
 			assert val.find(r'::') == -1
 			assert type_ in (0, CppTree.NAMESPACES, CppTree.TYPES, CppTree.ENUM_VALUES)
 			self.value = val
@@ -172,7 +170,7 @@ class CppTree(object):
 			self.mask = type_
 			self.children = {}
 
-		def add(self, val, type_ = 0):
+		def add(self, val, type_=0):
 			assert val.find(r'::') == -1
 			assert type_ in (0, CppTree.NAMESPACES, CppTree.TYPES, CppTree.ENUM_VALUES)
 			child = None
@@ -203,7 +201,7 @@ class CppTree(object):
 
 			grouped = len(matchers) > 1
 			matchers = r'|'.join(matchers)
-			if not self.value and not self.parent: # root
+			if not self.value and not self.parent:  # root
 				return matchers
 			matchers = (r'(?:' if grouped else '') + matchers + (r')' if grouped else '')
 
@@ -211,8 +209,6 @@ class CppTree(object):
 				return rf'{self.value}(?:::{matchers})?'
 			else:
 				return rf'{self.value}::{matchers}'
-
-
 
 	def __init__(self):
 		self.root = CppTree.Node('', None)
@@ -242,6 +238,8 @@ class CppTree(object):
 #=======================================================================================================================
 # Custom exceptions
 #=======================================================================================================================
+
+
 
 class Error(Exception):
 	"""Base class for other exceptions."""

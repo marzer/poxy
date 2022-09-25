@@ -2615,7 +2615,7 @@ nav a.poxy-icon.theme:hover {
 nav a.poxy-icon.theme:active,
 nav a.poxy-icon.theme:focus { color: inherit !important; border-color: inherit !important; background-color: inherit !important; }
 @media screen and (max-width: 768px) {
- nav .m-thin, nav .github { display: none; }
+ nav .m-thin, nav .repo { display: none; }
 }
 .m-doc-details div > h4,
 .m-doc-details div > h5,

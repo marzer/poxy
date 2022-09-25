@@ -3,7 +3,6 @@
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
-
 """
 Functions for working with CSS files.
 """
@@ -12,7 +11,6 @@ import re
 import requests
 from .utils import *
 from typing import Tuple
-
 
 RX_COMMENT = re.compile(r'''/[*].+?[*]/''', flags=re.DOTALL)
 RX_IMPORT = re.compile(r'''@import\s+url\(\s*['"]?(.+?)['"]?\s*\)\s*;''')
@@ -37,7 +35,7 @@ def strip_quotes(text):
 
 
 
-def resolve_imports(text, cwd=None, mcss_dir = None) -> Tuple[str, bool]:
+def resolve_imports(text, cwd=None, mcss_dir=None) -> Tuple[str, bool]:
 	if cwd is None:
 		cwd = Path.cwd()
 	cwd = coerce_path(cwd).resolve()
@@ -51,6 +49,7 @@ def resolve_imports(text, cwd=None, mcss_dir = None) -> Tuple[str, bool]:
 		assert_existing_file(Path(mcss_dir, r'documentation/doxygen.py'))
 
 	had_mcss_files = False
+
 	def match_handler(m):
 		global RX_MCSS_THEME
 		global RX_MCSS_FILE
@@ -68,11 +67,12 @@ def resolve_imports(text, cwd=None, mcss_dir = None) -> Tuple[str, bool]:
 			path = Path(find_generated_dir(), rf'{sha1(import_path.lower())}.css')
 			if not path_ok():
 				print(rf"Downloading {import_path}")
-				headers = { r'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0' }
+				headers = {
+					r'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0'
+				}
 				response = requests.get(import_path, headers=headers, timeout=10)
 				with open(path, 'w', encoding='utf-8', newline='\n') as f:
 					f.write(response.text)
-
 
 		# m-css stylesheets get special handling;
 		# - first we check for any identically-named versions in poxy's data dir
@@ -118,16 +118,19 @@ def resolve_imports(text, cwd=None, mcss_dir = None) -> Tuple[str, bool]:
 
 
 def resolve_google_fonts(text) -> str:
+
 	def match_handler(m):
 		global RX_GOOGLE_FONT
 		uri = strip_quotes(m[1].strip())
-		file_name = uri[uri.rfind('/')+1:]
+		file_name = uri[uri.rfind('/') + 1:]
 		fonts_dir = Path(find_generated_dir(), 'fonts')
 		fonts_dir.mkdir(exist_ok=True)
 		path = Path(fonts_dir, rf'{file_name}')
 		if not path.exists():
 			print(rf"Downloading {uri}")
-			headers = { r'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0' }
+			headers = {
+				r'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0'
+			}
 			response = requests.get(uri, headers=headers, timeout=10)
 			with open(path, 'wb') as f:
 				f.write(response.content)
@@ -148,10 +151,10 @@ def minify(text) -> str:
 	pos = 0
 	open_brackets = []
 	while pos < len(text):
-		if text[pos:pos+2] == r'/*':
+		if text[pos:pos + 2] == r'/*':
 			pos += 2
-			while pos < len(text)-1:
-				if text[pos:pos+2] == r'*/':
+			while pos < len(text) - 1:
+				if text[pos:pos + 2] == r'*/':
 					pos += 2
 					break
 				pos += 1
@@ -160,7 +163,7 @@ def minify(text) -> str:
 				open_brackets.append(pos)
 			elif text[pos] == r'}':
 				if open_brackets:
-					block_content = text[open_brackets[-1]+1:pos].strip().replace('\n', ' ')
+					block_content = text[open_brackets[-1] + 1:pos].strip().replace('\n', ' ')
 					block_content = re.sub(r'[ \t][ \t]+', ' ', block_content)
 					if r'{' not in block_content and r'}' not in block_content:
 						semis = 0
@@ -171,7 +174,7 @@ def minify(text) -> str:
 								break
 						if semis <= 4 and len(block_content) <= 100:
 							new_block = rf'{{ {block_content} }}'
-							text = text[:open_brackets[-1]] + new_block + text[pos+1:]
+							text = text[:open_brackets[-1]] + new_block + text[pos + 1:]
 							pos = open_brackets[-1] - 1 + len(new_block) - 1
 					open_brackets.pop()
 			pos += 1
@@ -182,7 +185,7 @@ def minify(text) -> str:
 
 
 
-def regenerate_builtin_styles(mcss_dir = None):
+def regenerate_builtin_styles(mcss_dir=None):
 	if mcss_dir is None:
 		mcss_dir = find_mcss_dir()
 	else:
@@ -194,9 +197,7 @@ def regenerate_builtin_styles(mcss_dir = None):
 	output_dir = find_generated_dir()
 	output_dir.mkdir(exist_ok=True)
 
-	THEMES = (
-		Path(data_dir, 'poxy.css'),
-	)
+	THEMES = (Path(data_dir, 'poxy.css'), )
 	for theme_source_file in THEMES:
 		text = strip_comments(read_all_text_from_file(theme_source_file, logger=True))
 		text, had_mcss_files = resolve_imports(text, theme_source_file.parent)
@@ -221,6 +222,5 @@ The license for that project is as follows:
 		print(rf'Writing {theme_dest_file}')
 		with open(theme_dest_file, r'w', encoding=r'utf-8', newline='\n') as f:
 			f.write(text)
-
 
 	pass

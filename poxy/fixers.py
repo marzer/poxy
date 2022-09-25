@@ -3,58 +3,48 @@
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
-
 """
 'Fixer' function objects used during various post-process steps.
 """
 
 import html
-import json
 from bs4 import NavigableString
 from .utils import *
 from . import soup
-
-__all__ = []
-
-
 
 #=======================================================================================================================
 # base classes
 #=======================================================================================================================
 
-__all__.append(r'HTMLFixer')
+
+
 class HTMLFixer(object):
 	pass
 
 
 
-__all__.append(r'PlainTextFixer')
 class PlainTextFixer(object):
 	pass
 
 
+
 #=======================================================================================================================
-# custom tags
+# custom html tags
 #=======================================================================================================================
 
-__all__.append(r'CustomTags')
+
+
 class CustomTags(HTMLFixer):
 	'''
 	Modifies HTML using custom square-bracket [tags].
 	'''
 	__double_tags = re.compile(
-		r'\[\s*('
-			+ r'p|center|span|div|aside|code|pre|h1|h2|h3|h4|h5|h6|em|strong|b|i|u|li|ul|ol'
-			+ r')(.*?)\s*\](.*?)\[\s*/\1\s*\]',
-		re.I | re.S
+		r'\[\s*(' + r'p|center|span|div|aside|code|pre|h1|h2|h3|h4|h5|h6|em|strong|b|i|u|li|ul|ol'
+		+ r')(.*?)\s*\](.*?)\[\s*/\1\s*\]', re.I | re.S
 	)
 	__single_tags = re.compile(
-		r'\[\s*(/?(?:'
-			+ r'p|img|span|div|aside|code|pre|emoji'
-			+ r'|(?:parent_)?set_(?:parent_)?(?:name|class)'
-			+ r'|(?:parent_)?(?:add|remove)_(?:parent_)?class'
-			+ r'|br|li|ul|ol|(?:html)?entity)'
-			+ r')(\s+[^\]]+?)?\s*\]',
+		r'\[\s*(/?(?:' + r'p|img|span|div|aside|code|pre|emoji' + r'|(?:parent_)?set_(?:parent_)?(?:name|class)'
+		+ r'|(?:parent_)?(?:add|remove)_(?:parent_)?class' + r'|br|li|ul|ol|(?:html)?entity)' + r')(\s+[^\]]+?)?\s*\]',
 		re.I | re.S
 	)
 	__hex_entity = re.compile(r'(?:[0#]?[xX])?([a-fA-F0-9]+)')
@@ -96,9 +86,9 @@ class CustomTags(HTMLFixer):
 				return f'&#x{cp:X};&#xFE0F;'
 			return ''
 		elif tag_name in (
-				r'add_class', r'remove_class', r'set_class',
-				r'parent_add_class', r'parent_remove_class', r'parent_set_class',
-				r'add_parent_class', r'remove_parent_class', r'set_parent_class'):
+			r'add_class', r'remove_class', r'set_class', r'parent_add_class', r'parent_remove_class',
+			r'parent_set_class', r'add_parent_class', r'remove_parent_class', r'set_parent_class'
+		):
 			classes = []
 			if tag_content:
 				for s in tag_content.split():
@@ -124,14 +114,19 @@ class CustomTags(HTMLFixer):
 			for name in self.__allowed_parents:
 				tags = doc.article_content.find_all(name)
 				for tag in tags:
-					if tag.decomposed or len(tag.contents) == 0 or soup.find_parent(tag, 'a', doc.article_content) is not None:
+					if tag.decomposed or len(tag.contents
+												) == 0 or soup.find_parent(tag, 'a', doc.article_content) is not None:
 						continue
-					replacer = RegexReplacer(self.__double_tags, lambda m, out: self.__double_tags_substitute(m, out, context), str(tag))
+					replacer = RegexReplacer(
+						self.__double_tags, lambda m, out: self.__double_tags_substitute(m, out, context), str(tag)
+					)
 					if replacer:
 						changed_this_pass = True
 						soup.replace_tag(tag, str(replacer))
 						continue
-					replacer = RegexReplacer(self.__single_tags, lambda m, out: self.__single_tags_substitute(m, out, context), str(tag))
+					replacer = RegexReplacer(
+						self.__single_tags, lambda m, out: self.__single_tags_substitute(m, out, context), str(tag)
+					)
 					if replacer:
 						changed_this_pass = True
 						parent = tag.parent
@@ -170,27 +165,28 @@ class CustomTags(HTMLFixer):
 # C++
 #=======================================================================================================================
 
+
+
 class _ModifiersBase(HTMLFixer):
 	'''
 	Base type for modifier parsing fixers.
 	'''
 	_modifierRegex = r"defaulted|noexcept|constexpr|(?:pure )?virtual|protected|__(?:(?:vector|std|fast)call|cdecl)"
 	_modifierClasses = {
-		"defaulted" : "m-info",
-		"noexcept" : "m-success",
-		"constexpr" : "m-primary",
-		"pure virtual" : "m-warning",
-		"virtual" : "m-warning",
-		"protected" : "m-warning",
-		"__vectorcall" : "m-special",
-		"__stdcall" : "m-special",
-		"__fastcall" : "m-special",
-		"__cdecl" : "m-special"
+		"defaulted": "m-info",
+		"noexcept": "m-success",
+		"constexpr": "m-primary",
+		"pure virtual": "m-warning",
+		"virtual": "m-warning",
+		"protected": "m-warning",
+		"__vectorcall": "m-special",
+		"__stdcall": "m-special",
+		"__fastcall": "m-special",
+		"__cdecl": "m-special"
 	}
 
 
 
-__all__.append(r'Modifiers1')
 class Modifiers1(_ModifiersBase):
 	'''
 	Fixes improperly-parsed modifiers on function signatures in the various 'detail view' sections.
@@ -217,7 +213,6 @@ class Modifiers1(_ModifiersBase):
 
 
 
-__all__.append(r'Modifiers2')
 class Modifiers2(_ModifiersBase):
 	'''
 	Fixes improperly-parsed modifiers on function signatures in the 'Function documentation' section.
@@ -233,7 +228,7 @@ class Modifiers2(_ModifiersBase):
 		if doc.article_content is None:
 			return False
 		changed = False
-		sections = doc.find_all_from_sections(section=False) # all sections without an id
+		sections = doc.find_all_from_sections(section=False)  # all sections without an id
 		section = None
 		for s in sections:
 			if (str(s.h2.string) == 'Function documentation'):
@@ -245,7 +240,7 @@ class Modifiers2(_ModifiersBase):
 			for f in funcs:
 				bumper = f.select_one('span.m-doc-wrap-bumper')
 				end = f.select_one('span.m-doc-wrap').contents
-				end = end[len(end)-1]
+				end = end[len(end) - 1]
 				matches = []
 				bumperContent = self.__expression.sub(lambda m: self.__substitute(m, matches), str(bumper))
 				if (matches):
@@ -253,7 +248,8 @@ class Modifiers2(_ModifiersBase):
 					soup.replace_tag(bumper, bumperContent)
 					lastInserted = end.find('span')
 					for match in matches:
-						lastInserted = doc.new_tag('span',
+						lastInserted = doc.new_tag(
+							'span',
 							parent=end,
 							string=match,
 							class_=f'poxy-injected m-label {self._modifierClasses[match]}',
@@ -264,7 +260,6 @@ class Modifiers2(_ModifiersBase):
 
 
 
-__all__.append(r'TemplateTemplate')
 class TemplateTemplate(HTMLFixer):
 	'''
 	Spreads consecutive template <> declarations out over multiple lines.
@@ -286,11 +281,11 @@ class TemplateTemplate(HTMLFixer):
 
 
 
-__all__.append(r'StripIncludes')
 class StripIncludes(HTMLFixer):
 	'''
 	Strips #include <paths/to/headers.h> based on context.sources.strip_includes.
 	'''
+
 	def __call__(self, doc, context):
 		if doc.article is None or not context.sources.strip_includes:
 			return False
@@ -317,14 +312,12 @@ class StripIncludes(HTMLFixer):
 
 
 
-__all__.append(r'ImplementationDetails')
 class ImplementationDetails(PlainTextFixer):
 	'''
 	Replaces implementation details with appropriate shorthands.
 	'''
-	__shorthands = (
-		(r'POXY_IMPLEMENTATION_DETAIL_IMPL', r'<code class="m-note m-dim poxy-impl">/* ... */</code>'),
-	)
+	__shorthands = ((r'POXY_IMPLEMENTATION_DETAIL_IMPL', r'<code class="m-note m-dim poxy-impl">/* ... */</code>'), )
+
 	def __call__(self, doc, context):
 		changed = False
 		for shorthand, replacement in self.__shorthands:
@@ -337,20 +330,26 @@ class ImplementationDetails(PlainTextFixer):
 
 
 
-__all__.append(r'MarkdownPages')
+#=======================================================================================================================
+# markdown
+#=======================================================================================================================
+
+
+
 class MarkdownPages(PlainTextFixer):
 	'''
 	Cleans up some HTML snafus from markdown-based pages.
 	'''
+
 	def __call__(self, doc, context):
 		if not doc[1].name.lower().startswith(r'md_') and not doc[1].name.lower().startswith(r'm_d__'):
 			return False
 
 		WBR = r'(?:<wbr[ \t]*/?>)?'
 		PREFIX = rf'_{WBR}_{WBR}poxy_{WBR}thiswasan_{WBR}'
-		doc[0] = re.sub(rf'{PREFIX}amp',	r'&amp;', 		doc[0])
-		doc[0] = re.sub(rf'{PREFIX}at',		r'@', 			doc[0])
-		doc[0] = re.sub(rf'{PREFIX}fe0f',	r'&#xFE0F;', 	doc[0])
+		doc[0] = re.sub(rf'{PREFIX}amp', r'&amp;', doc[0])
+		doc[0] = re.sub(rf'{PREFIX}at', r'@', doc[0])
+		doc[0] = re.sub(rf'{PREFIX}fe0f', r'&#xFE0F;', doc[0])
 
 		return True
 
@@ -360,11 +359,13 @@ class MarkdownPages(PlainTextFixer):
 # index.html banner
 #=======================================================================================================================
 
-__all__.append(r'Banner')
+
+
 class Banner(HTMLFixer):
 	'''
 	Makes the first image on index.html a 'banner'
 	'''
+
 	def __call__(self, doc, context):
 		if doc.article_content is None or doc.path.name.lower() != 'index.html':
 			return False
@@ -376,7 +377,7 @@ class Banner(HTMLFixer):
 			return False
 
 		# ensure it's the first image in the page, before any subsections or headings
-		for sibling_tag in ('section','h2','h3','h4','h5','h6'):
+		for sibling_tag in ('section', 'h2', 'h3', 'h4', 'h5', 'h6'):
 			sibling = banner.find_previous_sibling(sibling_tag)
 			if sibling is not None:
 				return False
@@ -388,7 +389,7 @@ class Banner(HTMLFixer):
 		if not is_uri(banner[r'src']) and banner[r'src'].lower().endswith('.svg'):
 			src_path = Path(doc.path.parent, banner[r'src'])
 			if src_path.exists() and src_path.is_file():
-				banner = soup.replace_tag(banner, r'<div>'+read_all_text_from_file(src_path)+r'</div>')[0]
+				banner = soup.replace_tag(banner, r'<div>' + read_all_text_from_file(src_path) + r'</div>')[0]
 
 		if context.badges:
 			parent = doc.new_tag('div', class_='gh-badges', after=banner)
@@ -407,7 +408,8 @@ class Banner(HTMLFixer):
 # <code> blocks
 #=======================================================================================================================
 
-__all__.append(r'CodeBlocks')
+
+
 class CodeBlocks(HTMLFixer):
 	'''
 	Fixes various issues and improves syntax highlighting in <code> blocks.
@@ -513,7 +515,7 @@ class CodeBlocks(HTMLFixer):
 		changed = False
 
 		# fix up syntax highlighting
-		code_blocks = doc.body(('pre','code'), class_='m-code')
+		code_blocks = doc.body(('pre', 'code'), class_='m-code')
 		changed_this_pass = True
 		while changed_this_pass:
 			changed_this_pass = False
@@ -560,15 +562,14 @@ class CodeBlocks(HTMLFixer):
 						continue
 
 					compound_name_evaluated_tags.add(id(current))
-					tags = [ current ]
+					tags = [current]
 					while True:
 						prev = current.previous_sibling
-						if (prev is None
-							or prev.string is None
-							or isinstance(prev, NavigableString)
-							or 'class' not in prev.attrs
-							or prev['class'][0] not in ('n', 'nl', 'kt', 'o')
-							or not self.__ns_token_expr.fullmatch(prev.string)):
+						if (
+							prev is None or prev.string is None or isinstance(prev, NavigableString)
+							or 'class' not in prev.attrs or prev['class'][0] not in ('n', 'nl', 'kt', 'o')
+							or not self.__ns_token_expr.fullmatch(prev.string)
+						):
 							break
 						current = prev
 						tags.insert(0, current)
@@ -577,12 +578,11 @@ class CodeBlocks(HTMLFixer):
 					current = spans[i]
 					while True:
 						nxt = current.next_sibling
-						if (nxt is None
-							or nxt.string is None
-							or isinstance(nxt, NavigableString)
-							or 'class' not in nxt.attrs
-							or nxt['class'][0] not in ('n', 'nl', 'kt', 'o')
-							or not self.__ns_token_expr.fullmatch(nxt.string)):
+						if (
+							nxt is None or nxt.string is None or isinstance(nxt, NavigableString)
+							or 'class' not in nxt.attrs or nxt['class'][0] not in ('n', 'nl', 'kt', 'o')
+							or not self.__ns_token_expr.fullmatch(nxt.string)
+						):
 							break
 						current = nxt
 						tags.append(current)
@@ -606,14 +606,15 @@ class CodeBlocks(HTMLFixer):
 				spans = code_block('span', class_='n', string=True)
 				for span in spans:
 					prev = span.previous_sibling
-					if (prev is None
-						or isinstance(prev, NavigableString)
-						or 'class' not in prev.attrs):
+					if (prev is None or isinstance(prev, NavigableString) or 'class' not in prev.attrs):
 						continue
 					if ('s' in prev['class'] and context.code_blocks.string_literals.fullmatch(span.get_text())):
 						soup.set_class(span, 'sa')
 						changed_this_block = True
-					elif (prev['class'][0] in ('mf', 'mi', 'mb', 'mh') and context.code_blocks.numeric_literals.fullmatch(span.get_text())):
+					elif (
+						prev['class'][0] in ('mf', 'mi', 'mb', 'mh')
+						and context.code_blocks.numeric_literals.fullmatch(span.get_text())
+					):
 						soup.set_class(span, prev['class'][0])
 						changed_this_block = True
 
@@ -641,8 +642,10 @@ class CodeBlocks(HTMLFixer):
 						next_assign = next_identifier.find_next_sibling(r'span', class_=r'o', string=r'=')
 						if next_assign is None:
 							continue
-						if not (self.__adjacent_maybe_by_whitespace(using, next_identifier)
-								and self.__adjacent_maybe_by_whitespace(next_identifier, next_assign)):
+						if not (
+							self.__adjacent_maybe_by_whitespace(using, next_identifier)
+							and self.__adjacent_maybe_by_whitespace(next_identifier, next_assign)
+						):
 							continue
 						soup.set_class(next_identifier, r'nc')
 						changed_this_block = True
@@ -659,18 +662,16 @@ class CodeBlocks(HTMLFixer):
 			changed_this_pass = False
 			for code_block in code_blocks:
 				parent = code_block.parent
-				if (parent is None
-					or parent.name != r'p'
-					or parent.parent is None
-					or parent.parent.name not in (r'div', r'section')):
+				if (
+					parent is None or parent.name != r'p' or parent.parent is None
+					or parent.parent.name not in (r'div', r'section')
+				):
 					continue
 				changed_this_pass = True
 				code_block.name = 'pre'
 				parent.insert_before(code_block.extract())
 				parent.smooth()
-				if (not parent.contents
-					or (len(parent.contents) == 1
-						and parent.contents[0].string.strip() == '')):
+				if (not parent.contents or (len(parent.contents) == 1 and parent.contents[0].string.strip() == '')):
 					soup.destroy_node(parent)
 			changed = changed or changed_this_pass
 
@@ -682,16 +683,16 @@ class CodeBlocks(HTMLFixer):
 # <a> tags
 #=======================================================================================================================
 
-def _m_doc_anchor_tags(tag):
-	return (tag.name == 'a'
-		and tag.has_attr('class')
-		and ('m-doc' in tag['class']) # or 'm-doc-self' in tag['class'])
+
+
+def m_doc_anchor_tags(tag):
+	return (
+		tag.name == 'a' and tag.has_attr('class') and ('m-doc' in tag['class'])  # or 'm-doc-self' in tag['class'])
 		and (tag.string is not None or tag.strings is not None)
 	)
 
 
 
-__all__.append(r'AutoDocLinks')
 class AutoDocLinks(HTMLFixer):
 	'''
 	Adds links to additional sources where appropriate.
@@ -711,7 +712,7 @@ class AutoDocLinks(HTMLFixer):
 
 		# first check all existing doc links to make sure they aren't erroneously linked to the wrong thing
 		if 1:
-			existing_doc_links = doc.article_content.find_all(_m_doc_anchor_tags)
+			existing_doc_links = doc.article_content.find_all(m_doc_anchor_tags)
 			for link in existing_doc_links:
 				done = False
 				s = link.get_text()
@@ -724,10 +725,10 @@ class AutoDocLinks(HTMLFixer):
 						href = str(link['href'])
 						anchor = href.rfind('#')
 						if anchor == 0:
-							continue # don't override internal self-links
+							continue  # don't override internal self-links
 						if anchor != -1:
 							href = href[:anchor]
-						if href == uri or href == doc.path.name: # don't override internal self-links
+						if href == uri or href == doc.path.name:  # don't override internal self-links
 							continue
 					link['href'] = uri
 					soup.set_class(link, ['m-doc', 'poxy-injected'])
@@ -741,19 +742,24 @@ class AutoDocLinks(HTMLFixer):
 
 		# now search the document for any other potential links
 		if 1:
-			tags = soup.shallow_search(doc.article_content, self.__allowedNames, lambda t: soup.find_parent(t, 'a', doc.article_content) is None)
+			tags = soup.shallow_search(
+				doc.article_content, self.__allowedNames,
+				lambda t: soup.find_parent(t, 'a', doc.article_content) is None
+			)
 			strings = []
 			for tag in tags:
 				strings = strings + soup.string_descendants(tag, lambda t: soup.find_parent(t, 'a', tag) is None)
 			strings = [s for s in strings if s.parent is not None]
 			for expr, uri in context.autolinks:
-				if uri == doc.path.name: # don't create unnecessary self-links
+				if uri == doc.path.name:  # don't create unnecessary self-links
 					continue
 				i = 0
 				while i < len(strings):
 					string = strings[i]
 					parent = string.parent
-					replacer = RegexReplacer(expr, lambda m, out: self.__substitute(m, uri), html.escape(str(string), quote=False))
+					replacer = RegexReplacer(
+						expr, lambda m, out: self.__substitute(m, uri), html.escape(str(string), quote=False)
+					)
 					if replacer:
 						repl_str = str(replacer)
 						begins_with_ws = len(repl_str) > 0 and repl_str[:1].isspace()
@@ -763,14 +769,15 @@ class AutoDocLinks(HTMLFixer):
 						changed = True
 						del strings[i]
 						for tag in new_tags:
-							strings = strings + soup.string_descendants(tag, lambda t: soup.find_parent(t, 'a', parent) is None)
+							strings = strings + soup.string_descendants(
+								tag, lambda t: soup.find_parent(t, 'a', parent) is None
+							)
 						continue
 					i = i + 1
 		return changed
 
 
 
-__all__.append(r'Links')
 class Links(HTMLFixer):
 	'''
 	Fixes various minor issues with anchor tags.
@@ -795,10 +802,10 @@ class Links(HTMLFixer):
 				# do magic with godbolt.org links
 				if self.__godbolt.fullmatch(href):
 					changed = soup.add_class(anchor, 'godbolt') or changed
-					if (anchor.parent.name == 'p'
-							and len(anchor.parent.contents) == 1
-							and anchor.parent.next_sibling is not None
-							and anchor.parent.next_sibling.name == 'pre'):
+					if (
+						anchor.parent.name == 'p' and len(anchor.parent.contents) == 1
+						and anchor.parent.next_sibling is not None and anchor.parent.next_sibling.name == 'pre'
+					):
 						soup.add_class(anchor.parent, ('m-note', 'm-success', 'godbolt'))
 						code_block = anchor.parent.next_sibling
 						code_block.insert(0, anchor.parent.extract())
@@ -813,19 +820,19 @@ class Links(HTMLFixer):
 				changed = True
 				if is_mdoc:
 					href = r'#'
-					anchor[r'href'] = r'#' # will by fixed by the next step
+					anchor[r'href'] = r'#'  # will by fixed by the next step
 				else:
-					for attr in (r'download', r'href', r'hreflang', r'media', r'ping', r'referrerpolicy', r'rel', r'target', r'type'):
+					for attr in (
+						r'download', r'href', r'hreflang', r'media', r'ping', r'referrerpolicy', r'rel', r'target',
+						r'type'
+					):
 						if attr in anchor.attrs:
 							del anchor[attr]
 					anchor.name = r'span'
 					continue
 
-
 			# make sure internal documentation #id links actually have somewhere to go
-			if (is_mdoc
-					and href.startswith(r'#')
-					and (len(href) == 1 or doc.body.find(id=href[1:]) is None)):
+			if (is_mdoc and href.startswith(r'#') and (len(href) == 1 or doc.body.find(id=href[1:]) is None)):
 				changed = True
 				soup.remove_class(anchor, 'm-doc')
 				soup.add_class(anchor, 'm-doc-self')
@@ -849,15 +856,19 @@ class Links(HTMLFixer):
 # empty tags
 #=======================================================================================================================
 
-__all__.append(r'EmptyTags')
+
+
 class EmptyTags(HTMLFixer):
 	'''
 	Prunes the tree of various empty tags (happens as a side-effect of some other operations).
 	'''
+
 	def __call__(self, doc, context):
 		changed = False
 		for tag in doc.body((r'p', r'span')):
-			if not tag.contents or (len(tag.contents) == 1 and isinstance(tag.contents[0], NavigableString) and not tag.string):
+			if not tag.contents or (
+				len(tag.contents) == 1 and isinstance(tag.contents[0], NavigableString) and not tag.string
+			):
 				soup.destroy_node(tag)
 				changed = True
 		return changed
@@ -868,11 +879,13 @@ class EmptyTags(HTMLFixer):
 # marks the table of contents
 #=======================================================================================================================
 
-__all__.append(r'MarkTOC')
+
+
 class MarkTOC(HTMLFixer):
 	'''
 	Marks any table-of-contents with a custom class.
 	'''
+
 	def __call__(self, doc, context):
 		if doc.table_of_contents is None:
 			return False

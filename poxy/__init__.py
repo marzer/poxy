@@ -7,11 +7,6 @@
 from .run import run
 from .utils import lib_version, Error, WarningTreatedAsError
 
-__all__ = [
-	r'run',
-	r'lib_version',
-	r'Error',
-	r'WarningTreatedAsError'
-]
+__all__ = [r'run', r'lib_version', r'Error', r'WarningTreatedAsError']
 
 __version__ = r'.'.join([str(v) for v in lib_version()])

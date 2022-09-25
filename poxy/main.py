@@ -3,7 +3,6 @@
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
-
 """
 The various entry-point methods used when poxy is invoked from the command line.
 """
@@ -15,8 +14,6 @@ from schema import SchemaError
 from .utils import *
 from .run import run
 from . import css
-
-__all__ = []
 
 
 
@@ -39,7 +36,6 @@ def _invoker(func, **kwargs):
 
 
 
-__all__.append(r'main')
 def main(invoker=True):
 	"""
 	The entry point when the library is invoked as `poxy`.
@@ -49,8 +45,7 @@ def main(invoker=True):
 		return
 
 	args = argparse.ArgumentParser(
-		description=r'Generate fancy C++ documentation.',
-		formatter_class=argparse.RawTextHelpFormatter
+		description=r'Generate fancy C++ documentation.', formatter_class=argparse.RawTextHelpFormatter
 	)
 	args.add_argument(
 		r'config',
@@ -60,7 +55,8 @@ def main(invoker=True):
 		help=r'path to poxy.toml or a directory containing it (default: %(default)s)'
 	)
 	args.add_argument(
-		r'-v', r'--verbose',
+		r'-v',  #
+		r'--verbose',
 		action=r'store_true',
 		help=r"enable very noisy diagnostic output"
 	)
@@ -72,7 +68,7 @@ def main(invoker=True):
 		help=r"specify the Doxygen executable to use (default: find on system path)"
 	)
 	args.add_argument(
-		r'--dry',
+		r'--dry',  #
 		action=r'store_true',
 		help=r"do a 'dry run' only, stopping after emitting the effective Doxyfile"
 	)
@@ -85,32 +81,32 @@ def main(invoker=True):
 		dest=r'mcss'
 	)
 	args.add_argument(
-		r'--mcss',
+		r'--mcss',  #
 		type=Path,
 		default=None,
 		dest=r'mcss_deprecated_old_arg',
 		help=argparse.SUPPRESS
 	)
 	args.add_argument(
-		r'--threads',
+		r'--threads',  #
 		type=int,
 		default=0,
 		metavar=r'N',
 		help=r"set the number of threads to use (default: automatic)"
 	)
 	args.add_argument(
-		r'--version',
+		r'--version',  #
 		action=r'store_true',
 		help=r"print the version and exit",
 		dest=r'print_version'
 	)
 	args.add_argument(
-		r'--werror',
+		r'--werror',  #
 		action=r'store_true',
 		help=r"always treat warnings as errors regardless of config file settings"
 	)
 	args.add_argument(
-		r'--xmlonly',
+		r'--xmlonly',  #
 		action=r'store_true',
 		help=r"stop after generating and preprocessing the Doxygen xml"
 	)
@@ -140,7 +136,7 @@ def main(invoker=True):
 		help=r'the CSS theme to use (default: %(default)s)'
 	)
 	args.add_argument(
-		r'--genstyles',
+		r'--genstyles',  #
 		action=r'store_true',
 		help=argparse.SUPPRESS
 	)
@@ -153,30 +149,29 @@ def main(invoker=True):
 	mcss_dir = args.mcss if args.mcss is not None else args.mcss_deprecated_old_arg
 
 	if args.genstyles:
-		css.regenerate_builtin_styles(mcss_dir = mcss_dir)
+		css.regenerate_builtin_styles(mcss_dir=mcss_dir)
 		return
 
 	with ScopeTimer(r'All tasks', print_start=False, print_end=not args.dry) as timer:
 		run(
-			config_path = args.config,
-			output_dir = Path.cwd(),
-			threads = args.threads,
-			cleanup = not args.nocleanup,
-			verbose = args.verbose,
-			mcss_dir = mcss_dir,
-			doxygen_path = args.doxygen,
-			logger=True, # stderr + stdout
+			config_path=args.config,
+			output_dir=Path.cwd(),
+			threads=args.threads,
+			cleanup=not args.nocleanup,
+			verbose=args.verbose,
+			mcss_dir=mcss_dir,
+			doxygen_path=args.doxygen,
+			logger=True,  # stderr + stdout
 			dry_run=args.dry,
 			xml_only=args.xmlonly,
 			html_include=args.ppinclude,
 			html_exclude=args.ppexclude,
 			treat_warnings_as_errors=True if args.werror else None,
-			theme = None if args.theme == r'auto' else args.theme
+			theme=None if args.theme == r'auto' else args.theme
 		)
 
 
 
-__all__.append(r'main_blog_post')
 def main_blog_post(invoker=True):
 	"""
 	The entry point when the library is invoked as `poxyblog`.
@@ -186,21 +181,21 @@ def main_blog_post(invoker=True):
 		return
 
 	args = argparse.ArgumentParser(
-		description=r'Initializes a new blog post for Poxy sites.',
-		formatter_class=argparse.RawTextHelpFormatter
+		description=r'Initializes a new blog post for Poxy sites.', formatter_class=argparse.RawTextHelpFormatter
 	)
 	args.add_argument(
-		r'title',
+		r'title',  #
 		type=str,
 		help=r'the title of the new blog post'
 	)
 	args.add_argument(
-		r'-v', r'--verbose',
+		r'-v',  #
+		r'--verbose',
 		action=r'store_true',
 		help=r"enable very noisy diagnostic output"
 	)
 	args.add_argument(
-		r'--version',
+		r'--version',  #
 		action=r'store_true',
 		help=r"print the version and exit",
 		dest=r'print_version'

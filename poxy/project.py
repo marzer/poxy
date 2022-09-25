@@ -3,7 +3,6 @@
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
-
 """
 Everything relating to the 'project context' object that describes the project for which the documentation is being generated.
 """
@@ -16,51 +15,46 @@ import json
 import datetime
 import shutil
 import tempfile
+import itertools
 from schema import Schema, Or, And, Optional
 from .utils import *
-
-__all__ = []
-
+from . import repos
 
 #=======================================================================================================================
 # schemas
 #=======================================================================================================================
 
 _py2toml = {
-	str : r'string',
-	list : r'array',
-	dict : r'table',
-	int : r'integer',
-	float : r'float',
-	bool : r'boolean',
-	datetime.date : r'date',
-	datetime.time : r'time',
-	datetime.datetime : r'date-time'
+	str: r'string',
+	list: r'array',
+	dict: r'table',
+	int: r'integer',
+	float: r'float',
+	bool: r'boolean',
+	datetime.date: r'date',
+	datetime.time: r'time',
+	datetime.datetime: r'date-time'
 }
 
 
 
 def FixedArrayOf(typ, length, name=''):
 	global _py2toml
-	return And(
-		[typ],
+	return And([typ],
 		lambda v: len(v) == length,
-		error=rf'{name + ": " if name else ""}expected array of {length} {_py2toml[typ]}{"s" if length != 1 else ""}'
-	)
+		error=rf'{name + ": " if name else ""}expected array of {length} {_py2toml[typ]}{"s" if length != 1 else ""}')
 
 
 
 def ValueOrArray(typ, name='', length=None):
 	global _py2toml
 	if length is None:
-		return Or(typ, [typ], error=rf'{name + ": " if name else ""}expected {_py2toml[typ]} or array of {_py2toml[typ]}s')
+		return Or(
+			typ, [typ], error=rf'{name + ": " if name else ""}expected {_py2toml[typ]} or array of {_py2toml[typ]}s'
+		)
 	else:
 		err = rf'{name + ": " if name else ""}expected {_py2toml[typ]} or array of {length} {_py2toml[typ]}{"s" if length != 1 else ""}'
-		return And(
-			Or(typ, [typ], error=err),
-			lambda v: not isinstance(v, list) or len(v) == length,
-			error=err
-		)
+		return And(Or(typ, [typ], error=err), lambda v: not isinstance(v, list) or len(v) == length, error=err)
 
 
 
@@ -68,564 +62,753 @@ def ValueOrArray(typ, name='', length=None):
 # internal helpers
 #=======================================================================================================================
 
+
+
 class Defaults(object):
-	inline_namespaces = {
-		r'std::(?:literals::)?(?:chrono|complex|string|string_view)_literals'
-	}
+	inline_namespaces = {r'std::(?:literals::)?(?:chrono|complex|string|string_view)_literals'}
 	macros = {
-		r'NDEBUG' :								1,
-		r'DOXYGEN' :							1,
-		r'__DOXYGEN__' :						1,
-		r'__doxygen__' :						1,
-		r'__POXY__' :							1,
-		r'__poxy__' :							1,
-		r'__has_include(...)' :					0,
-		r'__has_attribute(...)' :				0,
-		r'__has_builtin(...)' :					0,
-		r'__has_feature(...)' :					0,
-		r'__has_cpp_attribute(...)' :			999999,
-		r'POXY_IMPLEMENTATION_DETAIL(...)' :	r'POXY_IMPLEMENTATION_DETAIL_IMPL',
-		r'POXY_IGNORE(...)' :					r'',
+		r'NDEBUG': 1,
+		r'DOXYGEN': 1,
+		r'__DOXYGEN__': 1,
+		r'__doxygen__': 1,
+		r'__POXY__': 1,
+		r'__poxy__': 1,
+		r'__has_include(...)': 0,
+		r'__has_attribute(...)': 0,
+		r'__has_builtin(...)': 0,
+		r'__has_feature(...)': 0,
+		r'__has_cpp_attribute(...)': 999999,
+		r'POXY_IMPLEMENTATION_DETAIL(...)': r'POXY_IMPLEMENTATION_DETAIL_IMPL',
+		r'POXY_IGNORE(...)': r'',
 	}
 	cpp_builtin_macros = {
-		1998 : {
-			r'__cplusplus' 		: r'199711L',
-			r'__cpp_rtti' 		: 199711,
-			r'__cpp_exceptions' : 199711
+		1998: {
+		r'__cplusplus': r'199711L',
+		r'__cpp_rtti': 199711,
+		r'__cpp_exceptions': 199711
 		},
-
-		2003 : dict(), # apparently?
-
-		2011 : {
-			r'__cplusplus'						: r'201103L',
-			r'__cpp_unicode_characters'			: 200704,
-			r'__cpp_raw_strings'				: 200710,
-			r'__cpp_unicode_literals'			: 200710,
-			r'__cpp_user_defined_literals'		: 200809,
-			r'__cpp_threadsafe_static_init'		: 200806,
-			r'__cpp_lambdas'					: 200907,
-			r'__cpp_constexpr'					: 200704,
-			r'__cpp_range_based_for'			: 200907,
-			r'__cpp_static_assert'				: 200410,
-			r'__cpp_decltype'					: 200707,
-			r'__cpp_attributes'					: 200809,
-			r'__cpp_rvalue_references'			: 200610,
-			r'__cpp_variadic_templates'			: 200704,
-			r'__cpp_initializer_lists'			: 200806,
-			r'__cpp_delegating_constructors'	: 200604,
-			r'__cpp_nsdmi'						: 200809,
-			r'__cpp_inheriting_constructors'	: 200802,
-			r'__cpp_ref_qualifiers'				: 200710,
-			r'__cpp_alias_templates'			: 200704
+		2003: dict(),  # apparently?
+		2011: {
+		r'__cplusplus': r'201103L',
+		r'__cpp_unicode_characters': 200704,
+		r'__cpp_raw_strings': 200710,
+		r'__cpp_unicode_literals': 200710,
+		r'__cpp_user_defined_literals': 200809,
+		r'__cpp_threadsafe_static_init': 200806,
+		r'__cpp_lambdas': 200907,
+		r'__cpp_constexpr': 200704,
+		r'__cpp_range_based_for': 200907,
+		r'__cpp_static_assert': 200410,
+		r'__cpp_decltype': 200707,
+		r'__cpp_attributes': 200809,
+		r'__cpp_rvalue_references': 200610,
+		r'__cpp_variadic_templates': 200704,
+		r'__cpp_initializer_lists': 200806,
+		r'__cpp_delegating_constructors': 200604,
+		r'__cpp_nsdmi': 200809,
+		r'__cpp_inheriting_constructors': 200802,
+		r'__cpp_ref_qualifiers': 200710,
+		r'__cpp_alias_templates': 200704
 		},
-
-		2014 : {
-			r'__cplusplus'								: r'201402L',
-			r'__cpp_binary_literals'					: 201304,
-			r'__cpp_init_captures'						: 201304,
-			r'__cpp_generic_lambdas'					: 201304,
-			r'__cpp_sized_deallocation'					: 201309,
-			r'__cpp_constexpr'							: 201304,
-			r'__cpp_decltype_auto'						: 201304,
-			r'__cpp_return_type_deduction'				: 201304,
-			r'__cpp_aggregate_nsdmi'					: 201304,
-			r'__cpp_variable_templates'					: 201304,
-			r'__cpp_lib_integer_sequence'				: 201304,
-			r'__cpp_lib_exchange_function'				: 201304,
-			r'__cpp_lib_tuples_by_type'					: 201304,
-			r'__cpp_lib_tuple_element_t'				: 201402,
-			r'__cpp_lib_make_unique'					: 201304,
-			r'__cpp_lib_transparent_operators'			: 201210,
-			r'__cpp_lib_integral_constant_callable'		: 201304,
-			r'__cpp_lib_transformation_trait_aliases'	: 201304,
-			r'__cpp_lib_result_of_sfinae'				: 201210,
-			r'__cpp_lib_is_final'						: 201402,
-			r'__cpp_lib_is_null_pointer'				: 201309,
-			r'__cpp_lib_chrono_udls'					: 201304,
-			r'__cpp_lib_string_udls'					: 201304,
-			r'__cpp_lib_generic_associative_lookup'		: 201304,
-			r'__cpp_lib_null_iterators'					: 201304,
-			r'__cpp_lib_make_reverse_iterator'			: 201402,
-			r'__cpp_lib_robust_nonmodifying_seq_ops'	: 201304,
-			r'__cpp_lib_complex_udls'					: 201309,
-			r'__cpp_lib_quoted_string_io'				: 201304,
-			r'__cpp_lib_shared_timed_mutex'				: 201402,
+		2014: {
+		r'__cplusplus': r'201402L',
+		r'__cpp_binary_literals': 201304,
+		r'__cpp_init_captures': 201304,
+		r'__cpp_generic_lambdas': 201304,
+		r'__cpp_sized_deallocation': 201309,
+		r'__cpp_constexpr': 201304,
+		r'__cpp_decltype_auto': 201304,
+		r'__cpp_return_type_deduction': 201304,
+		r'__cpp_aggregate_nsdmi': 201304,
+		r'__cpp_variable_templates': 201304,
+		r'__cpp_lib_integer_sequence': 201304,
+		r'__cpp_lib_exchange_function': 201304,
+		r'__cpp_lib_tuples_by_type': 201304,
+		r'__cpp_lib_tuple_element_t': 201402,
+		r'__cpp_lib_make_unique': 201304,
+		r'__cpp_lib_transparent_operators': 201210,
+		r'__cpp_lib_integral_constant_callable': 201304,
+		r'__cpp_lib_transformation_trait_aliases': 201304,
+		r'__cpp_lib_result_of_sfinae': 201210,
+		r'__cpp_lib_is_final': 201402,
+		r'__cpp_lib_is_null_pointer': 201309,
+		r'__cpp_lib_chrono_udls': 201304,
+		r'__cpp_lib_string_udls': 201304,
+		r'__cpp_lib_generic_associative_lookup': 201304,
+		r'__cpp_lib_null_iterators': 201304,
+		r'__cpp_lib_make_reverse_iterator': 201402,
+		r'__cpp_lib_robust_nonmodifying_seq_ops': 201304,
+		r'__cpp_lib_complex_udls': 201309,
+		r'__cpp_lib_quoted_string_io': 201304,
+		r'__cpp_lib_shared_timed_mutex': 201402,
 		},
-
-		2017 : {
-			r'__cplusplus'									: r'201703L',
-			r'__cpp_hex_float'								: 201603,
-			r'__cpp_inline_variables'						: 201606,
-			r'__cpp_aligned_new'							: 201606,
-			r'__cpp_guaranteed_copy_elision'				: 201606,
-			r'__cpp_noexcept_function_type'					: 201510,
-			r'__cpp_fold_expressions'						: 201603,
-			r'__cpp_capture_star_this'						: 201603,
-			r'__cpp_constexpr'								: 201603,
-			r'__cpp_if_constexpr'							: 201606,
-			r'__cpp_range_based_for'						: 201603,
-			r'__cpp_static_assert'							: 201411,
-			r'__cpp_deduction_guides'						: 201703,
-			r'__cpp_nontype_template_parameter_auto'		: 201606,
-			r'__cpp_namespace_attributes'					: 201411,
-			r'__cpp_enumerator_attributes'					: 201411,
-			r'__cpp_inheriting_constructors'				: 201511,
-			r'__cpp_variadic_using'							: 201611,
-			r'__cpp_structured_bindings'					: 201606,
-			r'__cpp_aggregate_bases'						: 201603,
-			r'__cpp_nontype_template_args'					: 201411,
-			r'__cpp_template_template_args'					: 201611,
-			r'__cpp_lib_byte'								: 201603,
-			r'__cpp_lib_hardware_interference_size'			: 201703,
-			r'__cpp_lib_launder'							: 201606,
-			r'__cpp_lib_uncaught_exceptions'				: 201411,
-			r'__cpp_lib_as_const'							: 201510,
-			r'__cpp_lib_make_from_tuple'					: 201606,
-			r'__cpp_lib_apply'								: 201603,
-			r'__cpp_lib_optional'							: 201606,
-			r'__cpp_lib_variant'							: 201606,
-			r'__cpp_lib_any'								: 201606,
-			r'__cpp_lib_addressof_constexpr'				: 201603,
-			r'__cpp_lib_raw_memory_algorithms'				: 201606,
-			r'__cpp_lib_transparent_operators'				: 201510,
-			r'__cpp_lib_enable_shared_from_this'			: 201603,
-			r'__cpp_lib_shared_ptr_weak_type'				: 201606,
-			r'__cpp_lib_shared_ptr_arrays'					: 201611,
-			r'__cpp_lib_memory_resource'					: 201603,
-			r'__cpp_lib_boyer_moore_searcher'				: 201603,
-			r'__cpp_lib_invoke'								: 201411,
-			r'__cpp_lib_not_fn'								: 201603,
-			r'__cpp_lib_void_t'								: 201411,
-			r'__cpp_lib_bool_constant'						: 201505,
-			r'__cpp_lib_type_trait_variable_templates'		: 201510,
-			r'__cpp_lib_logical_traits'						: 201510,
-			r'__cpp_lib_is_swappable'						: 201603,
-			r'__cpp_lib_is_invocable'						: 201703,
-			r'__cpp_lib_has_unique_object_representations'	: 201606,
-			r'__cpp_lib_is_aggregate'						: 201703,
-			r'__cpp_lib_chrono'								: 201611,
-			r'__cpp_lib_execution'							: 201603,
-			r'__cpp_lib_parallel_algorithm'					: 201603,
-			r'__cpp_lib_to_chars'							: 201611,
-			r'__cpp_lib_string_view'						: 201606,
-			r'__cpp_lib_allocator_traits_is_always_equal'	: 201411,
-			r'__cpp_lib_incomplete_container_elements'		: 201505,
-			r'__cpp_lib_map_try_emplace'					: 201411,
-			r'__cpp_lib_unordered_map_try_emplace'			: 201411,
-			r'__cpp_lib_node_extract'						: 201606,
-			r'__cpp_lib_array_constexpr'					: 201603,
-			r'__cpp_lib_nonmember_container_access'			: 201411,
-			r'__cpp_lib_sample'								: 201603,
-			r'__cpp_lib_clamp'								: 201603,
-			r'__cpp_lib_gcd_lcm'							: 201606,
-			r'__cpp_lib_hypot'								: 201603,
-			r'__cpp_lib_math_special_functions'				: 201603,
-			r'__cpp_lib_filesystem'							: 201703,
-			r'__cpp_lib_atomic_is_always_lock_free'			: 201603,
-			r'__cpp_lib_shared_mutex'						: 201505,
-			r'__cpp_lib_scoped_lock'						: 201703,
+		2017: {
+		r'__cplusplus': r'201703L',
+		r'__cpp_hex_float': 201603,
+		r'__cpp_inline_variables': 201606,
+		r'__cpp_aligned_new': 201606,
+		r'__cpp_guaranteed_copy_elision': 201606,
+		r'__cpp_noexcept_function_type': 201510,
+		r'__cpp_fold_expressions': 201603,
+		r'__cpp_capture_star_this': 201603,
+		r'__cpp_constexpr': 201603,
+		r'__cpp_if_constexpr': 201606,
+		r'__cpp_range_based_for': 201603,
+		r'__cpp_static_assert': 201411,
+		r'__cpp_deduction_guides': 201703,
+		r'__cpp_nontype_template_parameter_auto': 201606,
+		r'__cpp_namespace_attributes': 201411,
+		r'__cpp_enumerator_attributes': 201411,
+		r'__cpp_inheriting_constructors': 201511,
+		r'__cpp_variadic_using': 201611,
+		r'__cpp_structured_bindings': 201606,
+		r'__cpp_aggregate_bases': 201603,
+		r'__cpp_nontype_template_args': 201411,
+		r'__cpp_template_template_args': 201611,
+		r'__cpp_lib_byte': 201603,
+		r'__cpp_lib_hardware_interference_size': 201703,
+		r'__cpp_lib_launder': 201606,
+		r'__cpp_lib_uncaught_exceptions': 201411,
+		r'__cpp_lib_as_const': 201510,
+		r'__cpp_lib_make_from_tuple': 201606,
+		r'__cpp_lib_apply': 201603,
+		r'__cpp_lib_optional': 201606,
+		r'__cpp_lib_variant': 201606,
+		r'__cpp_lib_any': 201606,
+		r'__cpp_lib_addressof_constexpr': 201603,
+		r'__cpp_lib_raw_memory_algorithms': 201606,
+		r'__cpp_lib_transparent_operators': 201510,
+		r'__cpp_lib_enable_shared_from_this': 201603,
+		r'__cpp_lib_shared_ptr_weak_type': 201606,
+		r'__cpp_lib_shared_ptr_arrays': 201611,
+		r'__cpp_lib_memory_resource': 201603,
+		r'__cpp_lib_boyer_moore_searcher': 201603,
+		r'__cpp_lib_invoke': 201411,
+		r'__cpp_lib_not_fn': 201603,
+		r'__cpp_lib_void_t': 201411,
+		r'__cpp_lib_bool_constant': 201505,
+		r'__cpp_lib_type_trait_variable_templates': 201510,
+		r'__cpp_lib_logical_traits': 201510,
+		r'__cpp_lib_is_swappable': 201603,
+		r'__cpp_lib_is_invocable': 201703,
+		r'__cpp_lib_has_unique_object_representations': 201606,
+		r'__cpp_lib_is_aggregate': 201703,
+		r'__cpp_lib_chrono': 201611,
+		r'__cpp_lib_execution': 201603,
+		r'__cpp_lib_parallel_algorithm': 201603,
+		r'__cpp_lib_to_chars': 201611,
+		r'__cpp_lib_string_view': 201606,
+		r'__cpp_lib_allocator_traits_is_always_equal': 201411,
+		r'__cpp_lib_incomplete_container_elements': 201505,
+		r'__cpp_lib_map_try_emplace': 201411,
+		r'__cpp_lib_unordered_map_try_emplace': 201411,
+		r'__cpp_lib_node_extract': 201606,
+		r'__cpp_lib_array_constexpr': 201603,
+		r'__cpp_lib_nonmember_container_access': 201411,
+		r'__cpp_lib_sample': 201603,
+		r'__cpp_lib_clamp': 201603,
+		r'__cpp_lib_gcd_lcm': 201606,
+		r'__cpp_lib_hypot': 201603,
+		r'__cpp_lib_math_special_functions': 201603,
+		r'__cpp_lib_filesystem': 201703,
+		r'__cpp_lib_atomic_is_always_lock_free': 201603,
+		r'__cpp_lib_shared_mutex': 201505,
+		r'__cpp_lib_scoped_lock': 201703,
 		},
-
-		2020 : {
-			r'__cplusplus'								: r'202002L',
-			r'__cpp_aggregate_paren_init'				: 201902,
-			r'__cpp_char8_t'							: 201811,
-			r'__cpp_concepts'							: 202002,
-			r'__cpp_conditional_explicit'				: 201806,
-			r'__cpp_consteval'							: 201811,
-			r'__cpp_constexpr'							: 202002,
-			r'__cpp_constexpr_dynamic_alloc'			: 201907,
-			r'__cpp_constexpr_in_decltype'				: 201711,
-			r'__cpp_constinit'							: 201907,
-			r'__cpp_deduction_guides'					: 201907,
-			r'__cpp_designated_initializers'			: 201707,
-			r'__cpp_generic_lambdas'					: 201707,
-			r'__cpp_impl_coroutine'						: 201902,
-			r'__cpp_impl_destroying_delete'				: 201806,
-			r'__cpp_impl_three_way_comparison'			: 201907,
-			r'__cpp_init_captures'						: 201803,
-			r'__cpp_lib_array_constexpr'				: 201811,
-			r'__cpp_lib_assume_aligned'					: 201811,
-			r'__cpp_lib_atomic_flag_test'				: 201907,
-			r'__cpp_lib_atomic_float'					: 201711,
-			r'__cpp_lib_atomic_lock_free_type_aliases'	: 201907,
-			r'__cpp_lib_atomic_ref'						: 201806,
-			r'__cpp_lib_atomic_shared_ptr'				: 201711,
-			r'__cpp_lib_atomic_value_initialization'	: 201911,
-			r'__cpp_lib_atomic_wait'					: 201907,
-			r'__cpp_lib_barrier'						: 201907,
-			r'__cpp_lib_bind_front'						: 201907,
-			r'__cpp_lib_bit_cast'						: 201806,
-			r'__cpp_lib_bitops'							: 201907,
-			r'__cpp_lib_bounded_array_traits'			: 201902,
-			r'__cpp_lib_char8_t'						: 201907,
-			r'__cpp_lib_chrono'							: 201907,
-			r'__cpp_lib_concepts'						: 202002,
-			r'__cpp_lib_constexpr_algorithms'			: 201806,
-			r'__cpp_lib_constexpr_complex'				: 201711,
-			r'__cpp_lib_constexpr_dynamic_alloc'		: 201907,
-			r'__cpp_lib_constexpr_functional'			: 201907,
-			r'__cpp_lib_constexpr_iterator'				: 201811,
-			r'__cpp_lib_constexpr_memory'				: 201811,
-			r'__cpp_lib_constexpr_numeric'				: 201911,
-			r'__cpp_lib_constexpr_string'				: 201907,
-			r'__cpp_lib_constexpr_string_view'			: 201811,
-			r'__cpp_lib_constexpr_tuple'				: 201811,
-			r'__cpp_lib_constexpr_utility'				: 201811,
-			r'__cpp_lib_constexpr_vector'				: 201907,
-			r'__cpp_lib_coroutine'						: 201902,
-			r'__cpp_lib_destroying_delete'				: 201806,
-			r'__cpp_lib_endian'							: 201907,
-			r'__cpp_lib_erase_if'						: 202002,
-			r'__cpp_lib_execution'						: 201902,
-			r'__cpp_lib_format'							: 201907,
-			r'__cpp_lib_generic_unordered_lookup'		: 201811,
-			r'__cpp_lib_int_pow2'						: 202002,
-			r'__cpp_lib_integer_comparison_functions'	: 202002,
-			r'__cpp_lib_interpolate'					: 201902,
-			r'__cpp_lib_is_constant_evaluated'			: 201811,
-			r'__cpp_lib_is_layout_compatible'			: 201907,
-			r'__cpp_lib_is_nothrow_convertible'			: 201806,
-			r'__cpp_lib_is_pointer_interconvertible'	: 201907,
-			r'__cpp_lib_jthread'						: 201911,
-			r'__cpp_lib_latch'							: 201907,
-			r'__cpp_lib_list_remove_return_type'		: 201806,
-			r'__cpp_lib_math_constants'					: 201907,
-			r'__cpp_lib_polymorphic_allocator'			: 201902,
-			r'__cpp_lib_ranges'							: 201911,
-			r'__cpp_lib_remove_cvref'					: 201711,
-			r'__cpp_lib_semaphore'						: 201907,
-			r'__cpp_lib_shared_ptr_arrays'				: 201707,
-			r'__cpp_lib_shift'							: 201806,
-			r'__cpp_lib_smart_ptr_for_overwrite'		: 202002,
-			r'__cpp_lib_source_location'				: 201907,
-			r'__cpp_lib_span'							: 202002,
-			r'__cpp_lib_ssize'							: 201902,
-			r'__cpp_lib_starts_ends_with'				: 201711,
-			r'__cpp_lib_string_view'					: 201803,
-			r'__cpp_lib_syncbuf'						: 201803,
-			r'__cpp_lib_three_way_comparison'			: 201907,
-			r'__cpp_lib_to_address'						: 201711,
-			r'__cpp_lib_to_array'						: 201907,
-			r'__cpp_lib_type_identity'					: 201806,
-			r'__cpp_lib_unwrap_ref'						: 201811,
-			r'__cpp_modules'							: 201907,
-			r'__cpp_nontype_template_args'				: 201911,
-			r'__cpp_using_enum'							: 201907,
+		2020: {
+		r'__cplusplus': r'202002L',
+		r'__cpp_aggregate_paren_init': 201902,
+		r'__cpp_char8_t': 201811,
+		r'__cpp_concepts': 202002,
+		r'__cpp_conditional_explicit': 201806,
+		r'__cpp_consteval': 201811,
+		r'__cpp_constexpr': 202002,
+		r'__cpp_constexpr_dynamic_alloc': 201907,
+		r'__cpp_constexpr_in_decltype': 201711,
+		r'__cpp_constinit': 201907,
+		r'__cpp_deduction_guides': 201907,
+		r'__cpp_designated_initializers': 201707,
+		r'__cpp_generic_lambdas': 201707,
+		r'__cpp_impl_coroutine': 201902,
+		r'__cpp_impl_destroying_delete': 201806,
+		r'__cpp_impl_three_way_comparison': 201907,
+		r'__cpp_init_captures': 201803,
+		r'__cpp_lib_array_constexpr': 201811,
+		r'__cpp_lib_assume_aligned': 201811,
+		r'__cpp_lib_atomic_flag_test': 201907,
+		r'__cpp_lib_atomic_float': 201711,
+		r'__cpp_lib_atomic_lock_free_type_aliases': 201907,
+		r'__cpp_lib_atomic_ref': 201806,
+		r'__cpp_lib_atomic_shared_ptr': 201711,
+		r'__cpp_lib_atomic_value_initialization': 201911,
+		r'__cpp_lib_atomic_wait': 201907,
+		r'__cpp_lib_barrier': 201907,
+		r'__cpp_lib_bind_front': 201907,
+		r'__cpp_lib_bit_cast': 201806,
+		r'__cpp_lib_bitops': 201907,
+		r'__cpp_lib_bounded_array_traits': 201902,
+		r'__cpp_lib_char8_t': 201907,
+		r'__cpp_lib_chrono': 201907,
+		r'__cpp_lib_concepts': 202002,
+		r'__cpp_lib_constexpr_algorithms': 201806,
+		r'__cpp_lib_constexpr_complex': 201711,
+		r'__cpp_lib_constexpr_dynamic_alloc': 201907,
+		r'__cpp_lib_constexpr_functional': 201907,
+		r'__cpp_lib_constexpr_iterator': 201811,
+		r'__cpp_lib_constexpr_memory': 201811,
+		r'__cpp_lib_constexpr_numeric': 201911,
+		r'__cpp_lib_constexpr_string': 201907,
+		r'__cpp_lib_constexpr_string_view': 201811,
+		r'__cpp_lib_constexpr_tuple': 201811,
+		r'__cpp_lib_constexpr_utility': 201811,
+		r'__cpp_lib_constexpr_vector': 201907,
+		r'__cpp_lib_coroutine': 201902,
+		r'__cpp_lib_destroying_delete': 201806,
+		r'__cpp_lib_endian': 201907,
+		r'__cpp_lib_erase_if': 202002,
+		r'__cpp_lib_execution': 201902,
+		r'__cpp_lib_format': 201907,
+		r'__cpp_lib_generic_unordered_lookup': 201811,
+		r'__cpp_lib_int_pow2': 202002,
+		r'__cpp_lib_integer_comparison_functions': 202002,
+		r'__cpp_lib_interpolate': 201902,
+		r'__cpp_lib_is_constant_evaluated': 201811,
+		r'__cpp_lib_is_layout_compatible': 201907,
+		r'__cpp_lib_is_nothrow_convertible': 201806,
+		r'__cpp_lib_is_pointer_interconvertible': 201907,
+		r'__cpp_lib_jthread': 201911,
+		r'__cpp_lib_latch': 201907,
+		r'__cpp_lib_list_remove_return_type': 201806,
+		r'__cpp_lib_math_constants': 201907,
+		r'__cpp_lib_polymorphic_allocator': 201902,
+		r'__cpp_lib_ranges': 201911,
+		r'__cpp_lib_remove_cvref': 201711,
+		r'__cpp_lib_semaphore': 201907,
+		r'__cpp_lib_shared_ptr_arrays': 201707,
+		r'__cpp_lib_shift': 201806,
+		r'__cpp_lib_smart_ptr_for_overwrite': 202002,
+		r'__cpp_lib_source_location': 201907,
+		r'__cpp_lib_span': 202002,
+		r'__cpp_lib_ssize': 201902,
+		r'__cpp_lib_starts_ends_with': 201711,
+		r'__cpp_lib_string_view': 201803,
+		r'__cpp_lib_syncbuf': 201803,
+		r'__cpp_lib_three_way_comparison': 201907,
+		r'__cpp_lib_to_address': 201711,
+		r'__cpp_lib_to_array': 201907,
+		r'__cpp_lib_type_identity': 201806,
+		r'__cpp_lib_unwrap_ref': 201811,
+		r'__cpp_modules': 201907,
+		r'__cpp_nontype_template_args': 201911,
+		r'__cpp_using_enum': 201907,
 		},
-
-		2023 : {
-			r'__cplusplus'									: r'202300L',
-			r'__cpp_constexpr'								: 202110,
-			r'__cpp_explicit_this_parameter'				: 202110,
-			r'__cpp_if_consteval'							: 202106,
-			r'__cpp_lib_adaptor_iterator_pair_constructor'	: 202106,
-			r'__cpp_lib_allocate_at_least'					: 202106,
-			r'__cpp_lib_associative_heterogeneous_erasure'	: 202110,
-			r'__cpp_lib_byteswap'							: 202110,
-			r'__cpp_lib_constexpr_typeinfo'					: 202106,
-			r'__cpp_lib_format'								: 202110,
-			r'__cpp_lib_invoke_r'							: 202106,
-			r'__cpp_lib_is_scoped_enum'						: 202011,
-			r'__cpp_lib_monadic_optional'					: 202110,
-			r'__cpp_lib_move_only_function'					: 202110,
-			r'__cpp_lib_optional'							: 202106,
-			r'__cpp_lib_out_ptr'							: 202106,
-			r'__cpp_lib_ranges'								: 202110,
-			r'__cpp_lib_ranges_starts_ends_with'			: 202106,
-			r'__cpp_lib_ranges_zip'							: 202110,
-			r'__cpp_lib_spanstream'							: 202106,
-			r'__cpp_lib_stacktrace'							: 202011,
-			r'__cpp_lib_stdatomic_h'						: 202011,
-			r'__cpp_lib_string_contains'					: 202011,
-			r'__cpp_lib_string_resize_and_overwrite'		: 202110,
-			r'__cpp_lib_to_underlying'						: 202102,
-			r'__cpp_lib_variant'							: 202102,
-			r'__cpp_lib_variant'							: 202106,
-			r'__cpp_multidimensional_subscript'				: 202110,
-			r'__cpp_size_t_suffix'							: 202011,
+		2023: {
+		r'__cplusplus': r'202300L',
+		r'__cpp_constexpr': 202110,
+		r'__cpp_explicit_this_parameter': 202110,
+		r'__cpp_if_consteval': 202106,
+		r'__cpp_lib_adaptor_iterator_pair_constructor': 202106,
+		r'__cpp_lib_allocate_at_least': 202106,
+		r'__cpp_lib_associative_heterogeneous_erasure': 202110,
+		r'__cpp_lib_byteswap': 202110,
+		r'__cpp_lib_constexpr_typeinfo': 202106,
+		r'__cpp_lib_format': 202110,
+		r'__cpp_lib_invoke_r': 202106,
+		r'__cpp_lib_is_scoped_enum': 202011,
+		r'__cpp_lib_monadic_optional': 202110,
+		r'__cpp_lib_move_only_function': 202110,
+		r'__cpp_lib_optional': 202106,
+		r'__cpp_lib_out_ptr': 202106,
+		r'__cpp_lib_ranges': 202110,
+		r'__cpp_lib_ranges_starts_ends_with': 202106,
+		r'__cpp_lib_ranges_zip': 202110,
+		r'__cpp_lib_spanstream': 202106,
+		r'__cpp_lib_stacktrace': 202011,
+		r'__cpp_lib_stdatomic_h': 202011,
+		r'__cpp_lib_string_contains': 202011,
+		r'__cpp_lib_string_resize_and_overwrite': 202110,
+		r'__cpp_lib_to_underlying': 202102,
+		r'__cpp_lib_variant': 202102,
+		r'__cpp_lib_variant': 202106,
+		r'__cpp_multidimensional_subscript': 202110,
+		r'__cpp_size_t_suffix': 202011,
 		},
-
-		2026 : {
-			r'__cplusplus'									: r'202600L',
+		2026: {
+		r'__cplusplus': r'202600L',
 		},
-
-		2029 : {
-			r'__cplusplus'									: r'202900L',
+		2029: {
+		r'__cplusplus': r'202900L',
 		},
 	}
 	autolinks = {
 		# builtins
-		r'const_cast' : r'https://en.cppreference.com/w/cpp/language/const_cast',
-		r'dynamic_cast' : r'https://en.cppreference.com/w/cpp/language/dynamic_cast',
-		r'reinterpret_cast' : r'https://en.cppreference.com/w/cpp/language/reinterpret_cast',
-		r'static_cast' : r'https://en.cppreference.com/w/cpp/language/static_cast',
-		r'(?:_Float|__fp)16s?' : r'https://gcc.gnu.org/onlinedocs/gcc/Half-Precision.html',
-		r'(?:_Float|__float)(128|80)s?' : r'https://gcc.gnu.org/onlinedocs/gcc/Floating-Types.html',
-		r'(?:wchar|char(?:8|16|32))_ts?' : r'https://en.cppreference.com/w/cpp/language/types#Character_types',
-		r'(?:__cplusplus|__(?:FILE|LINE|DATE|TIME|STDC_HOSTED|STDCPP_DEFAULT_NEW_ALIGNMENT)__)'
-			: r'https://en.cppreference.com/w/cpp/preprocessor/replace',
+		r'const_cast':
+			r'https://en.cppreference.com/w/cpp/language/const_cast',
+		r'dynamic_cast':
+			r'https://en.cppreference.com/w/cpp/language/dynamic_cast',
+		r'reinterpret_cast':
+			r'https://en.cppreference.com/w/cpp/language/reinterpret_cast',
+		r'static_cast':
+			r'https://en.cppreference.com/w/cpp/language/static_cast',
+		r'(?:_Float|__fp)16s?':
+			r'https://gcc.gnu.org/onlinedocs/gcc/Half-Precision.html',
+		r'(?:_Float|__float)(128|80)s?':
+			r'https://gcc.gnu.org/onlinedocs/gcc/Floating-Types.html',
+		r'(?:wchar|char(?:8|16|32))_ts?':
+			r'https://en.cppreference.com/w/cpp/language/types#Character_types',
+		r'(?:__cplusplus|__(?:FILE|LINE|DATE|TIME|STDC_HOSTED|STDCPP_DEFAULT_NEW_ALIGNMENT)__)':
+			r'https://en.cppreference.com/w/cpp/preprocessor/replace',
 		# standard library
-		r'std::assume_aligned(?:\(\))?' : r'https://en.cppreference.com/w/cpp/memory/assume_aligned',
-		r'(?:std::)?nullptr_t' : r'https://en.cppreference.com/w/cpp/types/nullptr_t',
-		r'(?:std::)?ptrdiff_t' : r'https://en.cppreference.com/w/cpp/types/ptrdiff_t',
-		r'(?:std::)?size_t' : r'https://en.cppreference.com/w/cpp/types/size_t',
-		r'(?:std::)?u?int(?:_fast|_least)?(?:8|16|32|64)_ts?' : r'https://en.cppreference.com/w/cpp/types/integer',
-		r'(?:std::)?u?int(?:max|ptr)_t' : r'https://en.cppreference.com/w/cpp/types/integer',
-		r'\s(?:<|&lt;)fstream(?:>|&gt;)' : r'https://en.cppreference.com/w/cpp/header/fstream',
-		r'\s(?:<|&lt;)iosfwd(?:>|&gt;)' : r'https://en.cppreference.com/w/cpp/header/iosfwd',
-		r'\s(?:<|&lt;)iostream(?:>|&gt;)' : r'https://en.cppreference.com/w/cpp/header/iostream',
-		r'\s(?:<|&lt;)sstream(?:>|&gt;)' : r'https://en.cppreference.com/w/cpp/header/sstream',
-		r'\s(?:<|&lt;)string(?:>|&gt;)' : r'https://en.cppreference.com/w/cpp/header/string',
-		r'\s(?:<|&lt;)string_view(?:>|&gt;)' : r'https://en.cppreference.com/w/cpp/header/string_view',
-		r'std::(?:basic_|w)?fstreams?' : r'https://en.cppreference.com/w/cpp/io/basic_fstream',
-		r'std::(?:basic_|w)?ifstreams?' : r'https://en.cppreference.com/w/cpp/io/basic_ifstream',
-		r'std::(?:basic_|w)?iostreams?' : r'https://en.cppreference.com/w/cpp/io/basic_iostream',
-		r'std::(?:basic_|w)?istreams?' : r'https://en.cppreference.com/w/cpp/io/basic_istream',
-		r'std::(?:basic_|w)?istringstreams?' : r'https://en.cppreference.com/w/cpp/io/basic_istringstream',
-		r'std::(?:basic_|w)?ofstreams?' : r'https://en.cppreference.com/w/cpp/io/basic_ofstream',
-		r'std::(?:basic_|w)?ostreams?' : r'https://en.cppreference.com/w/cpp/io/basic_ostream',
-		r'std::(?:basic_|w)?ostringstreams?' : r'https://en.cppreference.com/w/cpp/io/basic_ostringstream',
-		r'std::(?:basic_|w)?stringstreams?' : r'https://en.cppreference.com/w/cpp/io/basic_stringstream',
-		r'std::(?:basic_|w|u(?:8|16|32))?string_views?' : r'https://en.cppreference.com/w/cpp/string/basic_string_view',
-		r'std::(?:basic_|w|u(?:8|16|32))?strings?' : r'https://en.cppreference.com/w/cpp/string/basic_string',
-		r'std::[fl]?abs[fl]?(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/math/abs',
-		r'std::acos[fl]?(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/math/acos',
-		r'std::add_[lr]value_reference(?:_t)?' : r'https://en.cppreference.com/w/cpp/types/add_reference',
-		r'std::add_(?:cv|const|volatile)(?:_t)?' : r'https://en.cppreference.com/w/cpp/types/add_cv',
-		r'std::add_pointer(?:_t)?' : r'https://en.cppreference.com/w/cpp/types/add_pointer',
-		r'std::allocators?' : r'https://en.cppreference.com/w/cpp/memory/allocator',
-		r'std::arrays?' : r'https://en.cppreference.com/w/cpp/container/array',
-		r'std::as_(writable_)?bytes(?:\(\))?' : r'https://en.cppreference.com/w/cpp/container/span/as_bytes',
-		r'std::asin[fl]?(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/math/asin',
-		r'std::atan2[fl]?(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/math/atan2',
-		r'std::atan[fl]?(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/math/atan',
-		r'std::bad_alloc' : r'https://en.cppreference.com/w/cpp/memory/new/bad_alloc',
-		r'std::basic_ios' : r'https://en.cppreference.com/w/cpp/io/basic_ios',
-		r'std::bit_cast(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/bit_cast',
-		r'std::bit_ceil(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/bit_ceil',
-		r'std::bit_floor(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/bit_floor',
-		r'std::bit_width(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/bit_width',
-		r'std::bytes?' : r'https://en.cppreference.com/w/cpp/types/byte',
-		r'std::ceil[fl]?(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/math/ceil',
-		r'std::char_traits' : r'https://en.cppreference.com/w/cpp/string/char_traits',
-		r'std::chrono::durations?' : r'https://en.cppreference.com/w/cpp/chrono/duration',
-		r'std::clamp(?:\(\))?' : r'https://en.cppreference.com/w/cpp/algorithm/clamp',
-		r'std::conditional(?:_t)?' : r'https://en.cppreference.com/w/cpp/types/conditional',
-		r'std::cos[fl]?(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/math/cos',
-		r'std::countl_one(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/countl_one',
-		r'std::countl_zero(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/countl_zero',
-		r'std::countr_one(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/countr_one',
-		r'std::countr_zero(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/countr_zero',
-		r'std::enable_if(?:_t)?' : r'https://en.cppreference.com/w/cpp/types/enable_if',
-		r'std::exceptions?' : r'https://en.cppreference.com/w/cpp/error/exception',
-		r'std::floor[fl]?(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/math/floor',
-		r'std::fpos' : r'https://en.cppreference.com/w/cpp/io/fpos',
-		r'std::has_single_bit(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/has_single_bit',
-		r'std::hash' : r'https://en.cppreference.com/w/cpp/utility/hash',
-		r'std::initializer_lists?' : r'https://en.cppreference.com/w/cpp/utility/initializer_list',
-		r'std::integral_constants?' : r'https://en.cppreference.com/w/cpp/types/integral_constant',
-		r'std::ios(?:_base)?' : r'https://en.cppreference.com/w/cpp/io/ios_base',
-		r'std::is_(?:nothrow_)?convertible(?:_v)?' : r'https://en.cppreference.com/w/cpp/types/is_convertible',
-		r'std::is_(?:nothrow_)?invocable(?:_r)?' : r'https://en.cppreference.com/w/cpp/types/is_invocable',
-		r'std::is_base_of(?:_v)?' : r'https://en.cppreference.com/w/cpp/types/is_base_of',
-		r'std::is_constant_evaluated(?:\(\))?' : r'https://en.cppreference.com/w/cpp/types/is_constant_evaluated',
-		r'std::is_enum(?:_v)?' : r'https://en.cppreference.com/w/cpp/types/is_enum',
-		r'std::is_floating_point(?:_v)?' : r'https://en.cppreference.com/w/cpp/types/is_floating_point',
-		r'std::is_integral(?:_v)?' : r'https://en.cppreference.com/w/cpp/types/is_integral',
-		r'std::is_pointer(?:_v)?' : r'https://en.cppreference.com/w/cpp/types/is_pointer',
-		r'std::is_reference(?:_v)?' : r'https://en.cppreference.com/w/cpp/types/is_reference',
-		r'std::is_same(?:_v)?' : r'https://en.cppreference.com/w/cpp/types/is_same',
-		r'std::is_signed(?:_v)?' : r'https://en.cppreference.com/w/cpp/types/is_signed',
-		r'std::is_unsigned(?:_v)?' : r'https://en.cppreference.com/w/cpp/types/is_unsigned',
-		r'std::is_void(?:_v)?' : r'https://en.cppreference.com/w/cpp/types/is_void',
-		r'std::launder(?:\(\))?' : r'https://en.cppreference.com/w/cpp/utility/launder',
-		r'std::lerp(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/lerp',
-		r'std::maps?' : r'https://en.cppreference.com/w/cpp/container/map',
-		r'std::max(?:\(\))?' : r'https://en.cppreference.com/w/cpp/algorithm/max',
-		r'std::min(?:\(\))?' : r'https://en.cppreference.com/w/cpp/algorithm/min',
-		r'std::numeric_limits::min(?:\(\))?' : r'https://en.cppreference.com/w/cpp/types/numeric_limits/min',
-		r'std::numeric_limits::lowest(?:\(\))?' : r'https://en.cppreference.com/w/cpp/types/numeric_limits/lowest',
-		r'std::numeric_limits::max(?:\(\))?' : r'https://en.cppreference.com/w/cpp/types/numeric_limits/max',
-		r'std::numeric_limits::epsilon(?:\(\))?' : r'https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon',
-		r'std::numeric_limits::round_error(?:\(\))?' : r'https://en.cppreference.com/w/cpp/types/numeric_limits/round_error',
-		r'std::numeric_limits::infinity(?:\(\))?' : r'https://en.cppreference.com/w/cpp/types/numeric_limits/infinity',
-		r'std::numeric_limits::quiet_NaN(?:\(\))?' : r'https://en.cppreference.com/w/cpp/types/numeric_limits/quiet_NaN',
-		r'std::numeric_limits::signaling_NaN(?:\(\))?' : r'https://en.cppreference.com/w/cpp/types/numeric_limits/signaling_NaN',
-		r'std::numeric_limits::denorm_min(?:\(\))?' : r'https://en.cppreference.com/w/cpp/types/numeric_limits/denorm_min',
-		r'std::numeric_limits' : r'https://en.cppreference.com/w/cpp/types/numeric_limits',
-		r'std::optionals?' : r'https://en.cppreference.com/w/cpp/utility/optional',
-		r'std::pairs?' : r'https://en.cppreference.com/w/cpp/utility/pair',
-		r'std::popcount(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/popcount',
-		r'std::remove_cv(?:_t)?' : r'https://en.cppreference.com/w/cpp/types/remove_cv',
-		r'std::remove_reference(?:_t)?' : r'https://en.cppreference.com/w/cpp/types/remove_reference',
-		r'std::reverse_iterator' : r'https://en.cppreference.com/w/cpp/iterator/reverse_iterator',
-		r'std::runtime_errors?' : r'https://en.cppreference.com/w/cpp/error/runtime_error',
-		r'std::sets?' : r'https://en.cppreference.com/w/cpp/container/set',
-		r'std::shared_ptrs?' : r'https://en.cppreference.com/w/cpp/memory/shared_ptr',
-		r'std::sin[fl]?(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/math/sin',
-		r'std::spans?' : r'https://en.cppreference.com/w/cpp/container/span',
-		r'std::sqrt[fl]?(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/math/sqrt',
-		r'std::tan[fl]?(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/math/tan',
-		r'std::to_address(?:\(\))?' : r'https://en.cppreference.com/w/cpp/memory/to_address',
-		r'std::(?:true|false)_type' : r'https://en.cppreference.com/w/cpp/types/integral_constant',
-		r'std::trunc[fl]?(?:\(\))?' : r'https://en.cppreference.com/w/cpp/numeric/math/trunc',
-		r'std::tuple_element(?:_t)?' : r'https://en.cppreference.com/w/cpp/utility/tuple/tuple_element',
-		r'std::tuple_size(?:_v)?' : r'https://en.cppreference.com/w/cpp/utility/tuple/tuple_size',
-		r'std::tuples?' : r'https://en.cppreference.com/w/cpp/utility/tuple',
-		r'std::type_identity(?:_t)?' : r'https://en.cppreference.com/w/cpp/types/type_identity',
-		r'std::underlying_type(?:_t)?' : r'https://en.cppreference.com/w/cpp/types/underlying_type',
-		r'std::unique_ptrs?' : r'https://en.cppreference.com/w/cpp/memory/unique_ptr',
-		r'std::unordered_maps?' : r'https://en.cppreference.com/w/cpp/container/unordered_map',
-		r'std::unordered_sets?' : r'https://en.cppreference.com/w/cpp/container/unordered_set',
-		r'std::vectors?' : r'https://en.cppreference.com/w/cpp/container/vector',
-		r'std::atomic[a-zA-Z_0-9]*' : r'https://en.cppreference.com/w/cpp/atomic/atomic',
-		r'(?:Legacy)?InputIterators?' : r'https://en.cppreference.com/w/cpp/named_req/InputIterator',
-		r'(?:Legacy)?OutputIterators?' : r'https://en.cppreference.com/w/cpp/named_req/OutputIterator',
-		r'(?:Legacy)?ForwardIterators?' : r'https://en.cppreference.com/w/cpp/named_req/ForwardIterator',
-		r'(?:Legacy)?BidirectionalIterators?' : r'https://en.cppreference.com/w/cpp/named_req/BidirectionalIterator',
-		r'(?:Legacy)?RandomAccessIterators?' : r'https://en.cppreference.com/w/cpp/named_req/RandomAccessIterator',
-		r'(?:Legacy)?ContiguousIterators?' : r'https://en.cppreference.com/w/cpp/named_req/ContiguousIterator',
+		r'std::assume_aligned(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/memory/assume_aligned',
+		r'(?:std::)?nullptr_t':
+			r'https://en.cppreference.com/w/cpp/types/nullptr_t',
+		r'(?:std::)?ptrdiff_t':
+			r'https://en.cppreference.com/w/cpp/types/ptrdiff_t',
+		r'(?:std::)?size_t':
+			r'https://en.cppreference.com/w/cpp/types/size_t',
+		r'(?:std::)?u?int(?:_fast|_least)?(?:8|16|32|64)_ts?':
+			r'https://en.cppreference.com/w/cpp/types/integer',
+		r'(?:std::)?u?int(?:max|ptr)_t':
+			r'https://en.cppreference.com/w/cpp/types/integer',
+		r'\s(?:<|&lt;)fstream(?:>|&gt;)':
+			r'https://en.cppreference.com/w/cpp/header/fstream',
+		r'\s(?:<|&lt;)iosfwd(?:>|&gt;)':
+			r'https://en.cppreference.com/w/cpp/header/iosfwd',
+		r'\s(?:<|&lt;)iostream(?:>|&gt;)':
+			r'https://en.cppreference.com/w/cpp/header/iostream',
+		r'\s(?:<|&lt;)sstream(?:>|&gt;)':
+			r'https://en.cppreference.com/w/cpp/header/sstream',
+		r'\s(?:<|&lt;)string(?:>|&gt;)':
+			r'https://en.cppreference.com/w/cpp/header/string',
+		r'\s(?:<|&lt;)string_view(?:>|&gt;)':
+			r'https://en.cppreference.com/w/cpp/header/string_view',
+		r'std::(?:basic_|w)?fstreams?':
+			r'https://en.cppreference.com/w/cpp/io/basic_fstream',
+		r'std::(?:basic_|w)?ifstreams?':
+			r'https://en.cppreference.com/w/cpp/io/basic_ifstream',
+		r'std::(?:basic_|w)?iostreams?':
+			r'https://en.cppreference.com/w/cpp/io/basic_iostream',
+		r'std::(?:basic_|w)?istreams?':
+			r'https://en.cppreference.com/w/cpp/io/basic_istream',
+		r'std::(?:basic_|w)?istringstreams?':
+			r'https://en.cppreference.com/w/cpp/io/basic_istringstream',
+		r'std::(?:basic_|w)?ofstreams?':
+			r'https://en.cppreference.com/w/cpp/io/basic_ofstream',
+		r'std::(?:basic_|w)?ostreams?':
+			r'https://en.cppreference.com/w/cpp/io/basic_ostream',
+		r'std::(?:basic_|w)?ostringstreams?':
+			r'https://en.cppreference.com/w/cpp/io/basic_ostringstream',
+		r'std::(?:basic_|w)?stringstreams?':
+			r'https://en.cppreference.com/w/cpp/io/basic_stringstream',
+		r'std::(?:basic_|w|u(?:8|16|32))?string_views?':
+			r'https://en.cppreference.com/w/cpp/string/basic_string_view',
+		r'std::(?:basic_|w|u(?:8|16|32))?strings?':
+			r'https://en.cppreference.com/w/cpp/string/basic_string',
+		r'std::[fl]?abs[fl]?(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/math/abs',
+		r'std::acos[fl]?(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/math/acos',
+		r'std::add_[lr]value_reference(?:_t)?':
+			r'https://en.cppreference.com/w/cpp/types/add_reference',
+		r'std::add_(?:cv|const|volatile)(?:_t)?':
+			r'https://en.cppreference.com/w/cpp/types/add_cv',
+		r'std::add_pointer(?:_t)?':
+			r'https://en.cppreference.com/w/cpp/types/add_pointer',
+		r'std::allocators?':
+			r'https://en.cppreference.com/w/cpp/memory/allocator',
+		r'std::arrays?':
+			r'https://en.cppreference.com/w/cpp/container/array',
+		r'std::as_(writable_)?bytes(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/container/span/as_bytes',
+		r'std::asin[fl]?(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/math/asin',
+		r'std::atan2[fl]?(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/math/atan2',
+		r'std::atan[fl]?(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/math/atan',
+		r'std::bad_alloc':
+			r'https://en.cppreference.com/w/cpp/memory/new/bad_alloc',
+		r'std::basic_ios':
+			r'https://en.cppreference.com/w/cpp/io/basic_ios',
+		r'std::bit_cast(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/bit_cast',
+		r'std::bit_ceil(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/bit_ceil',
+		r'std::bit_floor(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/bit_floor',
+		r'std::bit_width(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/bit_width',
+		r'std::bytes?':
+			r'https://en.cppreference.com/w/cpp/types/byte',
+		r'std::ceil[fl]?(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/math/ceil',
+		r'std::char_traits':
+			r'https://en.cppreference.com/w/cpp/string/char_traits',
+		r'std::chrono::durations?':
+			r'https://en.cppreference.com/w/cpp/chrono/duration',
+		r'std::clamp(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/algorithm/clamp',
+		r'std::conditional(?:_t)?':
+			r'https://en.cppreference.com/w/cpp/types/conditional',
+		r'std::cos[fl]?(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/math/cos',
+		r'std::countl_one(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/countl_one',
+		r'std::countl_zero(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/countl_zero',
+		r'std::countr_one(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/countr_one',
+		r'std::countr_zero(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/countr_zero',
+		r'std::enable_if(?:_t)?':
+			r'https://en.cppreference.com/w/cpp/types/enable_if',
+		r'std::exceptions?':
+			r'https://en.cppreference.com/w/cpp/error/exception',
+		r'std::floor[fl]?(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/math/floor',
+		r'std::fpos':
+			r'https://en.cppreference.com/w/cpp/io/fpos',
+		r'std::has_single_bit(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/has_single_bit',
+		r'std::hash':
+			r'https://en.cppreference.com/w/cpp/utility/hash',
+		r'std::initializer_lists?':
+			r'https://en.cppreference.com/w/cpp/utility/initializer_list',
+		r'std::integral_constants?':
+			r'https://en.cppreference.com/w/cpp/types/integral_constant',
+		r'std::ios(?:_base)?':
+			r'https://en.cppreference.com/w/cpp/io/ios_base',
+		r'std::is_(?:nothrow_)?convertible(?:_v)?':
+			r'https://en.cppreference.com/w/cpp/types/is_convertible',
+		r'std::is_(?:nothrow_)?invocable(?:_r)?':
+			r'https://en.cppreference.com/w/cpp/types/is_invocable',
+		r'std::is_base_of(?:_v)?':
+			r'https://en.cppreference.com/w/cpp/types/is_base_of',
+		r'std::is_constant_evaluated(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/types/is_constant_evaluated',
+		r'std::is_enum(?:_v)?':
+			r'https://en.cppreference.com/w/cpp/types/is_enum',
+		r'std::is_floating_point(?:_v)?':
+			r'https://en.cppreference.com/w/cpp/types/is_floating_point',
+		r'std::is_integral(?:_v)?':
+			r'https://en.cppreference.com/w/cpp/types/is_integral',
+		r'std::is_pointer(?:_v)?':
+			r'https://en.cppreference.com/w/cpp/types/is_pointer',
+		r'std::is_reference(?:_v)?':
+			r'https://en.cppreference.com/w/cpp/types/is_reference',
+		r'std::is_same(?:_v)?':
+			r'https://en.cppreference.com/w/cpp/types/is_same',
+		r'std::is_signed(?:_v)?':
+			r'https://en.cppreference.com/w/cpp/types/is_signed',
+		r'std::is_unsigned(?:_v)?':
+			r'https://en.cppreference.com/w/cpp/types/is_unsigned',
+		r'std::is_void(?:_v)?':
+			r'https://en.cppreference.com/w/cpp/types/is_void',
+		r'std::launder(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/utility/launder',
+		r'std::lerp(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/lerp',
+		r'std::maps?':
+			r'https://en.cppreference.com/w/cpp/container/map',
+		r'std::max(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/algorithm/max',
+		r'std::min(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/algorithm/min',
+		r'std::numeric_limits::min(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/types/numeric_limits/min',
+		r'std::numeric_limits::lowest(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/types/numeric_limits/lowest',
+		r'std::numeric_limits::max(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/types/numeric_limits/max',
+		r'std::numeric_limits::epsilon(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon',
+		r'std::numeric_limits::round_error(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/types/numeric_limits/round_error',
+		r'std::numeric_limits::infinity(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/types/numeric_limits/infinity',
+		r'std::numeric_limits::quiet_NaN(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/types/numeric_limits/quiet_NaN',
+		r'std::numeric_limits::signaling_NaN(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/types/numeric_limits/signaling_NaN',
+		r'std::numeric_limits::denorm_min(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/types/numeric_limits/denorm_min',
+		r'std::numeric_limits':
+			r'https://en.cppreference.com/w/cpp/types/numeric_limits',
+		r'std::optionals?':
+			r'https://en.cppreference.com/w/cpp/utility/optional',
+		r'std::pairs?':
+			r'https://en.cppreference.com/w/cpp/utility/pair',
+		r'std::popcount(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/popcount',
+		r'std::remove_cv(?:_t)?':
+			r'https://en.cppreference.com/w/cpp/types/remove_cv',
+		r'std::remove_reference(?:_t)?':
+			r'https://en.cppreference.com/w/cpp/types/remove_reference',
+		r'std::reverse_iterator':
+			r'https://en.cppreference.com/w/cpp/iterator/reverse_iterator',
+		r'std::runtime_errors?':
+			r'https://en.cppreference.com/w/cpp/error/runtime_error',
+		r'std::sets?':
+			r'https://en.cppreference.com/w/cpp/container/set',
+		r'std::shared_ptrs?':
+			r'https://en.cppreference.com/w/cpp/memory/shared_ptr',
+		r'std::sin[fl]?(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/math/sin',
+		r'std::spans?':
+			r'https://en.cppreference.com/w/cpp/container/span',
+		r'std::sqrt[fl]?(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/math/sqrt',
+		r'std::tan[fl]?(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/math/tan',
+		r'std::to_address(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/memory/to_address',
+		r'std::(?:true|false)_type':
+			r'https://en.cppreference.com/w/cpp/types/integral_constant',
+		r'std::trunc[fl]?(?:\(\))?':
+			r'https://en.cppreference.com/w/cpp/numeric/math/trunc',
+		r'std::tuple_element(?:_t)?':
+			r'https://en.cppreference.com/w/cpp/utility/tuple/tuple_element',
+		r'std::tuple_size(?:_v)?':
+			r'https://en.cppreference.com/w/cpp/utility/tuple/tuple_size',
+		r'std::tuples?':
+			r'https://en.cppreference.com/w/cpp/utility/tuple',
+		r'std::type_identity(?:_t)?':
+			r'https://en.cppreference.com/w/cpp/types/type_identity',
+		r'std::underlying_type(?:_t)?':
+			r'https://en.cppreference.com/w/cpp/types/underlying_type',
+		r'std::unique_ptrs?':
+			r'https://en.cppreference.com/w/cpp/memory/unique_ptr',
+		r'std::unordered_maps?':
+			r'https://en.cppreference.com/w/cpp/container/unordered_map',
+		r'std::unordered_sets?':
+			r'https://en.cppreference.com/w/cpp/container/unordered_set',
+		r'std::vectors?':
+			r'https://en.cppreference.com/w/cpp/container/vector',
+		r'std::atomic[a-zA-Z_0-9]*':
+			r'https://en.cppreference.com/w/cpp/atomic/atomic',
+		r'(?:Legacy)?InputIterators?':
+			r'https://en.cppreference.com/w/cpp/named_req/InputIterator',
+		r'(?:Legacy)?OutputIterators?':
+			r'https://en.cppreference.com/w/cpp/named_req/OutputIterator',
+		r'(?:Legacy)?ForwardIterators?':
+			r'https://en.cppreference.com/w/cpp/named_req/ForwardIterator',
+		r'(?:Legacy)?BidirectionalIterators?':
+			r'https://en.cppreference.com/w/cpp/named_req/BidirectionalIterator',
+		r'(?:Legacy)?RandomAccessIterators?':
+			r'https://en.cppreference.com/w/cpp/named_req/RandomAccessIterator',
+		r'(?:Legacy)?ContiguousIterators?':
+			r'https://en.cppreference.com/w/cpp/named_req/ContiguousIterator',
 		# windows
-		r'(?:L?P)?(?:'
-			+ r'D?WORD(?:32|64|_PTR)?|HANDLE|HMODULE|BOOL(?:EAN)?'
-			+ r'|U?SHORT|U?LONG|U?INT(?:8|16|32|64)?'
-			+ r'|BYTE|VOID|C[WT]?STR'
-			+ r')'
-			: r'https://docs.microsoft.com/en-us/windows/desktop/winprog/windows-data-types',
-		r'__INTELLISENSE__|_MSC(?:_FULL)_VER|_MSVC_LANG|_WIN(?:32|64)'
-			: r'https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=vs-2019',
-		r'IUnknowns?' : r'https://docs.microsoft.com/en-us/windows/win32/api/unknwn/nn-unknwn-iunknown',
-		r'(?:IUnknown::)?QueryInterface?' : r'https://docs.microsoft.com/en-us/windows/win32/api/unknwn/nf-unknwn-iunknown-queryinterface(q)',
+		r'(?:L?P)?(?:' + r'D?WORD(?:32|64|_PTR)?|HANDLE|HMODULE|BOOL(?:EAN)?' + r'|U?SHORT|U?LONG|U?INT(?:8|16|32|64)?' + r'|BYTE|VOID|C[WT]?STR' + r')':
+			r'https://docs.microsoft.com/en-us/windows/desktop/winprog/windows-data-types',
+		r'__INTELLISENSE__|_MSC(?:_FULL)_VER|_MSVC_LANG|_WIN(?:32|64)':
+			r'https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=vs-2019',
+		r'IUnknowns?':
+			r'https://docs.microsoft.com/en-us/windows/win32/api/unknwn/nn-unknwn-iunknown',
+		r'(?:IUnknown::)?QueryInterface?':
+			r'https://docs.microsoft.com/en-us/windows/win32/api/unknwn/nf-unknwn-iunknown-queryinterface(q)',
 		# unreal engine types
-		r'(?:::)?FBox(?:es)?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FBox/index.html',
-		r'(?:::)?FBox2Ds?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FBox2D/index.html',
-		r'(?:::)?FColors?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FColor/index.html',
-		r'(?:::)?FFloat16s?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FFloat16/index.html',
-		r'(?:::)?FFloat32s?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FFloat32/index.html',
-		r'(?:::)?FMatrix(?:es|ices)?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FMatrix/index.html',
-		r'(?:::)?FMatrix2x2s?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FMatrix2x2/index.html',
-		r'(?:::)?FOrientedBox(?:es)?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FOrientedBox/index.html',
-		r'(?:::)?FPlanes?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FPlane/index.html',
-		r'(?:::)?FQuat2Ds?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FQuat2D/index.html',
-		r'(?:::)?FQuats?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FQuat/index.html',
-		r'(?:::)?FStrings?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Containers/FString/index.html',
-		r'(?:::)?FVector2DHalfs?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FVector2DHalf/index.html',
-		r'(?:::)?FVector2Ds?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FVector2D/index.html',
-		r'(?:::)?FVector4s?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FVector4/index.html',
-		r'(?:::)?FVectors?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FVector/index.html',
-		r'(?:::)?TMatrix(?:es|ices)?' : r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/TMatrix/index.html',
-		r'(?:::)?UStaticMesh(?:es)?' : r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/Engine/UStaticMesh/',
-		r'(?:::)?FStaticMeshLODResources' : r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/FStaticMeshLODResources/',
-		r'(?:::)?FRawStaticIndexBuffer(?:s)?' : r'https://docs.unrealengine.com/4.26/en-US/API/Runtime/Engine/FRawStaticIndexBuffer/',
-		r'(?:::)?FStaticMeshVertexBuffers' : r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/FStaticMeshVertexBuffers/',
-		r'(?:::)?FStaticMeshVertexBuffer' : r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/Rendering/FStaticMeshVertexBuffer/',
-		r'(?:::)?FPositionVertexBuffer(?:s)?' : r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/Rendering/FPositionVertexBuffer/',
-		r'(?:::)?TArrayView(?:s)?' : r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Core/Containers/TArrayView/',
-		r'(?:::)?TArray(?:s)?' : r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Core/Containers/TArray/',
+		r'(?:::)?FBox(?:es)?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FBox/index.html',
+		r'(?:::)?FBox2Ds?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FBox2D/index.html',
+		r'(?:::)?FColors?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FColor/index.html',
+		r'(?:::)?FFloat16s?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FFloat16/index.html',
+		r'(?:::)?FFloat32s?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FFloat32/index.html',
+		r'(?:::)?FMatrix(?:es|ices)?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FMatrix/index.html',
+		r'(?:::)?FMatrix2x2s?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FMatrix2x2/index.html',
+		r'(?:::)?FOrientedBox(?:es)?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FOrientedBox/index.html',
+		r'(?:::)?FPlanes?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FPlane/index.html',
+		r'(?:::)?FQuat2Ds?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FQuat2D/index.html',
+		r'(?:::)?FQuats?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FQuat/index.html',
+		r'(?:::)?FStrings?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Containers/FString/index.html',
+		r'(?:::)?FVector2DHalfs?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FVector2DHalf/index.html',
+		r'(?:::)?FVector2Ds?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FVector2D/index.html',
+		r'(?:::)?FVector4s?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FVector4/index.html',
+		r'(?:::)?FVectors?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/FVector/index.html',
+		r'(?:::)?TMatrix(?:es|ices)?':
+			r'https://docs.unrealengine.com/en-US/API/Runtime/Core/Math/TMatrix/index.html',
+		r'(?:::)?UStaticMesh(?:es)?':
+			r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/Engine/UStaticMesh/',
+		r'(?:::)?FStaticMeshLODResources':
+			r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/FStaticMeshLODResources/',
+		r'(?:::)?FRawStaticIndexBuffer(?:s)?':
+			r'https://docs.unrealengine.com/4.26/en-US/API/Runtime/Engine/FRawStaticIndexBuffer/',
+		r'(?:::)?FStaticMeshVertexBuffers':
+			r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/FStaticMeshVertexBuffers/',
+		r'(?:::)?FStaticMeshVertexBuffer':
+			r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/Rendering/FStaticMeshVertexBuffer/',
+		r'(?:::)?FPositionVertexBuffer(?:s)?':
+			r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/Rendering/FPositionVertexBuffer/',
+		r'(?:::)?TArrayView(?:s)?':
+			r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Core/Containers/TArrayView/',
+		r'(?:::)?TArray(?:s)?':
+			r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Core/Containers/TArray/',
 	}
 	navbar = [r'files', r'groups', r'namespaces', r'classes']
 	aliases = {
 		# poxy
-		r'cpp' : r'@code{.cpp}',
-			r'ecpp' : r'@endcode',
-			r'endcpp' : r'@endcode',
-		r'out' : r'@code{.shell-session}',
-			r'eout' : r'@endcode',
-			r'endout' : r'@endcode',
-		r'python' : r'@code{.py}',
-			r'epython' : r'@endcode',
-			r'endpython' : r'@endcode',
-		r'meson' : r'@code{.py}',
-			r'emeson' : r'@endcode',
-			r'endmeson' : r'@endcode',
-		r'cmake' : r'@code{.cmake}',
-			r'ecmake' : r'@endcode',
-			r'endcmake' : r'@endcode',
-		r'javascript' : r'@code{.js}',
-			r'ejavascript' : r'@endcode',
-			r'endjavascript' : r'@endcode',
-		r'json' : r'@code{.js}',
-			r'ejson' : r'@endcode',
-			r'endjson' : r'@endcode',
-		r'shell' : r'@code{.shell-session}',
-			r'eshell' : r'@endcode',
-			r'endshell' : r'@endcode',
-		r'bash' : r'@code{.sh}',
-			r'ebash' : r'@endcode',
-			r'endbash' : r'@endcode',
-		r'detail' : r'@details',
-		r'inline_subheading{1}' : r'[h4]\1[/h4]',
-		r'conditional_return{1}' : r'<strong><em>\1:</em></strong> ',
-		r'inline_success' : r'[set_class m-note m-success]',
-		r'inline_note' : r'[set_class m-note m-info]',
-		r'inline_warning' : r'[set_class m-note m-danger]',
-		r'inline_attention' : r'[set_class m-note m-warning]',
-		r'inline_remark' : r'[set_class m-note m-default]',
-		r'github{1}' : r'<a href="https://github.com/\1" target="_blank">\1</a>',
-		r'github{2}' : r'<a href="https://github.com/\1" target="_blank">\2</a>',
-		r'godbolt{1}' : r'<a href="https://godbolt.org/z/\1" target="_blank">Try this code on Compiler Explorer</a>',
-		r'flags_enum' : r'@note This enum is a flags type; it is equipped with a full complement of bitwise operators. ^^',
-		r'implementers' : r'@par [parent_set_class m-block m-dim][emoji hammer][entity nbsp]Implementers: ',
-		r'optional' : r'@par [parent_set_class m-block m-info]Optional field ^^',
-		r'required' : r'@par [parent_set_class m-block m-warning][emoji warning][entity nbsp]Required field ^^',
-		r'availability' : r'@par [parent_set_class m-block m-special]Conditional availability ^^',
-		r'figure{1}' : r'@image html \1',
-		r'figure{2}' : r'@image html \1 "\2"',
+		r'cpp':
+			r'@code{.cpp}',
+		r'ecpp':
+			r'@endcode',
+		r'endcpp':
+			r'@endcode',
+		r'out':
+			r'@code{.shell-session}',
+		r'eout':
+			r'@endcode',
+		r'endout':
+			r'@endcode',
+		r'python':
+			r'@code{.py}',
+		r'epython':
+			r'@endcode',
+		r'endpython':
+			r'@endcode',
+		r'meson':
+			r'@code{.py}',
+		r'emeson':
+			r'@endcode',
+		r'endmeson':
+			r'@endcode',
+		r'cmake':
+			r'@code{.cmake}',
+		r'ecmake':
+			r'@endcode',
+		r'endcmake':
+			r'@endcode',
+		r'javascript':
+			r'@code{.js}',
+		r'ejavascript':
+			r'@endcode',
+		r'endjavascript':
+			r'@endcode',
+		r'json':
+			r'@code{.js}',
+		r'ejson':
+			r'@endcode',
+		r'endjson':
+			r'@endcode',
+		r'shell':
+			r'@code{.shell-session}',
+		r'eshell':
+			r'@endcode',
+		r'endshell':
+			r'@endcode',
+		r'bash':
+			r'@code{.sh}',
+		r'ebash':
+			r'@endcode',
+		r'endbash':
+			r'@endcode',
+		r'detail':
+			r'@details',
+		r'inline_subheading{1}':
+			r'[h4]\1[/h4]',
+		r'conditional_return{1}':
+			r'<strong><em>\1:</em></strong> ',
+		r'inline_success':
+			r'[set_class m-note m-success]',
+		r'inline_note':
+			r'[set_class m-note m-info]',
+		r'inline_warning':
+			r'[set_class m-note m-danger]',
+		r'inline_attention':
+			r'[set_class m-note m-warning]',
+		r'inline_remark':
+			r'[set_class m-note m-default]',
+		r'github{1}':
+			r'<a href="https://github.com/\1" target="_blank">\1</a>',
+		r'github{2}':
+			r'<a href="https://github.com/\1" target="_blank">\2</a>',
+		r'gitlab{1}':
+			r'<a href="https://gitlab.com/\1" target="_blank">\1</a>',
+		r'gitlab{2}':
+			r'<a href="https://gitlab.com/\1" target="_blank">\2</a>',
+		r'godbolt{1}':
+			r'<a href="https://godbolt.org/z/\1" target="_blank">Try this code on Compiler Explorer</a>',
+		r'flags_enum':
+			r'@note This enum is a flags type; it is equipped with a full complement of bitwise operators. ^^',
+		r'implementers':
+			r'@par [parent_set_class m-block m-dim][emoji hammer][entity nbsp]Implementers: ',
+		r'optional':
+			r'@par [parent_set_class m-block m-info]Optional field ^^',
+		r'required':
+			r'@par [parent_set_class m-block m-warning][emoji warning][entity nbsp]Required field ^^',
+		r'availability':
+			r'@par [parent_set_class m-block m-special]Conditional availability ^^',
+		r'figure{1}':
+			r'@image html \1',
+		r'figure{2}':
+			r'@image html \1 "\2"',
 		# m.css
-		r'm_div{1}' : r'@xmlonly<mcss:div xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:class="\1">@endxmlonly',
-		r'm_enddiv' : r'@xmlonly</mcss:div>@endxmlonly',
-		r'm_span{1}' : r'@xmlonly<mcss:span xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:class="\1">@endxmlonly',
-		r'm_endspan' : r'@xmlonly</mcss:span>@endxmlonly',
-		r'm_class{1}' : r'@xmlonly<mcss:class xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:class="\1" />@endxmlonly',
-		r'm_footernavigation' : r'@xmlonly<mcss:footernavigation xmlns:mcss="http://mcss.mosra.cz/doxygen/" />@endxmlonly',
-		r'm_examplenavigation{2}' : r'@xmlonly<mcss:examplenavigation xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:page="\1" mcss:prefix="\2" />@endxmlonly',
-		r'm_keywords{1}' : r'@xmlonly<mcss:search xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:keywords="\1" />@endxmlonly',
-		r'm_keyword{3}' : r'@xmlonly<mcss:search xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:keyword="\1" mcss:title="\2" mcss:suffix-length="\3" />@endxmlonly',
-		r'm_enum_values_as_keywords' : r'@xmlonly<mcss:search xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:enum-values-as-keywords="true" />@endxmlonly'
+		r'm_div{1}':
+			r'@xmlonly<mcss:div xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:class="\1">@endxmlonly',
+		r'm_enddiv':
+			r'@xmlonly</mcss:div>@endxmlonly',
+		r'm_span{1}':
+			r'@xmlonly<mcss:span xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:class="\1">@endxmlonly',
+		r'm_endspan':
+			r'@xmlonly</mcss:span>@endxmlonly',
+		r'm_class{1}':
+			r'@xmlonly<mcss:class xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:class="\1" />@endxmlonly',
+		r'm_footernavigation':
+			r'@xmlonly<mcss:footernavigation xmlns:mcss="http://mcss.mosra.cz/doxygen/" />@endxmlonly',
+		r'm_examplenavigation{2}':
+			r'@xmlonly<mcss:examplenavigation xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:page="\1" mcss:prefix="\2" />@endxmlonly',
+		r'm_keywords{1}':
+			r'@xmlonly<mcss:search xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:keywords="\1" />@endxmlonly',
+		r'm_keyword{3}':
+			r'@xmlonly<mcss:search xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:keyword="\1" mcss:title="\2" mcss:suffix-length="\3" />@endxmlonly',
+		r'm_enum_values_as_keywords':
+			r'@xmlonly<mcss:search xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:enum-values-as-keywords="true" />@endxmlonly'
 	}
 	source_patterns = {
 		r'*.h', r'*.hh', r'*.hxx', r'*.hpp', r'*.h++', r'*.ixx', r'*.inc', r'*.markdown', r'*.md', r'*.dox'
 	}
 	# code block syntax highlighting only
-	cb_enums = {
-		r'(?:std::)?ios(?:_base)?::(?:app|binary|in|out|trunc|ate)'
-	}
+	cb_enums = {r'(?:std::)?ios(?:_base)?::(?:app|binary|in|out|trunc|ate)'}
 	cb_macros = {
-			# standard builtins:
-			r'__cplusplus(?:_cli|_winrt)?',
-			r'__cpp_[a-zA-Z_]+?',
-			r'__has_(?:(?:cpp_)?attribute|include)',
-			r'assert',
-			r'offsetof',
-			# poxy:
-			r'POXY_[a-zA-Z_]+',
-			# msvc:
-			r'__(?:'
-				+ r'FILE|LINE|DATE|TIME|COUNTER'
-				+ r'|STDC(?:_HOSTED|_NO_ATOMICS|_NO_COMPLEX|_NO_THREADS|_NO_VLA|_VERSION|_THREADS)?'
-				+ r'|STDCPP_DEFAULT_NEW_ALIGNMENT|INTELLISENSE|ATOM'
-				+ r'|AVX(?:2|512(?:BW|CD|DQ|F|VL)?)?|FUNC(?:TION|DNAME|SIG)'
-				+ r')__',
-			r'_M_(?:AMD64|ARM(?:_ARMV7VE|_FP|64)?|X64|CEE(?:_PURE|_SAFE)?|FP_(?:EXCEPT|FAST|PRECISE|STRICT)|IX86(?:_FP)?)',
-			r'__CLR_VER|_CHAR_UNSIGNED|_CONTROL_FLOW_GUARD|_CPP(?:RTTI|UNWIND)|_DEBUG|_INTEGRAL_MAX_BITS|_ISO_VOLATILE',
-			r'_KERNEL_MODE|_MANAGED|_MSC_(?:BUILD|EXTENSIONS|(?:FULL_)?VER)|NDEBUG|_MSC(?:_FULL)_VER|_MSVC_LANG|_WIN(?:32|64)'
+		# standard builtins:
+		r'__cplusplus(?:_cli|_winrt)?',
+		r'__cpp_[a-zA-Z_]+?',
+		r'__has_(?:(?:cpp_)?attribute|include)',
+		r'assert',
+		r'offsetof',
+		# poxy:
+		r'POXY_[a-zA-Z_]+',
+		# msvc:
+		r'__(?:' + r'FILE|LINE|DATE|TIME|COUNTER'
+		+ r'|STDC(?:_HOSTED|_NO_ATOMICS|_NO_COMPLEX|_NO_THREADS|_NO_VLA|_VERSION|_THREADS)?'
+		+ r'|STDCPP_DEFAULT_NEW_ALIGNMENT|INTELLISENSE|ATOM'
+		+ r'|AVX(?:2|512(?:BW|CD|DQ|F|VL)?)?|FUNC(?:TION|DNAME|SIG)' + r')__',
+		r'_M_(?:AMD64|ARM(?:_ARMV7VE|_FP|64)?|X64|CEE(?:_PURE|_SAFE)?|FP_(?:EXCEPT|FAST|PRECISE|STRICT)|IX86(?:_FP)?)',
+		r'__CLR_VER|_CHAR_UNSIGNED|_CONTROL_FLOW_GUARD|_CPP(?:RTTI|UNWIND)|_DEBUG|_INTEGRAL_MAX_BITS|_ISO_VOLATILE',
+		r'_KERNEL_MODE|_MANAGED|_MSC_(?:BUILD|EXTENSIONS|(?:FULL_)?VER)|NDEBUG|_MSC(?:_FULL)_VER|_MSVC_LANG|_WIN(?:32|64)'
 	}
 	cb_namespaces = {
-		r'std',
-		r'std::chrono',
-		r'std::execution',
-		r'std::filesystem',
-		r'std::(?:literals::)?(?:chrono|complex|string|string_view)_literals',
-		r'std::literals',
-		r'std::numbers',
-		r'std::ranges',
-		r'std::this_thread'
+		r'std', r'std::chrono', r'std::execution', r'std::filesystem',
+		r'std::(?:literals::)?(?:chrono|complex|string|string_view)_literals', r'std::literals', r'std::numbers',
+		r'std::ranges', r'std::this_thread'
 	}
 	cb_numeric_literals = set()
-	cb_string_literals = {
-		r'sv?'
-	}
+	cb_string_literals = {r'sv?'}
 	cb_types = {
 		#------ built-in types
 		r'__(?:float|fp)[0-9]{1,3}',
@@ -651,14 +834,17 @@ class Defaults(object):
 
 
 
-def extract_kvps(config, table,
-		key_getter=str,
-		value_getter=str,
-		strip_keys=True,
-		strip_values=True,
-		allow_blank_keys=False,
-		allow_blank_values=False,
-		value_type=None):
+def extract_kvps(
+	config,
+	table,
+	key_getter=str,
+	value_getter=str,
+	strip_keys=True,
+	strip_values=True,
+	allow_blank_keys=False,
+	allow_blank_values=False,
+	value_type=None
+):
 
 	assert config is not None
 	assert isinstance(config, dict)
@@ -706,9 +892,9 @@ def assert_no_unexpected_keys(raw, validated, prefix=''):
 
 class Warnings(object):
 	schema = {
-		Optional(r'enabled') 			: bool,
-		Optional(r'treat_as_errors')	: bool,
-		Optional(r'undocumented')		: bool,
+		Optional(r'enabled'): bool,
+		Optional(r'treat_as_errors'): bool,
+		Optional(r'undocumented'): bool,
 	}
 
 	def __init__(self, config):
@@ -734,12 +920,12 @@ class Warnings(object):
 
 class CodeBlocks(object):
 	schema = {
-		Optional(r'types') 				: ValueOrArray(str, name=r'types'),
-		Optional(r'macros') 			: ValueOrArray(str, name=r'macros'),
-		Optional(r'string_literals')	: ValueOrArray(str, name=r'string_literals'),
-		Optional(r'numeric_literals')	: ValueOrArray(str, name=r'numeric_literals'),
-		Optional(r'enums')				: ValueOrArray(str, name=r'enums'),
-		Optional(r'namespaces')			: ValueOrArray(str, name=r'namespaces'),
+		Optional(r'types'): ValueOrArray(str, name=r'types'),
+		Optional(r'macros'): ValueOrArray(str, name=r'macros'),
+		Optional(r'string_literals'): ValueOrArray(str, name=r'string_literals'),
+		Optional(r'numeric_literals'): ValueOrArray(str, name=r'numeric_literals'),
+		Optional(r'enums'): ValueOrArray(str, name=r'enums'),
+		Optional(r'namespaces'): ValueOrArray(str, name=r'namespaces'),
 	}
 
 	def __init__(self, config, macros):
@@ -801,9 +987,9 @@ class CodeBlocks(object):
 
 class Inputs(object):
 	schema = {
-		Optional(r'paths')				: ValueOrArray(str, name=r'paths'),
-		Optional(r'recursive_paths')	: ValueOrArray(str, name=r'recursive_paths'),
-		Optional(r'ignore')				: ValueOrArray(str, name=r'ignore'),
+		Optional(r'paths'): ValueOrArray(str, name=r'paths'),
+		Optional(r'recursive_paths'): ValueOrArray(str, name=r'recursive_paths'),
+		Optional(r'ignore'): ValueOrArray(str, name=r'ignore'),
 	}
 
 	def __init__(self, config, key, input_dir, additional_inputs=None, additional_recursive_inputs=None):
@@ -836,7 +1022,9 @@ class Inputs(object):
 					raise Error(rf"{key}: '{path}' was not a directory or file")
 				all_paths.add(path)
 				if recursive and path.is_dir():
-					for subdir in enumerate_directories(path, filter=lambda p: not p.name.startswith(r'.'), recursive=True):
+					for subdir in enumerate_directories(
+						path, filter=lambda p: not p.name.startswith(r'.'), recursive=True
+					):
 						all_paths.add(subdir)
 
 		ignores = set()
@@ -853,9 +1041,7 @@ class Inputs(object):
 
 
 class FilteredInputs(Inputs):
-	schema = combine_dicts(Inputs.schema, {
-		Optional(r'patterns')			: ValueOrArray(str, name=r'patterns')
-	})
+	schema = combine_dicts(Inputs.schema, {Optional(r'patterns'): ValueOrArray(str, name=r'patterns')})
 
 	def __init__(self, config, key, input_dir, additional_inputs=None, additional_recursive_inputs=None):
 		super().__init__(
@@ -881,13 +1067,23 @@ class FilteredInputs(Inputs):
 
 
 class Sources(FilteredInputs):
-	schema = combine_dicts(FilteredInputs.schema, {
-		Optional(r'strip_paths')		: ValueOrArray(str, name=r'strip_paths'),
-		Optional(r'strip_includes')		: ValueOrArray(str, name=r'strip_includes'),
-		Optional(r'extract_all')		: bool
-	})
+	schema = combine_dicts(
+		FilteredInputs.schema, {
+		Optional(r'strip_paths'): ValueOrArray(str, name=r'strip_paths'),
+		Optional(r'strip_includes'): ValueOrArray(str, name=r'strip_includes'),
+		Optional(r'extract_all'): bool
+		}
+	)
 
-	def __init__(self, config, key, input_dir, additional_inputs=None, additional_recursive_inputs=None, additional_strip_paths=None):
+	def __init__(
+		self,
+		config,
+		key,
+		input_dir,
+		additional_inputs=None,
+		additional_recursive_inputs=None,
+		additional_strip_paths=None
+	):
 		super().__init__(
 			config,
 			key,
@@ -907,8 +1103,8 @@ class Sources(FilteredInputs):
 		config = config[key]
 
 		strip_path_sources = (
-			 coerce_collection(config[r'strip_paths']) if r'strip_paths' in config else None,
-			 coerce_collection(additional_strip_paths) if additional_strip_paths is not None else None
+			coerce_collection(config[r'strip_paths']) if r'strip_paths' in config else None,
+			coerce_collection(additional_strip_paths) if additional_strip_paths is not None else None
 		)
 		for sps in strip_path_sources:
 			if sps is None:
@@ -925,7 +1121,7 @@ class Sources(FilteredInputs):
 				path = s.strip().replace('\\', '/')
 				if path:
 					self.strip_includes.append(path)
-			self.strip_includes.sort(key = lambda v: len(v), reverse=True)
+			self.strip_includes.sort(key=lambda v: len(v), reverse=True)
 
 		if r'extract_all' in config:
 			self.extract_all = bool(config['extract_all'])
@@ -936,7 +1132,8 @@ class Sources(FilteredInputs):
 # project context
 #=======================================================================================================================
 
-__all__.append(r'Context')
+
+
 class Context(object):
 	"""
 	The context object passed around during one invocation.
@@ -947,41 +1144,58 @@ class Context(object):
 	__data_files_lock = threading.Lock()
 	__config_schema = Schema(
 		{
-			Optional(r'aliases')				: {str : str},
-			Optional(r'author')					: str,
-			Optional(r'autolinks')				: {str : str},
-			Optional(r'badges')					: {str : FixedArrayOf(str, 2, name=r'badges') },
-			Optional(r'changelog')				: Or(str, bool),
-			Optional(r'code_blocks')			: CodeBlocks.schema,
-			Optional(r'cpp')					: Or(str, int, error=r'cpp: expected string or integer'),
-			Optional(r'defines')				: {str : Or(str, int, bool)}, # legacy
-			Optional(r'description')			: str,
-			Optional(r'examples')				: FilteredInputs.schema,
-			Optional(r'extra_files')			: ValueOrArray(str, name=r'extra_files'),
-			Optional(r'favicon')				: str,
-			Optional(r'generate_tagfile')		: bool,
-			Optional(r'github')					: str,
-			Optional(r'html_header')			: str,
-			Optional(r'images')					: Inputs.schema,
-			Optional(r'implementation_headers') : {str : ValueOrArray(str)},
-			Optional(r'inline_namespaces')		: ValueOrArray(str, name=r'inline_namespaces'),
-			Optional(r'internal_docs')			: bool,
-			Optional(r'jquery')					: bool,
-			Optional(r'license')				: ValueOrArray(str, length=2, name=r'license'),
-			Optional(r'logo')					: str,
-			Optional(r'macros')					: {str : Or(str, int, bool)},
-			Optional(r'meta_tags')				: {str : Or(str, int)},
-			Optional(r'name')					: str,
-			Optional(r'navbar')					: ValueOrArray(str, name=r'navbar'),
-			Optional(r'private_repo')			: bool,
-			Optional(r'robots')					: bool,
-			Optional(r'scripts')				: ValueOrArray(str, name=r'scripts'),
-			Optional(r'show_includes')			: bool,
-			Optional(r'sources')				: Sources.schema,
-			Optional(r'stylesheets')			: ValueOrArray(str, name=r'stylesheets'),
-			Optional(r'tagfiles')				: {str : str},
-			Optional(r'theme')					: Or(r'dark', r'light', r'custom'),
-			Optional(r'warnings')				: Warnings.schema,
+		Optional(r'aliases'): {
+		str: str
+			},
+		Optional(r'author'): str,
+		Optional(r'autolinks'): {
+		str: str
+			},
+		Optional(r'badges'): {
+		str: FixedArrayOf(str, 2, name=r'badges')
+			},
+		Optional(r'changelog'): Or(str, bool),
+		Optional(r'code_blocks'): CodeBlocks.schema,
+		Optional(r'cpp'): Or(str, int, error=r'cpp: expected string or integer'),
+		Optional(r'defines'): {
+		str: Or(str, int, bool)
+			},  # legacy
+		Optional(r'description'): str,
+		Optional(r'examples'): FilteredInputs.schema,
+		Optional(r'extra_files'): ValueOrArray(str, name=r'extra_files'),
+		Optional(r'favicon'): str,
+		Optional(r'generate_tagfile'): bool,
+		Optional(r'github'): str,
+		Optional(r'gitlab'): str,
+		Optional(r'html_header'): str,
+		Optional(r'images'): Inputs.schema,
+		Optional(r'implementation_headers'): {
+		str: ValueOrArray(str)
+			},
+		Optional(r'inline_namespaces'): ValueOrArray(str, name=r'inline_namespaces'),
+		Optional(r'internal_docs'): bool,
+		Optional(r'jquery'): bool,
+		Optional(r'license'): ValueOrArray(str, length=2, name=r'license'),
+		Optional(r'logo'): str,
+		Optional(r'macros'): {
+		str: Or(str, int, bool)
+			},
+		Optional(r'meta_tags'): {
+		str: Or(str, int)
+			},
+		Optional(r'name'): str,
+		Optional(r'navbar'): ValueOrArray(str, name=r'navbar'),
+		Optional(r'private_repo'): bool,
+		Optional(r'robots'): bool,
+		Optional(r'scripts'): ValueOrArray(str, name=r'scripts'),
+		Optional(r'show_includes'): bool,
+		Optional(r'sources'): Sources.schema,
+		Optional(r'stylesheets'): ValueOrArray(str, name=r'stylesheets'),
+		Optional(r'tagfiles'): {
+		str: str
+			},
+		Optional(r'theme'): Or(r'dark', r'light', r'custom'),
+		Optional(r'warnings'): Warnings.schema,
 		},
 		ignore_extra_keys=True
 	)
@@ -1064,7 +1278,11 @@ class Context(object):
 			context.data_dir.mkdir(exist_ok=True)
 			if cls.__emoji is None:
 				file_path = coerce_path(context.data_dir, 'emoji.json')
-				cls.__emoji = json.loads(read_all_text_from_file(file_path, fallback_url='https://api.github.com/emojis', logger=context.verbose_logger))
+				cls.__emoji = json.loads(
+					read_all_text_from_file(
+					file_path, fallback_url='https://api.github.com/emojis', logger=context.verbose_logger
+					)
+				)
 				if '__processed' not in cls.__emoji:
 					emoji = {}
 					cls.__emoji_codepoints = set()
@@ -1072,14 +1290,10 @@ class Context(object):
 						m2 = cls.__emoji_uri.fullmatch(uri)
 						if m2:
 							cp = int(m2[1], 16)
-							emoji[key] = [ cp, uri ]
+							emoji[key] = [cp, uri]
 							cls.__emoji_codepoints.add(cp)
-					aliases = [
-						('sundae',			'ice_cream'),
-						('info',			'information_source'),
-						('man_in_tuxedo',	'person_in_tuxedo'),
-						('bride_with_veil',	'person_with_veil')
-					]
+					aliases = [('sundae', 'ice_cream'), ('info', 'information_source'),
+						('man_in_tuxedo', 'person_in_tuxedo'), ('bride_with_veil', 'person_with_veil')]
 					for alias, key in aliases:
 						emoji[alias] = emoji[key]
 					emoji['__codepoints'] = [cp for cp in cls.__emoji_codepoints]
@@ -1094,7 +1308,10 @@ class Context(object):
 		finally:
 			cls.__data_files_lock.release()
 
-	def __init__(self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, doxygen_path, logger, dry_run, xml_only, html_include, html_exclude, treat_warnings_as_errors, theme):
+	def __init__(
+		self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, doxygen_path, logger, dry_run, xml_only,
+		html_include, html_exclude, treat_warnings_as_errors, theme
+	):
 
 		self.logger = logger
 		self.__verbose = bool(verbose)
@@ -1120,7 +1337,9 @@ class Context(object):
 
 		self.fixers = None
 		self.tagfile_path = None
-		self.warnings = Warnings(None) # overwritten after reading config; this is for correct 'treat_as_errors' behaviour if we add any pre-config warnings
+		self.warnings = Warnings(
+			None
+		)  # overwritten after reading config; this is for correct 'treat_as_errors' behaviour if we add any pre-config warnings
 		if treat_warnings_as_errors:
 			self.warnings.treat_as_errors = True
 
@@ -1146,7 +1365,9 @@ class Context(object):
 			self.output_dir = coerce_path(output_dir).resolve()
 			self.verbose_value(r'Context.output_dir', self.output_dir)
 			assert self.output_dir.is_absolute()
-			self.case_sensitive_paths = not (Path(str(self.data_dir).upper()).exists() and Path(str(self.data_dir).lower()).exists())
+			self.case_sensitive_paths = not (
+				Path(str(self.data_dir).upper()).exists() and Path(str(self.data_dir).lower()).exists()
+			)
 			self.verbose_value(r'Context.case_sensitive_paths', self.case_sensitive_paths)
 
 			# config + doxyfile
@@ -1235,7 +1456,7 @@ class Context(object):
 			assert self.temp_dir.is_absolute()
 			assert self.temp_pages_dir.is_absolute()
 
-			# doxygen 
+			# doxygen
 			if doxygen_path is not None:
 				doxygen_path = coerce_path(doxygen_path).resolve()
 				if not doxygen_path.exists() and Path(str(doxygen_path) + r'.exe').exists():
@@ -1246,11 +1467,13 @@ class Context(object):
 					doxygen_path = coerce_path(doxygen_path)
 				if doxygen_path is None or not doxygen_path.exists():
 					try:
-						doxygen_path = Path('C:\\Program Files\\doxygen\\bin\\doxygen.exe') # todo: get 'program files' path programatically
-					except: # path will be invalid on non-windows
+						doxygen_path = Path(
+							'C:\\Program Files\\doxygen\\bin\\doxygen.exe'
+						)  # todo: get 'program files' path programatically
+					except:  # path will be invalid on non-windows
 						pass
 				if doxygen_path is None or not doxygen_path.exists():
-					raise Error(rf'Could not find Doxygen on system path')				
+					raise Error(rf'Could not find Doxygen on system path')
 			assert doxygen_path is not None
 			doxygen_path = coerce_path(doxygen_path).resolve()
 			if doxygen_path.is_dir():
@@ -1315,10 +1538,12 @@ class Context(object):
 			config = dict()
 			if self.config_path is not None:
 				assert_existing_file(self.config_path)
-				config = pytomlpp.loads(read_all_text_from_file(self.config_path, logger=self.verbose_logger if dry_run else self.logger))
+				config = pytomlpp.loads(
+					read_all_text_from_file(self.config_path, logger=self.verbose_logger if dry_run else self.logger)
+				)
 			config = assert_no_unexpected_keys(config, self.__config_schema.validate(config))
 
-			self.warnings = Warnings(config) # printed in run.py post-doxyfile
+			self.warnings = Warnings(config)  # printed in run.py post-doxyfile
 			if treat_warnings_as_errors:
 				self.warnings.treat_as_errors = True
 
@@ -1347,11 +1572,11 @@ class Context(object):
 				spdx = config['license'][0].strip(" \t-._:")
 				uri = config['license'][1].strip() if len(config['license']) == 2 else ''
 				if spdx:
-					self.license = { r'spdx' : spdx, r'uri' : uri }
+					self.license = {r'spdx': spdx, r'uri': uri}
 				if self.license:
-					badge = re.sub(r'(?:[.]0+)+$', '', spdx.lower()) # trailing .0, .0.0 etc
-					badge = badge.strip(' \t-._:') # leading + trailing junk
-					badge = re.sub(r'[:;!@#$%^&*\\|/,.<>?`~\[\]{}()_+\-= \t]+', '_', badge) # internal junk
+					badge = re.sub(r'(?:[.]0+)+$', '', spdx.lower())  # trailing .0, .0.0 etc
+					badge = badge.strip(' \t-._:')  # leading + trailing junk
+					badge = re.sub(r'[:;!@#$%^&*\\|/,.<>?`~\[\]{}()_+\-= \t]+', '_', badge)  # internal junk
 					badge = Path(self.data_dir, rf'poxy-badge-license-{badge}.svg')
 					self.verbose(rf"Finding badge SVG for license '{spdx}'...")
 					if badge.exists():
@@ -1365,17 +1590,19 @@ class Context(object):
 			if 'private_repo' in config:
 				self.private_repo = bool(config['private_repo'])
 
-			# project github repo
-			self.github = ''
-			if r'github' in config:
-				self.github = config['github'].strip().replace('\\', '/').strip('/')
-			self.verbose_value(r'Context.github', self.github)
-			if self.github and not self.private_repo:
-				badges.append((
-					r'Releases',
-					rf'https://img.shields.io/github/v/release/{self.github}?style=flat-square',
-					rf'https://github.com/{self.github}/releases'
-				))
+			# project repository (github, gitlab, etc)
+			self.repo = None
+			for TYPE in repos.TYPES:
+				if TYPE.KEY not in config:
+					continue
+				self.verbose_value(rf'Context.{TYPE.KEY}', config[TYPE.KEY])
+				try:
+					self.repo = TYPE(config[TYPE.KEY])
+				except Error as err:
+					raise Error(rf'{TYPE.KEY}: {err}')
+				self.verbose_value(rf'Context.repo', self.repo)
+				if not self.private_repo and self.repo.release_badge_uri:
+					badges.append((r'Releases', self.repo.release_badge_uri, self.repo.releases_uri))
 
 			# project C++ version
 			# defaults to 'current' cpp year version based on (current year - 2)
@@ -1399,7 +1626,9 @@ class Context(object):
 						raise Error(rf"cpp: '{config['cpp']}' is not a valid cpp standard version")
 			self.verbose_value(r'Context.cpp', self.cpp)
 			badge = rf'poxy-badge-c++{str(self.cpp)[2:]}.svg'
-			badges.append((rf'C++{str(self.cpp)[2:]}', rf'poxy/{badge}', r'https://en.cppreference.com/w/cpp/compiler_support'))
+			badges.append(
+				(rf'C++{str(self.cpp)[2:]}', rf'poxy/{badge}', r'https://en.cppreference.com/w/cpp/compiler_support')
+			)
 			add_internal_asset(badge)
 
 			# project logo
@@ -1472,8 +1701,10 @@ class Context(object):
 					f = self.blog_files[i]
 					m = expr.fullmatch(f.stem)
 					if not m:
-						raise Error(rf"blog post filename '{f.name}' was not formatted correctly; "
-						+ r"it should be of the form 'YYYY-MM-DD_this_is_a_post.md'.")
+						raise Error(
+							rf"blog post filename '{f.name}' was not formatted correctly; "
+							+ r"it should be of the form 'YYYY-MM-DD_this_is_a_post.md'."
+						)
 					try:
 						d = datetime.datetime.strptime(sep.sub('-', m[1]), r'%Y-%m-%d').date()
 						self.blog_files[i] = (f, d)
@@ -1486,26 +1717,23 @@ class Context(object):
 			if r'changelog' in config:
 				if isinstance(config['changelog'], bool):
 					if config['changelog']:
-						candidate_names = (
-							r'CHANGELOG.md',
-							r'CHANGELOG.txt',
-							r'CHANGELOG',
-							r'HISTORY.md',
-							r'HISTORY.txt',
-							r'HISTORY'
-						)
+						candidate_names = (r'CHANGELOG', r'HISTORY', r'changelog', r'history')
+						candidate_extensions = (r'.md', r'.txt', r'')
 						candidate_dir = self.input_dir
 						while True:
-							for name in candidate_names:
-								candidate_file = Path(candidate_dir, name)
-								if candidate_file.exists() and candidate_file.is_file() and candidate_file.stat().st_size <= 1024 * 1024 * 2:
+							for name, ext in itertools.product(candidate_names, candidate_extensions):
+								candidate_file = Path(candidate_dir, rf'{name}{ext}')
+								if candidate_file.exists() and candidate_file.is_file(
+								) and candidate_file.stat().st_size <= 1024 * 1024 * 2:
 									self.changelog = candidate_file
 									break
 							if self.changelog or candidate_dir.parent == candidate_dir:
 								break
 							candidate_dir = candidate_dir.parent
 						if not self.changelog and not self.dry_run:
-							self.warning(rf'changelog: Option was set to true but no file with a known changelog file name could be found! Consider using an explicit path.')
+							self.warning(
+								rf'changelog: Option was set to true but no file with a known changelog file name could be found! Consider using an explicit path.'
+							)
 
 				else:
 					self.changelog = coerce_path(config['changelog'])
@@ -1524,13 +1752,10 @@ class Context(object):
 				r'sources',
 				self.input_dir,
 				additional_inputs=(
-					self.temp_pages_dir if not self.dry_run else None,
-					self.changelog if self.changelog and not self.dry_run else None,
-					*[f for f,d in self.blog_files]
+				self.temp_pages_dir if not self.dry_run else None,
+				self.changelog if self.changelog and not self.dry_run else None, *[f for f, d in self.blog_files]
 				),
-				additional_strip_paths=(
-					self.temp_pages_dir if not self.dry_run else None,
-				)
+				additional_strip_paths=(self.temp_pages_dir if not self.dry_run else None, )
 			)
 			self.verbose_object(r'Context.sources', self.sources)
 
@@ -1539,7 +1764,7 @@ class Context(object):
 				config,
 				r'images',
 				self.input_dir,
-				additional_recursive_inputs=[ self.blog_dir if self.blog_files else None ]
+				additional_recursive_inputs=[self.blog_dir if self.blog_files else None]
 			)
 			self.verbose_object(r'Context.images', self.images)
 
@@ -1548,21 +1773,22 @@ class Context(object):
 				config,
 				r'examples',
 				self.input_dir,
-				additional_recursive_inputs=[ self.blog_dir if self.blog_files else None ]
+				additional_recursive_inputs=[self.blog_dir if self.blog_files else None]
 			)
 			self.verbose_object(r'Context.examples', self.examples)
 
 			# tagfiles (TAGFILES)
-			self.tagfiles = {
-				self.cppref_tagfile : (self.cppref_tagfile, r'http://en.cppreference.com/w/')
-			}
+			self.tagfiles = {self.cppref_tagfile: (self.cppref_tagfile, r'http://en.cppreference.com/w/')}
 			self.unresolved_tagfiles = False
-			for k,v in extract_kvps(config, 'tagfiles').items():
+			for k, v in extract_kvps(config, 'tagfiles').items():
 				source = str(k)
 				dest = str(v)
 				if source and dest:
 					if is_uri(source):
-						file = Path(self.global_temp_dir, rf'tagfile_{sha1(source)}_{self.now.year}_{self.now.isocalendar().week}.xml')
+						file = Path(
+							self.global_temp_dir,
+							rf'tagfile_{sha1(source)}_{self.now.year}_{self.now.isocalendar().week}.xml'
+						)
 						self.tagfiles[source] = (file, dest)
 						self.unresolved_tagfiles = True
 					else:
@@ -1590,11 +1816,24 @@ class Context(object):
 					self.navbar[i] = 'annotated'
 				elif self.navbar[i] == 'groups':
 					self.navbar[i] = 'modules'
-			# github button
-			if self.github and r'github' not in self.navbar:
-				self.navbar.append(r'github')
-			if not self.github and r'github' in self.navbar:
-				self.navbar.remove(r'github')
+			# repo buttons
+			if not self.repo:
+				# remove all repo buttons if there's no repo
+				for KEY in (r'repo', r'repository', *repos.KEYS):
+					if KEY in self.navbar:
+						self.navbar.remove(KEY)
+			else:
+				# remove repo buttons matching an uninstantiated repo type
+				for TYPE in repos.TYPES:
+					if not isinstance(self.repo, TYPE) and TYPE.KEY in self.navbar:
+						self.navbar.remove(TYPE.KEY)
+				# sub all remaining repo key aliases for simply 'repo'
+				for i in range(len(self.navbar)):
+					if self.navbar[i] in (r'repository', *repos.KEYS):
+						self.navbar[i] = r'repo'
+				# add a repo button to the end if none was present
+				if r'repo' not in self.navbar:
+					self.navbar.append(r'repo')
 			# theme button
 			if self.theme != r'custom' and r'theme' not in self.navbar:
 				self.navbar.append(r'theme')
@@ -1650,7 +1889,7 @@ class Context(object):
 			self.verbose_value(r'Context.internal_docs', self.internal_docs)
 
 			# generate_tagfile (GENERATE_TAGFILE)
-			self.generate_tagfile = None # not (self.private_repo or self.internal_docs)
+			self.generate_tagfile = None  # not (self.private_repo or self.internal_docs)
 			if 'generate_tagfile' in config:
 				self.generate_tagfile = bool(config['generate_tagfile'])
 			self.verbose_value(r'Context.generate_tagfile', self.generate_tagfile)
@@ -1674,10 +1913,12 @@ class Context(object):
 			# macros (PREDEFINED)
 			self.macros = copy.deepcopy(Defaults.macros)
 			for s in (r'defines', r'macros'):
-				for k, v in extract_kvps(config, s,
-						value_getter=lambda v: (r'true' if v else r'false') if isinstance(v, bool) else str(v),
-						allow_blank_values=True,
-					).items():
+				for k, v in extract_kvps(
+					config,
+					s,
+					value_getter=lambda v: (r'true' if v else r'false') if isinstance(v, bool) else str(v),
+					allow_blank_values=True,
+				).items():
 					self.macros[k] = v
 			non_cpp_def_macros = copy.deepcopy(self.macros)
 			cpp_defs = dict()
@@ -1689,7 +1930,7 @@ class Context(object):
 				for k, v in Defaults.cpp_builtin_macros[ver].items():
 					cpp_defs[k] = v
 			cpp_defs = [(k, v) for k, v in cpp_defs.items()]
-			cpp_defs.sort(key=lambda kvp: k[0])
+			cpp_defs.sort(key=lambda kvp: kvp[0])
 			for k, v in cpp_defs:
 				self.macros[k] = v
 			self.verbose_value(r'Context.macros', self.macros)
@@ -1701,12 +1942,10 @@ class Context(object):
 					uri = u.strip()
 					if pattern.strip() and uri:
 						self.autolinks.append((pattern, uri))
-			self.autolinks.sort(key = lambda v: (
-				self.__namespace_qualified.fullmatch(v[0]) is None,
-				v[0].find(r'std::') == -1,
-				-len(v[0]),
-				v[0]
-			))
+			self.autolinks.sort(
+				key=lambda v:
+				(self.__namespace_qualified.fullmatch(v[0]) is None, v[0].find(r'std::') == -1, -len(v[0]), v[0])
+			)
 			self.autolinks = tuple(self.autolinks)
 			self.verbose_value(r'Context.autolinks', self.autolinks)
 
@@ -1731,7 +1970,7 @@ class Context(object):
 					anchor_uri = v[1].strip()
 					if text and image_uri and anchor_uri:
 						user_badges.append((text, image_uri, anchor_uri))
-			user_badges.sort(key= lambda b: b[0])
+			user_badges.sort(key=lambda b: b[0])
 			self.badges = tuple(badges + user_badges)
 			self.verbose_value(r'Context.badges', self.badges)
 
@@ -1762,7 +2001,7 @@ class Context(object):
 			self.verbose_value(r'Context.extra_files', self.extra_files)
 
 			# code_blocks
-			self.code_blocks = CodeBlocks(config, non_cpp_def_macros) # printed in run.py post-xml
+			self.code_blocks = CodeBlocks(config, non_cpp_def_macros)  # printed in run.py post-xml
 
 			# html_header (HTML_HEADER in m.css)
 			self.html_header = ''

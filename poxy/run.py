@@ -3,7 +3,6 @@
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
-
 """
 The 'actually do the thing' module.
 """
@@ -18,129 +17,126 @@ from lxml import etree
 from io import BytesIO, StringIO
 from .utils import *
 from . import project
-from . import doxyfile
+from . import doxygen
 from . import soup
 from . import fixers
-
-__all__ = []
-
 
 #=======================================================================================================================
 # PRE/POST PROCESSORS
 #=======================================================================================================================
 
-_doxygen_overrides  = (
-		(r'ALLEXTERNALS',			False),
-		(r'ALLOW_UNICODE_NAMES',	False),
-		(r'ALWAYS_DETAILED_SEC',	False),
-		(r'AUTOLINK_SUPPORT',		True),
-		(r'BUILTIN_STL_SUPPORT',	False),
-		(r'CASE_SENSE_NAMES',		False),
-		(r'CLASS_DIAGRAMS',			False),
-		(r'CPP_CLI_SUPPORT',		False),
-		(r'CREATE_SUBDIRS',			False),
-		(r'DISTRIBUTE_GROUP_DOC',	False),
-		(r'DOXYFILE_ENCODING',		r'UTF-8'),
-		(r'DOT_FONTNAME',			r'Source Sans Pro'),
-		(r'DOT_FONTSIZE',			16),
-		(r'ENABLE_PREPROCESSING',	True),
-		(r'EXAMPLE_RECURSIVE',		False),
-		(r'EXCLUDE_SYMLINKS', 		False),
-		(r'EXPAND_ONLY_PREDEF', 	False),
-		(r'EXTERNAL_GROUPS', 		False),
-		(r'EXTERNAL_PAGES', 		False),
-		(r'EXTRACT_ANON_NSPACES',	False),
-		(r'EXTRACT_LOCAL_CLASSES',	False),
-		(r'EXTRACT_LOCAL_METHODS',	False),
-		(r'EXTRACT_PACKAGE',		False),
-		(r'EXTRACT_PRIV_VIRTUAL',	True),
-		(r'EXTRACT_PRIVATE',		False),
-		(r'EXTRACT_STATIC',			False),
-		(r'FILTER_PATTERNS',		None),
-		(r'FILTER_SOURCE_FILES',	False),
-		(r'FILTER_SOURCE_PATTERNS',	None),
-		(r'FORCE_LOCAL_INCLUDES',	False),
-		(r'FULL_PATH_NAMES',		True),
-		(r'GENERATE_AUTOGEN_DEF',	False),
-		(r'GENERATE_BUGLIST',		False),
-		(r'GENERATE_CHI',			False),
-		(r'GENERATE_DEPRECATEDLIST',False),
-		(r'GENERATE_DOCBOOK',		False),
-		(r'GENERATE_DOCSET',		False),
-		(r'GENERATE_ECLIPSEHELP',	False),
-		(r'GENERATE_HTML',			False),
-		(r'GENERATE_HTMLHELP',		False),
-		(r'GENERATE_LATEX',			False),
-		(r'GENERATE_LEGEND',		False),
-		(r'GENERATE_MAN',			False),
-		(r'GENERATE_PERLMOD',		False),
-		(r'GENERATE_QHP',			False),
-		(r'GENERATE_RTF',			False),
-		(r'GENERATE_SQLITE3',		False),
-		(r'GENERATE_TESTLIST',		False),
-		(r'GENERATE_TODOLIST',		False),
-		(r'GENERATE_TREEVIEW',		False),
-		(r'GENERATE_XML',			True),
-		(r'HAVE_DOT',				False),
-		(r'HIDE_COMPOUND_REFERENCE',False),
-		(r'HIDE_FRIEND_COMPOUNDS',	False),
-		(r'HIDE_IN_BODY_DOCS',		False),
-		(r'HIDE_SCOPE_NAMES',		False),
-		(r'HIDE_UNDOC_CLASSES',		True),
-		(r'HIDE_UNDOC_MEMBERS',		True),
-		(r'HTML_EXTRA_STYLESHEET',	None),
-		(r'HTML_FILE_EXTENSION',	r'.html'),
-		(r'HTML_OUTPUT',			r'html'),
-		(r'IDL_PROPERTY_SUPPORT',	False),
-		(r'INHERIT_DOCS', 			True),
-		(r'INLINE_GROUPED_CLASSES',	False),
-		(r'INLINE_INFO',			True),
-		(r'INLINE_INHERITED_MEMB',	True),
-		(r'INLINE_SIMPLE_STRUCTS',	False),
-		(r'INLINE_SOURCES',			False),
-		(r'INPUT_ENCODING',			r'UTF-8'),
-		(r'INPUT_FILTER',			None),
-		(r'LOOKUP_CACHE_SIZE',		2),
-		(r'MACRO_EXPANSION',		True),
-		(r'MARKDOWN_SUPPORT',		True),
-		(r'OPTIMIZE_FOR_FORTRAN',	False),
-		(r'OPTIMIZE_OUTPUT_FOR_C',	False),
-		(r'OPTIMIZE_OUTPUT_JAVA',	False),
-		(r'OPTIMIZE_OUTPUT_SLICE',	False),
-		(r'OPTIMIZE_OUTPUT_VHDL',	False),
-		(r'PYTHON_DOCSTRING', 		True),
-		(r'QUIET',					False),
-		(r'RECURSIVE',				False),
-		(r'REFERENCES_LINK_SOURCE',	False),
-		(r'RESOLVE_UNNAMED_PARAMS',	True),
-		(r'SEARCH_INCLUDES',		False),
-		(r'SEPARATE_MEMBER_PAGES',	False),
-		(r'SHORT_NAMES',			False),
-		(r'SHOW_GROUPED_MEMB_INC',	False),
-		(r'SHOW_USED_FILES',		False),
-		(r'SIP_SUPPORT',			False),
-		(r'SKIP_FUNCTION_MACROS', 	False),
-		(r'SORT_BRIEF_DOCS',		False),
-		(r'SORT_BY_SCOPE_NAME',		False),
-		(r'SORT_GROUP_NAMES',		True),
-		(r'SORT_MEMBER_DOCS',		False),
-		(r'SORT_MEMBERS_CTORS_1ST',	True),
-		(r'SOURCE_BROWSER',			False),
-		(r'STRICT_PROTO_MATCHING',	False),
-		(r'SUBGROUPING', 			True),
-		(r'TAB_SIZE',				4),
-		(r'TOC_INCLUDE_HEADINGS',	3),
-		(r'TYPEDEF_HIDES_STRUCT',	False),
-		(r'UML_LOOK',				False),
-		(r'USE_HTAGS',				False),
-		(r'USE_MDFILE_AS_MAINPAGE',	None),
-		(r'VERBATIM_HEADERS',		False),
-		(r'WARN_IF_DOC_ERROR',		True),
-		(r'WARN_IF_INCOMPLETE_DOC',	True),
-		(r'WARN_LOGFILE',			None),
-		(r'XML_NS_MEMB_FILE_SCOPE',	True),
-		(r'XML_PROGRAMLISTING',		False),
-	)
+_doxygen_overrides = (
+	(r'ALLEXTERNALS', False),
+	(r'ALLOW_UNICODE_NAMES', False),
+	(r'ALWAYS_DETAILED_SEC', False),
+	(r'AUTOLINK_SUPPORT', True),
+	(r'BUILTIN_STL_SUPPORT', False),
+	(r'CASE_SENSE_NAMES', False),
+	(r'CLASS_DIAGRAMS', False),
+	(r'CPP_CLI_SUPPORT', False),
+	(r'CREATE_SUBDIRS', False),
+	(r'DISTRIBUTE_GROUP_DOC', False),
+	(r'DOXYFILE_ENCODING', r'UTF-8'),
+	(r'DOT_FONTNAME', r'Source Sans Pro'),
+	(r'DOT_FONTSIZE', 16),
+	(r'ENABLE_PREPROCESSING', True),
+	(r'EXAMPLE_RECURSIVE', False),
+	(r'EXCLUDE_SYMLINKS', False),
+	(r'EXPAND_ONLY_PREDEF', False),
+	(r'EXTERNAL_GROUPS', False),
+	(r'EXTERNAL_PAGES', False),
+	(r'EXTRACT_ANON_NSPACES', False),
+	(r'EXTRACT_LOCAL_CLASSES', False),
+	(r'EXTRACT_LOCAL_METHODS', False),
+	(r'EXTRACT_PACKAGE', False),
+	(r'EXTRACT_PRIV_VIRTUAL', True),
+	(r'EXTRACT_PRIVATE', False),
+	(r'EXTRACT_STATIC', False),
+	(r'FILTER_PATTERNS', None),
+	(r'FILTER_SOURCE_FILES', False),
+	(r'FILTER_SOURCE_PATTERNS', None),
+	(r'FORCE_LOCAL_INCLUDES', False),
+	(r'FULL_PATH_NAMES', True),
+	(r'GENERATE_AUTOGEN_DEF', False),
+	(r'GENERATE_BUGLIST', False),
+	(r'GENERATE_CHI', False),
+	(r'GENERATE_DEPRECATEDLIST', False),
+	(r'GENERATE_DOCBOOK', False),
+	(r'GENERATE_DOCSET', False),
+	(r'GENERATE_ECLIPSEHELP', False),
+	(r'GENERATE_HTML', False),
+	(r'GENERATE_HTMLHELP', False),
+	(r'GENERATE_LATEX', False),
+	(r'GENERATE_LEGEND', False),
+	(r'GENERATE_MAN', False),
+	(r'GENERATE_PERLMOD', False),
+	(r'GENERATE_QHP', False),
+	(r'GENERATE_RTF', False),
+	(r'GENERATE_SQLITE3', False),
+	(r'GENERATE_TESTLIST', False),
+	(r'GENERATE_TODOLIST', False),
+	(r'GENERATE_TREEVIEW', False),
+	(r'GENERATE_XML', True),
+	(r'HAVE_DOT', False),
+	(r'HIDE_COMPOUND_REFERENCE', False),
+	(r'HIDE_FRIEND_COMPOUNDS', False),
+	(r'HIDE_IN_BODY_DOCS', False),
+	(r'HIDE_SCOPE_NAMES', False),
+	(r'HIDE_UNDOC_CLASSES', True),
+	(r'HIDE_UNDOC_MEMBERS', True),
+	(r'HTML_EXTRA_STYLESHEET', None),
+	(r'HTML_FILE_EXTENSION', r'.html'),
+	(r'HTML_OUTPUT', r'html'),
+	(r'IDL_PROPERTY_SUPPORT', False),
+	(r'INHERIT_DOCS', True),
+	(r'INLINE_GROUPED_CLASSES', False),
+	(r'INLINE_INFO', True),
+	(r'INLINE_INHERITED_MEMB', True),
+	(r'INLINE_SIMPLE_STRUCTS', False),
+	(r'INLINE_SOURCES', False),
+	(r'INPUT_ENCODING', r'UTF-8'),
+	(r'INPUT_FILTER', None),
+	(r'LOOKUP_CACHE_SIZE', 2),
+	(r'MACRO_EXPANSION', True),
+	(r'MARKDOWN_SUPPORT', True),
+	(r'OPTIMIZE_FOR_FORTRAN', False),
+	(r'OPTIMIZE_OUTPUT_FOR_C', False),
+	(r'OPTIMIZE_OUTPUT_JAVA', False),
+	(r'OPTIMIZE_OUTPUT_SLICE', False),
+	(r'OPTIMIZE_OUTPUT_VHDL', False),
+	(r'PYTHON_DOCSTRING', True),
+	(r'QUIET', False),
+	(r'RECURSIVE', False),
+	(r'REFERENCES_LINK_SOURCE', False),
+	(r'RESOLVE_UNNAMED_PARAMS', True),
+	(r'SEARCH_INCLUDES', False),
+	(r'SEPARATE_MEMBER_PAGES', False),
+	(r'SHORT_NAMES', False),
+	(r'SHOW_GROUPED_MEMB_INC', False),
+	(r'SHOW_USED_FILES', False),
+	(r'SIP_SUPPORT', False),
+	(r'SKIP_FUNCTION_MACROS', False),
+	(r'SORT_BRIEF_DOCS', False),
+	(r'SORT_BY_SCOPE_NAME', False),
+	(r'SORT_GROUP_NAMES', True),
+	(r'SORT_MEMBER_DOCS', False),
+	(r'SORT_MEMBERS_CTORS_1ST', True),
+	(r'SOURCE_BROWSER', False),
+	(r'STRICT_PROTO_MATCHING', False),
+	(r'SUBGROUPING', True),
+	(r'TAB_SIZE', 4),
+	(r'TOC_INCLUDE_HEADINGS', 3),
+	(r'TYPEDEF_HIDES_STRUCT', False),
+	(r'UML_LOOK', False),
+	(r'USE_HTAGS', False),
+	(r'USE_MDFILE_AS_MAINPAGE', None),
+	(r'VERBATIM_HEADERS', False),
+	(r'WARN_IF_DOC_ERROR', True),
+	(r'WARN_IF_INCOMPLETE_DOC', True),
+	(r'WARN_LOGFILE', None),
+	(r'XML_NS_MEMB_FILE_SCOPE', True),
+	(r'XML_PROGRAMLISTING', False),
+)
 
 
 
@@ -148,13 +144,13 @@ def preprocess_doxyfile(context):
 	assert context is not None
 	assert isinstance(context, project.Context)
 
-	with doxyfile.Doxyfile(
-			doxyfile_path = context.doxyfile_path,
-			cwd = context.input_dir,
-			logger = context.verbose_logger,
-			doxygen_path = context.doxygen_path,
-			flush_at_exit = not context.dry_run
-		) as df, StringIO(newline='\n') as conf_py:
+	with doxygen.Doxyfile(
+		doxyfile_path=context.doxyfile_path,
+		cwd=context.input_dir,
+		logger=context.verbose_logger,
+		doxygen_path=context.doxygen_path,
+		flush_at_exit=not context.dry_run
+	) as df, StringIO(newline='\n') as conf_py:
 
 		# redirect to temp dir
 		df.path = Path(context.temp_dir, rf'Doxyfile')
@@ -169,14 +165,14 @@ def preprocess_doxyfile(context):
 		# apply regular doxygen settings
 		if 1:
 
-			df.append(r'# doxygen default overrides', end='\n\n') # ----------------------------------------
+			df.append(r'# doxygen default overrides', end='\n\n')  # ----------------------------------------
 
 			global _doxygen_overrides
 			for k, v in _doxygen_overrides:
 				df.set_value(k, v)
 
 			df.append()
-			df.append(r'# general config', end='\n\n') # ---------------------------------------------------
+			df.append(r'# general config', end='\n\n')  # ---------------------------------------------------
 
 			df.set_value(r'OUTPUT_DIRECTORY', context.output_dir)
 			df.set_value(r'XML_OUTPUT', context.xml_dir)
@@ -207,13 +203,18 @@ def preprocess_doxyfile(context):
 				context.internal_docs = df.get_boolean(r'INTERNAL_DOCS', fallback=False)
 				context.verbose_value(r'Context.internal_docs', context.internal_docs)
 			df.set_value(r'INTERNAL_DOCS', context.internal_docs)
-			df.add_value(r'ENABLED_SECTIONS', (r'private', r'internal') if context.internal_docs else (r'public', r'external'))
+			df.add_value(
+				r'ENABLED_SECTIONS', (r'private', r'internal') if context.internal_docs else (r'public', r'external')
+			)
 
 			if context.generate_tagfile is None:
 				context.generate_tagfile = not (context.private_repo or context.internal_docs)
 				context.verbose_value(r'Context.generate_tagfile', context.generate_tagfile)
 			if context.generate_tagfile:
-				context.tagfile_path = Path(context.output_dir, rf'{context.name.replace(" ","_")}.tagfile.xml' if context.name else r'tagfile.xml')
+				context.tagfile_path = Path(
+					context.output_dir,
+					rf'{context.name.replace(" ","_")}.tagfile.xml' if context.name else r'tagfile.xml'
+				)
 				df.set_value(r'GENERATE_TAGFILE', context.tagfile_path.name)
 			else:
 				df.set_value(r'GENERATE_TAGFILE', None)
@@ -235,7 +236,7 @@ def preprocess_doxyfile(context):
 				df.set_value(r'USE_MDFILE_AS_MAINPAGE', home_md_temp_path)
 
 			df.append()
-			df.append(r'# context.warnings', end='\n\n') # ---------------------------------------------------
+			df.append(r'# context.warnings', end='\n\n')  # ---------------------------------------------------
 
 			if context.warnings.enabled is None:
 				context.warnings.enabled = df.get_boolean(r'WARNINGS', fallback=True)
@@ -245,7 +246,7 @@ def preprocess_doxyfile(context):
 			if context.warnings.treat_as_errors is None:
 				context.warnings.treat_as_errors = df.get_boolean(r'WARN_AS_ERROR', fallback=False)
 				context.verbose_value(r'Context.warnings.treat_as_errors', context.warnings.treat_as_errors)
-			df.set_value(r'WARN_AS_ERROR', False) # we do this ourself
+			df.set_value(r'WARN_AS_ERROR', False)  # we do this ourself
 
 			if context.warnings.undocumented is None:
 				context.warnings.undocumented = df.get_boolean(r'WARN_IF_UNDOCUMENTED', fallback=True)
@@ -253,7 +254,7 @@ def preprocess_doxyfile(context):
 			df.set_value(r'WARN_IF_UNDOCUMENTED', context.warnings.undocumented)
 
 			df.append()
-			df.append(r'# context.sources', end='\n\n') # ----------------------------------------------------
+			df.append(r'# context.sources', end='\n\n')  # ----------------------------------------------------
 
 			df.add_value(r'INPUT', context.sources.paths)
 			df.set_value(r'FILE_PATTERNS', context.sources.patterns)
@@ -266,30 +267,30 @@ def preprocess_doxyfile(context):
 			df.set_value(r'EXTRACT_ALL', context.sources.extract_all)
 
 			df.append()
-			df.append(r'# context.examples', end='\n\n') # ----------------------------------------------------
+			df.append(r'# context.examples', end='\n\n')  # ----------------------------------------------------
 
 			df.add_value(r'EXAMPLE_PATH', context.examples.paths)
 			df.set_value(r'EXAMPLE_PATTERNS', context.examples.patterns)
 
-			if context.images.paths: # ----------------------------------------------------
+			if context.images.paths:  # ----------------------------------------------------
 				df.append()
 				df.append(r'# context.images', end='\n\n')
 				df.add_value(r'IMAGE_PATH', context.images.paths)
 
-			if context.tagfiles: # ----------------------------------------------------
+			if context.tagfiles:  # ----------------------------------------------------
 				df.append()
 				df.append(r'# context.tagfiles', end='\n\n')
-				df.add_value(r'TAGFILES', [rf'{file}={dest}' for _,(file, dest) in context.tagfiles.items()])
+				df.add_value(r'TAGFILES', [rf'{file}={dest}' for _, (file, dest) in context.tagfiles.items()])
 
-			if context.aliases: # ----------------------------------------------------
+			if context.aliases:  # ----------------------------------------------------
 				df.append()
 				df.append(r'# context.aliases', end='\n\n')
-				df.add_value(r'ALIASES', [rf'{k}={v}' for k,v in context.aliases.items()])
+				df.add_value(r'ALIASES', [rf'{k}={v}' for k, v in context.aliases.items()])
 
-			if context.macros: # ----------------------------------------------------
+			if context.macros:  # ----------------------------------------------------
 				df.append()
 				df.append(r'# context.macros', end='\n\n')
-				df.add_value(r'PREDEFINED', [rf'{k}={v}' for k,v in context.macros.items()])
+				df.add_value(r'PREDEFINED', [rf'{k}={v}' for k, v in context.macros.items()])
 
 		# build HTML_HEADER
 		html_header = ''
@@ -306,6 +307,7 @@ def preprocess_doxyfile(context):
 			def add_meta_kvp(key_name, key, content):
 				nonlocal html_header
 				html_header += f'<meta {key_name}="{key}" content="{content}">\n'
+
 			add_meta = lambda key, content: add_meta_kvp(r'name', key, content)
 			add_property = lambda key, content: add_meta_kvp(r'property', key, content)
 			add_itemprop = lambda key, content: add_meta_kvp(r'itemprop', key, content)
@@ -349,12 +351,11 @@ def preprocess_doxyfile(context):
 				html_header += f'{context.html_header}\n'
 			html_header = html_header.rstrip()
 
-
 		# build m.css conf.py
 		if 1:
 			conf = lambda s='', end='\n': print(reindent(s, indent=''), file=conf_py, end=end)
 			conf(rf"DOXYFILE = r'{context.doxyfile_path}'")
-			conf(r"STYLESHEETS = []") # suppress the default behaviour
+			conf(r"STYLESHEETS = []")  # suppress the default behaviour
 			conf(rf'HTML_HEADER = """{html_header}"""')
 			if context.theme == r'dark':
 				conf(r"THEME_COLOR = '#22272e'")
@@ -380,16 +381,31 @@ def preprocess_doxyfile(context):
 			if not df.contains(r'M_SEARCH_DISABLED'):
 				conf(r'SEARCH_DISABLED = False')
 			if not df.contains(r'M_LINKS_NAVBAR1') and not df.contains(r'M_LINKS_NAVBAR2'):
-				navbars = ([],[])
+				navbars = ([], [])
 				if context.navbar:
 					bar = [v for v in context.navbar]
 					for i in range(len(bar)):
-						if bar[i] == r'github':
-							bar[i] = (rf'<a target="_blank" href="https://github.com/{context.github}/" class="poxy-icon github">{read_all_text_from_file(Path(context.data_dir, "poxy-icon-github.svg"), logger=context.verbose_logger)}</a>', [])
+						if bar[i] == r'repo' and context.repo:
+							icon_path = Path(context.data_dir, context.repo.icon_filename)
+							if icon_path.exists():
+								bar[i] = (
+									rf'<a title="View on {type(context.repo).__name__}" '
+									+ rf'target="_blank" href="{context.repo.uri}" '
+									+ rf'class="poxy-icon repo {context.repo.KEY}">'
+									+ read_all_text_from_file(icon_path, logger=context.verbose_logger) + r'</a>', []
+								)
+							else:
+								bar[i] = None
 						elif bar[i] == r'theme':
-							bar[i] = (rf'<a id="poxy-theme-switch" href="#poxy-theme-switch" class="poxy-icon theme" onClick="toggle_theme();">{read_all_text_from_file(Path(context.data_dir, "poxy-icon-theme.svg"), logger=context.verbose_logger)}</a>', [])
+							bar[i] = (
+								r'<a title="Toggle dark and light themes" '
+								+ r'id="poxy-theme-switch" href="#poxy-theme-switch" '
+								+ r'class="poxy-icon theme" onClick="toggle_theme();">' + read_all_text_from_file(
+								Path(context.data_dir, "poxy-icon-theme.svg"), logger=context.verbose_logger
+								) + r'</a>', []
+							)
 					bar = [b for b in bar if b is not None]
-					split = min(max(int(len(bar)/2) + len(bar)%2, 2), len(bar))
+					split = min(max(int(len(bar) / 2) + len(bar) % 2, 2), len(bar))
 					for b, i in ((bar[:split], 0), (bar[split:], 1)):
 						for j in range(len(b)):
 							if isinstance(b[j], tuple):
@@ -406,15 +422,17 @@ def preprocess_doxyfile(context):
 			if not df.contains(r'M_PAGE_FINE_PRINT'):
 				conf(r"FINE_PRINT = r'''")
 				footer = []
-				if context.github:
-					footer.append(rf'<a href="https://github.com/{context.github}/">Github</a>')
-					footer.append(rf'<a href="https://github.com/{context.github}/issues">Report an issue</a>')
+				if context.repo:
+					footer.append(rf'<a href="{context.repo.uri}" target="_blank">{type(context.repo).__name__}</a>')
+					footer.append(rf'<a href="{context.repo.issues_uri}" target="_blank">Report an issue</a>')
 				if context.changelog:
 					footer.append(rf'<a href="md_poxy_changelog.html">Changelog</a>')
 				if context.license and context.license[r'uri']:
 					footer.append(rf'<a href="{context.license["uri"]}" target="_blank">License</a>')
 				if context.generate_tagfile:
-					footer.append(rf'<a href="{context.tagfile_path.name}" target="_blank" type="text/xml" download>Doxygen tagfile</a>')
+					footer.append(
+						rf'<a href="{context.tagfile_path.name}" target="_blank" type="text/xml" download>Doxygen tagfile</a>'
+					)
 				if footer:
 					for i in range(1, len(footer)):
 						footer[i] = r' &bull; ' + footer[i]
@@ -462,21 +480,23 @@ def postprocess_xml(context):
 	if not xml_files:
 		return
 
-	with ScopeTimer(rf'Post-processing {len(xml_files) + len(context.tagfiles)} XML files', print_start=True, print_end=context.verbose_logger):
+	with ScopeTimer(
+		rf'Post-processing {len(xml_files) + len(context.tagfiles)} XML files',
+		print_start=True,
+		print_end=context.verbose_logger
+	):
 
 		pretty_print_xml = False
 		xml_parser = etree.XMLParser(
-			encoding='utf-8',
-			remove_blank_text=pretty_print_xml,
-			recover=True,
-			remove_comments=True,
-			ns_clean=True
+			encoding='utf-8', remove_blank_text=pretty_print_xml, recover=True, remove_comments=True, ns_clean=True
 		)
-		write_xml_to_file = lambda xml, f: xml.write(str(f), encoding='utf-8', xml_declaration=True, pretty_print=pretty_print_xml)
+		write_xml_to_file = lambda xml, f: xml.write(
+			str(f), encoding='utf-8', xml_declaration=True, pretty_print=pretty_print_xml
+		)
 
 		inline_namespace_ids = None
 		if context.inline_namespaces:
-			inline_namespace_ids = [f'namespace{doxyfile.mangle_name(ns)}' for ns in context.inline_namespaces]
+			inline_namespace_ids = [f'namespace{doxygen.mangle_name(ns)}' for ns in context.inline_namespaces]
 
 		implementation_header_data = None
 		implementation_header_mappings = None
@@ -485,15 +505,10 @@ def postprocess_xml(context):
 		implementation_header_unused_keys = None
 		implementation_header_unused_values = None
 		if context.implementation_headers:
-			implementation_header_data = [
-				(
-					hp,
-					os.path.basename(hp),
-					doxyfile.mangle_name(os.path.basename(hp)),
-					[(i, os.path.basename(i), doxyfile.mangle_name(os.path.basename(i))) for i in impl]
-				)
-				for hp, impl in context.implementation_headers
-			]
+			implementation_header_data = [(
+				hp, os.path.basename(hp), doxygen.mangle_name(os.path.basename(hp)),
+				[(i, os.path.basename(i), doxygen.mangle_name(os.path.basename(i))) for i in impl]
+			) for hp, impl in context.implementation_headers]
 			implementation_header_unused_keys = set()
 			for hp, impl in context.implementation_headers:
 				implementation_header_unused_keys.add(hp)
@@ -516,7 +531,7 @@ def postprocess_xml(context):
 			# pre-pass to delete junk files
 			if 1:
 				# 'file' entries for markdown and dox files
-				dox_files = [rf'*{doxyfile.mangle_name(ext)}.xml' for ext in (r'.dox', r'.md')]
+				dox_files = [rf'*{doxygen.mangle_name(ext)}.xml' for ext in (r'.dox', r'.md')]
 				dox_files.append(r'md_home.xml')
 				for xml_file in get_all_files(context.xml_dir, any=dox_files):
 					delete_file(xml_file, logger=context.verbose_logger)
@@ -552,8 +567,10 @@ def postprocess_xml(context):
 						assert compoundname.text
 						context.warning(
 							rf"C++20 concepts are not currently supported! No documentation will be generated for '{compoundname.text}'."
-							+ r" Surround your concepts in a '@cond poxy_supports_concepts' block to suppress this warning until"
-							+ r" poxy is updated to support them.")
+							+
+							r" Surround your concepts in a '@cond poxy_supports_concepts' block to suppress this warning until"
+							+ r" poxy is updated to support them."
+						)
 						delete_file(xml_file, logger=context.verbose_logger)
 
 			extracted_implementation = False
@@ -561,7 +578,7 @@ def postprocess_xml(context):
 			macros = set()
 			cpp_tree = CppTree()
 			xml_files = get_all_files(context.xml_dir, any=(r'*.xml'))
-			tagfiles = [f for _,(f,_) in context.tagfiles.items()]
+			tagfiles = [f for _, (f, _) in context.tagfiles.items()]
 			xml_files = xml_files + tagfiles
 			for xml_file in xml_files:
 
@@ -577,14 +594,19 @@ def postprocess_xml(context):
 				if root.tag == r'doxygenindex':
 
 					# remove entries for files we might have explicitly deleted above
-					for compound in [tag for tag in root.findall(r'compound') if tag.get(r'kind') in (r'file', r'dir', r'concept')]:
+					for compound in [
+						tag for tag in root.findall(r'compound') if tag.get(r'kind') in (r'file', r'dir', r'concept')
+					]:
 						ref_file = Path(context.xml_dir, rf'{compound.get(r"refid")}.xml')
 						if not ref_file.exists():
 							root.remove(compound)
 							changed = True
 
 					# extract namespaces, types and enum values for syntax highlighting
-					scopes = [tag for tag in root.findall(r'compound') if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')]
+					scopes = [
+						tag for tag in root.findall(r'compound')
+						if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')
+					]
 					for scope in scopes:
 						scope_name = scope.find(r'name').text
 
@@ -599,7 +621,9 @@ def postprocess_xml(context):
 							cpp_tree.add_namespace(scope_name)
 
 						# nested enums
-						enum_tags = [tag for tag in scope.findall(r'member') if tag.get(r'kind') in (r'enum', r'enumvalue')]
+						enum_tags = [
+							tag for tag in scope.findall(r'member') if tag.get(r'kind') in (r'enum', r'enumvalue')
+						]
 						enum_name = ''
 						for tag in enum_tags:
 							if tag.get(r'kind') == r'enum':
@@ -622,13 +646,16 @@ def postprocess_xml(context):
 						if filename == r'indexpage':
 							filename = r'index'
 						filename = filename + r'.html'
-						pages[filename] = { r'kind' : tag.get(r'kind'), r'name' : tag.find(r'name').text, r'refid' : refid }
+						pages[filename] = {r'kind': tag.get(r'kind'), r'name': tag.find(r'name').text, r'refid': refid}
 					context.__dict__[r'compound_pages'] = pages
 					context.verbose_value(r'Context.compound_pages', pages)
 
 				# a tag file
 				elif root.tag == r'tagfile':
-					for compound in [tag for tag in root.findall(r'compound') if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')]:
+					for compound in [
+						tag for tag in root.findall(r'compound')
+						if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')
+					]:
 
 						compound_name = compound.find(r'name').text
 						if compound_name.find(r'<') != -1:
@@ -640,7 +667,10 @@ def postprocess_xml(context):
 						else:
 							cpp_tree.add_namespace(compound_name)
 
-						for member in [tag for tag in compound.findall(r'member') if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')]:
+						for member in [
+							tag for tag in compound.findall(r'member')
+							if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')
+						]:
 
 							member_name = member.find(r'name').text
 							if member_name.find(r'<') != -1:
@@ -662,10 +692,13 @@ def postprocess_xml(context):
 					assert compoundname is not None
 					assert compoundname.text
 
-					if compounddef.get(r'kind') in (r'namespace', r'class', r'struct', r'union', r'enum', r'file', r'group'):
+					if compounddef.get(r'kind'
+										) in (r'namespace', r'class', r'struct', r'union', r'enum', r'file', r'group'):
 
 						# merge user-defined sections with the same name
-						sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
+						sectiondefs = [
+							s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined'
+						]
 						sections = dict()
 						for section in sectiondefs:
 							header = section.find(r'header')
@@ -684,7 +717,9 @@ def postprocess_xml(context):
 									changed = True
 
 						# sort user-defined sections based on their name
-						sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
+						sectiondefs = [
+							s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined'
+						]
 						sectiondefs = [s for s in sectiondefs if s.find(r'header') is not None]
 						for section in sectiondefs:
 							compounddef.remove(section)
@@ -698,7 +733,7 @@ def postprocess_xml(context):
 
 							# remove members which are listed multiple times because doxygen is idiotic:
 							members = [tag for tag in section.findall(r'memberdef')]
-							for i in range(len(members)-1, 0, -1):
+							for i in range(len(members) - 1, 0, -1):
 								for j in range(i):
 									if members[i].get(r'id') == members[j].get(r'id'):
 										section.remove(members[i])
@@ -707,16 +742,14 @@ def postprocess_xml(context):
 
 							# fix functions where keywords like 'friend' have been erroneously included in the return type
 							if 1:
-								members = [m for m in section.findall(r'memberdef') if m.get(r'kind') in (r'friend', r'function')]
-								attribute_keywords = (
-									(r'constexpr', r'constexpr', r'yes'),
-									(r'consteval', r'consteval', r'yes'),
-									(r'explicit', r'explicit', r'yes'),
-									(r'static', r'static', r'yes'),
-									(r'friend', None, None),
-									(r'inline', r'inline', r'yes'),
-									(r'virtual', r'virt', r'virtual')
-								)
+								members = [
+									m for m in section.findall(r'memberdef')
+									if m.get(r'kind') in (r'friend', r'function')
+								]
+								attribute_keywords = ((r'constexpr', r'constexpr',
+									r'yes'), (r'consteval', r'consteval', r'yes'), (r'explicit', r'explicit',
+									r'yes'), (r'static', r'static', r'yes'), (r'friend', None, None),
+									(r'inline', r'inline', r'yes'), (r'virtual', r'virt', r'virtual'))
 								for member in members:
 									type = member.find(r'type')
 									if type is None or type.text is None:
@@ -725,7 +758,7 @@ def postprocess_xml(context):
 									while matched_bad_keyword:
 										matched_bad_keyword = False
 										for kw, attr, attr_value in attribute_keywords:
-											if type.text == kw: # constructors
+											if type.text == kw:  # constructors
 												type.text = ''
 											elif type.text.startswith(kw + ' '):
 												type.text = type.text[len(kw):].strip()
@@ -746,19 +779,25 @@ def postprocess_xml(context):
 								members = [tag for tag in section.findall(r'memberdef')]
 								for tag in members:
 									section.remove(tag)
-								groups = [
-									([tag for tag in members if tag.get(r'kind') == r'define'], True),
+								groups = [([tag for tag in members if tag.get(r'kind') == r'define'], True),
 									([tag for tag in members if tag.get(r'kind') == r'typedef'], True),
 									([tag for tag in members if tag.get(r'kind') == r'enum'], True),
-									([tag for tag in members if tag.get(r'kind') == r'variable' and tag.get(r'static') == r'yes'], True),
-									(
-										[tag for tag in members if tag.get(r'kind') == r'variable' and tag.get(r'static') == r'no'],
-										compounddef.get(r'kind') not in (r'class', r'struct', r'union')
-									),
-									([tag for tag in members if tag.get(r'kind') == r'function' and tag.get(r'static') == r'yes'], True),
-									([tag for tag in members if tag.get(r'kind') == r'function' and tag.get(r'static') == r'no'], True),
-									([tag for tag in members if tag.get(r'kind') == r'friend'], True)
-								]
+									([
+									tag for tag in members
+									if tag.get(r'kind') == r'variable' and tag.get(r'static') == r'yes'
+									], True),
+									([
+									tag for tag in members
+									if tag.get(r'kind') == r'variable' and tag.get(r'static') == r'no'
+									], compounddef.get(r'kind') not in (r'class', r'struct', r'union')),
+									([
+									tag for tag in members
+									if tag.get(r'kind') == r'function' and tag.get(r'static') == r'yes'
+									], True),
+									([
+									tag for tag in members
+									if tag.get(r'kind') == r'function' and tag.get(r'static') == r'no'
+									], True), ([tag for tag in members if tag.get(r'kind') == r'friend'], True)]
 								for group, sort in groups:
 									if sort:
 										group.sort(key=sort_members_by_name)
@@ -805,8 +844,12 @@ def postprocess_xml(context):
 									changed = True
 
 						# get any macros for the syntax highlighter
-						for sectiondef in [tag for tag in compounddef.findall(r'sectiondef') if tag.get(r'kind') == r'define']:
-							for memberdef in [tag for tag in sectiondef.findall(r'memberdef') if tag.get(r'kind') == r'define']:
+						for sectiondef in [
+							tag for tag in compounddef.findall(r'sectiondef') if tag.get(r'kind') == r'define'
+						]:
+							for memberdef in [
+								tag for tag in sectiondef.findall(r'memberdef') if tag.get(r'kind') == r'define'
+							]:
 								macro = memberdef.find(r'name').text
 								if not tentative_macros.fullmatch(macro):
 									macros.add(macro)
@@ -818,7 +861,8 @@ def postprocess_xml(context):
 								hid = implementation_header_mappings[iid][2]
 								innernamespaces = compounddef.findall(r'innernamespace')
 								if innernamespaces:
-									implementation_header_innernamespaces[hid] = implementation_header_innernamespaces[hid] + innernamespaces
+									implementation_header_innernamespaces[
+										hid] = implementation_header_innernamespaces[hid] + innernamespaces
 									extracted_implementation = True
 									if iid in implementation_header_unused_values:
 										del implementation_header_unused_values[iid]
@@ -827,7 +871,8 @@ def postprocess_xml(context):
 										changed = True
 								sectiondefs = compounddef.findall(r'sectiondef')
 								if sectiondefs:
-									implementation_header_sectiondefs[hid] = implementation_header_sectiondefs[hid] + sectiondefs
+									implementation_header_sectiondefs[
+										hid] = implementation_header_sectiondefs[hid] + sectiondefs
 									extracted_implementation = True
 									if iid in implementation_header_unused_values:
 										del implementation_header_unused_values[iid]
@@ -919,7 +964,6 @@ def postprocess_xml(context):
 				for iid, idata in implementation_header_unused_values.items():
 					context.warning(rf"implementation_header: nothing extracted from '{idata[0]}' for '{idata[1]}'")
 
-
 		# delete the impl header xml files
 		if 1 and context.implementation_headers:
 			for hdata in implementation_header_data:
@@ -935,8 +979,8 @@ def postprocess_xml(context):
 				for (hp, hfn, hid, impl) in implementation_header_data:
 					for (ip, ifn, iid) in impl:
 						#xml_text = xml_text.replace(f'refid="{iid}"',f'refid="{hid}"')
-						xml_text = xml_text.replace(rf'compoundref="{iid}"',f'compoundref="{hid}"')
-						xml_text = xml_text.replace(ip,hp)
+						xml_text = xml_text.replace(rf'compoundref="{iid}"', f'compoundref="{hid}"')
+						xml_text = xml_text.replace(ip, hp)
 				with BytesIO(bytes(xml_text, 'utf-8')) as b:
 					xml = etree.parse(b, parser=xml_parser)
 					write_xml_to_file(xml, xml_file)
@@ -944,6 +988,9 @@ def postprocess_xml(context):
 
 
 _worker_context = None
+
+
+
 def _initialize_worker(context):
 	global _worker_context
 	_worker_context = context
@@ -973,7 +1020,7 @@ def postprocess_html_file(path, context=None):
 					doc.flush()
 					changed = True
 			elif isinstance(fix, fixers.PlainTextFixer):
-				doc = [ read_all_text_from_file(path, logger=context.verbose_logger), path ]
+				doc = [read_all_text_from_file(path, logger=context.verbose_logger), path]
 				if fix(doc, context):
 					context.verbose(rf'Writing {path}')
 					with open(path, 'w', encoding='utf-8', newline='\n') as f:
@@ -996,14 +1043,12 @@ def postprocess_html(context):
 	assert isinstance(context, project.Context)
 
 	files = filter_filenames(
-		get_all_files(context.html_dir, any=('*.html', '*.htm')),
-		context.html_include,
-		context.html_exclude
+		get_all_files(context.html_dir, any=('*.html', '*.htm')), context.html_include, context.html_exclude
 	)
 	if not files:
 		return
 
-	threads = min(len(files), context.threads, 8) # diminishing returns after 8
+	threads = min(len(files), context.threads, 8)  # diminishing returns after 8
 
 	with ScopeTimer(rf'Post-processing {len(files)} HTML files', print_start=True, print_end=context.verbose_logger):
 		context.fixers = (
@@ -1023,8 +1068,10 @@ def postprocess_html(context):
 		)
 		context.verbose(rf'Post-processing {len(files)} HTML files...')
 		if threads > 1:
-			with futures.ProcessPoolExecutor(max_workers=threads, initializer=_initialize_worker, initargs=(context,)) as executor:
-				jobs = [ executor.submit(postprocess_html_file, file) for file in files ]
+			with futures.ProcessPoolExecutor(
+				max_workers=threads, initializer=_initialize_worker, initargs=(context, )
+			) as executor:
+				jobs = [executor.submit(postprocess_html_file, file) for file in files]
 				for future in futures.as_completed(jobs):
 					try:
 						future.result()
@@ -1045,13 +1092,12 @@ def postprocess_html(context):
 # RUN
 #=======================================================================================================================
 
+
+
 def read_output_streams(stdout, stderr):
 	stdout.seek(0)
 	stderr.seek(0)
-	return {
-		r'stdout' : stdout.read().strip(),
-		r'stderr' : stderr.read().strip()
-	}
+	return {r'stdout': stdout.read().strip(), r'stderr': stderr.read().strip()}
 
 
 
@@ -1076,16 +1122,12 @@ _warnings_regexes = (
 	# catch-all
 	re.compile(r'^(?:Warning|Error):\s*(?P<text>.+?)\s*$', re.I)
 )
-_warnings_trim_suffixes = (
-	r'Skipping it...',
-)
-_warnings_substitutions = (
-	(r'does not exist or is not a file', r'did not exist or was not a file'),
-)
-_warnings_ignored = (
-	r'inline code has multiple lines, fallback to a code block',
-	r'libgs not found'
-)
+_warnings_trim_suffixes = (r'Skipping it...', )
+_warnings_substitutions = ((r'does not exist or is not a file', r'did not exist or was not a file'), )
+_warnings_ignored = (r'inline code has multiple lines, fallback to a code block', r'libgs not found')
+
+
+
 def extract_warnings(outputs):
 	if not outputs:
 		return []
@@ -1126,37 +1168,37 @@ def extract_warnings(outputs):
 
 
 
-__all__.append(r'run')
-def run(config_path='.',
-		output_dir='.',
-		threads=-1,
-		cleanup=True,
-		verbose=False,
-		mcss_dir=None,
-		doxygen_path=None,
-		logger=None,
-		dry_run=False,
-		xml_only=False,
-		html_include=None,
-		html_exclude=None,
-		treat_warnings_as_errors=None,
-		theme=None
-	):
+def run(
+	config_path='.',
+	output_dir='.',
+	threads=-1,
+	cleanup=True,
+	verbose=False,
+	mcss_dir=None,
+	doxygen_path=None,
+	logger=None,
+	dry_run=False,
+	xml_only=False,
+	html_include=None,
+	html_exclude=None,
+	treat_warnings_as_errors=None,
+	theme=None
+):
 
 	with project.Context(
-		config_path = config_path,
-		output_dir = output_dir,
-		threads = threads,
-		cleanup = cleanup,
-		verbose = verbose,
-		mcss_dir = mcss_dir,
-		doxygen_path = doxygen_path,
-		logger = logger,
-		dry_run = dry_run,
-		xml_only = xml_only,
-		html_include = html_include,
-		html_exclude = html_exclude,
-		treat_warnings_as_errors = treat_warnings_as_errors,
+		config_path=config_path,
+		output_dir=output_dir,
+		threads=threads,
+		cleanup=cleanup,
+		verbose=verbose,
+		mcss_dir=mcss_dir,
+		doxygen_path=doxygen_path,
+		logger=logger,
+		dry_run=dry_run,
+		xml_only=xml_only,
+		html_include=html_include,
+		html_exclude=html_exclude,
+		treat_warnings_as_errors=treat_warnings_as_errors,
 		theme=theme
 	) as context:
 
@@ -1174,12 +1216,7 @@ def run(config_path='.',
 					if file.exists() or not is_uri(source):
 						continue
 					context.verbose(rf'Downloading {source} => {file}')
-					response = requests.get(
-						source,
-						allow_redirects=True,
-						stream=False,
-						timeout=30
-					)
+					response = requests.get(source, allow_redirects=True, stream=False, timeout=30)
 					context.verbose(rf'Writing {file}')
 					with open(file, 'w', encoding='utf-8', newline='\n') as f:
 						f.write(response.text)
@@ -1189,15 +1226,17 @@ def run(config_path='.',
 		# precondition the change log page (at this point it is already a temp copy)
 		if context.changelog:
 			text = read_all_text_from_file(context.changelog, logger=context.verbose_logger).strip()
-			text = text.replace('\r\n', 			'\n')
-			text = re.sub(r'\n<br[ \t]*/?><br[ \t]*/?>\n',	r'', text)
-			if context.github:
-				text = re.sub(r'#([0-9]+)', 		rf'[#\1](https://github.com/{context.github}/issues/\1)', text)
-				text = re.sub(r'@([a-zA-Z0-9_-]+)',	rf'[@\1](https://github.com/\1)', text)
-			text = text.replace(r'&amp;',			r'__poxy_thiswasan_amp')
-			text = text.replace(r'&#xFE0F;', 		r'__poxy_thiswasan_fe0f')
-			text = text.replace(r'@',				r'__poxy_thiswasan_at')
-			if text.find(r'@tableofcontents') == -1 and text.find('\\tableofcontents') == -1 and text.find(r'[TOC]') == -1:
+			text = text.replace('\r\n', '\n')
+			text = re.sub(r'\n<br[ \t]*/?><br[ \t]*/?>\n', r'', text)
+			if context.repo:
+				text = re.sub(r'#([0-9]+)', lambda m: rf'[#{m[1]}]({context.repo.make_issue_uri(m[1])})', text)
+				text = re.sub(r'!([0-9]+)', lambda m: rf'[!{m[1]}]({context.repo.make_pull_request_uri(m[1])})', text)
+				text = re.sub(r'@([a-zA-Z0-9_-]+)', lambda m: rf'[@{m[1]}]({context.repo.make_user_uri(m[1])})', text)
+			text = text.replace(r'&amp;', r'__poxy_thiswasan_amp')
+			text = text.replace(r'&#xFE0F;', r'__poxy_thiswasan_fe0f')
+			text = text.replace(r'@', r'__poxy_thiswasan_at')
+			if text.find(r'@tableofcontents') == -1 and text.find('\\tableofcontents'
+																	) == -1 and text.find(r'[TOC]') == -1:
 				#text = f'[TOC]\n\n{text}'
 				nlnl = text.find(r'\n\n')
 				if nlnl != -1:
@@ -1209,16 +1248,17 @@ def run(config_path='.',
 
 		# run doxygen to generate the xml
 		if 1:
-			with ScopeTimer(r'Generating XML files with Doxygen', print_start=True, print_end=context.verbose_logger) as t:
+			with ScopeTimer(
+				r'Generating XML files with Doxygen', print_start=True, print_end=context.verbose_logger
+			) as t:
 				with make_temp_file() as stdout, make_temp_file() as stderr:
 					try:
-						subprocess.run(
-							[str(context.doxygen_path), str(context.doxyfile_path)],
+						subprocess.run([str(context.doxygen_path),
+							str(context.doxyfile_path)],
 							check=True,
 							stdout=stdout,
 							stderr=stderr,
-							cwd=context.input_dir
-						)
+							cwd=context.input_dir)
 					except:
 						context.info(r'Doxygen failed!')
 						dump_output_streams(context, read_output_streams(stdout, stderr), source=r'Doxygen')
@@ -1251,17 +1291,24 @@ def run(config_path='.',
 
 		# compile regexes
 		# (done here because doxygen and xml preprocessing adds additional values to these lists)
-		context.code_blocks.namespaces = regex_or(context.code_blocks.namespaces, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
-		context.code_blocks.types = regex_or(context.code_blocks.types, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
+		context.code_blocks.namespaces = regex_or(
+			context.code_blocks.namespaces, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?'
+		)
+		context.code_blocks.types = regex_or(
+			context.code_blocks.types, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?'
+		)
 		context.code_blocks.enums = regex_or(context.code_blocks.enums, pattern_prefix='(?:::)?')
 		context.code_blocks.string_literals = regex_or(context.code_blocks.string_literals)
 		context.code_blocks.numeric_literals = regex_or(context.code_blocks.numeric_literals)
 		context.code_blocks.macros = regex_or(context.code_blocks.macros)
-		context.autolinks = tuple([(re.compile('(?<![a-zA-Z_])' + expr + '(?![a-zA-Z_])'), uri) for expr, uri in context.autolinks])
+		context.autolinks = tuple([(re.compile('(?<![a-zA-Z_])' + expr + '(?![a-zA-Z_])'), uri)
+			for expr, uri in context.autolinks])
 
 		# run m.css to generate the html
 		if 1:
-			with ScopeTimer(r'Generating HTML files with m.css', print_start=True, print_end=context.verbose_logger) as t:
+			with ScopeTimer(
+				r'Generating HTML files with m.css', print_start=True, print_end=context.verbose_logger
+			) as t:
 				with make_temp_file() as stdout, make_temp_file() as stderr:
 					doxy_args = [str(context.mcss_conf_path), r'--no-doxygen', r'--sort-globbed-files']
 					if context.is_verbose():

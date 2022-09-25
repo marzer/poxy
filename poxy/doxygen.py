@@ -3,23 +3,19 @@
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
-
 """
-Functions and classes for working with doxygen's Doxyfile format.
+Functions and classes for working with Doxygen.
 """
 
 import subprocess
 from .utils import *
 
-__all__ = []
-
-
-
 #=======================================================================================================================
 # functions
 #=======================================================================================================================
 
-__all__.append(r'mangle_name')
+
+
 def mangle_name(name):
 	'''
 	A lightweight version of doxygen's escapeCharsInString()
@@ -48,7 +44,7 @@ def mangle_name(name):
 	name = name.replace('+', '_09')
 	name = name.replace('=', '_0a')
 	name = name.replace('$', '_0b')
-	name = name.replace('\\','_0c')
+	name = name.replace('\\', '_0c')
 	name = name.replace('@', '_0d')
 	name = name.replace(']', '_0e')
 	name = name.replace('[', '_0f')
@@ -58,12 +54,11 @@ def mangle_name(name):
 
 
 
-__all__.append(r'format_for_doxyfile')
 def format_for_doxyfile(val):
 	if val is None:
 		return ''
 	elif isinstance(val, str):
-		return '"' + val.replace('"','\\"') + '"'
+		return '"' + val.replace('"', '\\"') + '"'
 	elif isinstance(val, Path):
 		return format_for_doxyfile(str(val))
 	elif isinstance(val, bool):
@@ -79,14 +74,15 @@ def format_for_doxyfile(val):
 # Doxyfile
 #=======================================================================================================================
 
-__all__.append(r'Doxyfile')
+
+
 class Doxyfile(object):
 
 	def __init__(self, doxyfile_path, cwd=None, logger=None, doxygen_path=None, flush_at_exit=True):
-		self.__logger=logger
-		self.__dirty=True
+		self.__logger = logger
+		self.__dirty = True
 		self.__text = ''
-		self.__autoflush=bool(flush_at_exit)
+		self.__autoflush = bool(flush_at_exit)
 
 		# the path of the actual doxyfile
 		self.path = coerce_path(doxyfile_path).resolve()
@@ -103,19 +99,16 @@ class Doxyfile(object):
 			if not self.path.is_file():
 				raise Error(f'{self.path} was not a file')
 			self.__text = read_all_text_from_file(self.path, logger=self.__logger).strip()
-			self.cleanup() # expands includes
+			self.cleanup()  # expands includes
 
 		# ...or generate one
 		else:
-			result = subprocess.run(
-				[str(self.__doxygen), r'-s', r'-g', r'-'],
+			result = subprocess.run([str(self.__doxygen), r'-s', r'-g', r'-'],
 				check=True,
 				capture_output=True,
 				cwd=self.__cwd,
-				encoding='utf-8'
-			)
+				encoding='utf-8')
 			self.__text = result.stdout.strip()
-
 
 		# simplify regex searches by ensuring there's always leading and trailing newlines
 		self.__text = f'\n{self.__text}\n'
@@ -125,14 +118,12 @@ class Doxyfile(object):
 			return
 		if 1:
 			log(self.__logger, rf'Invoking doxygen to clean doxyfile')
-			result = subprocess.run(
-				[str(self.__doxygen), r'-s', r'-u', r'-'],
+			result = subprocess.run([str(self.__doxygen), r'-s', r'-u', r'-'],
 				check=True,
 				capture_output=True,
 				cwd=self.__cwd,
 				encoding=r'utf-8',
-				input=self.__text
-			)
+				input=self.__text)
 			self.__text = result.stdout.strip()
 		self.__dirty = False
 
