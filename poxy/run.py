@@ -145,17 +145,13 @@ def preprocess_doxyfile(context):
 	assert isinstance(context, project.Context)
 
 	with doxygen.Doxyfile(
-		doxyfile_path=context.doxyfile_path,
+		input_path=None,
+		output_path=context.doxyfile_path,
 		cwd=context.input_dir,
 		logger=context.verbose_logger,
 		doxygen_path=context.doxygen_path,
 		flush_at_exit=not context.dry_run
 	) as df, StringIO(newline='\n') as conf_py:
-
-		# redirect to temp dir
-		df.path = Path(context.temp_dir, rf'Doxyfile')
-		context.doxyfile_path = df.path
-		context.verbose_value(r'Context.doxyfile_path', context.doxyfile_path)
 
 		df.append()
 		df.append(r'#---------------------------------------------------------------------------')
@@ -176,40 +172,15 @@ def preprocess_doxyfile(context):
 
 			df.set_value(r'OUTPUT_DIRECTORY', context.output_dir)
 			df.set_value(r'XML_OUTPUT', context.xml_dir)
-			if not context.name:
-				context.name = df.get_value(r'PROJECT_NAME', fallback='')
 			df.set_value(r'PROJECT_NAME', context.name)
-
-			if not context.description:
-				context.description = df.get_value(r'PROJECT_BRIEF', fallback='')
 			df.set_value(r'PROJECT_BRIEF', context.description)
-
-			if context.logo is None:
-				context.logo = df.get_value(r'PROJECT_LOGO', fallback=None)
-				if context.logo is not None:
-					context.logo = Path(str(context.logo))
-					if not context.logo.is_absolute():
-						context.logo = Path(context.input_dir, context.logo)
-					context.logo = context.logo.resolve()
-					context.verbose_value(r'Context.logo', context.logo)
 			df.set_value(r'PROJECT_LOGO', context.logo)
-
-			if context.show_includes is None:
-				context.show_includes = df.get_boolean(r'SHOW_INCLUDE_FILES', fallback=True)
-				context.verbose_value(r'Context.show_includes', context.show_includes)
 			df.set_value(r'SHOW_INCLUDE_FILES', context.show_includes)
-
-			if context.internal_docs is None:
-				context.internal_docs = df.get_boolean(r'INTERNAL_DOCS', fallback=False)
-				context.verbose_value(r'Context.internal_docs', context.internal_docs)
 			df.set_value(r'INTERNAL_DOCS', context.internal_docs)
 			df.add_value(
 				r'ENABLED_SECTIONS', (r'private', r'internal') if context.internal_docs else (r'public', r'external')
 			)
 
-			if context.generate_tagfile is None:
-				context.generate_tagfile = not (context.private_repo or context.internal_docs)
-				context.verbose_value(r'Context.generate_tagfile', context.generate_tagfile)
 			if context.generate_tagfile:
 				context.tagfile_path = Path(
 					context.output_dir,
@@ -238,19 +209,8 @@ def preprocess_doxyfile(context):
 			df.append()
 			df.append(r'# context.warnings', end='\n\n')  # ---------------------------------------------------
 
-			if context.warnings.enabled is None:
-				context.warnings.enabled = df.get_boolean(r'WARNINGS', fallback=True)
-				context.verbose_value(r'Context.warnings.enabled', context.warnings.enabled)
 			df.set_value(r'WARNINGS', context.warnings.enabled)
-
-			if context.warnings.treat_as_errors is None:
-				context.warnings.treat_as_errors = df.get_boolean(r'WARN_AS_ERROR', fallback=False)
-				context.verbose_value(r'Context.warnings.treat_as_errors', context.warnings.treat_as_errors)
 			df.set_value(r'WARN_AS_ERROR', False)  # we do this ourself
-
-			if context.warnings.undocumented is None:
-				context.warnings.undocumented = df.get_boolean(r'WARN_IF_UNDOCUMENTED', fallback=True)
-				context.verbose_value(r'Context.warnings.undocumented', context.warnings.undocumented)
 			df.set_value(r'WARN_IF_UNDOCUMENTED', context.warnings.undocumented)
 
 			df.append()
@@ -260,10 +220,6 @@ def preprocess_doxyfile(context):
 			df.set_value(r'FILE_PATTERNS', context.sources.patterns)
 			df.add_value(r'EXCLUDE', context.html_dir)
 			df.add_value(r'STRIP_FROM_PATH', context.sources.strip_paths)
-
-			if context.sources.extract_all is None:
-				context.sources.extract_all = df.get_boolean(r'EXTRACT_ALL', fallback=False)
-				context.verbose_value(r'Context.sources.extract_all', context.sources.extract_all)
 			df.set_value(r'EXTRACT_ALL', context.sources.extract_all)
 
 			df.append()
@@ -386,7 +342,7 @@ def preprocess_doxyfile(context):
 					bar = [v for v in context.navbar]
 					for i in range(len(bar)):
 						if bar[i] == r'repo' and context.repo:
-							icon_path = Path(context.data_dir, context.repo.icon_filename)
+							icon_path = Path(dirs.DATA, context.repo.icon_filename)
 							if icon_path.exists():
 								bar[i] = (
 									rf'<a title="View on {type(context.repo).__name__}" '
@@ -401,7 +357,7 @@ def preprocess_doxyfile(context):
 								r'<a title="Toggle dark and light themes" '
 								+ r'id="poxy-theme-switch" href="#poxy-theme-switch" '
 								+ r'class="poxy-icon theme" onClick="toggle_theme();">' + read_all_text_from_file(
-								Path(context.data_dir, "poxy-icon-theme.svg"), logger=context.verbose_logger
+								Path(dirs.DATA, "poxy-icon-theme.svg"), logger=context.verbose_logger
 								) + r'</a>', []
 							)
 					bar = [b for b in bar if b is not None]
@@ -1169,7 +1125,7 @@ def extract_warnings(outputs):
 
 
 def run(
-	config_path='.',
+	config_path=None,
 	output_dir='.',
 	threads=-1,
 	cleanup=True,
@@ -1313,7 +1269,7 @@ def run(
 						doxy_args.append(r'--debug')
 					try:
 						run_python_script(
-							Path(find_mcss_dir(), r'documentation/doxygen.py'),
+							Path(dirs.MCSS, r'documentation/doxygen.py'),
 							*doxy_args,
 							stdout=stdout,
 							stderr=stderr,
@@ -1341,7 +1297,7 @@ def run(
 
 		# copy fonts
 		with ScopeTimer(r'Copying fonts', print_start=True, print_end=context.verbose_logger) as t:
-			copy_tree(str(Path(find_generated_dir(), r'fonts')), str(Path(context.assets_dir, r'fonts')))
+			copy_tree(str(dirs.FONTS), str(Path(context.assets_dir, r'fonts')))
 
 		# move the tagfile into the html directory
 		if context.generate_tagfile:

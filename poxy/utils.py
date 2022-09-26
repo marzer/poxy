@@ -14,6 +14,7 @@ import logging
 from typing import Tuple
 from pathlib import Path
 from misk import *
+from . import dirs
 
 #=======================================================================================================================
 # FUNCTIONS
@@ -64,42 +65,9 @@ def is_uri(s):
 
 
 
-def find_package_dir() -> Path:
-	if not hasattr(find_package_dir, "dir"):
-		find_package_dir.dir = Path(__file__).resolve().parent
-		assert_existing_directory(find_package_dir.dir)
-	return find_package_dir.dir
-
-
-
-def find_data_dir() -> Path:
-	if not hasattr(find_data_dir, "dir"):
-		find_data_dir.dir = Path(find_package_dir(), r'data')
-		assert_existing_directory(find_data_dir.dir)
-	return find_data_dir.dir
-
-
-
-def find_generated_dir() -> Path:
-	if not hasattr(find_generated_dir, "dir"):
-		find_generated_dir.dir = Path(find_data_dir(), r'generated')
-	return find_generated_dir.dir
-
-
-
-def find_mcss_dir() -> Path:
-	if not hasattr(find_mcss_dir, "dir"):
-		find_mcss_dir.dir = Path(find_data_dir(), r'm.css')
-		if find_mcss_dir.dir.exists():
-			assert_existing_directory(find_mcss_dir.dir)
-			assert_existing_file(Path(find_mcss_dir.dir, r'documentation/doxygen.py'))
-	return find_mcss_dir.dir
-
-
-
 def lib_version() -> Tuple[int, int, int]:
 	if not hasattr(lib_version, "val"):
-		with open(Path(find_data_dir(), 'version.txt'), encoding='utf-8') as file:
+		with open(Path(dirs.DATA, 'version.txt'), encoding='utf-8') as file:
 			lib_version.val = [int(v.strip()) for v in file.read().strip().split('.')]
 			assert len(lib_version.val) == 3
 			lib_version.val = tuple(lib_version.val)

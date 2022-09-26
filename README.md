@@ -46,8 +46,8 @@ The homepage + documentation for [toml++] is built using poxy:
 
 ### Prerequisites:
 
--   Python 3
--   Doxygen (preferably a version from this decade, though most will be OK)
+-   Python 3.5+
+-   Doxygen 1.8.20+
 
 ### Then:
 
@@ -114,9 +114,12 @@ though there are a few gotchas:
 
 #### **⚠&#xFE0F; The majority of Doxygen's options are controlled by Poxy**
 
-Very few of the configurable options from the Doxyfile remain untouched by Poxy. This is intentional;
-[m.css] is opinionated, and Poxy even moreso. There are a few instances where information can flow from a Doxyfile to
-Poxy, but these situations are few, and all are documented explicitly on the [Configuration options] wiki page.
+Many of Doxygen's various knobs and switches are manually overridden by Poxy, and are not configurable.
+**This is intentional!** Doxygen tends to break in hilarious and fantastic ways from one release to the next;
+reducing it to a very 'locked-down' back-end minimizes the damage future regressions can do, allowing me to
+keep most debugging python-side.
+
+If there is some Doxygen feature you would like exposed in Poxy, please create a [feature request].
 
 #### **⚠&#xFE0F; All relative input paths are relative to the config file, _not_ CWD**
 
@@ -130,8 +133,7 @@ Poxy always emits the output html to `<cwd>/html`. This is largely to simplify t
 
 #### **⚠&#xFE0F; Poxy config files are self-contained**
 
-There is no equivalent to Doxygen's `@INCLUDE`. If your project is structured in such a way that an N-levels-deep
-Doxyfile hierarchy is necessary, Poxy isn't for you.
+There is no equivalent to Doxygen's `@INCLUDE`. If your project is structured in such a way that a multi-level Doxyfile hierarchy is necessary, Poxy isn't for you.
 
 <br><br>
 
@@ -156,3 +158,4 @@ Significant credit must go to Vladimír Vondruš ([mosra]) and his amazing [m.cs
 [toml++]: https://marzer.github.io/tomlplusplus/
 [c++ feature test macros]: https://en.cppreference.com/w/cpp/feature_test
 [configuration options]: https://github.com/marzer/poxy/wiki/Configuration-options
+[feature request]: https://github.com/marzer/poxy/issues/new

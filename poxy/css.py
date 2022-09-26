@@ -10,10 +10,11 @@ Functions for working with CSS files.
 import re
 import requests
 from .utils import *
+from . import dirs
 from typing import Tuple
 
 RX_COMMENT = re.compile(r'''/[*].+?[*]/''', flags=re.DOTALL)
-RX_IMPORT = re.compile(r'''@import\s+url\(\s*['"]?(.+?)['"]?\s*\)\s*;''')
+RX_IMPORT = re.compile(r'''@import\s+url\(\s*['"]?\s*(.+?)\s*['"]?\s*\)\s*;''', flags=re.I)
 RX_MCSS_FILE = re.compile(r'(?:m|pygments)-[a-zA-Z0-9_-]+[.]css')
 RX_MCSS_THEME = re.compile(r'm-theme-([a-zA-Z0-9_-]+)[.]css')
 RX_GOOGLE_FONT = re.compile(r'''url\(\s*['"]?(https://fonts[.]gstatic[.]com/[a-zA-Z0-9_/%+?:-]+?[.]woff2)['"]?\s*\)''')
@@ -35,7 +36,17 @@ def strip_quotes(text):
 
 
 
-def resolve_imports(text, cwd=None) -> Tuple[str, bool]:
+def has_mcss_filename(path) -> bool:
+	path = str(path).lower()
+	if path.endswith(r'm-special.css'):
+		return False
+
+	global RX_MCSS_FILE
+	return bool(RX_MCSS_FILE.fullmatch(path))
+
+
+
+def resolve_imports(text, cwd=None, use_cached_fonts=True) -> Tuple[str, bool]:
 	if cwd is None:
 		cwd = Path.cwd()
 	cwd = coerce_path(cwd).resolve()
@@ -45,9 +56,9 @@ def resolve_imports(text, cwd=None) -> Tuple[str, bool]:
 
 	def match_handler(m):
 		global RX_MCSS_THEME
-		global RX_MCSS_FILE
 		nonlocal cwd
 		nonlocal had_mcss_files
+		nonlocal use_cached_fonts
 
 		import_path = strip_quotes(m[1].strip())
 		path = None
@@ -55,9 +66,9 @@ def resolve_imports(text, cwd=None) -> Tuple[str, bool]:
 
 		# download + cache uris locally
 		if is_uri(import_path):
-			find_generated_dir().mkdir(exist_ok=True)
-			path = Path(find_generated_dir(), rf'{sha1(import_path.lower())}.css')
-			if not path_ok():
+			dirs.GENERATED.mkdir(exist_ok=True)
+			path = Path(dirs.GENERATED, rf'{sha1(import_path.lower())}.css')
+			if not path_ok() or (not use_cached_fonts and str(import_path).find(r'font') != -1):
 				print(rf"Downloading {import_path}")
 				headers = {
 					r'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0'
@@ -71,10 +82,10 @@ def resolve_imports(text, cwd=None) -> Tuple[str, bool]:
 		# - then check the m-css css dir
 		had_mcss_filename = False
 		was_mcss_file = False
-		if not path_ok() is None and RX_MCSS_FILE.fullmatch(import_path):
-			path = Path(find_data_dir(), import_path)
+		if not path_ok() is None and has_mcss_filename(import_path):
+			path = Path(dirs.CSS, import_path)
 			if not path_ok():
-				path = Path(find_mcss_dir(), r'css', import_path)
+				path = Path(dirs.MCSS, r'css', import_path)
 				was_mcss_file = True
 			had_mcss_filename = True
 
@@ -109,16 +120,15 @@ def resolve_imports(text, cwd=None) -> Tuple[str, bool]:
 
 
 
-def resolve_google_fonts(text) -> str:
+def resolve_google_fonts(text, use_cached_fonts=True) -> str:
 
 	def match_handler(m):
 		global RX_GOOGLE_FONT
 		uri = strip_quotes(m[1].strip())
 		file_name = uri[uri.rfind('/') + 1:]
-		fonts_dir = Path(find_generated_dir(), 'fonts')
-		fonts_dir.mkdir(exist_ok=True)
-		path = Path(fonts_dir, rf'{file_name}')
-		if not path.exists():
+		dirs.FONTS.mkdir(exist_ok=True)
+		path = Path(dirs.FONTS, rf'{file_name}')
+		if not path.exists() or not use_cached_fonts:
 			print(rf"Downloading {uri}")
 			headers = {
 				r'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0'
@@ -177,23 +187,22 @@ def minify(text) -> str:
 
 
 
-def regenerate_builtin_styles():
-	data_dir = find_data_dir()
-	output_dir = find_generated_dir()
-	output_dir.mkdir(exist_ok=True)
-
-	THEMES = (Path(data_dir, 'poxy.css'), )
+def regenerate_builtin_styles(use_cached_fonts=True):
+	dirs.GENERATED.mkdir(exist_ok=True)
+	if not use_cached_fonts:
+		delete_directory(dirs.FONTS, logger=True)
+	THEMES = (Path(dirs.CSS, r'poxy.css'), )
 	for theme_source_file in THEMES:
 		text = strip_comments(read_all_text_from_file(theme_source_file, logger=True))
-		text, had_mcss_files = resolve_imports(text, theme_source_file.parent)
-		text = resolve_google_fonts(text)
+		text, had_mcss_files = resolve_imports(text, theme_source_file.parent, use_cached_fonts=use_cached_fonts)
+		text = resolve_google_fonts(text, use_cached_fonts=use_cached_fonts)
 		text = re.sub(r':(before|after)', r'::\1', text)
 		text = re.sub(r':::+(before|after)', r'::\1', text)
 		text = text.replace('\r\n', '\n')
 		text = text.replace('\r', '\n')
 		text = minify(text)
 		if had_mcss_files:
-			mcss_license = read_all_text_from_file(Path(find_mcss_dir(), 'COPYING'), logger=True).strip()
+			mcss_license = read_all_text_from_file(Path(dirs.MCSS, 'COPYING'), logger=True).strip()
 			text = rf'''/*
 This file was automatically generated from multiple sources,
 some of which included stylesheets from mosra/m.css.
@@ -203,7 +212,7 @@ The license for that project is as follows:
 */
 {text}
 '''
-		theme_dest_file = Path(output_dir, theme_source_file.name)
+		theme_dest_file = Path(dirs.GENERATED, theme_source_file.name)
 		print(rf'Writing {theme_dest_file}')
 		with open(theme_dest_file, r'w', encoding=r'utf-8', newline='\n') as f:
 			f.write(text)

@@ -78,27 +78,30 @@ def format_for_doxyfile(val):
 
 class Doxyfile(object):
 
-	def __init__(self, doxyfile_path, cwd=None, logger=None, doxygen_path=None, flush_at_exit=True):
+	def __init__(self, input_path=None, output_path=None, cwd=None, logger=None, doxygen_path=None, flush_at_exit=True):
 		self.__logger = logger
 		self.__dirty = True
 		self.__text = ''
 		self.__autoflush = bool(flush_at_exit)
 
-		# the path of the actual doxyfile
-		self.path = coerce_path(doxyfile_path).resolve()
-
-		# the working directory for doxygen invocations
+		# doxygen
 		self.__cwd = Path.cwd() if cwd is None else coerce_path(cwd).resolve()
 		assert_existing_directory(self.__cwd)
-
-		# doxygen itself
 		self.__doxygen = r'doxygen' if doxygen_path is None else coerce_path(doxygen_path)
 
+		# the input + output
+		self.__input_path = input_path
+		if self.__input_path is not None:
+			self.__input_path = coerce_path(self.__input_path)
+		self.__output_path = output_path
+		if self.__output_path is not None:
+			self.__output_path = coerce_path(self.__output_path)
+
 		# read in doxyfile
-		if self.path.exists():
-			if not self.path.is_file():
-				raise Error(f'{self.path} was not a file')
-			self.__text = read_all_text_from_file(self.path, logger=self.__logger).strip()
+		if self.__input_path is not None:
+			if not self.__input_path.is_file():
+				raise Error(rf'{self.__input_path} was not a file')
+			self.__text = read_all_text_from_file(self.__input_path, logger=self.__logger).strip()
 			self.cleanup()  # expands includes
 
 		# ...or generate one
@@ -129,9 +132,10 @@ class Doxyfile(object):
 
 	def flush(self):
 		self.cleanup()
-		log(self.__logger, rf'Writing {self.path}')
-		with open(self.path, 'w', encoding='utf-8', newline='\n') as f:
-			print(self.__text, file=f)
+		if self.__output_path is not None:
+			log(self.__logger, rf'Writing {self.__output_path}')
+			with open(self.__output_path, 'w', encoding='utf-8', newline='\n') as f:
+				print(self.__text, file=f)
 
 	def hash(self):
 		return sha1(self.__text)
@@ -180,7 +184,7 @@ class Doxyfile(object):
 		return self
 
 	def set_value(self, key, value=None):
-		if isinstance(value, (list, tuple, set)):
+		if value is not None and isinstance(value, (list, tuple, set)):
 			if not value:
 				self.append(rf'{key:<23}=')
 			else:

@@ -1783,7 +1783,7 @@ li:last-child > figure.m-figure:last-child, li:last-child > figure.m-figure.m-no
 li:last-child > div.m-math:last-child, li:last-child > div.m-math.m-nopadb,
 li:last-child > div.m-graph:last-child, li:last-child > div.m-graph.m-nopadb,
 li:last-child > div.m-plot:last-child, li:last-child > div.m-plot.m-nopadb { margin-bottom: 0; }
-/*==== poxy-m-special.css ============================================================================================*/
+/*==== m-special.css =================================================================================================*/
 .m-special a { color: var(--special-color); }
 .m-special a:hover,
 .m-special a:focus,
@@ -2680,14 +2680,16 @@ h5:last-child,
 h6:last-child { margin-bottom: 0.0rem; }
 .m-doc-details table img.m-image { margin-left: inherit; }
 @media screen and (min-width: 1350px) and (min-height: 900px) {
+ :root { --wide-page-left-offset: -160px; }
  .poxy-toc {
  position: fixed;
- top: 9rem;
- left: calc(50% + 430px);
+ top: 8rem;
+ left: calc(50% + 470px + var(--wide-page-left-offset));
  min-width: 200px;
  z-index: 5;
  margin: 0px 20px 0px 0px !important;
  }
+ .m-container > .m-row { margin-left: var(--wide-page-left-offset); margin-right: calc(var(--wide-page-left-offset) * -1); }
 }
 .m-block.m-dim pre.m-code,
 .m-note.m-dim pre.m-code { opacity: 0.85; }
@@ -2714,6 +2716,7 @@ ul.m-doc > li.m-doc-collapsible li { color: var(--dim-link-color) !important; }
 pre.poxy-impl,
 code.poxy-impl { color: var(--code-color-comments) !important; }
 pre.m-code + pre.m-console { margin-top: -1.0rem; font-size: 0.8rem; }
+.m-note pre.m-code + pre.m-console { color: var(--console-color); background-color: var(--console-background-color); }
 pre.m-code + pre.m-console span { color: #bababa; }
 .m-code .kt,
 .m-code .k,

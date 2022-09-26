@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8"/>
+  <title></title>
+  <link href="favicon-dark.png" rel="icon" type="image/png"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta content="#22272e" name="theme-color"/>
+  <link href="../generated/poxy.css" referrerpolicy="no-referrer" rel="stylesheet"/>
+  <script src="../poxy.js"></script>
+  <script>initialize_theme("dark");</script>
+  <meta content="telephone=no" name="format-detection"/>
+  <meta content="Poxy v0.8.0" name="generator"/>
+  <meta content="strict-origin-when-cross-origin" name="referrer"/>
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a class="m-col-t-8 m-col-m-none m-left-m" href="index.html" id="m-navbar-brand">
+        ABC <span class="m-thin">Pretend this is documentation.</span>
+      </a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a class="m-doc-search-icon" href="#search" onclick="return showSearch()" title="Search"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z" id="m-doc-search-icon-path"></path>
+        </svg></a>
+        <a href="#navigation" id="m-navbar-show" title="Show navigation"></a>
+        <a href="#" id="m-navbar-hide" title="Hide navigation"></a>
+      </div>
+      <div class="m-col-t-12 m-show-m m-col-m-none m-right-m" id="m-navbar-collapse">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="#">These</a></li>
+            <li><a href="#">Links</a></li>
+            <li><a href="#">Are</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="4">
+            <li><a href="#">Fake</a></li>
+            <li><a class="poxy-icon theme" href="#poxy-theme-switch" id="poxy-theme-switch" onclick="toggle_theme();" title="Toggle dark and light themes"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+	<circle cx="185.6708" cy="183.8122" fill="currentColor" r="65.625"></circle>
+	<path d="M185.6708,87.5622a13.1256,13.1256,0,0,0,13.125-13.125V52.5622a13.125,13.125,0,1,0-26.25,0v21.875A13.1257,13.1257,0,0,0,185.6708,87.5622Z" fill="currentColor"></path>
+	<path d="M99.051,115.7519a13.1236,13.1236,0,1,0,18.56-18.56L102.1442,81.726a13.1236,13.1236,0,0,0-18.5595,18.56Z" fill="currentColor"></path>
+	<path d="M89.4208,183.8122a13.1257,13.1257,0,0,0-13.125-13.125H54.4208a13.125,13.125,0,0,0,0,26.25h21.875A13.1256,13.1256,0,0,0,89.4208,183.8122Z" fill="currentColor"></path>
+	<path d="M99.051,251.8725,83.5847,267.3431a13.1236,13.1236,0,1,0,18.56,18.56l15.4663-15.4706a13.1236,13.1236,0,1,0-18.5595-18.56Z" fill="currentColor"></path>
+	<path d="M185.6708,280.0622a13.1258,13.1258,0,0,0-13.125,13.125v21.875a13.125,13.125,0,0,0,26.25,0v-21.875A13.1257,13.1257,0,0,0,185.6708,280.0622Z" fill="currentColor"></path>
+	<path d="M272.2907,251.8725a13.1236,13.1236,0,1,0-18.56,18.56l15.4663,15.4706a13.1236,13.1236,0,1,0,18.56-18.56Z" fill="currentColor"></path>
+	<path d="M330.0458,183.8122a13.1257,13.1257,0,0,0-13.125-13.125h-21.875a13.125,13.125,0,0,0,0,26.25h21.875A13.1256,13.1256,0,0,0,330.0458,183.8122Z" fill="currentColor"></path>
+	<path d="M263.0109,119.5971a13.0824,13.0824,0,0,0,9.28-3.8452l15.4663-15.4663a13.1236,13.1236,0,1,0-18.56-18.56L253.7312,97.1923a13.125,13.125,0,0,0,9.28,22.4048Z" fill="currentColor"></path>
+	<path d="M456.9379,401.6714a63.97,63.97,0,0,1-14.9963,7.2055c-19.6448,6.5283-41.8787,2.9566-58.1439-9.8523a68.9311,68.9311,0,0,1-10.835-10.8339c-12.8088-16.2663-16.3806-38.5-9.8523-58.1471a63.8444,63.8444,0,0,1,7.2077-14.9931,8.8036,8.8036,0,0,0-10.1172-13.3034,87.5188,87.5188,0,1,0,110.0372,110.04A8.8,8.8,0,0,0,456.9379,401.6714Z" fill="currentColor"></path>
+</svg>
+</a></li>
+            <li class="m-show-m"><a class="m-doc-search-icon" href="#search" onclick="return showSearch()" title="Search"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <use href="#m-doc-search-icon-path"></use>
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<!-- m.css test content starts here -->
+<main>
+<article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb">
+            <a href="#">CSS</a> &raquo;
+            <a href="#">Components</a> &raquo;
+          </span>
+          Test
+        </h1>
+<!-- content -->
+<nav class="m-block m-default poxy-toc">
+<h3>Contents</h3>
+<ul>
+<li><a href="#blocks" id="id1">Blocks</a></li>
+<li><a href="#badge" id="id2">Badge</a></li>
+<li><a href="#notes-frame" id="id3">Notes, frame</a></li>
+<li><a href="#blocks-notes-with-a-link" id="id4">Blocks, notes with a link</a></li>
+<li><a href="#labels" id="id5">La&shy;bels</a></li>
+<li><a href="#tables" id="id6">Tables</a><ul>
+<li><a href="#table-with-paragraphs" id="id7">Table with para&shy;graphs</a></li>
+<li><a href="#big-tables" id="id8">“Big” tables</a></li>
+</ul>
+</li>
+<li><a href="#images" id="id9">Im&shy;ages</a></li>
+<li><a href="#figures" id="id10">Fig&shy;ures</a></li>
+<li><a href="#image-grid" id="id11">Im&shy;age grid</a></li>
+<li><a href="#code-in-colored-notes" id="id12">Code in colored notes</a></li>
+<li><a href="#code-figure" id="id13">Code fig&shy;ure</a></li>
+<li><a href="#list-with-components-inside" id="id14">List with com&shy;pon&shy;ents in&shy;side</a></li>
+<li><a href="#floating-around" id="id15">Float&shy;ing around</a></li>
+<li><a href="#floating-around-inflated" id="id16">Float&shy;ing around, in&shy;flated</a></li>
+<li><a href="#mainpage-example-parsing-strings" id="id17">toml++: Parsing strings and iostreams</a></li>
+<li><a href="#function-documentation" id="id18">toml++: Function documentation</a></li>
+</ul>
+</nav>
+<section id="blocks">
+<h2><a href="#id1">Blocks</a></h2>
+<p>Dif&shy;fer&shy;ent <code class="m-code"><span class="p">&lt;</span><span class="nt">h</span><span class="err">*</span><span class="p">&gt;</span></code> tags, the styl&shy;ing should be pre&shy;served across all sizes.</p>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-default">
+      <h3>Default block h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-default">
+      <h4>Default block h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-default">
+      <h5>Default block h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-default">
+      <h6>Default block h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-primary">
+      <h3>Primary block h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-primary">
+      <h4>Primary block h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-primary">
+      <h5>Primary block h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-primary">
+      <h6>Primary block h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-success">
+      <h3>Success block h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-success">
+      <h4>Success block h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-success">
+      <h5>Success block h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-success">
+      <h6>Success block h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-warning">
+      <h3>Warning block h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-warning">
+      <h4>Warning block h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-warning">
+      <h5>Warning block h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-warning">
+      <h6>Warning block h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-danger">
+      <h3>Danger block h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-danger">
+      <h4>Danger block h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-danger">
+      <h5>Danger block h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-danger">
+      <h6>Danger block h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-info">
+      <h3>Info block h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-info">
+      <h4>Info block h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-info">
+      <h5>Info block h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-info">
+      <h6>Info block h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-special">
+      <h3>Special block h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-special">
+      <h4>Special block h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-special">
+      <h5>Special block h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-special">
+      <h6>Special block h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-dim">
+      <h3>Dim block h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-dim">
+      <h4>Dim block h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-dim">
+      <h5>Dim block h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-dim">
+      <h6>Dim block h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+</section>
+<section id="badge">
+<h2><a href="#id2">Badge</a></h2>
+<p>Badge with lots of text and less text:</p>
+<div class="m-block m-badge m-primary">
+  <img src="author.jpg" alt="The Author" />
+  <h3>About the author</h3>
+  <p><a href="#">The Author</a> is lorem ipsum dolor sit amet, consectetur
+  adipiscing elit. Aenean id elit posuere, consectetur magna congue,
+  sagittis est. Pellentesque est neque, aliquet nec consectetur in, mattis
+  ac diam. Aliquam placerat justo ut purus interdum, ac placerat lacus
+  consequat. Mauris id suscipit mauris, in scelerisque lectus.</p>
+</div>
+
+<div class="m-block m-badge m-dim">
+  <img src="author.jpg" alt="The Author" />
+  <h3>About the author</h3>
+  <p><a href="#">The Author</a> is lorem ipsum dolor sit amet, consectetur
+  adipiscing elit.</p>
+</div></section>
+<section id="notes-frame">
+<h2><a href="#id3">Notes, frame</a></h2>
+<p>Dif&shy;fer&shy;ent <code class="m-code"><span class="p">&lt;</span><span class="nt">h</span><span class="err">*</span><span class="p">&gt;</span></code> tags.</p>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-default">
+      <h3>Default note h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-default">
+      <h4>Default note h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-default">
+      <h5>Default note h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-default">
+      <h6>Default note h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-primary">
+      <h3>Primary note h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-primary">
+      <h4>Primary note h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-primary">
+      <h5>Primary note h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-primary">
+      <h6>Primary note h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-success">
+      <h3>Success note h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-success">
+      <h4>Success note h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-success">
+      <h5>Success note h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-success">
+      <h6>Success note h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-warning">
+      <h3>Warning note h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-warning">
+      <h4>Warning note h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-warning">
+      <h5>Warning note h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-warning">
+      <h6>Warning note h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-danger">
+      <h3>Danger note h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-danger">
+      <h4>Danger note h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-danger">
+      <h5>Danger note h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-danger">
+      <h6>Danger note h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-info">
+      <h3>Info note h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-info">
+      <h4>Info note h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-info">
+      <h5>Info note h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-info">
+      <h6>Info note h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-special">
+      <h3>Special note h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-special">
+      <h4>Special note h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-special">
+      <h5>Special note h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-special">
+      <h6>Special note h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-dim">
+      <h3>Dim note h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-dim">
+      <h4>Dim note h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-dim">
+      <h5>Dim note h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-dim">
+      <h6>Dim note h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-frame">
+      <h3>Frame h3</h3>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-frame">
+      <h4>Frame h4</h4>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-frame">
+      <h5>Frame h5</h5>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-frame">
+      <h6>Frame h6</h6>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. <a href="#">Link.</a>
+    </div>
+  </div>
+</div></section>
+<section id="blocks-notes-with-a-link">
+<h2><a href="#id4">Blocks, notes with a link</a></h2>
+<p>Dif&shy;fer&shy;ent <code class="m-code"><span class="p">&lt;</span><span class="nt">h</span><span class="err">*</span><span class="p">&gt;</span></code> tags.</p>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-default">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-primary">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-success">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-warning">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-danger">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-info">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-special">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-note m-dim">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-default">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-primary">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-success">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-warning">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-danger">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-info">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+  <div class="m-clearfix-s"></div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-special">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <div class="m-block m-dim">
+      <h3><a href="#">Header link</a></h3>
+      Lorem ipsum dolor sit amet. <a href="#">Text link.</a>
+    </div>
+  </div>
+</div></section>
+<section id="labels">
+<h2><a href="#id5">Labels</a></h2>
+<p>They should have prop&shy;er ver&shy;tic&shy;al align&shy;ment.</p>
+<h1>Heading 1 <span class="m-label m-default">label</span> <span class="m-label m-dim">label</span></h1>
+<h2>Heading 2 <span class="m-label m-primary">label</span> <span class="m-label m-flat m-default">flat</span></h2>
+<h3>Heading 3 <span class="m-label m-success">label</span> <span class="m-label m-flat m-primary">flat</span></h3>
+<h4>Heading 4 <span class="m-label m-warning">label</span> <span class="m-label m-flat m-success">flat</span></h4>
+<h5>Heading 5 <span class="m-label m-danger">label</span> <span class="m-label m-flat m-warning">flat</span></h5>
+<h6>Heading 6 <span class="m-label m-info">label</span> <span class="m-label m-flat m-danger">flat</span></h6>
+
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. <span class="m-label m-primary">label</span> <span class="m-label m-flat m-info">flat</span> Vivamus ultrices a erat eu suscipit. Aliquam pharetra imperdiet tortor sed vehicula.</p>
+
+<p class="m-text m-big">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices <span class="m-label m-success">label</span> <span class="m-label m-flat m-dim">flat</span> a erat eu suscipit. Aliquam pharetra imperdiet tortor sed vehicula.</p>
+
+<p class="m-text m-small">Lorem ipsum dolor sit amet,  <span class="m-label m-warning">label</span> <span class="m-label m-flat m-info">flat</span> consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. Aliquam pharetra imperdiet tortor sed vehicula.</p></section>
+<section id="tables">
+<h2><a href="#id6">Tables</a></h2>
+<table class="m-table m-flat">
+  <caption>Flat table (w/o hover effect)</caption>
+  <tr>
+    <th scope="row">1</th>
+    <td>Cell</td>
+    <td>Second cell</td>
+  </tr>
+  <tr>
+    <th scope="row">2</th>
+    <td>2nd row cell</td>
+    <td>2nd row 2nd cell</td>
+  </tr>
+</table>
+<div class="m-scroll"><table class="m-table m-fullwidth">
+  <caption>Full-width table</caption>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Heading text</th>
+      <th>Heading text</th>
+      <th>Heading text</th>
+      <th>Heading text</th>
+      <th>Heading text</th>
+      <th>Heading text</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">1</th>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+    </tr>
+    <tr>
+      <th scope="row">2</th>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+    </tr>
+    <tr>
+      <th scope="row">3</th>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+      <td>Cell contents</td>
+    </tr>
+  </tbody>
+</table></div>
+<div class="m-scroll"><table class="m-table m-center-t">
+  <tbody>
+    <tr class="m-default">
+      <th>Default row</th>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td>amet</td>
+      <td><a href="#">Link</a></td>
+    </tr>
+    <tr class="m-primary">
+      <th>Primary row</th>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td>amet</td>
+      <td><a href="#">Link</a></td>
+    </tr>
+    <tr class="m-success">
+      <th>Success row</th>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td>amet</td>
+      <td><a href="#">Link</a></td>
+    </tr>
+    <tr class="m-warning">
+      <th>Warning row</th>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td>amet</td>
+      <td><a href="#">Link</a></td>
+    </tr>
+    <tr class="m-danger">
+      <th>Danger row</th>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td>amet</td>
+      <td><a href="#">Link</a></td>
+    </tr>
+    <tr class="m-info">
+      <th>Info row</th>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td>amet</td>
+      <td><a href="#">Link</a></td>
+    </tr>
+    <tr class="m-special">
+      <th>Special row</th>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td>amet</td>
+      <td><a href="#">Link</a></td>
+    </tr>
+    <tr class="m-dim">
+      <th>Dim row</th>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td>amet</td>
+      <td><a href="#">Link</a></td>
+    </tr>
+    <tr>
+      <td class="m-default">Default cell</td>
+      <td class="m-default"><a href="#">Link</a></td>
+      <td class="m-default">Lorem</td>
+      <td class="m-default">ipsum</td>
+      <td class="m-default">dolor</td>
+      <td class="m-default">sit</td>
+      <td class="m-default">amet</td>
+    </tr>
+    <tr>
+      <td class="m-primary">Primary cell</td>
+      <td class="m-primary"><a href="#">Link</a></td>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td>amet</td>
+    </tr>
+    <tr>
+      <td class="m-default">Lorem</td>
+      <td class="m-success">Success cell</td>
+      <td class="m-success"><a href="#">Link</a></td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td>amet</td>
+    </tr>
+    <tr>
+      <td>Lorem</td>
+      <td class="m-default">ipsum</td>
+      <td class="m-warning">Warning cell</td>
+      <td class="m-warning"><a href="#">Link</a></td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td>amet</td>
+    </tr>
+    <tr>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td class="m-default">dolor</td>
+      <td class="m-danger">Danger cell</td>
+      <td class="m-danger"><a href="#">Link</a></td>
+      <td>sit</td>
+      <td>amet</td>
+    </tr>
+    <tr>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td class="m-default">sit</td>
+      <td class="m-info">Info cell</td>
+      <td class="m-info"><a href="#">Link</a></td>
+      <td>amet</td>
+    </tr>
+    <tr>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td class="m-special">Special cell</td>
+      <td class="m-special"><a href="#">Link</a></td>
+      <td>amet</td>
+    </tr>
+    <tr>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td class="m-default">amet</td>
+      <td class="m-dim">Dim cell</td>
+      <td class="m-dim"><a href="#">Link</a></td>
+    </tr>
+    <tr>
+      <th class="m-default">Default header</th>
+      <td class="m-default"><a href="#">Link</a></td>
+      <td class="m-default">Lorem</td>
+      <td class="m-default">ipsum</td>
+      <td class="m-default">dolor</td>
+      <td class="m-default">sit</td>
+      <td class="m-default">amet</td>
+    </tr>
+    <tr>
+      <th class="m-primary">Primary header</th>
+      <td class="m-primary"><a href="#">Link</a></td>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td>amet</td>
+    </tr>
+    <tr>
+      <td class="m-default">Lorem</td>
+      <th class="m-success">Success header</th>
+      <td class="m-success"><a href="#">Link</a></td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td>amet</td>
+    </tr>
+    <tr>
+      <td>Lorem</td>
+      <td class="m-default">ipsum</td>
+      <th class="m-warning">Warning header</th>
+      <td class="m-warning"><a href="#">Link</a></td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td>amet</td>
+    </tr>
+    <tr>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td class="m-default">dolor</td>
+      <th class="m-danger">Danger header</th>
+      <td class="m-danger"><a href="#">Link</a></td>
+      <td>sit</td>
+      <td>amet</td>
+    </tr>
+    <tr>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td class="m-default">sit</td>
+      <th class="m-info">Info header</th>
+      <td class="m-info"><a href="#">Link</a></td>
+      <td>amet</td>
+    </tr>
+    <tr>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <th class="m-special">Special header</th>
+      <td class="m-special"><a href="#">Link</a></td>
+      <td>amet</td>
+    </tr>
+    <tr>
+      <td>Lorem</td>
+      <td>ipsum</td>
+      <td>dolor</td>
+      <td>sit</td>
+      <td class="m-default">amet</td>
+      <th class="m-dim">Dim header</th>
+      <td class="m-dim"><a href="#">Link</a></td>
+    </tr>
+  </tbody>
+</table><section id="table-with-paragraphs">
+<h3><a href="#id7">Table with paragraphs</a></h3>
+<table class="m-table">
+  <tr>
+    <td>
+      <p>A paragraph. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit.</p>
+      <p>A second paragraph.</p>
+    </td>
+    <td>
+      <p>Another.</p>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <p>Another. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit.</p>
+    </td>
+    <td>
+      <p>A paragraph.</p>
+      <p>A second paragraph.</p>
+    </td>
+  </tr>
+</table></section>
+<section id="big-tables">
+<h3><a href="#big-tables">“Big” tables</a></h3>
+<table class="m-table m-flat m-big">
+   <thead>
+     <tr>
+       <th></th>
+       <th class="m-text-center m-text m-big m-thin">Community<br />edition</th>
+       <th class="m-text-center m-text m-big"><div class="m-text m-success">Premium<br />support</div></th>
+     </tr>
+   </thead>
+   <tbody>
+     <tr>
+       <td class="m-text-right"><span class="m-text m-dim">Support</span></td>
+       <td class="m-text-center">Community-based</td>
+       <td class="m-text-center"><strong class="m-text m-success">Guaranteed<br />response time</strong></td>
+     </tr>
+     <tr>
+       <td class="m-text-right"><span class="m-text m-dim">Commercial use</span></td>
+       <td class="m-text-center"><strong>Yes</strong><br /><span class="m-text m-small m-dim">MIT license</span></td>
+       <td class="m-text-center"><div class="m-text m-success"><strong>Yes</strong><br /><span class="m-text m-small m-dim">MIT license</span></div></td>
+     </tr>
+   </tbody>
+   <tfoot>
+     <tr>
+       <td class="m-text-right m-text-middle"><span class="m-text m-dim">Price</span></td>
+       <td><div class="m-button m-flat m-fullwidth">
+         <a href="#">
+           <div class="m-big">Free</div>
+           <div class="m-small">Get started</div>
+         </a>
+       </div></td>
+       <td><div class="m-button m-success m-fullwidth">
+         <a href="#">
+           <div class="m-big">Contact us</div>
+           <div class="m-small">big.boss@the.brand</div>
+         </a>
+       </div></td>
+     </tr>
+   </tfoot>
+ </table></section>
+</section>
+<section id="images">
+<h2><a href="#id9">Images</a></h2>
+<p>Im&shy;age, centered:</p>
+<img src="flowers-small.jpg" class="m-image" /><p>Im&shy;age, centered, link:</p>
+<div class="m-image">
+  <a href="#"><img src="flowers-small.jpg" /></a>
+</div><p>Im&shy;age, full&shy;width (yes, it should be pixelated):</p>
+<img src="flowers-small.jpg" class="m-image m-fullwidth" /><p>Im&shy;age, full&shy;width, link (yes, it should be pixelated):</p>
+<div class="m-image m-fullwidth">
+  <a href="#"><img src="flowers-small.jpg" /></a>
+</div><p>SVG im&shy;age:</p>
+<svg class="m-image" width="80" height="80">
+  <text x="16" y="40" style="text-anchor: middle; fill: #ff0000">Hello</text>
+</svg><p>SVG im&shy;age, full&shy;width, with link in&shy;side:</p>
+<svg width="80" height="80" class="m-image m-fullwidth">
+  <a xlink:href="#"><text x="16" y="40" style="text-anchor: middle; fill: #ff0000">Hello</text></a>
+</svg><p>SVG im&shy;age, full&shy;width, with link out&shy;side:</p>
+<div class="m-image m-fullwidth">
+  <a href="#">
+    <svg width="80" height="80">
+      <text x="16" y="40" style="text-anchor: middle; fill: #ff0000">Hello</text>
+    </svg>
+  </a>
+</div><p>Badge:</p>
+<img src="author.jpg" class="m-image m-badge"><p>Badge, with a link:</p>
+<div class="m-image m-badge">
+  <a href="http://github.com/marzer"><img src="author.jpg" /></a>
+</div></section>
+<section id="figures">
+<h2><a href="#id10">Figures</a></h2>
+<p>Fig&shy;ure, centered:</p>
+<figure class="m-figure">
+  <img src="ship-small.jpg" />
+  <figcaption>
+    A Ship
+    <div class="m-figure-description">
+      Photo © <a href="http://blog.mosra.cz/">The Photogapher</a>
+    </div>
+  </figcaption>
+</figure><p>Fig&shy;ure, centered, im&shy;age link, flat:</p>
+<figure class="m-figure m-flat">
+  <a href="http://blog.mosra.cz/"><img src="ship-small.jpg" /></a>
+  <figcaption>
+    A Ship
+    <div class="m-figure-description">
+      Photo © <a href="http://blog.mosra.cz/">The Photogapher</a>
+    </div>
+  </figcaption>
+</figure><p>Fig&shy;ure, full&shy;width, without de&shy;scrip&shy;tion (yes, it should be pixelated):</p>
+<figure class="m-figure m-fullwidth">
+  <img src="ship-small.jpg" />
+  <figcaption>A Ship</figcaption>
+</figure><p>Fig&shy;ure, full&shy;width, with a long cap&shy;tion and de&shy;scrip&shy;tion, there should be no
+un&shy;ne&shy;ces&shy;sary wrap&shy;ping of the text:</p>
+<figure class="m-figure m-fullwidth">
+  <img src="ship-small.jpg" />
+  <figcaption>
+    A Somewhat Lengthy Caption For A Photo
+    <div class="m-figure-description">
+      The Photo Displayed Above Was Kindly Taken And Allowed To Be Used On
+      This Page By <a href="http://blog.mosra.cz/">The Photogapher</a>. All
+      Rights Reserved.
+    </div>
+  </figcaption>
+</figure><p>Fig&shy;ure with a large im&shy;age but not full&shy;width, should look the same as above, no
+leak&shy;ing of the im&shy;age out&shy;side of the page:</p>
+<figure class="m-figure">
+  <img src="ship.jpg" />
+  <figcaption>
+    A Somewhat Lengthy Caption For A Photo
+    <div class="m-figure-description">
+      The Photo Displayed Above Was Kindly Taken And Allowed To Be Used On
+      This Page By <a href="http://blog.mosra.cz/">The Photogapher</a>. All
+      Rights Reserved.
+    </div>
+  </figcaption>
+</figure><p>Fig&shy;ure with a long cap&shy;tion and de&shy;scrip&shy;tion, then just a cap&shy;tion (it should wrap
+in&shy;stead of ex&shy;tend&shy;ing the bor&shy;der and there should be prop&shy;er pad&shy;ding on bot&shy;tom):</p>
+<figure class="m-figure">
+  <img src="ship-small.jpg" />
+  <figcaption>
+    A Somewhat Lengthy Caption For A Photo
+    <div class="m-figure-description">
+      The Photo Displayed Above Was Kindly Taken And Allowed To Be Used On
+      This Page By <a href="http://blog.mosra.cz/">The Photogapher</a>. All
+      Rights Reserved.
+    </div>
+  </figcaption>
+</figure><figure class="m-figure">
+  <img src="ship-small.jpg" />
+  <figcaption>A Somewhat Lengthy Caption For A Photo</figcaption>
+</figure><p>Fig&shy;ures of vary&shy;ing col&shy;ors:</p>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <figure class="m-figure m-default">
+      <img src="ship-small.jpg" />
+      <figcaption>
+        Default figure
+        <div class="m-figure-description">Text.</div>
+      </figcaption>
+    </figure>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <figure class="m-figure m-primary">
+      <img src="ship-small.jpg" />
+      <figcaption>
+        Primary figure
+        <div class="m-figure-description">Text.</div>
+      </figcaption>
+    </figure>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <figure class="m-figure m-success">
+      <img src="ship-small.jpg" />
+      <figcaption>
+        Success figure
+        <div class="m-figure-description">Text.</div>
+      </figcaption>
+    </figure>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <figure class="m-figure m-warning">
+      <img src="ship-small.jpg" />
+      <figcaption>
+        Warning figure
+        <div class="m-figure-description">Text.</div>
+      </figcaption>
+    </figure>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-3 m-col-s-6">
+    <figure class="m-figure m-danger">
+      <img src="ship-small.jpg" />
+      <figcaption>
+        Danger figure
+        <div class="m-figure-description">Text.</div>
+      </figcaption>
+    </figure>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <figure class="m-figure m-info">
+      <img src="ship-small.jpg" />
+      <figcaption>
+        Info figure
+        <div class="m-figure-description">Text.</div>
+      </figcaption>
+    </figure>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <figure class="m-figure m-special">
+      <img src="ship-small.jpg" />
+      <figcaption>
+        Special figure
+        <div class="m-figure-description">Text.</div>
+      </figcaption>
+    </figure>
+  </div>
+  <div class="m-col-m-3 m-col-s-6">
+    <figure class="m-figure m-dim">
+      <img src="ship-small.jpg" />
+      <figcaption>
+        Dim figure
+        <div class="m-figure-description">Text.</div>
+      </figcaption>
+    </figure>
+  </div>
+</div></section>
+<section id="image-grid">
+<h2><a href="#id11">Image grid</a></h2>
+<p>Without the link:</p>
+<div class="m-imagegrid m-container-inflate">
+  <div>
+    <figure style="width: 69.127%">
+      <img src="ship.jpg" />
+      <figcaption>F9.0, 1/250 s, ISO 100</figcaption>
+    </figure>
+    <figure style="width: 30.873%">
+      <img src="flowers.jpg" />
+      <figcaption>F2.8, 1/1600 s, ISO 100</figcaption>
+    </figure>
+  </div>
+</div><p>With link, without cap&shy;tion, not in&shy;flated:</p>
+<div class="m-imagegrid">
+  <div>
+    <figure style="width: 30.873%">
+      <a href="flowers.jpg">
+        <img src="flowers.jpg" />
+        <div></div>
+      </a>
+    </figure>
+    <figure style="width: 69.127%">
+      <a href="ship.jpg">
+        <img src="ship.jpg" />
+        <div></div>
+      </a>
+    </figure>
+  </div>
+</div><p>Without link or cap&shy;tion:</p>
+<div class="m-imagegrid m-container-inflate">
+  <div>
+    <figure style="width: 69.127%">
+      <img src="ship.jpg" />
+      <div></div>
+    </figure>
+    <figure style="width: 30.873%">
+      <img src="flowers.jpg" />
+      <div></div>
+    </figure>
+  </div>
+</div></section>
+<section id="code-in-colored-notes">
+<h2><a href="#code-in-colored-notes">Code in colored notes</a></h2>
+<div class="m-row">
+  <div class="m-col-m-6 m-col-s-12">
+    <div class="m-note m-default">
+      <p>Inline <code>code</code> in default note.</p>
+      <pre>and block code</pre>
+    </div>
+  </div>
+  <div class="m-col-m-6 m-col-s-12">
+    <div class="m-note m-primary">
+      <p>Inline <code>code</code> in primary note.</p>
+      <pre>and block code</pre>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-6 m-col-s-12">
+    <div class="m-note m-success">
+      <p>Inline <code>code</code> in success note.</p>
+      <pre>and block code</pre>
+    </div>
+  </div>
+  <div class="m-col-m-6 m-col-s-12">
+    <div class="m-note m-warning">
+      <p>Inline <code>code</code> in warning note.</p>
+      <pre>and block code</pre>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-6 m-col-s-12">
+    <div class="m-note m-danger">
+      <p>Inline <code>code</code> in danger note.</p>
+      <pre>and block code</pre>
+    </div>
+  </div>
+  <div class="m-col-m-6 m-col-s-12">
+    <div class="m-note m-info">
+      <p>Inline <code>code</code> in info note.</p>
+      <pre>and block code</pre>
+    </div>
+  </div>
+</div>
+<div class="m-row">
+  <div class="m-col-m-6 m-col-s-12">
+    <div class="m-note m-special">
+      <p>Inline <code>code</code> in special note.</p>
+      <pre>and block code</pre>
+    </div>
+  </div>
+  <div class="m-col-m-6 m-col-s-12">
+    <div class="m-note m-dim">
+      <p>Inline <code>code</code> in dim note.</p>
+      <pre>and block code</pre>
+    </div>
+  </div>
+</div>
+</section>
+<section id="code-figure">
+<h2><a href="#code-figure">Code fig&shy;ure</a></h2>
+<p>A flat code fig&shy;ure:</p>
+<figure class="m-code-figure m-flat">
+    <pre>Some
+    code
+snippet</pre>
+    And a resulting output.
+</figure><p>A code fig&shy;ure with <code class="m-code"><span class="p">&lt;</span><span class="nt">pre</span><span class="p">&gt;</span></code> in de&shy;scrip&shy;tion. Ac&shy;tiv&shy;at&shy;ing the sec&shy;tion head&shy;er
+should not af&shy;fect it.</p>
+<figure class="m-code-figure">
+    <pre>Some
+    code
+snippet</pre>
+    <pre>And a resulting output.</pre>
+</figure><p>Code fig&shy;ure with a “no&shy;pad” con&shy;sole out&shy;put in&shy;side:</p>
+<figure class="m-code-figure">
+    <pre class="m-code">Some
+    code
+snippet</pre>
+    <pre class="m-console m-nopad">And a resulting output.</pre>
+</figure><p>Con&shy;sole fig&shy;ure with a “no&shy;pad” code out&shy;put in&shy;side:</p>
+<figure class="m-console-figure">
+    <pre class="m-console">Some
+    console
+output</pre>
+    <pre class="m-code m-nopad">And the code that goes out.</pre>
+</figure><p>Con&shy;sole fig&shy;ure:</p>
+<figure class="m-console-figure">
+    <pre class="m-console">Some
+    console
+output</pre>
+    And a description of that illegal crackery that's done above.
+</figure></section>
+<section id="list-with-components-inside">
+<h2><a href="#id14">List with components inside</a></h2>
+<ul>
+  <li>
+    <p>A paragraph.</p>
+    <div class="m-note m-info">An info note.</div>
+  </li>
+  <li>
+    <div class="m-button m-primary"><a href="#">A button</a></div>
+  </li>
+  <li>
+    <p>Next item.</p>
+    <p>Next item next paragraph.</p>
+  </li>
+</ul>
+
+<p>Paragraph after.</p></section>
+<section id="floating-around">
+<h2><a href="#floating-around">Float&shy;ing around</a></h2>
+<p>Sim&shy;il&shy;ar to the <a href="https://mcss.mosra.cz/css/grid-test/#floating-around">grid test</a>, but
+with com&shy;pon&shy;ents.</p>
+<div class="m-note m-default">
+  Should have the background extended all the way to the sides on small
+  screens.
+</div>
+
+<div class="m-col-m-5 m-right-m">
+  <div class="m-note m-default">
+  <p>Should have no spacing on top/sides but on the bottom, extended to the
+  sides on tiny. Lorem ipsum dolor.</p>
+  </div>
+</div>
+
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean id
+elit posuere, consectetur magna congue, sagittis est. Pellentesque
+est neque, aliquet nec consectetur in, mattis ac diam. Aliquam
+placerat justo ut purus interdum, ac placerat lacus consequat. Ut dictum
+enim posuere metus porta, et aliquam ex condimentum. Proin sagittis nisi
+leo, ac pellentesque purus bibendum sit amet.</p>
+
+<div class="m-col-s-6 m-center-s">
+  <div class="m-note m-default">
+  <p>Should have spacing on sides but not on the bottom, extended to the
+  sides on tiny. Pellentesque est neque, aliquet nec consectetur.</p>
+  </div>
+</div></section>
+<section id="floating-around-inflated">
+<h2><a href="#floating-around-inflated">Float&shy;ing around, in&shy;flated</a></h2>
+<div class="m-container-inflate">
+  <div class="m-note m-default">
+  <p>Should be extended to both sides, have padding on bottom an on sides
+  the same as above. Lorem ipsum dolor sit amet, consectetur adipiscing
+  elit. Aenean id elit posuere, consectetur magna congue, sagittis est.
+  Pellentesque est neque, aliquet nec consectetur in, mattis ac diam.
+  Aliquam placerat justo ut purus interdum, ac placerat lacus
+  consequat.</p>
+  </div>
+</div>
+
+<div class="m-container-inflate m-col-l-4 m-right-l">
+  <div class="m-note m-default">
+  <p>Should be extended to the right, have padding on bottom an on the
+  right side the same as above. Lorem ipsum dolor.</p>
+  </div>
+</div>
+
+<div class="m-container-inflate m-col-l-4 m-left-l">
+  <div class="m-note m-default">
+  <p>Should be extended to the left, have padding on bottom an on the
+  outside the same as above. Lorem ipsum dolor.</p>
+  </div>
+</div>
+
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean id
+elit posuere, consectetur magna congue, sagittis est. Pellentesque
+est neque, aliquet nec consectetur in, mattis ac diam. Aliquam placerat
+justo ut purus interdum, ac placerat lacus consequat. Ut dictum enim
+posuere metus porta, et aliquam ex condimentum. Proin sagittis nisi leo, ac
+pellentesque purus bibendum sit amet. Aliquam placerat justo ut purus
+interdum, ac placerat lacus consequat. Ut dictum enim posuere metus porta,
+et aliquam ex condimentum. </p></section>
+<section id="mainpage-example-parsing-strings"><h3><a href="#mainpage-example-parsing-strings">Parsing strings and iostreams</a></h3><p>Call <a class="m-doc" href="namespacetoml.html#ada8654fb4ceef15c20fc1d5e0cc734dd">toml::<wbr>parse()</a> and work with the <a class="m-doc" href="classtoml_1_1table.html">toml::<wbr>table</a> you get back, or handle any <a class="m-doc" href="classtoml_1_1parse__error.html">toml::<wbr>parse_error</a> that gets thrown:</p><pre class="m-code"><p class="m-note m-success godbolt"><a class="poxy-external godbolt" href="https://godbolt.org/z/NsR-xf" target="_blank">Try this code on Compiler Explorer</a></p><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sstream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;toml++/toml.h&gt;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="o">::</span><span class="nn">string_view_literals</span><span class="p">;</span>
+
+<span class="k">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="nn">std</span><span class="o">::</span><span class="nc">string_view</span><span class="w"> </span><span class="n">some_toml</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sa">R</span><span class="s">"</span><span class="dl">(</span>
+<span class="s">        [library]</span>
+<span class="s">        name = "toml++"</span>
+<span class="s">        authors = ["Mark Gillard &lt;mark.gillard@outlook.com.au&gt;"]</span>
+<span class="s">        cpp = 17</span>
+<span class="s">    </span><span class="dl">)</span><span class="s">"</span><span class="sa">sv</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">try</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// parse directly from a string view:</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nn">toml</span><span class="o">::</span><span class="nc">table</span><span class="w"> </span><span class="n">tbl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">toml</span><span class="o">::</span><span class="n">parse</span><span class="p">(</span><span class="n">some_toml</span><span class="p">);</span>
+<span class="w">            </span><span class="nn">std</span><span class="o">::</span><span class="nc">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">tbl</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// parse from a string stream:</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nn">std</span><span class="o">::</span><span class="nc">stringstream</span><span class="w"> </span><span class="n">ss</span><span class="p">{</span><span class="w"> </span><span class="nn">std</span><span class="o">::</span><span class="nc">string</span><span class="p">{</span><span class="w"> </span><span class="n">some_toml</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">};</span>
+<span class="w">            </span><span class="nn">toml</span><span class="o">::</span><span class="nc">table</span><span class="w"> </span><span class="n">tbl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">toml</span><span class="o">::</span><span class="n">parse</span><span class="p">(</span><span class="n">ss</span><span class="p">);</span>
+<span class="w">            </span><span class="nn">std</span><span class="o">::</span><span class="nc">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">tbl</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="nn">toml</span><span class="o">::</span><span class="nc"><a class="m-doc poxy-injected" href="classtoml_1_1parse__error.html">parse_error</a></span><span class="o">&amp;</span><span class="w"> </span><span class="n">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nn">std</span><span class="o">::</span><span class="nc">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"Parsing failed:</span><span class="se">\n</span><span class="s">"</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span></pre><pre class="m-console"><span class="go">[library]</span>
+<span class="go">authors = [ 'Mark Gillard &lt;mark.gillard@outlook.com.au&gt;' ]</span>
+<span class="go">cpp = 17</span>
+<span class="go">name = 'toml++'</span>
+
+<span class="go">[library]</span>
+<span class="go">authors = [ 'Mark Gillard &lt;mark.gillard@outlook.com.au&gt;' ]</span>
+<span class="go">cpp = 17</span>
+<span class="go">name = 'toml++'</span></pre><aside class="m-note m-default"><h4>See also</h4><ul><li><a class="m-doc" href="namespacetoml.html#a8dbc58dad43c3b66f4476a7131f5741a">toml::<wbr>parse_file()</a></li><li><a class="m-doc" href="classtoml_1_1table.html">toml::<wbr>table</a></li><li><a class="m-doc" href="classtoml_1_1parse__error.html">toml::<wbr>parse_error</a></li></ul></aside></section>
+<section id="function-documentation">
+  <h2><a href="#function-documentation">Function documentation</a></h2>
+  <section class="m-doc-details" id="acb17a58f1fbdb12aeaf8f7d1e8093e5c"><div>
+    <h3>
+      <div class="m-doc-template">
+        template&lt;typename ElemType, typename... ElemTypes&gt;
+      </div>
+      <span class="m-doc-wrap-bumper"> toml::<wbr>array::<wbr></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a class="m-doc-self" href="#acb17a58f1fbdb12aeaf8f7d1e8093e5c">array</a>(</span><span class="m-doc-wrap">ElemType&amp;&amp; val,
+      ElemTypes &amp;&amp; ... vals) <span class="m-label m-info">explicit</span> </span></span>
+    </h3>
+    <p>Constructs an array with one or more initial elements.</p>
+    <table class="m-table m-fullwidth m-flat">
+      <thead>
+        <tr><th colspan="2">Template parameters</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="width: 1%">ElemType</td>
+          <td>One of the TOML node or value types (or a type promotable to one).</td>
+        </tr>
+        <tr>
+          <td>ElemTypes</td>
+          <td>One of the TOML node or value types (or a type promotable to one).</td>
+        </tr>
+      </tbody>
+      <thead>
+        <tr><th colspan="2">Parameters</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>val</td>
+          <td>The node or value used to initialize element 0.</td>
+        </tr>
+        <tr>
+          <td>vals</td>
+          <td>The nodes or values used to initialize elements 1...N.</td>
+        </tr>
+      </tbody>
+    </table>
+<pre class="m-code"><span class="k">auto</span><span class="w"> </span><span class="n">arr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">toml</span><span class="o">::</span><span class="nc">array</span><span class="p">{</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2.0</span><span class="p">,</span><span class="w"> </span><span class="s">"three"</span><span class="sa">sv</span><span class="p">,</span><span class="w"> </span><span class="nn">toml</span><span class="o">::</span><span class="nc">array</span><span class="p">{</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">};</span>
+<span class="nn">std</span><span class="o">::</span><span class="nc">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">arr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span></pre><pre class="m-console"><span class="go">[ 1, 2.0, 'three', [ 4, 5 ] ]</span></pre><aside class="m-note m-default"><h4>Remark</h4><div><p>If you need to construct an array with one child array element, the array's move constructor will take precedence and perform a move-construction instead. You can use <a class="m-doc" href="structtoml_1_1inserter.html">toml::<wbr>inserter</a> to suppress this behaviour:</p><pre class="m-code"><span class="c1">// desired result: [ [ 42 ] ]</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">bad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">toml</span><span class="o">::</span><span class="nc">array</span><span class="p">{</span><span class="w"> </span><span class="nn">toml</span><span class="o">::</span><span class="nc">array</span><span class="p">{</span><span class="w"> </span><span class="mi">42</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">good</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">toml</span><span class="o">::</span><span class="nc">array</span><span class="p">{</span><span class="w"> </span><span class="nn">toml</span><span class="o">::</span><span class="nc">inserter</span><span class="p">{</span><span class="w"> </span><span class="nn">toml</span><span class="o">::</span><span class="nc">array</span><span class="p">{</span><span class="w"> </span><span class="mi">42</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="nn">std</span><span class="o">::</span><span class="nc">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"bad: "</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">bad</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+<span class="nn">std</span><span class="o">::</span><span class="nc">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"good:"</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">good</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span></pre><pre class="m-console"><span class="go">bad:  [ 42 ]</span>
+<span class="go">good: [ [ 42 ] ]</span></pre></div></aside>
+  </div></section>
+
+</section>
+<!-- /content -->
+      </div>
+    </div>
+  </div>
+</article>
+</main>
+<!-- m.css test content ends here -->
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">…</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input autocomplete="off" autofocus="autofocus" disabled="disabled" id="search-input" name="q" placeholder="Loading …" spellcheck="false" type="search"/>
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div class="m-text m-dim m-text-center" id="search-help">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">↓</span>
+            / <span class="m-label m-dim">↑</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div class="m-text m-warning m-text-center" id="search-notfound">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search-v2.js"></script>
+<script async="async" src="searchdata-v2.js"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        
+<a download="" href="tagfile.xml" target="_blank" type="text/xml">Doxygen tagfile</a>
+<br/><br/>
+Site generated using <a class="poxy-external" href="https://github.com/marzer/poxy/" target="_blank">Poxy</a>
+
+      </div>
+    </div>
+  </div>
+</nav></footer>
+
+
+</body></html>

@@ -15,6 +15,7 @@ from schema import SchemaError
 from .utils import *
 from .run import run
 from . import css
+from . import dirs
 
 
 
@@ -55,7 +56,7 @@ def main(invoker=True):
 		r'config',
 		type=Path,
 		nargs='?',
-		default=Path('.'),
+		default=None,
 		help=r'path to poxy.toml or a directory containing it (default: %(default)s)'
 	)
 	args.add_argument(
@@ -128,12 +129,17 @@ def main(invoker=True):
 	# hidden developer-only arguments
 	#--------------------------------------------------------------
 	args.add_argument(
-		r'--regenerate_css',  #
+		r'--update-styles',  #
 		action=r'store_true',
 		help=argparse.SUPPRESS
 	)
 	args.add_argument(
-		r'--update_mcss',  #
+		r'--update-fonts',  #
+		action=r'store_true',
+		help=argparse.SUPPRESS
+	)
+	args.add_argument(
+		r'--update-mcss',  #
 		type=Path,
 		default=None,
 		metavar=r'<path>',
@@ -147,17 +153,18 @@ def main(invoker=True):
 		return
 
 	if args.mcss is not None:
+		args.update_styles = True
 		args.mcss = coerce_path(args.mcss).resolve()
 		assert_existing_directory(args.mcss)
 		assert_existing_file(Path(args.mcss, r'documentation/doxygen.py'))
-		if find_mcss_dir() == args.mcss:
+		if dirs.MCSS == args.mcss:
 			raise Exception(r'm.css source path may not be the same as the internal destination.')
-		if find_mcss_dir().exists():
-			delete_directory(find_mcss_dir(), logger=True)
+		if dirs.MCSS.exists():
+			delete_directory(dirs.MCSS, logger=True)
 		print(rf'Updating bundled m.css from {args.mcss}')
 		shutil.copytree(
 			args.mcss,
-			find_mcss_dir(),
+			dirs.MCSS,
 			symlinks=False,
 			dirs_exist_ok=True,
 			ignore=shutil.ignore_patterns(
@@ -186,14 +193,16 @@ def main(invoker=True):
 			r'plugins/m/test',
 			r'site',
 		):
-			delete_directory(Path(find_mcss_dir(), folder), logger=True)
-	assert_existing_directory(find_mcss_dir())
-	assert_existing_file(Path(find_mcss_dir(), r'documentation/doxygen.py'))
+			delete_directory(Path(dirs.MCSS, folder), logger=True)
+	assert_existing_directory(dirs.MCSS)
+	assert_existing_file(Path(dirs.MCSS, r'documentation/doxygen.py'))
 
-	if args.regenerate_css:
-		css.regenerate_builtin_styles()
+	if args.update_fonts:
+		args.update_styles = True
+	if args.update_styles:
+		css.regenerate_builtin_styles(use_cached_fonts=not args.update_fonts)
 
-	if args.regenerate_css or args.mcss is not None:
+	if args.update_styles or args.mcss is not None:
 		return
 
 	with ScopeTimer(r'All tasks', print_start=False, print_end=not args.dry) as timer:

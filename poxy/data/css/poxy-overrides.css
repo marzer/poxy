@@ -281,14 +281,23 @@ h6:last-child
 /* table of contents */
 @media screen and (min-width: 1350px) and (min-height: 900px)
 {
+	:root
+	{
+		--wide-page-left-offset: -160px;
+	}
 	.poxy-toc
 	{
 		position: fixed;
-		top: 9rem;
-		left: calc(50% + 430px);
+		top: 8rem;
+		left: calc(50% + 470px + var(--wide-page-left-offset));
 		min-width: 200px;
 		z-index: 5;
 		margin: 0px 20px 0px 0px !important;
+	}
+	.m-container > .m-row
+	{
+		margin-left: var(--wide-page-left-offset);
+		margin-right: calc(var(--wide-page-left-offset) * -1);
 	}
 }
 
@@ -362,6 +371,11 @@ pre.m-code + pre.m-console
 {
 	margin-top: -1.0rem;
 	font-size: 0.8rem;
+}
+.m-note pre.m-code + pre.m-console
+{
+	color: var(--console-color);
+	background-color: var(--console-background-color);
 }
 pre.m-code + pre.m-console span
 {

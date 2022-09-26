@@ -14,11 +14,11 @@ import threading
 import json
 import datetime
 import shutil
-import tempfile
 import itertools
 from schema import Schema, Or, And, Optional
 from .utils import *
 from . import repos
+from . import dirs
 
 #=======================================================================================================================
 # schemas
@@ -898,23 +898,20 @@ class Warnings(object):
 	}
 
 	def __init__(self, config):
-		self.enabled = None
-		self.treat_as_errors = None
-		self.undocumented = None
+		self.enabled = True
+		self.treat_as_errors = False
+		self.undocumented = False
 
-		if config is not None:
-			if 'warnings' not in config:
-				return
-			config = config['warnings']
+		if config is None or 'warnings' not in config:
+			return
 
-			if 'enabled' in config:
-				self.enabled = bool(config['enabled'])
-
-			if 'treat_as_errors' in config:
-				self.treat_as_errors = bool(config['treat_as_errors'])
-
-			if 'undocumented' in config:
-				self.undocumented = bool(config['undocumented'])
+		config = config['warnings']
+		if r'enabled' in config:
+			self.enabled = bool(config[r'enabled'])
+		if r'treat_as_errors' in config:
+			self.treat_as_errors = bool(config[r'treat_as_errors'])
+		if r'undocumented' in config:
+			self.undocumented = bool(config[r'undocumented'])
 
 
 
@@ -936,7 +933,7 @@ class CodeBlocks(object):
 		self.enums = copy.deepcopy(Defaults.cb_enums)
 		self.namespaces = copy.deepcopy(Defaults.cb_namespaces)
 
-		if 'code_blocks' in config:
+		if r'code_blocks' in config:
 			config = config['code_blocks']
 
 			if 'types' in config:
@@ -1094,7 +1091,7 @@ class Sources(FilteredInputs):
 
 		self.strip_paths = []
 		self.strip_includes = []
-		self.extract_all = None
+		self.extract_all = False
 		if self.patterns is None:
 			self.patterns = copy.deepcopy(Defaults.source_patterns)
 
@@ -1275,9 +1272,9 @@ class Context(object):
 	def __init_data_files(cls, context):
 		cls.__data_files_lock.acquire()
 		try:
-			context.data_dir.mkdir(exist_ok=True)
+			dirs.DATA.mkdir(exist_ok=True)
 			if cls.__emoji is None:
-				file_path = coerce_path(context.data_dir, 'emoji.json')
+				file_path = coerce_path(dirs.DATA, r'emoji.json')
 				cls.__emoji = json.loads(
 					read_all_text_from_file(
 					file_path, fallback_url='https://api.github.com/emojis', logger=context.verbose_logger
@@ -1337,9 +1334,11 @@ class Context(object):
 
 		self.fixers = None
 		self.tagfile_path = None
-		self.warnings = Warnings(
-			None
-		)  # overwritten after reading config; this is for correct 'treat_as_errors' behaviour if we add any pre-config warnings
+
+		# initial warning state
+		# note that this is overwritten after the config is read;
+		# it is set here first so that we can have correct 'treat_as_errors' behaviour if we add any pre-config warnings
+		self.warnings = Warnings(None)
 		if treat_warnings_as_errors:
 			self.warnings.treat_as_errors = True
 
@@ -1352,77 +1351,44 @@ class Context(object):
 
 		self.now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
 
+		self.verbose_value(r'dirs.PACKAGE', dirs.PACKAGE)
+		self.verbose_value(r'dirs.DATA', dirs.DATA)
+		self.verbose_value(r'dirs.MCSS', dirs.MCSS)
+		self.verbose_value(r'dirs.CSS', dirs.CSS)
+		self.verbose_value(r'dirs.GENERATED', dirs.GENERATED)
+		self.verbose_value(r'dirs.FONTS', dirs.FONTS)
+		self.verbose_value(r'dirs.TEMP', dirs.TEMP)
+
 		# resolve paths
 		if 1:
 
-			# environment
-			self.package_dir = find_package_dir()
-			self.verbose_value(r'Context.package_dir', self.package_dir)
-			self.data_dir = find_data_dir()
-			self.verbose_value(r'Context.data_dir', self.data_dir)
+			# output
 			if output_dir is None:
 				output_dir = Path.cwd()
 			self.output_dir = coerce_path(output_dir).resolve()
 			self.verbose_value(r'Context.output_dir', self.output_dir)
 			assert self.output_dir.is_absolute()
 			self.case_sensitive_paths = not (
-				Path(str(self.data_dir).upper()).exists() and Path(str(self.data_dir).lower()).exists()
+				Path(str(dirs.DATA).upper()).exists() and Path(str(dirs.DATA).lower()).exists()
 			)
 			self.verbose_value(r'Context.case_sensitive_paths', self.case_sensitive_paths)
 
-			# config + doxyfile
-			input_dir = None
-			self.config_path = None
-			self.doxyfile_path = None
-			if config_path is None:
-				config_path = self.output_dir
-			else:
-				config_path = coerce_path(config_path)
-				if not config_path.is_absolute():
-					config_path = Path(self.output_dir, config_path)
-				config_path = config_path.resolve()
-			if config_path.exists() and config_path.is_file():
-				if config_path.suffix.lower() == '.toml':
-					self.config_path = config_path
-				else:
-					self.doxyfile_path = config_path
-			elif Path(str(config_path) + ".toml").exists():
-				self.config_path = Path(str(config_path) + ".toml")
-			elif config_path.is_dir():
-				input_dir = config_path
-				if Path(config_path, 'poxy.toml').exists():
-					self.config_path = Path(config_path, 'poxy.toml')
-				elif Path(config_path, 'Doxyfile-mcss').exists():
-					self.doxyfile_path = Path(config_path, 'Doxyfile-mcss')
-				elif Path(config_path, 'Doxyfile').exists():
-					self.doxyfile_path = Path(config_path, 'Doxyfile')
-			if input_dir is None:
-				if self.config_path is not None:
-					input_dir = self.config_path.parent
-				elif self.doxyfile_path is not None:
-					input_dir = self.doxyfile_path.parent
-			if input_dir is not None:
-				if self.config_path is None and Path(input_dir, 'poxy.toml').exists():
-					self.config_path = Path(input_dir, 'poxy.toml')
-				if self.doxyfile_path is None and Path(input_dir, 'Doxyfile-mcss').exists():
-					self.doxyfile_path = Path(input_dir, 'Doxyfile-mcss')
-				if self.doxyfile_path is None:
-					self.doxyfile_path = Path(input_dir, 'Doxyfile')
-			self.input_dir = input_dir
+			# config path
+			self.config_path = Path(r'poxy.toml').resolve()
+			if config_path is not None:
+				self.config_path = coerce_path(config_path).resolve()
+				if self.config_path.exists() and self.config_path.is_dir():
+					self.config_path = Path(self.config_path, r'poxy.toml')
+				if not self.config_path.exists() or not self.config_path.is_file():
+					raise Error(rf"Config '{self.config_path}' did not exist or was not a file")
+			assert self.config_path.is_absolute()
+			self.verbose_value(r'Context.config_path', self.config_path)
+
+			# input dir
+			self.input_dir = self.config_path.parent
 			self.verbose_value(r'Context.input_dir', self.input_dir)
 			assert_existing_directory(self.input_dir)
 			assert self.input_dir.is_absolute()
-
-			assert self.doxyfile_path is not None
-			self.doxyfile_path = self.doxyfile_path.resolve()
-			if self.doxyfile_path.exists() and not self.doxyfile_path.is_file():
-				raise Error(rf'{self.doxyfile_path} was not a file')
-			if self.config_path is not None:
-				self.config_path = self.config_path.resolve()
-			self.verbose_value(r'Context.config_path', self.config_path)
-			self.verbose_value(r'Context.doxyfile_path', self.doxyfile_path)
-			assert self.config_path.is_absolute()
-			assert self.doxyfile_path.is_absolute()
 
 			# output paths
 			self.xml_dir = Path(self.output_dir, r'xml')
@@ -1440,19 +1406,16 @@ class Context(object):
 			assert self.blog_dir.is_absolute()
 
 			# temp dirs
-			self.global_temp_dir = Path(tempfile.gettempdir(), r'poxy')
-			self.verbose_value(r'Context.global_temp_dir', self.global_temp_dir)
 			self.temp_dir = re.sub(r'''[!@#$%^&*()+={}<>;:'"_\\/\n\t -]+''', r'_', str(self.input_dir).strip(r'\/'))
 			if len(self.temp_dir) > 256:
 				self.temp_dir = str(self.input_dir)
 				if not self.case_sensitive_paths:
 					self.temp_dir = self.temp_dir.upper()
 				self.temp_dir = sha1(self.temp_dir)
-			self.temp_dir = Path(self.global_temp_dir, self.temp_dir)
+			self.temp_dir = Path(dirs.TEMP, self.temp_dir)
 			self.verbose_value(r'Context.temp_dir', self.temp_dir)
 			self.temp_pages_dir = Path(self.temp_dir, r'pages')
 			self.verbose_value(r'Context.temp_pages_dir', self.temp_pages_dir)
-			assert self.global_temp_dir.is_absolute()
 			assert self.temp_dir.is_absolute()
 			assert self.temp_pages_dir.is_absolute()
 
@@ -1490,13 +1453,18 @@ class Context(object):
 			self.verbose_value(r'Context.doxygen_path', self.doxygen_path)
 			assert self.doxygen_path.is_absolute()
 
-			# m.css config
+			# temp doxyfile path
+			self.doxyfile_path = Path(self.temp_dir, rf'Doxyfile')
+			self.verbose_value(r'Context.doxyfile_path', self.doxyfile_path)
+			assert self.doxyfile_path.is_absolute()
+
+			# temp m.css config path
 			self.mcss_conf_path = Path(self.temp_dir, r'conf.py')
 			self.verbose_value(r'Context.mcss_conf_path', self.mcss_conf_path)
 			assert self.mcss_conf_path.is_absolute()
 
 			# misc
-			self.cppref_tagfile = coerce_path(self.data_dir, r'cppreference-doxygen-web.tag.xml').resolve()
+			self.cppref_tagfile = coerce_path(dirs.DATA, r'cppreference-doxygen-web.tag.xml').resolve()
 			self.verbose_value(r'Context.cppref_tagfile', self.cppref_tagfile)
 			assert_existing_file(self.cppref_tagfile)
 			assert self.cppref_tagfile.is_absolute()
@@ -1508,7 +1476,7 @@ class Context(object):
 					delete_directory(self.html_dir, logger=self.verbose_logger)
 				if self.cleanup:
 					delete_directory(self.temp_dir, logger=self.verbose_logger)
-				self.global_temp_dir.mkdir(exist_ok=True)
+				dirs.TEMP.mkdir(exist_ok=True)
 				self.temp_dir.mkdir(exist_ok=True)
 				self.temp_pages_dir.mkdir(exist_ok=True)
 
@@ -1523,20 +1491,21 @@ class Context(object):
 				nonlocal extra_files
 				p = coerce_path(p)
 				if not p.is_absolute():
-					p = Path(self.data_dir, p)
+					p = Path(dirs.DATA, p)
 				extra_files.append((p, rf'poxy/{p.name}'))
 
 			config = dict()
-			if self.config_path is not None:
+			if self.config_path.exists():
 				assert_existing_file(self.config_path)
 				config = pytomlpp.loads(
 					read_all_text_from_file(self.config_path, logger=self.verbose_logger if dry_run else self.logger)
 				)
 			config = assert_no_unexpected_keys(config, self.__config_schema.validate(config))
 
-			self.warnings = Warnings(config)  # printed in run.py post-doxyfile
+			self.warnings = Warnings(config)
 			if treat_warnings_as_errors:
 				self.warnings.treat_as_errors = True
+			self.verbose_value(r'Context.warnings', self.warnings)
 
 			# project name (PROJECT_NAME)
 			self.name = ''
@@ -1568,7 +1537,7 @@ class Context(object):
 					badge = re.sub(r'(?:[.]0+)+$', '', spdx.lower())  # trailing .0, .0.0 etc
 					badge = badge.strip(' \t-._:')  # leading + trailing junk
 					badge = re.sub(r'[:;!@#$%^&*\\|/,.<>?`~\[\]{}()_+\-= \t]+', '_', badge)  # internal junk
-					badge = Path(self.data_dir, rf'poxy-badge-license-{badge}.svg')
+					badge = Path(dirs.DATA, rf'poxy-badge-license-{badge}.svg')
 					self.verbose(rf"Finding badge SVG for license '{spdx}'...")
 					if badge.exists():
 						self.verbose(rf'Badge file found at {badge}')
@@ -1641,7 +1610,7 @@ class Context(object):
 			elif r'theme' in config:
 				self.theme = str(config[r'theme'])
 			if self.theme != r'custom':
-				add_internal_asset(Path(self.data_dir, r'generated', r'poxy.css'))
+				add_internal_asset(Path(dirs.DATA, r'generated', r'poxy.css'))
 				self.stylesheets.append(rf'poxy/poxy.css')
 			self.verbose_value(r'Context.theme', self.theme)
 
@@ -1660,7 +1629,7 @@ class Context(object):
 
 			# jquery
 			if r'jquery' in config and config[r'jquery']:
-				jquery = enumerate_files(self.data_dir, any=r'jquery*.js')[0]
+				jquery = enumerate_files(dirs.DATA, any=r'jquery*.js')[0]
 				if jquery is not None:
 					extra_files.append(jquery)
 					self.scripts.append(jquery.name)
@@ -1777,8 +1746,7 @@ class Context(object):
 				if source and dest:
 					if is_uri(source):
 						file = Path(
-							self.global_temp_dir,
-							rf'tagfile_{sha1(source)}_{self.now.year}_{self.now.isocalendar().week}.xml'
+							dirs.TEMP, rf'tagfile_{sha1(source)}_{self.now.year}_{self.now.isocalendar().week}.xml'
 						)
 						self.tagfiles[source] = (file, dest)
 						self.unresolved_tagfiles = True
@@ -1868,19 +1836,19 @@ class Context(object):
 			self.verbose_value(r'Context.implementation_headers', self.implementation_headers)
 
 			# show_includes (SHOW_INCLUDES)
-			self.show_includes = None
+			self.show_includes = True
 			if 'show_includes' in config:
 				self.show_includes = bool(config['show_includes'])
 			self.verbose_value(r'Context.show_includes', self.show_includes)
 
 			# internal_docs (INTERNAL_DOCS)
-			self.internal_docs = None
+			self.internal_docs = False
 			if 'internal_docs' in config:
 				self.internal_docs = bool(config['internal_docs'])
 			self.verbose_value(r'Context.internal_docs', self.internal_docs)
 
 			# generate_tagfile (GENERATE_TAGFILE)
-			self.generate_tagfile = None  # not (self.private_repo or self.internal_docs)
+			self.generate_tagfile = True  # not (self.private_repo or self.internal_docs)
 			if 'generate_tagfile' in config:
 				self.generate_tagfile = bool(config['generate_tagfile'])
 			self.verbose_value(r'Context.generate_tagfile', self.generate_tagfile)

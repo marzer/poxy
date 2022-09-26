@@ -12,7 +12,7 @@
 /* m.css */
 @import url('m-grid.css');
 @import url('m-components.css');
-@import url('poxy-m-special.css');
+@import url('m-special.css');
 @import url('m-layout.css');
 @import url('poxy-pygments.css');
 @import url('m-documentation.css');
