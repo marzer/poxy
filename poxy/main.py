@@ -10,6 +10,7 @@ The various entry-point methods used when poxy is invoked from the command line.
 import re
 import argparse
 import datetime
+import shutil
 from schema import SchemaError
 from .utils import *
 from .run import run
@@ -47,6 +48,9 @@ def main(invoker=True):
 	args = argparse.ArgumentParser(
 		description=r'Generate fancy C++ documentation.', formatter_class=argparse.RawTextHelpFormatter
 	)
+	#--------------------------------------------------------------
+	# public user-facing arguments
+	#--------------------------------------------------------------
 	args.add_argument(
 		r'config',
 		type=Path,
@@ -61,7 +65,7 @@ def main(invoker=True):
 		help=r"enable very noisy diagnostic output"
 	)
 	args.add_argument(
-		r'--doxygen',
+		r'--doxygen',  #
 		type=Path,
 		default=None,
 		metavar=r'<path>',
@@ -71,21 +75,6 @@ def main(invoker=True):
 		r'--dry',  #
 		action=r'store_true',
 		help=r"do a 'dry run' only, stopping after emitting the effective Doxyfile"
-	)
-	args.add_argument(
-		r'--m.css',
-		type=Path,
-		default=None,
-		metavar=r'<path>',
-		help=r"specify the version of m.css to use (default: uses the bundled one)",
-		dest=r'mcss'
-	)
-	args.add_argument(
-		r'--mcss',  #
-		type=Path,
-		default=None,
-		dest=r'mcss_deprecated_old_arg',
-		help=argparse.SUPPRESS
 	)
 	args.add_argument(
 		r'--threads',  #
@@ -111,34 +100,45 @@ def main(invoker=True):
 		help=r"stop after generating and preprocessing the Doxygen xml"
 	)
 	args.add_argument(
-		r'--ppinclude',
+		r'--ppinclude',  #
 		type=str,
 		default=None,
 		metavar=r'<regex>',
 		help=r"pattern matching HTML file names to post-process (default: all)"
 	)
 	args.add_argument(
-		r'--ppexclude',
+		r'--ppexclude',  #
 		type=str,
 		default=None,
 		metavar=r'<regex>',
 		help=r"pattern matching HTML file names to exclude from post-processing (default: none)"
 	)
 	args.add_argument(
-		r'--nocleanup',
+		r'--nocleanup',  #
 		action=r'store_true',
 		help=r"does not clean up after itself, leaving the XML and other temp files intact"
 	)
 	args.add_argument(
-		r'--theme',
+		r'--theme',  #
 		choices=[r'auto', r'light', r'dark', r'custom'],
 		default=r'auto',
 		help=r'the CSS theme to use (default: %(default)s)'
 	)
+	#--------------------------------------------------------------
+	# hidden developer-only arguments
+	#--------------------------------------------------------------
 	args.add_argument(
-		r'--genstyles',  #
+		r'--regenerate_css',  #
 		action=r'store_true',
 		help=argparse.SUPPRESS
+	)
+	args.add_argument(
+		r'--update_mcss',  #
+		type=Path,
+		default=None,
+		metavar=r'<path>',
+		help=argparse.SUPPRESS,
+		dest=r'mcss'
 	)
 	args = args.parse_args()
 
@@ -146,10 +146,54 @@ def main(invoker=True):
 		print(r'.'.join([str(v) for v in lib_version()]))
 		return
 
-	mcss_dir = args.mcss if args.mcss is not None else args.mcss_deprecated_old_arg
+	if args.mcss is not None:
+		args.mcss = coerce_path(args.mcss).resolve()
+		assert_existing_directory(args.mcss)
+		assert_existing_file(Path(args.mcss, r'documentation/doxygen.py'))
+		if find_mcss_dir() == args.mcss:
+			raise Exception(r'm.css source path may not be the same as the internal destination.')
+		if find_mcss_dir().exists():
+			delete_directory(find_mcss_dir(), logger=True)
+		print(rf'Updating bundled m.css from {args.mcss}')
+		shutil.copytree(
+			args.mcss,
+			find_mcss_dir(),
+			symlinks=False,
+			dirs_exist_ok=True,
+			ignore=shutil.ignore_patterns(
+			r'.git*',  #
+			r'.editor*',
+			r'.circleci*',
+			r'.coverage*',
+			r'.istanbul*',
+			r'*.idx',
+			r'*.pyc',
+			r'*.compiled.css',
+			r'__pycache__*',
+			r'artwork*',
+			r'circleci*',
+			r'test_doxygen*',
+			r'test_python*',
+			r'pelican-theme*',
+			r'pygments-*.py'
+			)
+		)
+		for folder in (
+			r'doc',  #
+			r'documentation/test',
+			r'documentation/templates/python',
+			r'package',
+			r'plugins/m/test',
+			r'site',
+		):
+			delete_directory(Path(find_mcss_dir(), folder), logger=True)
+	assert_existing_directory(find_mcss_dir())
+	assert_existing_file(Path(find_mcss_dir(), r'documentation/doxygen.py'))
 
-	if args.genstyles:
-		css.regenerate_builtin_styles(mcss_dir=mcss_dir)
+	if args.regenerate_css:
+		css.regenerate_builtin_styles()
+
+	if args.regenerate_css or args.mcss is not None:
 		return
 
 	with ScopeTimer(r'All tasks', print_start=False, print_end=not args.dry) as timer:
@@ -159,7 +203,6 @@ def main(invoker=True):
 			threads=args.threads,
 			cleanup=not args.nocleanup,
 			verbose=args.verbose,
-			mcss_dir=mcss_dir,
 			doxygen_path=args.doxygen,
 			logger=True,  # stderr + stdout
 			dry_run=args.dry,

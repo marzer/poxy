@@ -2,11 +2,12 @@
 
 ## Unreleased
 
--   added config option `gitlab` (#13)
+-   added config option `gitlab` (#13) (@wroyca)
 -   improved `doxygen.exe` location discovery on Windows
 -   improved `CHANGELOG` location discovery
 -   moved all poxy assets in the generated HTML to `html/poxy`
 -   self-hosted google fonts in generated HTML (instead of requiring additional HTTP requests on page load)
+-   removed ability to override m.css implementation
 
 ## v0.7.1 - 2022-08-17
 

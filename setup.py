@@ -12,6 +12,8 @@ import sys
 from setuptools import setup, find_packages
 from pathlib import Path
 
+
+
 def enum_subdirs(root):
 	root = Path(root).resolve()
 	assert root.is_dir()
@@ -22,12 +24,12 @@ def enum_subdirs(root):
 			subdirs = subdirs + enum_subdirs(p)
 	return subdirs
 
+
+
 package_dir = str(Path(Path(__file__).parent, r'poxy').resolve())
 data_dir = Path(package_dir, r'data')
 data_subdirs = enum_subdirs(data_dir)
 data_subdirs = [str(d)[len(package_dir):].strip('\\/').replace('\\', '/') for d in data_subdirs]
-for excl in (r'/doc/', r'/test/', r'/test_doxygen', r'/test_python', r'/pelican-theme', r'__pycache__'):
-	data_subdirs = [d for d in data_subdirs if d.find(excl) == -1]
 data_subdirs = [rf'{d}/*' for d in data_subdirs]
 
 README = ''
@@ -42,63 +44,63 @@ VERSION = ''
 with open(Path(data_dir, 'version.txt'), encoding='utf-8') as file:
 	VERSION = file.read().strip()
 
-setup_args = dict(
-	name=r'poxy',
-	version=VERSION,
-	description=r'Documentation generator for C++.',
-	long_description_content_type=r'text/markdown',
-	long_description=f'{README}\n\n{CHANGELOG}'.strip(),
-	license=r'MIT',
-	packages=find_packages(),
-	author=r'Mark Gillard',
-	author_email=r'mark.gillard@outlook.com.au',
-	keywords=[
-		r'c++',
-		r'doxygen',
-		r'documentation'
-	 ],
-	url=r'https://github.com/marzer/poxy',
-	download_url=r'https://pypi.org/project/poxy/',
-	classifiers=[
-		r'Development Status :: 3 - Alpha',
-		r'License :: OSI Approved :: MIT License',
-		r'Programming Language :: C++',
-		r'Topic :: Documentation',
-		r'Topic :: Software Development :: Documentation',
-		r'Topic :: Utilities'
+SETUP_ARGS = {
+	'name': r'poxy',
+	'version': VERSION,
+	'description': r'Documentation generator for C++.',
+	'long_description_content_type': r'text/markdown',
+	'long_description': f'{README}\n\n{CHANGELOG}'.strip(),
+	'license': r'MIT',
+	'packages': find_packages(),
+	'author': r'Mark Gillard',
+	'author_email': r'mark.gillard@outlook.com.au',
+	'keywords': [r'c++', r'doxygen', r'documentation'],
+	'url': r'https://github.com/marzer/poxy',
+	'download_url': r'https://pypi.org/project/poxy/',
+	'classifiers': [
+	r'Development Status :: 3 - Alpha',  #
+	r'License :: OSI Approved :: MIT License',
+	r'Programming Language :: C++',
+	r'Topic :: Documentation',
+	r'Topic :: Software Development :: Documentation',
+	r'Topic :: Utilities'
 	],
-	project_urls={
-		r'Source': r'https://github.com/marzer/poxy',
-		r'Tracker': r'https://github.com/marzer/poxy/issues'
+	'project_urls': {
+	r'Source': r'https://github.com/marzer/poxy',
+	r'Tracker': r'https://github.com/marzer/poxy/issues'
 	},
-	python_requires=r'>=3',
-	package_data={
-		r'poxy' : [ r'data/*', *data_subdirs ]
+	'python_requires': r'>=3',
+	'package_data': {
+	r'poxy': [r'data/*', *data_subdirs]
 	},
-	exclude_package_data={
-		r'poxy': [
-			r'.git*',
-			r'.istanbul.yaml',
-			r'*.rst',
-			r'*.pyc',
-			r'data/m.css/doc/*',
-			r'data/m.css/documentation/test/*',
-			r'data/m.css/documentation/test_doxygen/*',
-			r'data/m.css/documentation/test_python/*',
-			r'data/m.css/package/*',
-		]
+	'exclude_package_data': {
+	r'poxy': [
+	r'.git*',
+	r'.istanbul.yaml',
+	r'*.rst',
+	r'*.pyc',
+	r'data/m.css/artwork/*',
+	r'data/m.css/doc/*',
+	r'data/m.css/documentation/test/*',
+	r'data/m.css/documentation/test_doxygen/*',
+	r'data/m.css/documentation/test_python/*',
+	r'data/m.css/documentation/templates/python/*',
+	r'data/m.css/package/*',
+	r'data/m.css/plugins/m/test/*',
+	r'data/m.css/site/*',
+	]
 	},
-	entry_points = {
-		r'console_scripts' : [
-			r'poxy = poxy.main:main',
-			r'poxyblog = poxy.main:main_blog_post'
-		]
+	'entry_points': {
+	r'console_scripts': [
+	r'poxy = poxy.main:main',  #
+	r'poxyblog = poxy.main:main_blog_post'
+	]
 	}
-)
+}
 
-install_requires = None
+REQUIRES = None
 with open('requirements.txt', encoding='utf-8') as file:
-	install_requires = file.read().strip().split()
+	REQUIRES = file.read().strip().split()
 
 if __name__ == '__main__':
-	setup(**setup_args, install_requires=install_requires)
+	setup(**SETUP_ARGS, install_requires=REQUIRES)

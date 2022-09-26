@@ -1309,8 +1309,8 @@ class Context(object):
 			cls.__data_files_lock.release()
 
 	def __init__(
-		self, config_path, output_dir, threads, cleanup, verbose, mcss_dir, doxygen_path, logger, dry_run, xml_only,
-		html_include, html_exclude, treat_warnings_as_errors, theme
+		self, config_path, output_dir, threads, cleanup, verbose, doxygen_path, logger, dry_run, xml_only, html_include,
+		html_exclude, treat_warnings_as_errors, theme
 	):
 
 		self.logger = logger
@@ -1490,19 +1490,10 @@ class Context(object):
 			self.verbose_value(r'Context.doxygen_path', self.doxygen_path)
 			assert self.doxygen_path.is_absolute()
 
-			# m.css
-			if mcss_dir is None:
-				mcss_dir = find_mcss_dir()
-			else:
-				mcss_dir = coerce_path(mcss_dir).resolve()
-				assert_existing_directory(mcss_dir)
-				assert_existing_file(Path(mcss_dir, r'documentation/doxygen.py'))
-			self.mcss_dir = mcss_dir
-			self.verbose_value(r'Context.mcss_dir', self.mcss_dir)
+			# m.css config
 			self.mcss_conf_path = Path(self.temp_dir, r'conf.py')
 			self.verbose_value(r'Context.mcss_conf_path', self.mcss_conf_path)
 			assert self.mcss_conf_path.is_absolute()
-			assert self.mcss_dir.is_absolute()
 
 			# misc
 			self.cppref_tagfile = coerce_path(self.data_dir, r'cppreference-doxygen-web.tag.xml').resolve()

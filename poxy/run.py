@@ -1174,7 +1174,6 @@ def run(
 	threads=-1,
 	cleanup=True,
 	verbose=False,
-	mcss_dir=None,
 	doxygen_path=None,
 	logger=None,
 	dry_run=False,
@@ -1191,7 +1190,6 @@ def run(
 		threads=threads,
 		cleanup=cleanup,
 		verbose=verbose,
-		mcss_dir=mcss_dir,
 		doxygen_path=doxygen_path,
 		logger=logger,
 		dry_run=dry_run,
@@ -1315,7 +1313,7 @@ def run(
 						doxy_args.append(r'--debug')
 					try:
 						run_python_script(
-							Path(context.mcss_dir, r'documentation/doxygen.py'),
+							Path(find_mcss_dir(), r'documentation/doxygen.py'),
 							*doxy_args,
 							stdout=stdout,
 							stderr=stderr,

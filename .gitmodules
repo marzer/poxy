@@ -1,4 +1,0 @@
-[submodule "poxy/data/m.css"]
-	path = poxy/data/m.css
-	url = https://github.com/mosra/m.css.git
-	shallow = true

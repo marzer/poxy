@@ -90,8 +90,9 @@ def find_generated_dir() -> Path:
 def find_mcss_dir() -> Path:
 	if not hasattr(find_mcss_dir, "dir"):
 		find_mcss_dir.dir = Path(find_data_dir(), r'm.css')
-		assert_existing_directory(find_mcss_dir.dir)
-		assert_existing_file(Path(find_mcss_dir.dir, r'documentation/doxygen.py'))
+		if find_mcss_dir.dir.exists():
+			assert_existing_directory(find_mcss_dir.dir)
+			assert_existing_file(Path(find_mcss_dir.dir, r'documentation/doxygen.py'))
 	return find_mcss_dir.dir
 
 

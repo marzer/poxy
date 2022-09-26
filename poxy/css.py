@@ -35,18 +35,11 @@ def strip_quotes(text):
 
 
 
-def resolve_imports(text, cwd=None, mcss_dir=None) -> Tuple[str, bool]:
+def resolve_imports(text, cwd=None) -> Tuple[str, bool]:
 	if cwd is None:
 		cwd = Path.cwd()
 	cwd = coerce_path(cwd).resolve()
 	assert_existing_directory(cwd)
-
-	if mcss_dir is None:
-		mcss_dir = find_mcss_dir()
-	else:
-		mcss_dir = coerce_path(mcss_dir).resolve()
-		assert_existing_directory(mcss_dir)
-		assert_existing_file(Path(mcss_dir, r'documentation/doxygen.py'))
 
 	had_mcss_files = False
 
@@ -54,7 +47,6 @@ def resolve_imports(text, cwd=None, mcss_dir=None) -> Tuple[str, bool]:
 		global RX_MCSS_THEME
 		global RX_MCSS_FILE
 		nonlocal cwd
-		nonlocal mcss_dir
 		nonlocal had_mcss_files
 
 		import_path = strip_quotes(m[1].strip())
@@ -82,7 +74,7 @@ def resolve_imports(text, cwd=None, mcss_dir=None) -> Tuple[str, bool]:
 		if not path_ok() is None and RX_MCSS_FILE.fullmatch(import_path):
 			path = Path(find_data_dir(), import_path)
 			if not path_ok():
-				path = Path(mcss_dir, r'css', import_path)
+				path = Path(find_mcss_dir(), r'css', import_path)
 				was_mcss_file = True
 			had_mcss_filename = True
 
@@ -185,14 +177,7 @@ def minify(text) -> str:
 
 
 
-def regenerate_builtin_styles(mcss_dir=None):
-	if mcss_dir is None:
-		mcss_dir = find_mcss_dir()
-	else:
-		mcss_dir = coerce_path(mcss_dir).resolve()
-		assert_existing_directory(mcss_dir)
-		assert_existing_file(Path(mcss_dir, r'documentation/doxygen.py'))
-
+def regenerate_builtin_styles():
 	data_dir = find_data_dir()
 	output_dir = find_generated_dir()
 	output_dir.mkdir(exist_ok=True)
@@ -208,7 +193,7 @@ def regenerate_builtin_styles(mcss_dir=None):
 		text = text.replace('\r', '\n')
 		text = minify(text)
 		if had_mcss_files:
-			mcss_license = read_all_text_from_file(Path(mcss_dir, 'COPYING'), logger=True).strip()
+			mcss_license = read_all_text_from_file(Path(find_mcss_dir(), 'COPYING'), logger=True).strip()
 			text = rf'''/*
 This file was automatically generated from multiple sources,
 some of which included stylesheets from mosra/m.css.
@@ -222,5 +207,3 @@ The license for that project is as follows:
 		print(rf'Writing {theme_dest_file}')
 		with open(theme_dest_file, r'w', encoding=r'utf-8', newline='\n') as f:
 			f.write(text)
-
-	pass
