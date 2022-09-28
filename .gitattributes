@@ -67,5 +67,5 @@ meson.build        text         eol=lf      encoding=UTF-8
 *.rc               binary
 *.xlsx             binary
 
-poxy/data/generated/**  linguist-generated
-poxy/data/m.css/**      linguist-vendored
+*/generated/**  linguist-generated
+*/m.css/**      linguist-vendored

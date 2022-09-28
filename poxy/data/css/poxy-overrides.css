@@ -1,9 +1,21 @@
-html {
-	height:100%;
+/*
+	NOTE FOR CONTRIBUTORS
+
+	This file is for poxy-specific layout overrides (since we want to keep m.css largely unchanged
+	so as to minimize patching when contributing back to m.css upstream).
+
+	Avoid specifying any colours here; they belong in theme-specific poxy-theme-****.css.
+*/
+
+html
+{
+	height: 100%;
+	scroll-padding-top: 4em;
 }
 
-body {
-	min-height:100%;
+body
+{
+	min-height: 100%;
 }
 
 body
@@ -41,6 +53,10 @@ a
 {
 	text-decoration: none !important;
 }
+a:hover
+{
+	text-decoration: underline !important;
+}
 
 article div > section
 {
@@ -60,11 +76,6 @@ pre.m-console a
 {
 	font-weight: inherit !important;
 	color: inherit !important;
-}
-pre.m-code a:hover,
-pre.m-console a:hover
-{
-	text-decoration: underline !important;
 }
 
 /* nav bar */
@@ -89,18 +100,12 @@ nav #m-navbar-brand img
 {
 	vertical-align: -17.5% !important;
 }
-nav a.poxy-icon.theme:hover
+nav a.poxy-icon.theme:hover,
+nav #m-navbar-current:hover
 {
 	color: var(--header-link-active-color) !important;
 	border-color: var(--header-link-active-color) !important;
 	background-color: var(--header-link-active-background-color) !important;
-}
-nav a.poxy-icon.theme:active,
-nav a.poxy-icon.theme:focus
-{
-	color: inherit !important;
-	border-color: inherit !important;
-	background-color: inherit !important;
 }
 @media screen and (max-width: 768px)
 {
@@ -108,6 +113,10 @@ nav a.poxy-icon.theme:focus
 	{
 		display: none;
 	}
+}
+header nav a:hover
+{
+	text-decoration: none !important;
 }
 
 /* "Parameters", "Returns", subheadings inside description blocks, etc */
@@ -217,11 +226,6 @@ p.godbolt
 	text-align: center;
 	padding: 0.0rem;
 	text-indent: 0.0rem;
-	opacity: 0.5;
-}
-p.godbolt:hover
-{
-	opacity: 1.0;
 }
 a.godbolt
 {
@@ -238,28 +242,6 @@ pre > p.godbolt
 	{
 		display: none;
 	}
-}
-
-/* figures with captions */
-figure.m-figure > figcaption
-{
-	font-weight: initial !important;
-	font-size: 1rem !important;
-	text-align: center;
-	margin-top: initial;
-}
-figure.m-figure::before
-{
-	border-style: none !important;
-}
-
-/* headers in blocks and notes (warnings, remarks, attention, etc.) */
-.m-block > h3,
-.m-block > h4,
-.m-note > h3,
-.m-note > h4
-{
-	font-size: 1em;
 }
 
 /* sub-headings that are the last thing in a block */
@@ -279,7 +261,7 @@ h6:last-child
 }
 
 /* table of contents */
-@media screen and (min-width: 1350px) and (min-height: 900px)
+@media screen and (min-width: 1300px) and (min-height: 700px)
 {
 	:root
 	{
@@ -288,11 +270,12 @@ h6:last-child
 	.poxy-toc
 	{
 		position: fixed;
-		top: 8rem;
+		top: 7rem;
 		left: calc(50% + 470px + var(--wide-page-left-offset));
 		min-width: 200px;
 		z-index: 5;
 		margin: 0px 20px 0px 0px !important;
+		background-color: var(--background-color);
 	}
 	.m-container > .m-row
 	{
@@ -333,17 +316,15 @@ section > ol li:last-child
 	margin-top: 0.2rem;
 }
 
-/* detail section headers */
+/* detail sections */
 article section.m-doc-details > div > h3:first-child
 {
-	background-color: var(--header-background-color);
+	background-color: var(--detail-section-header-color);
 }
-
-/* detail sections */
 article section.m-doc-details > div::before
 {
-	border-color: var(--header-background-color) !important;
-	background-color: var(--detail-section-background-color)
+	border-color: var(--detail-section-header-color) !important;
+	background-color: var(--detail-section-background-color);
 }
 
 /* namespace/class/struct etc prefixes in treeviews */
@@ -353,18 +334,6 @@ ul.m-doc > li.m-doc-collapsible li
 {
 	color: var(--dim-link-color) !important;
 }
-
-/* implementation detail blocks */
-pre.poxy-impl,
-code.poxy-impl
-{
-	color: var(--code-color-comments) !important;
-}
-
-
-/* ====================================================
-  code blocks
-==================================================== */
 
 /* code blocks w/ output examples */
 pre.m-code + pre.m-console
@@ -377,12 +346,8 @@ pre.m-code + pre.m-console
 	color: var(--console-color);
 	background-color: var(--console-background-color);
 }
-pre.m-code + pre.m-console span
-{
-	color: #bababa; /* is yououou */
-}
 
-/* keywords */
+/* code blocks - keywords */
 .m-code .kt,
 .m-code .k,
 .m-code .nc
@@ -390,11 +355,71 @@ pre.m-code + pre.m-console span
 	font-weight: normal;
 }
 
-/* implementation detail blocks */
+/* code blocks - implementation details */
 pre.poxy-impl,
 code.poxy-impl
 {
+	color: var(--code-color-comments) !important;
 	padding: 0rem !important;
 	margin: 0rem 0.2rem !important;
 	font-weight: normal;
 }
+
+/* article left-borders when set as the current target */
+article section:target > .m-code,
+article section:target > .m-console,
+article section:target > .m-note,
+article section:target > .m-container-inflate > .m-code,
+article section:target > .m-container-inflate > .m-console,
+article section:target > .m-container-inflate > .m-note,
+article section:target section.m-doc-details > div > h3:first-child
+{
+		border-color: var(--article-heading-color) !important;
+}
+article section:target section.m-doc-details > div > h3:first-child
+{
+	border-left-style: solid;
+	border-left-width: 0.25rem;
+}
+
+/* 'filled' labels */
+.m-label:not(.m-flat)
+{
+  color: var(--background-color) !important;	
+}
+
+/* links in transparent 'success' blocks */
+.m-success:not(.m-note, .m-button) a
+{
+	color: var(--success-color);
+}
+.m-success:not(.m-note, .m-button) a:hover,
+.m-success:not(.m-note, .m-button) a:focus,
+.m-success:not(.m-note, .m-button) a:active
+{
+	color: var(--success-link-active-color);
+} 
+
+/* links in transparent 'warning' blocks */
+.m-warning:not(.m-note, .m-button) a
+{
+	color: var(--warning-color);
+}
+.m-warning:not(.m-note, .m-button) a:hover,
+.m-warning:not(.m-note, .m-button) a:focus,
+.m-warning:not(.m-note, .m-button) a:active
+{
+	color: var(--warning-link-active-color);
+} 
+
+/* links in transparent 'danger' blocks */
+.m-danger:not(.m-note, .m-button) a
+{
+	color: var(--danger-color);
+}
+.m-danger:not(.m-note, .m-button) a:hover,
+.m-danger:not(.m-note, .m-button) a:focus,
+.m-danger:not(.m-note, .m-button) a:active
+{
+	color: var(--danger-link-active-color);
+} 

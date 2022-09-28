@@ -1,29 +1,19 @@
-/*
-    This file is part of m.css.
+/* Base theme colors - this block does not appear in m.css */
+.poxy-theme-light
+{
+  --theme-hue: 215;
+  --theme-saturation: 100%;
+  --theme-luminosity: 50%;
+  --theme-color:  hsl(var(--theme-hue), var(--theme-saturation), var(--theme-luminosity));
+  --theme-text1: hsl(var(--theme-hue), var(--theme-saturation), 10%);
+  --theme-text2: hsl(var(--theme-hue), 30%, 30%);
+  --theme-surface1: hsl(var(--theme-hue), 25%, 90%);
+  --theme-surface2: hsl(var(--theme-hue), 20%, 99%);
+  --theme-surface3: hsl(var(--theme-hue), 10%, 80%);
+  --theme-surface4: hsl(var(--theme-hue), 10%, 95%);
+}
 
-    Copyright © 2017, 2018, 2019, 2020, 2021, 2022
-              Vladimír Vondruš <mosra@centrum.cz>
-
-    Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation
-    the rights to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell copies of the Software, and to permit persons to whom the
-    Software is furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included
-    in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-    DEALINGS IN THE SOFTWARE.
-*/
-
-:root {
+.poxy-theme-light { /* NOTE: in vanilla m.css this is the :root element */
   /* Text properties */
   --font: 'Source Sans Pro', sans-serif;
   --code-font: 'Source Code Pro', monospace;
@@ -46,41 +36,43 @@
   --border-radius: 0.2rem;
 
   /* Basics */
-  --background-color: #ebeaea;
-  --color: #151414;
+  --background-color: var(--theme-surface4);
+  --color: var(--theme-text1);
   --line-color: #bdc3c7;
-  --link-color: #134ECD;
-  --link-active-color: #5787EF;
+  --link-color: var(--theme-color);
+  --link-active-color: var(--theme-text2);
   --mark-color: #2f83cc;
   --mark-background-color: #c7cf2f;
-  --code-color: #151414;
-  --code-color-inverteds: rgba(230, 230, 230, 0.33);
-  --console-color: var(--code-color);
-  --console-inverted-color: var(--code-color-inverteds);
-  --code-background-color: #fafafa;
-  --code-note-background-color: rgba(250, 250, 250, 0.6);
-  --console-background-color: #1a1c1d;
   --button-background-color: #22272e;
+
+  /* Code */
+  --code-color: var(--theme-text1);
+  --code-background-color: var(--theme-surface2);
+  --code-note-background-color: rgba(250, 250, 250, 0.6);
+
+  /* Console */
+  --console-color: #fcfcfc;
+  --console-background-color: #1a1c1d;
 
   /* Header */
   --header-border-width: 0 0 0.25rem 0;
-  --header-color: #000000;
-  --header-breadcrumb-color: #747474; /* same as --dim-color */
-  --header-background-color: #e0e0e0;
+  --header-color: var(--theme-surface1);
+  --header-breadcrumb-color: var(--theme-surface1);
+  --header-background-color: var(--theme-color);
   --header-background-color-landing: rgba(34, 39, 46, 0.75);
   --header-background-color-jumbo: rgba(34, 39, 46, 0.25);
-  --header-link-color: #000000;
-  --header-link-active-color: #5787EF;
-  --header-link-current-color: #134ECD;
-  --header-link-active-background-color: #ebeaea;
+  --header-link-color: var(--theme-surface2);
+  --header-link-active-color: var(--theme-text1);
+  --header-link-current-color: var(--theme-surface1);
+  --header-link-active-background-color: var(--theme-surface3);
   --header-link-active-background-color-semi: #ebeaea80;
 
   /* Footer */
   --footer-font-size: 0.85rem;
-  --footer-color: #c5c5c5;
-  --footer-background-color: #726e6e;
-  --footer-link-color: #ffffff;
-  --footer-link-active-color: #5787EF;
+  --footer-color: var(--theme-text2);
+  --footer-background-color: var(--theme-surface3);
+  --footer-link-color: var(--theme-text1);
+  --footer-link-active-color:var(--theme-text2);
 
   /* Cover image */
   --cover-image-background-color: #0f1217;
@@ -92,8 +84,8 @@
   /* Article */
   --article-header-color: #f0f0f0;
   --article-footer-color: #c5c5c5;
-  --article-heading-color: #5787EF;
-  --article-heading-active-color: #151414;
+  --article-heading-color: var(--theme-color);
+  --article-heading-active-color: var(--theme-text2);
 
   /* Right navigation panel */
   --navpanel-link-color: #ffffff;
@@ -104,32 +96,32 @@
   --plot-error-color: #ffffff;
 
   /* Colored components */
-  --default-color: #151414;
-  --default-link-active-color: #5787EF;
+  --default-color: var(--theme-text1);
+  --default-link-active-color: var(--theme-text2);
   --default-filled-color: #151414;
   --default-filled-background-color: #d3d7d9;
   --default-filled-link-color: #134ECD;
   --default-filled-link-active-color: #5787EF;
 
-  --primary-color: #a5c9ea;
+  --primary-color:  hsl(var(--theme-hue), var(--theme-saturation), calc(var(--theme-luminosity) * 1.4));
   --primary-link-active-color: #dcdcdc;
-  --primary-filled-color: #151414;
-  --primary-filled-background-color: #a5c2db;
+  --primary-filled-color: var(--theme-text1);
+  --primary-filled-background-color:  hsl(var(--theme-hue), var(--theme-saturation), calc(var(--theme-luminosity) * 1.6));
   --primary-filled-link-color: #2a75b6;
-  --primary-filled-link-active-color: #2f363f;
+  --primary-filled-link-active-color: var(--theme-text2);
 
   --success-color: #31c25d;
   --success-link-active-color: #dcf6e3;
   --success-filled-color: #151414;
   --success-filled-background-color: #4dd376;
-  --success-filled-link-color: #c5f2d1;
+  --success-filled-link-color: #009929;
   --success-filled-link-active-color: #dcf6e3;
 
   --warning-color: #c7cf2f;
   --warning-link-active-color: #f6f6dc;
   --warning-filled-color: #151414;
   --warning-filled-background-color: #d1d34d;
-  --warning-filled-link-color: #f0f1c7;
+  --warning-filled-link-color: #919900;
   --warning-filled-link-active-color: #f6f6dc;
 
   --danger-color: #f60000;

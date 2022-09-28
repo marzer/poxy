@@ -5,8 +5,8 @@
   <link href="favicon-dark.png" rel="icon" type="image/png"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <meta content="#22272e" name="theme-color"/>
-  <link href="../generated/poxy.css" referrerpolicy="no-referrer" rel="stylesheet"/>
-  <script src="../poxy.js"></script>
+  <link href="../poxy/data/css/poxy.css" referrerpolicy="no-referrer" rel="stylesheet"/>
+  <script src="../poxy/data/poxy.js"></script>
   <script>initialize_theme("dark");</script>
   <meta content="telephone=no" name="format-detection"/>
   <meta content="Poxy v0.8.0" name="generator"/>
@@ -29,13 +29,13 @@
       <div class="m-col-t-12 m-show-m m-col-m-none m-right-m" id="m-navbar-collapse">
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
-            <li><a href="#">These</a></li>
+            <li><a href="#" id="m-navbar-current">These</a></li>
             <li><a href="#">Links</a></li>
             <li><a href="#">Are</a></li>
           </ol>
           <ol class="m-col-t-6 m-col-m-none" start="4">
             <li><a href="#">Fake</a></li>
-            <li><a class="poxy-icon theme" href="#poxy-theme-switch" id="poxy-theme-switch" onclick="toggle_theme();" title="Toggle dark and light themes"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+            <li><a class="poxy-icon theme" href="javascript:void(null);" role="button" id="poxy-theme-switch" onclick="toggle_theme();" title="Toggle dark and light themes"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
 	<circle cx="185.6708" cy="183.8122" fill="currentColor" r="65.625"></circle>
 	<path d="M185.6708,87.5622a13.1256,13.1256,0,0,0,13.125-13.125V52.5622a13.125,13.125,0,1,0-26.25,0v21.875A13.1257,13.1257,0,0,0,185.6708,87.5622Z" fill="currentColor"></path>
 	<path d="M99.051,115.7519a13.1236,13.1236,0,1,0,18.56-18.56L102.1442,81.726a13.1236,13.1236,0,0,0-18.5595,18.56Z" fill="currentColor"></path>
@@ -74,30 +74,34 @@
 <nav class="m-block m-default poxy-toc">
 <h3>Contents</h3>
 <ul>
-<li><a href="#blocks" id="id1">Blocks</a></li>
-<li><a href="#badge" id="id2">Badge</a></li>
-<li><a href="#notes-frame" id="id3">Notes, frame</a></li>
-<li><a href="#blocks-notes-with-a-link" id="id4">Blocks, notes with a link</a></li>
-<li><a href="#labels" id="id5">La&shy;bels</a></li>
-<li><a href="#tables" id="id6">Tables</a><ul>
-<li><a href="#table-with-paragraphs" id="id7">Table with para&shy;graphs</a></li>
-<li><a href="#big-tables" id="id8">“Big” tables</a></li>
+<li><a href="#blocks">Blocks</a></li>
+<li><a href="#badge">Badge</a></li>
+<li><a href="#notes-frame">Notes, frame</a></li>
+<li><a href="#blocks-notes-with-a-link">Blocks, notes with a link</a></li>
+<li><a href="#labels">La&shy;bels</a></li>
+<li><a href="#tables">Tables</a><ul>
+<li><a href="#table-with-paragraphs">Table with para&shy;graphs</a></li>
+<li><a href="#big-tables">“Big” tables</a></li>
 </ul>
 </li>
-<li><a href="#images" id="id9">Im&shy;ages</a></li>
-<li><a href="#figures" id="id10">Fig&shy;ures</a></li>
-<li><a href="#image-grid" id="id11">Im&shy;age grid</a></li>
-<li><a href="#code-in-colored-notes" id="id12">Code in colored notes</a></li>
-<li><a href="#code-figure" id="id13">Code fig&shy;ure</a></li>
-<li><a href="#list-with-components-inside" id="id14">List with com&shy;pon&shy;ents in&shy;side</a></li>
-<li><a href="#floating-around" id="id15">Float&shy;ing around</a></li>
-<li><a href="#floating-around-inflated" id="id16">Float&shy;ing around, in&shy;flated</a></li>
-<li><a href="#mainpage-example-parsing-strings" id="id17">toml++: Parsing strings and iostreams</a></li>
-<li><a href="#function-documentation" id="id18">toml++: Function documentation</a></li>
+<li><a href="#images">Im&shy;ages</a></li>
+<li><a href="#figures">Fig&shy;ures</a></li>
+<li><a href="#image-grid">Im&shy;age grid</a></li>
+<li><a href="#code-in-colored-notes">Code in colored notes</a></li>
+<li><a href="#code-figure">Code fig&shy;ure</a></li>
+<li><a href="#list-with-components-inside">List with com&shy;pon&shy;ents in&shy;side</a></li>
+<li><a href="#floating-around">Float&shy;ing around</a></li>
+<li><a href="#floating-around-inflated">Float&shy;ing around, in&shy;flated</a></li>
+<li><a href="#mainpage-example-parsing-strings">toml++: Parsing strings and iostreams</a></li>
+<li><a href="#function-documentation">toml++: Function documentation</a></li>
+<li>Some</li>
+<li>Extra</li>
+<li>List</li>
+<li>Items</li>
 </ul>
 </nav>
 <section id="blocks">
-<h2><a href="#id1">Blocks</a></h2>
+<h2><a href="#blocks">Blocks</a></h2>
 <p>Dif&shy;fer&shy;ent <code class="m-code"><span class="p">&lt;</span><span class="nt">h</span><span class="err">*</span><span class="p">&gt;</span></code> tags, the styl&shy;ing should be pre&shy;served across all sizes.</p>
 <div class="m-row">
   <div class="m-col-m-3 m-col-s-6">
@@ -317,7 +321,7 @@
 </div>
 </section>
 <section id="badge">
-<h2><a href="#id2">Badge</a></h2>
+<h2><a href="#badge">Badge</a></h2>
 <p>Badge with lots of text and less text:</p>
 <div class="m-block m-badge m-primary">
   <img src="author.jpg" alt="The Author" />
@@ -336,7 +340,7 @@
   adipiscing elit.</p>
 </div></section>
 <section id="notes-frame">
-<h2><a href="#id3">Notes, frame</a></h2>
+<h2><a href="#notes-frame">Notes, frame</a></h2>
 <p>Dif&shy;fer&shy;ent <code class="m-code"><span class="p">&lt;</span><span class="nt">h</span><span class="err">*</span><span class="p">&gt;</span></code> tags.</p>
 <div class="m-row">
   <div class="m-col-m-3 m-col-s-6">
@@ -582,7 +586,7 @@
   </div>
 </div></section>
 <section id="blocks-notes-with-a-link">
-<h2><a href="#id4">Blocks, notes with a link</a></h2>
+<h2><a href="#blocks-notes-with-a-link">Blocks, notes with a link</a></h2>
 <p>Dif&shy;fer&shy;ent <code class="m-code"><span class="p">&lt;</span><span class="nt">h</span><span class="err">*</span><span class="p">&gt;</span></code> tags.</p>
 <div class="m-row">
   <div class="m-col-m-3 m-col-s-6">
@@ -693,14 +697,16 @@
   </div>
 </div></section>
 <section id="labels">
-<h2><a href="#id5">Labels</a></h2>
+<h2><a href="#labels">Labels</a></h2>
 <p>They should have prop&shy;er ver&shy;tic&shy;al align&shy;ment.</p>
-<h1>Heading 1 <span class="m-label m-default">label</span> <span class="m-label m-dim">label</span></h1>
-<h2>Heading 2 <span class="m-label m-primary">label</span> <span class="m-label m-flat m-default">flat</span></h2>
-<h3>Heading 3 <span class="m-label m-success">label</span> <span class="m-label m-flat m-primary">flat</span></h3>
-<h4>Heading 4 <span class="m-label m-warning">label</span> <span class="m-label m-flat m-success">flat</span></h4>
-<h5>Heading 5 <span class="m-label m-danger">label</span> <span class="m-label m-flat m-warning">flat</span></h5>
-<h6>Heading 6 <span class="m-label m-info">label</span> <span class="m-label m-flat m-danger">flat</span></h6>
+<h1>Heading 1 <span class="m-label m-default">label</span> <span class="m-label m-flat m-default">flat</span></h1>
+<h2>Heading 2 <span class="m-label m-primary">label</span> <span class="m-label m-flat m-primary">flat</span></h2>
+<h3>Heading 3 <span class="m-label m-success">label</span> <span class="m-label m-flat m-success">flat</span></h3>
+<h4>Heading 4 <span class="m-label m-warning">label</span> <span class="m-label m-flat m-warning">flat</span></h4>
+<h5>Heading 5 <span class="m-label m-danger">label</span> <span class="m-label m-flat m-danger">flat</span></h5>
+<h6>Heading 6 <span class="m-label m-info">label</span> <span class="m-label m-flat m-info">flat</span></h6>
+<h6>Heading 6 <span class="m-label m-special">label</span> <span class="m-label m-flat m-special">flat</span></h6>
+<h6>Heading 6 <span class="m-label m-dim">label</span> <span class="m-label m-flat m-dim">flat</span></h6>
 
 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. <span class="m-label m-primary">label</span> <span class="m-label m-flat m-info">flat</span> Vivamus ultrices a erat eu suscipit. Aliquam pharetra imperdiet tortor sed vehicula.</p>
 
@@ -708,7 +714,7 @@
 
 <p class="m-text m-small">Lorem ipsum dolor sit amet,  <span class="m-label m-warning">label</span> <span class="m-label m-flat m-info">flat</span> consectetur adipiscing elit. Vivamus ultrices a erat eu suscipit. Aliquam pharetra imperdiet tortor sed vehicula.</p></section>
 <section id="tables">
-<h2><a href="#id6">Tables</a></h2>
+<h2><a href="#tables">Tables</a></h2>
 <table class="m-table m-flat">
   <caption>Flat table (w/o hover effect)</caption>
   <tr>
@@ -985,7 +991,7 @@
     </tr>
   </tbody>
 </table><section id="table-with-paragraphs">
-<h3><a href="#id7">Table with paragraphs</a></h3>
+<h3><a href="#table-with-paragraphs">Table with paragraphs</a></h3>
 <table class="m-table">
   <tr>
     <td>
@@ -1048,7 +1054,7 @@
  </table></section>
 </section>
 <section id="images">
-<h2><a href="#id9">Images</a></h2>
+<h2><a href="#images">Images</a></h2>
 <p>Im&shy;age, centered:</p>
 <img src="flowers-small.jpg" class="m-image" /><p>Im&shy;age, centered, link:</p>
 <div class="m-image">
@@ -1076,7 +1082,7 @@
   <a href="http://github.com/marzer"><img src="author.jpg" /></a>
 </div></section>
 <section id="figures">
-<h2><a href="#id10">Figures</a></h2>
+<h2><a href="#figures">Figures</a></h2>
 <p>Fig&shy;ure, centered:</p>
 <figure class="m-figure">
   <img src="ship-small.jpg" />
@@ -1216,7 +1222,7 @@ in&shy;stead of ex&shy;tend&shy;ing the bor&shy;der and there should be prop&shy
   </div>
 </div></section>
 <section id="image-grid">
-<h2><a href="#id11">Image grid</a></h2>
+<h2><a href="#image-grid">Image grid</a></h2>
 <p>Without the link:</p>
 <div class="m-imagegrid m-container-inflate">
   <div>
@@ -1352,7 +1358,7 @@ output</pre>
     And a description of that illegal crackery that's done above.
 </figure></section>
 <section id="list-with-components-inside">
-<h2><a href="#id14">List with components inside</a></h2>
+<h2><a href="#list-with-components-inside">List with components inside</a></h2>
 <ul>
   <li>
     <p>A paragraph.</p>

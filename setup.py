@@ -30,8 +30,6 @@ package_dir = str(Path(Path(__file__).parent, r'poxy').resolve())
 data_dir = Path(package_dir, r'data')
 data_subdirs = enum_subdirs(data_dir)
 data_subdirs = [str(d)[len(package_dir):].strip('\\/').replace('\\', '/') for d in data_subdirs]
-for excl in (r'/doc/', r'/test/', r'/test_doxygen', r'/test_python', r'/theme_test', r'/pelican-theme', r'__pycache__'):
-	data_subdirs = [d for d in data_subdirs if d.find(excl) == -1]
 data_subdirs = [rf'{d}/*' for d in data_subdirs]
 
 README = ''

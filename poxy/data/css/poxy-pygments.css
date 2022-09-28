@@ -1,3 +1,9 @@
+/*
+	NOTE FOR CONTRIBUTORS
+
+	This file is a manually unrolled concatenation of m.css's pygments-console.css and pygments-dark.css.
+	Most hard-coded colours have been replaced with variables that are specified in poxy-theme-***.css.
+*/
 .m-code .hll { background-color: #34424d }
 .m-code .c { color: var(--code-color-comments); } /* Comment */
 .m-code .k { color: var(--code-color-keywords); font-weight: bold } /* Keyword */
@@ -99,6 +105,6 @@
 .m-console .g-AnsiRed { color: #ed1515 } /* Generic.AnsiRed */
 .m-console .g-AnsiWhite { color: #fcfcfc } /* Generic.AnsiWhite */
 .m-console .g-AnsiYellow { color: #f67400 } /* Generic.AnsiYellow */
-.m-console .go { color: #fcfcfc } /* Generic.Output */
+.m-console .go { color: var(--console-color); } /* Generic.Output */
 .m-console .gp { color: #16a085; font-weight: bold } /* Generic.Prompt */
-.m-console .w { color: #fcfcfc } /* Text.Whitespace */
+.m-console .w { color: var(--console-color); } /* Text.Whitespace */

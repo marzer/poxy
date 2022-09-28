@@ -4,13 +4,13 @@
 	I hacked an additional colour class into m.css: the 'special' theme colour. it's purple.
 */
 
-.m-special a
+.m-special:not(.m-note, .m-button) a
 {
 	color: var(--special-color);
 }
-.m-special a:hover,
-.m-special a:focus,
-.m-special a:active
+.m-special:not(.m-note, .m-button) a:hover,
+.m-special:not(.m-note, .m-button) a:focus,
+.m-special:not(.m-note, .m-button) a:active
 {
 	color: var(--special-link-active-color);
 }

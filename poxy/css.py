@@ -15,9 +15,10 @@ from typing import Tuple
 
 RX_COMMENT = re.compile(r'''/[*].+?[*]/''', flags=re.DOTALL)
 RX_IMPORT = re.compile(r'''@import\s+url\(\s*['"]?\s*(.+?)\s*['"]?\s*\)\s*;''', flags=re.I)
-RX_MCSS_FILE = re.compile(r'(?:m|pygments)-[a-zA-Z0-9_-]+[.]css')
-RX_MCSS_THEME = re.compile(r'm-theme-([a-zA-Z0-9_-]+)[.]css')
-RX_GOOGLE_FONT = re.compile(r'''url\(\s*['"]?(https://fonts[.]gstatic[.]com/[a-zA-Z0-9_/%+?:-]+?[.]woff2)['"]?\s*\)''')
+RX_MCSS_FILENAME = re.compile(r'(?:m|pygments)-[a-z0-9_-]+[.]css$', flags=re.I)
+RX_GOOGLE_FONT = re.compile(
+	r'''url\(\s*['"]?(https://fonts[.]gstatic[.]com/[a-z0-9_/%+?:-]+?[.]woff2)['"]?\s*\)''', flags=re.I
+)
 
 
 
@@ -41,8 +42,8 @@ def has_mcss_filename(path) -> bool:
 	if path.endswith(r'm-special.css'):
 		return False
 
-	global RX_MCSS_FILE
-	return bool(RX_MCSS_FILE.fullmatch(path))
+	global RX_MCSS_FILENAME
+	return bool(RX_MCSS_FILENAME.match(path))
 
 
 
@@ -61,6 +62,7 @@ def resolve_imports(text, cwd=None, use_cached_fonts=True) -> Tuple[str, bool]:
 		nonlocal use_cached_fonts
 
 		import_path = strip_quotes(m[1].strip())
+		had_mcss_files = had_mcss_files or has_mcss_filename(import_path)
 		path = None
 		path_ok = lambda: path is not None and path.exists() and path.is_file()
 
@@ -77,22 +79,9 @@ def resolve_imports(text, cwd=None, use_cached_fonts=True) -> Tuple[str, bool]:
 				with open(path, 'w', encoding='utf-8', newline='\n') as f:
 					f.write(response.text)
 
-		# m-css stylesheets get special handling;
-		# - first we check for any identically-named versions in poxy's data dir
-		# - then check the m-css css dir
-		had_mcss_filename = False
-		was_mcss_file = False
-		if not path_ok() is None and has_mcss_filename(import_path):
-			path = Path(dirs.CSS, import_path)
-			if not path_ok():
-				path = Path(dirs.MCSS, r'css', import_path)
-				was_mcss_file = True
-			had_mcss_filename = True
-
 		# otherwise just check cwd
 		if not path_ok():
 			path = Path(cwd, import_path)
-			was_mcss_file = False
 
 		# if we still haven't found a match just leave the @import statement as it was
 		if not path_ok():
@@ -102,16 +91,7 @@ def resolve_imports(text, cwd=None, use_cached_fonts=True) -> Tuple[str, bool]:
 		header = rf'/*==== {import_path} {"="*(110-len(import_path))}*/'
 		text = f'\n\n{header}\n{text}\n\n'
 
-		# more m.css special-handling
-		if was_mcss_file:
-			had_mcss_files = True
-		if had_mcss_filename:
-			# replace the :root node in the m.css theme bases with the poxy equivalent
-			theme = RX_MCSS_THEME.fullmatch(path.name)
-			if theme:
-				text = text.replace(r':root', rf'.poxy-theme-{theme[1]}')
-
-		res = resolve_imports(text, cwd=path.parent)
+		res = resolve_imports(text, cwd=path.parent, use_cached_fonts=use_cached_fonts)
 		had_mcss_files = had_mcss_files or res[1]
 		return res[0]
 
@@ -183,6 +163,7 @@ def minify(text) -> str:
 
 	text = re.sub(r'[{]\s+?[}]', r'{}', text)
 	text = re.sub(r'[ \t][ \t]+', ' ', text)
+	text = re.sub(r'\n[ \t]+([^ \t])', r'\n\1', text)
 	return text
 
 
@@ -194,7 +175,11 @@ def regenerate_builtin_styles(use_cached_fonts=True):
 	THEMES = (Path(dirs.CSS, r'poxy.css'), )
 	for theme_source_file in THEMES:
 		text = strip_comments(read_all_text_from_file(theme_source_file, logger=True))
-		text, had_mcss_files = resolve_imports(text, theme_source_file.parent, use_cached_fonts=use_cached_fonts)
+		text, had_mcss_files = resolve_imports(
+			text,  #
+			cwd=theme_source_file.parent,
+			use_cached_fonts=use_cached_fonts,
+		)
 		text = resolve_google_fonts(text, use_cached_fonts=use_cached_fonts)
 		text = re.sub(r':(before|after)', r'::\1', text)
 		text = re.sub(r':::+(before|after)', r'::\1', text)

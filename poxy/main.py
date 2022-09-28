@@ -154,6 +154,7 @@ def main(invoker=True):
 
 	if args.mcss is not None:
 		args.update_styles = True
+		args.update_fonts = True
 		args.mcss = coerce_path(args.mcss).resolve()
 		assert_existing_directory(args.mcss)
 		assert_existing_file(Path(args.mcss, r'documentation/doxygen.py'))
@@ -182,7 +183,11 @@ def main(invoker=True):
 			r'test_doxygen*',
 			r'test_python*',
 			r'pelican-theme*',
-			r'pygments-*.py'
+			r'pygments-*.py',
+			r'postprocess.sh',
+			r'postprocess.py',
+			r'm-*dark.css',  # the m.css themes have local copies in data/ for *reasons*
+			r'm-*light.css'
 			)
 		)
 		for folder in (
@@ -201,8 +206,7 @@ def main(invoker=True):
 		args.update_styles = True
 	if args.update_styles:
 		css.regenerate_builtin_styles(use_cached_fonts=not args.update_fonts)
-
-	if args.update_styles or args.mcss is not None:
+	if args.update_styles:
 		return
 
 	with ScopeTimer(r'All tasks', print_start=False, print_end=not args.dry) as timer:

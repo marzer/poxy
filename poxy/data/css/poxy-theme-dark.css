@@ -20,5 +20,6 @@
 	--special-filled-link-color: #a061bd;
 	--special-filled-link-active-color: #e4a8ff;
 
+	--detail-section-header-color: var(--header-background-color);
 	--detail-section-background-color: rgba(0, 0, 0, 0.06);
 }

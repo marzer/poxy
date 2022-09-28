@@ -355,7 +355,7 @@ def preprocess_doxyfile(context):
 						elif bar[i] == r'theme':
 							bar[i] = (
 								r'<a title="Toggle dark and light themes" '
-								+ r'id="poxy-theme-switch" href="#poxy-theme-switch" '
+								+ r'id="poxy-theme-switch" href="javascript:void(null);" role="button" '
 								+ r'class="poxy-icon theme" onClick="toggle_theme();">' + read_all_text_from_file(
 								Path(dirs.DATA, "poxy-icon-theme.svg"), logger=context.verbose_logger
 								) + r'</a>', []
