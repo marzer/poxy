@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.8.0 - 2022-09-29
 
 -   added config option `gitlab` (#13) (@wroyca)
 -   added ixx module extension in source patterns (#11) (@wroyca)
