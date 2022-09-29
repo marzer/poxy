@@ -74,16 +74,18 @@ class CustomTags(HTMLFixer):
 			tag_content = tag_content.lower()
 			if not tag_content:
 				return ''
+			emoji = None
 			for base in (16, 10):
 				try:
-					cp = int(tag_content, base)
-					if cp in context.emoji_codepoints:
-						return f'&#x{cp:X};&#xFE0F;'
+					emoji = context.emoji[int(tag_content, base)]
+					if emoji is not None:
+						break
 				except:
 					pass
-			if tag_content in context.emoji:
-				cp = context.emoji[tag_content][0]
-				return f'&#x{cp:X};&#xFE0F;'
+			if emoji is None:
+				emoji = context.emoji[tag_content]
+			if emoji is not None:
+				return str(emoji)
 			return ''
 		elif tag_name in (
 			r'add_class', r'remove_class', r'set_class', r'parent_add_class', r'parent_remove_class',

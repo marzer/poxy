@@ -7,9 +7,7 @@
 Functions and classes for working with various source control repositories.
 """
 
-import re
 from .utils import *
-from typing import Tuple
 
 RX_REPO_PAIR = re.compile(r"""\s*([a-zA-Z0-9_+-]+)\s*[/\\:,;|]\s*([a-zA-Z0-9_+-]+)\s*""")
 

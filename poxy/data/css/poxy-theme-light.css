@@ -13,12 +13,15 @@
 	--code-color-escapes: #b776fb;
 	--code-color-preprocessor: #808080;
 
-	--special-color: #b65ad7;
-	--special-link-active-color: #e4a8ff;
-	--special-filled-color: #fafafa;
-	--special-filled-background-color: #683b7d;
-	--special-filled-link-color: #C57CDF;
-	--special-filled-link-active-color: #F2D6FF;
+	--special-hue: 284;
+	--special-saturation: 50%;
+	--special-luminosity: 60%;
+	--special-color: hsl(var(--special-hue), var(--special-saturation), var(--special-luminosity));
+	--special-link-active-color: hsl(var(--special-hue), var(--special-saturation), calc(var(--special-luminosity) * 0.7));
+	--special-filled-color: hsl(var(--special-hue), var(--special-saturation), 25%);
+	--special-filled-background-color:  hsl(var(--special-hue), calc(var(--special-saturation) * 0.8), calc(var(--special-luminosity) * 1.4));
+	--special-filled-link-color: hsl(var(--special-hue), calc(var(--special-saturation) * 0.6), 50%);
+	--special-filled-link-active-color: var(--special-filled-color);
 
 	--detail-section-header-color: var(--theme-surface3);
 	--detail-section-background-color: rgba(255, 255, 255, 0.3);

@@ -10,15 +10,14 @@ Everything relating to the 'project context' object that describes the project f
 import os
 import copy
 import pytomlpp
-import threading
-import json
 import datetime
 import shutil
 import itertools
 from schema import Schema, Or, And, Optional
 from .utils import *
-from . import repos
 from . import dirs
+from . import repos
+from . import emoji
 
 #=======================================================================================================================
 # schemas
@@ -1135,10 +1134,6 @@ class Context(object):
 	"""
 	The context object passed around during one invocation.
 	"""
-	__emoji = None
-	__emoji_codepoints = None
-	__emoji_uri = re.compile(r".+unicode/([0-9a-fA-F]+)[.]png.*", re.I)
-	__data_files_lock = threading.Lock()
 	__config_schema = Schema(
 		{
 		Optional(r'aliases'): {
@@ -1267,43 +1262,6 @@ class Context(object):
 		else:
 			for k, v in obj.__dict__.items():
 				self.verbose_value(rf'{name}.{k}', v)
-
-	@classmethod
-	def __init_data_files(cls, context):
-		cls.__data_files_lock.acquire()
-		try:
-			dirs.DATA.mkdir(exist_ok=True)
-			if cls.__emoji is None:
-				file_path = coerce_path(dirs.DATA, r'emoji.json')
-				cls.__emoji = json.loads(
-					read_all_text_from_file(
-					file_path, fallback_url='https://api.github.com/emojis', logger=context.verbose_logger
-					)
-				)
-				if '__processed' not in cls.__emoji:
-					emoji = {}
-					cls.__emoji_codepoints = set()
-					for key, uri in cls.__emoji.items():
-						m2 = cls.__emoji_uri.fullmatch(uri)
-						if m2:
-							cp = int(m2[1], 16)
-							emoji[key] = [cp, uri]
-							cls.__emoji_codepoints.add(cp)
-					aliases = [('sundae', 'ice_cream'), ('info', 'information_source'),
-						('man_in_tuxedo', 'person_in_tuxedo'), ('bride_with_veil', 'person_with_veil')]
-					for alias, key in aliases:
-						emoji[alias] = emoji[key]
-					emoji['__codepoints'] = [cp for cp in cls.__emoji_codepoints]
-					emoji['__processed'] = True
-					context.verbose(rf'Writing {file_path}')
-					with open(file_path, 'w', encoding='utf-8', newline='\n') as f:
-						print(json.dumps(emoji, sort_keys=True, indent=4), file=f)
-					cls.__emoji = emoji
-				cls.__emoji_codepoints = set()
-				for cp in cls.__emoji['__codepoints']:
-					cls.__emoji_codepoints.add(cp)
-		finally:
-			cls.__data_files_lock.release()
 
 	def __init__(
 		self, config_path, output_dir, threads, cleanup, verbose, doxygen_path, logger, dry_run, xml_only, html_include,
@@ -1968,10 +1926,10 @@ class Context(object):
 				self.html_header = str(config[r'html_header']).strip()
 			self.verbose_value(r'Context.html_header', self.html_header)
 
-		# initialize other data from files on disk
-		self.__init_data_files(self)
-		self.emoji = self.__emoji
-		self.emoji_codepoints = self.__emoji_codepoints
+		# init emoji db
+		self.emoji = None
+		if not self.dry_run:
+			self.emoji = emoji.Database()
 
 	def __enter__(self):
 		return self

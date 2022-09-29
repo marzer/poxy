@@ -92,8 +92,9 @@
 <li><a href="#list-with-components-inside">List with com&shy;pon&shy;ents in&shy;side</a></li>
 <li><a href="#floating-around">Float&shy;ing around</a></li>
 <li><a href="#floating-around-inflated">Float&shy;ing around, in&shy;flated</a></li>
-<li><a href="#mainpage-example-parsing-strings">toml++: Parsing strings and iostreams</a></li>
-<li><a href="#function-documentation">toml++: Function documentation</a></li>
+<li><a href="#mainpage-example-parsing-strings">example: toml++ Parsing strings and iostreams</a></li>
+<li><a href="#function-documentation">example: toml++ Function documentation</a></li>
+<li><a href="#canvases">example: Canvases</a></li>
 <li>Some</li>
 <li>Extra</li>
 <li>List</li>
@@ -1531,6 +1532,58 @@ et aliquam ex condimentum. </p></section>
 <span class="go">good: [ [ 42 ] ]</span></pre></div></aside>
   </div></section>
 
+</section>
+<section id="canvases">
+  <h2><a href="#canvases">Canvases</a></h2>
+<figure class="m-figure"><img alt="Image" src="example_debug_ui_canvas.png"><figcaption>A canvas being used to draw the memory usage visualization.</figcaption></figure><aside class="m-block m-dim"><h4>🔨️&nbsp;Implementers:</h4><p>Any debug visualizations which use the canvas will be supplementary to text output and are thus optional. If you do not wish to implement the canvas at all, simply return <code>false</code> unconditionally from <a class="m-doc" href="structstim_1_1debug__ui__interface.html#ad402a1d374949feccd2342607bcd321f">canvas_<wbr>begin()</a> and implement the rest of the methods as stubs, e.g.:</p><pre class="m-code"><span class="k">bool</span><span class="w"> </span><span class="nf">canvas_begin</span><span class="p">(</span><span class="nn">stim</span><span class="o">::</span><span class="nc">string_view</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="nn">stim</span><span class="o">::</span><span class="nc">vec2</span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">override</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">void</span><span class="w"> </span><span class="nf">canvas_set_colour</span><span class="p">(</span><span class="nc"><a class="m-doc poxy-injected poxy-external" href="https://en.cppreference.com/w/cpp/types/integer" target="_blank">uint32_t</a></span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{}</span>
+<span class="k">void</span><span class="w"> </span><span class="nf">canvas_draw_line</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="nn">stim</span><span class="o">::</span><span class="nc">vec2</span><span class="o">&amp;</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="nn">stim</span><span class="o">::</span><span class="nc">vec2</span><span class="o">&amp;</span><span class="p">,</span><span class="w"> </span><span class="k">float</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{}</span>
+<span class="k">void</span><span class="w"> </span><span class="nf">canvas_draw_rect</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="nn">stim</span><span class="o">::</span><span class="nc">vec2</span><span class="o">&amp;</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="nn">stim</span><span class="o">::</span><span class="nc">vec2</span><span class="o">&amp;</span><span class="p">,</span><span class="w"> </span><span class="k">float</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{}</span>
+<span class="k">void</span><span class="w"> </span><span class="nf">canvas_fill_rect</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="nn">stim</span><span class="o">::</span><span class="nc">vec2</span><span class="o">&amp;</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="nn">stim</span><span class="o">::</span><span class="nc">vec2</span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{}</span>
+<span class="k">void</span><span class="w"> </span><span class="nf">canvas_draw_text</span><span class="p">(</span><span class="nn">stim</span><span class="o">::</span><span class="nc">string_view</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="nn">stim</span><span class="o">::</span><span class="nc">vec2</span><span class="o">&amp;</span><span class="p">,</span><span class="w"> </span><span class="k">float</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{}</span>
+<span class="k">void</span><span class="w"> </span><span class="nf">canvas_end</span><span class="p">(</span><span class="k">bool</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{}</span></pre></aside>
+  <dl class="m-doc">
+    <dt>
+      <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="#ad402a1d374949feccd2342607bcd321f">canvas_begin</a>(</span><span class="m-doc-wrap"><a class="m-doc" href="classstim_1_1string__view.html">string_<wbr>view</a> id,
+      const <a class="m-doc" href="namespacestim.html#a07aa065c76c1a20c338a4eccc2d6db68">vec2</a>&amp; size) -&gt; bool <span class="m-label m-flat m-warning">pure virtual</span> <span class="m-label m-flat m-success">noexcept</span></span>
+    </dt>
+    <dd>Requests the beginning of a drawable canvas area.</dd>
+    <dt>
+      <span class="m-doc-wrap-bumper">void <a class="m-doc" href="#ab5a75d6522ad8d2be928f0dead1dda65">canvas_draw_line</a>(</span><span class="m-doc-wrap">const <a class="m-doc" href="namespacestim.html#a07aa065c76c1a20c338a4eccc2d6db68">vec2</a>&amp; from,
+      const <a class="m-doc" href="namespacestim.html#a07aa065c76c1a20c338a4eccc2d6db68">vec2</a>&amp; to,
+      float width) <span class="m-label m-flat m-warning">pure virtual</span> <span class="m-label m-flat m-success">noexcept</span></span>
+    </dt>
+    <dd>Draws a single line segment.</dd>
+    <dt>
+      <span class="m-doc-wrap-bumper">void <a class="m-doc" href="#abe95849581c2ed473d94ecfd131ab380">canvas_draw_rect</a>(</span><span class="m-doc-wrap">const <a class="m-doc" href="namespacestim.html#a07aa065c76c1a20c338a4eccc2d6db68">vec2</a>&amp; pos,
+      const <a class="m-doc" href="namespacestim.html#a07aa065c76c1a20c338a4eccc2d6db68">vec2</a>&amp; size,
+      float width) <span class="m-label m-flat m-warning">pure virtual</span> <span class="m-label m-flat m-success">noexcept</span></span>
+    </dt>
+    <dd>Draws the outline of a rectangle.</dd>
+    <dt>
+      <span class="m-doc-wrap-bumper">void <a class="m-doc" href="#aad84572fe764011294613649e421eee7">canvas_draw_text</a>(</span><span class="m-doc-wrap"><a class="m-doc" href="classstim_1_1string__view.html">string_<wbr>view</a> str,
+      const <a class="m-doc" href="namespacestim.html#a07aa065c76c1a20c338a4eccc2d6db68">vec2</a>&amp; pos,
+      float wrap_width = -1.0f) <span class="m-label m-flat m-warning">pure virtual</span> <span class="m-label m-flat m-success">noexcept</span></span>
+    </dt>
+    <dd>Draws some text.</dd>
+    <dt>
+      <span class="m-doc-wrap-bumper">void <a class="m-doc" href="#aa0c19b58306093e52181fba2111d0633">canvas_end</a>(</span><span class="m-doc-wrap">bool was_visible) <span class="m-label m-flat m-warning">pure virtual</span> <span class="m-label m-flat m-success">noexcept</span></span>
+    </dt>
+    <dd>Signals the end of a canvas.</dd>
+    <dt>
+      <span class="m-doc-wrap-bumper">void <a class="m-doc" href="#a3c0eca1390bf6c29dc9ce847cc7fecf6">canvas_fill_rect</a>(</span><span class="m-doc-wrap">const <a class="m-doc" href="namespacestim.html#a07aa065c76c1a20c338a4eccc2d6db68">vec2</a>&amp; pos,
+      const <a class="m-doc" href="namespacestim.html#a07aa065c76c1a20c338a4eccc2d6db68">vec2</a>&amp; size) <span class="m-label m-flat m-warning">pure virtual</span> <span class="m-label m-flat m-success">noexcept</span></span>
+    </dt>
+    <dd>Fills a rectangle.</dd>
+    <dt>
+      <span class="m-doc-wrap-bumper">void <a class="m-doc" href="#a739096f32b07197044b764a936bb8d44">canvas_set_colour</a>(</span><span class="m-doc-wrap"><a class="m-doc poxy-injected poxy-external" href="https://en.cppreference.com/w/cpp/types/integer" target="_blank">uint32_t</a> abgr) <span class="m-label m-flat m-warning">pure virtual</span> <span class="m-label m-flat m-success">noexcept</span></span>
+    </dt>
+    <dd>Sets the current canvas draw colour.</dd>
+  </dl>
 </section>
 <!-- /content -->
       </div>

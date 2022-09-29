@@ -4,12 +4,14 @@
 
 -   added config option `gitlab` (#13) (@wroyca)
 -   added ixx module extension in source patterns (#11) (@wroyca)
+-   added support for multi-codepoint emojis
 -   improved `doxygen.exe` location discovery on Windows
 -   improved `CHANGELOG` location discovery
 -   moved all poxy assets in the generated HTML to `html/poxy`
 -   self-hosted google fonts in generated HTML (instead of requiring additional HTTP requests on page load) (#6)
 -   removed ability to override m.css implementation
 -   removed legacy support for reading config options from neighbouring Doxyfiles
+-   overhauled the light theme
 -   many minor style fixes and tweaks
 
 ## v0.7.1 - 2022-08-17

@@ -7,15 +7,15 @@
 The various entry-point methods used when poxy is invoked from the command line.
 """
 
-import re
 import argparse
 import datetime
 import shutil
 from schema import SchemaError
 from .utils import *
 from .run import run
-from . import css
 from . import dirs
+from . import css
+from . import emoji
 
 
 
@@ -139,6 +139,11 @@ def main(invoker=True):
 		help=argparse.SUPPRESS
 	)
 	args.add_argument(
+		r'--update-emoji',  #
+		action=r'store_true',
+		help=argparse.SUPPRESS
+	)
+	args.add_argument(
 		r'--update-mcss',  #
 		type=Path,
 		default=None,
@@ -206,7 +211,11 @@ def main(invoker=True):
 		args.update_styles = True
 	if args.update_styles:
 		css.regenerate_builtin_styles(use_cached_fonts=not args.update_fonts)
-	if args.update_styles:
+
+	if args.update_emoji:
+		emoji.update_database_file()
+
+	if args.update_styles or args.update_emoji:
 		return
 
 	with ScopeTimer(r'All tasks', print_start=False, print_end=not args.dry) as timer:

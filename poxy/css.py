@@ -7,11 +7,8 @@
 Functions for working with CSS files.
 """
 
-import re
-import requests
 from .utils import *
 from . import dirs
-from typing import Tuple
 
 RX_COMMENT = re.compile(r'''/[*].+?[*]/''', flags=re.DOTALL)
 RX_IMPORT = re.compile(r'''@import\s+url\(\s*['"]?\s*(.+?)\s*['"]?\s*\)\s*;''', flags=re.I)
@@ -72,12 +69,10 @@ def resolve_imports(text, cwd=None, use_cached_fonts=True) -> Tuple[str, bool]:
 			path = Path(dirs.GENERATED, rf'{sha1(import_path.lower())}.css')
 			if not path_ok() or (not use_cached_fonts and str(import_path).find(r'font') != -1):
 				print(rf"Downloading {import_path}")
-				headers = {
-					r'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0'
-				}
-				response = requests.get(import_path, headers=headers, timeout=10)
+				data = download_text(import_path)
+				print(rf"Writing {path}")
 				with open(path, 'w', encoding='utf-8', newline='\n') as f:
-					f.write(response.text)
+					f.write(data)
 
 		# otherwise just check cwd
 		if not path_ok():
@@ -110,12 +105,10 @@ def resolve_google_fonts(text, use_cached_fonts=True) -> str:
 		path = Path(dirs.FONTS, rf'{file_name}')
 		if not path.exists() or not use_cached_fonts:
 			print(rf"Downloading {uri}")
-			headers = {
-				r'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0'
-			}
-			response = requests.get(uri, headers=headers, timeout=10)
+			data = download_binary(uri)
+			print(rf"Writing {path}")
 			with open(path, 'wb') as f:
-				f.write(response.content)
+				f.write(data)
 
 		return rf"url('fonts/{file_name}')"
 

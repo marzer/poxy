@@ -3,10 +3,6 @@
         128077,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f44d.png?v8"
     ],
-    "-1": [
-        128078,
-        "https://github.githubassets.com/images/icons/emoji/unicode/1f44e.png?v8"
-    ],
     "100": [
         128175,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4af.png?v8"
@@ -31,1329 +27,10 @@
         127921,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3b1.png?v8"
     ],
-    "__codepoints": [
-        8252,
-        8265,
-        169,
-        174,
-        8482,
-        8505,
-        8596,
-        8597,
-        8598,
-        8599,
-        8600,
-        8601,
-        8617,
-        8618,
-        8986,
-        8987,
-        9000,
-        9167,
-        9193,
-        9194,
-        9195,
-        9196,
-        9197,
-        9198,
-        9199,
-        9200,
-        9201,
-        9202,
-        9203,
-        9208,
-        9209,
-        9210,
-        9410,
-        9642,
-        9643,
-        9654,
-        9664,
-        9723,
-        9724,
-        9725,
-        9726,
-        9728,
-        9729,
-        9730,
-        9731,
-        9732,
-        9742,
-        9745,
-        9748,
-        9749,
-        9752,
-        9757,
-        9760,
-        9762,
-        9763,
-        9766,
-        9770,
-        9774,
-        9775,
-        9784,
-        9785,
-        9786,
-        9792,
-        9794,
-        9800,
-        9801,
-        9802,
-        9803,
-        9804,
-        9805,
-        9806,
-        9807,
-        9808,
-        9809,
-        9810,
-        9811,
-        9823,
-        9824,
-        9827,
-        9829,
-        9830,
-        9832,
-        9851,
-        9854,
-        9855,
-        9874,
-        9875,
-        9876,
-        9877,
-        9878,
-        9879,
-        9881,
-        9883,
-        9884,
-        9888,
-        9889,
-        9895,
-        9898,
-        9899,
-        9904,
-        9905,
-        9917,
-        9918,
-        9924,
-        9925,
-        9928,
-        9934,
-        9935,
-        9937,
-        9939,
-        9940,
-        9961,
-        9962,
-        9968,
-        9969,
-        9970,
-        9971,
-        9972,
-        9973,
-        9975,
-        9976,
-        9977,
-        9978,
-        9981,
-        9986,
-        9989,
-        9992,
-        9993,
-        9994,
-        9995,
-        9996,
-        9997,
-        9999,
-        10002,
-        10004,
-        10006,
-        10013,
-        10017,
-        10024,
-        10035,
-        10036,
-        10052,
-        10055,
-        10060,
-        10062,
-        10067,
-        10068,
-        10069,
-        10071,
-        10083,
-        10084,
-        10133,
-        10134,
-        10135,
-        10145,
-        10160,
-        10175,
-        10548,
-        10549,
-        11013,
-        11014,
-        11015,
-        11035,
-        11036,
-        11088,
-        11093,
-        126980,
-        12336,
-        12349,
-        127183,
-        127344,
-        127345,
-        127358,
-        127359,
-        127374,
-        127377,
-        127378,
-        127379,
-        127380,
-        127381,
-        127382,
-        127383,
-        127384,
-        127385,
-        127386,
-        127489,
-        127490,
-        127514,
-        127535,
-        127538,
-        127539,
-        127540,
-        127541,
-        127542,
-        127543,
-        127544,
-        127545,
-        127546,
-        127568,
-        127569,
-        12951,
-        12953,
-        127744,
-        127745,
-        127746,
-        127747,
-        127748,
-        127749,
-        127750,
-        127751,
-        127752,
-        127753,
-        127754,
-        127755,
-        127756,
-        127757,
-        127758,
-        127759,
-        127760,
-        127761,
-        127762,
-        127763,
-        127764,
-        127765,
-        127766,
-        127767,
-        127768,
-        127769,
-        127770,
-        127771,
-        127772,
-        127773,
-        127774,
-        127775,
-        127776,
-        127777,
-        127780,
-        127781,
-        127782,
-        127783,
-        127784,
-        127785,
-        127786,
-        127787,
-        127788,
-        127789,
-        127790,
-        127791,
-        127792,
-        127793,
-        127794,
-        127795,
-        127796,
-        127797,
-        127798,
-        127799,
-        127800,
-        127801,
-        127802,
-        127803,
-        127804,
-        127805,
-        127806,
-        127807,
-        127808,
-        127809,
-        127810,
-        127811,
-        127812,
-        127813,
-        127814,
-        127815,
-        127816,
-        127817,
-        127818,
-        127819,
-        127820,
-        127821,
-        127822,
-        127823,
-        127824,
-        127825,
-        127826,
-        127827,
-        127828,
-        127829,
-        127830,
-        127831,
-        127832,
-        127833,
-        127834,
-        127835,
-        127836,
-        127837,
-        127838,
-        127839,
-        127840,
-        127841,
-        127842,
-        127843,
-        127844,
-        127845,
-        127846,
-        127847,
-        127848,
-        127849,
-        127850,
-        127851,
-        127852,
-        127853,
-        127854,
-        127855,
-        127856,
-        127857,
-        127858,
-        127859,
-        127860,
-        127861,
-        127862,
-        127863,
-        127864,
-        127865,
-        127866,
-        127867,
-        127868,
-        127869,
-        127870,
-        127871,
-        127872,
-        127873,
-        127874,
-        127875,
-        127876,
-        127877,
-        127878,
-        127879,
-        127880,
-        127881,
-        127882,
-        127883,
-        127884,
-        127885,
-        127886,
-        127887,
-        127888,
-        127889,
-        127890,
-        127891,
-        127894,
-        127895,
-        127897,
-        127898,
-        127899,
-        127902,
-        127903,
-        127904,
-        127905,
-        127906,
-        127907,
-        127908,
-        127909,
-        127910,
-        127911,
-        127912,
-        127913,
-        127914,
-        127915,
-        127916,
-        127917,
-        127918,
-        127919,
-        127920,
-        127921,
-        127922,
-        127923,
-        127924,
-        127925,
-        127926,
-        127927,
-        127928,
-        127929,
-        127930,
-        127931,
-        127932,
-        127933,
-        127934,
-        127935,
-        127936,
-        127937,
-        127938,
-        127939,
-        127940,
-        127941,
-        127942,
-        127943,
-        127944,
-        127945,
-        127946,
-        127947,
-        127948,
-        127949,
-        127950,
-        127951,
-        127952,
-        127953,
-        127954,
-        127955,
-        127956,
-        127957,
-        127958,
-        127959,
-        127960,
-        127961,
-        127962,
-        127963,
-        127964,
-        127965,
-        127966,
-        127967,
-        127968,
-        127969,
-        127970,
-        127971,
-        127972,
-        127973,
-        127974,
-        127975,
-        127976,
-        127977,
-        127978,
-        127979,
-        127980,
-        127981,
-        127982,
-        127983,
-        127984,
-        127987,
-        127988,
-        127989,
-        127991,
-        127992,
-        127993,
-        127994,
-        128000,
-        128001,
-        128002,
-        128003,
-        128004,
-        128005,
-        128006,
-        128007,
-        128008,
-        128009,
-        128010,
-        128011,
-        128012,
-        128013,
-        128014,
-        128015,
-        128016,
-        128017,
-        128018,
-        128019,
-        128020,
-        128021,
-        128022,
-        128023,
-        128024,
-        128025,
-        128026,
-        128027,
-        128028,
-        128029,
-        128030,
-        128031,
-        128032,
-        128033,
-        128034,
-        128035,
-        128036,
-        128037,
-        128038,
-        128039,
-        128040,
-        128041,
-        128042,
-        128043,
-        128044,
-        128045,
-        128046,
-        128047,
-        128048,
-        128049,
-        128050,
-        128051,
-        128052,
-        128053,
-        128054,
-        128055,
-        128056,
-        128057,
-        128058,
-        128059,
-        128060,
-        128061,
-        128062,
-        128063,
-        128064,
-        128065,
-        128066,
-        128067,
-        128068,
-        128069,
-        128070,
-        128071,
-        128072,
-        128073,
-        128074,
-        128075,
-        128076,
-        128077,
+    "_1": [
         128078,
-        128079,
-        128080,
-        128081,
-        128082,
-        128083,
-        128084,
-        128085,
-        128086,
-        128087,
-        128088,
-        128089,
-        128090,
-        128091,
-        128092,
-        128093,
-        128094,
-        128095,
-        128096,
-        128097,
-        128098,
-        128099,
-        128100,
-        128101,
-        128102,
-        128103,
-        128104,
-        128105,
-        128106,
-        128107,
-        128108,
-        128109,
-        128110,
-        128111,
-        128112,
-        128113,
-        128114,
-        128115,
-        128116,
-        128117,
-        128118,
-        128119,
-        128120,
-        128121,
-        128122,
-        128123,
-        128124,
-        128125,
-        128126,
-        128127,
-        128128,
-        128129,
-        128130,
-        128131,
-        128132,
-        128133,
-        128134,
-        128135,
-        128136,
-        128137,
-        128138,
-        128139,
-        128140,
-        128141,
-        128142,
-        128143,
-        128144,
-        128145,
-        128146,
-        128147,
-        128148,
-        128149,
-        128150,
-        128151,
-        128152,
-        128153,
-        128154,
-        128155,
-        128156,
-        128157,
-        128158,
-        128159,
-        128160,
-        128161,
-        128162,
-        128163,
-        128164,
-        128165,
-        128166,
-        128167,
-        128168,
-        128169,
-        128170,
-        128171,
-        128172,
-        128173,
-        128174,
-        128175,
-        128176,
-        128177,
-        128178,
-        128179,
-        128180,
-        128181,
-        128182,
-        128183,
-        128184,
-        128185,
-        128186,
-        128187,
-        128188,
-        128189,
-        128190,
-        128191,
-        128192,
-        128193,
-        128194,
-        128195,
-        128196,
-        128197,
-        128198,
-        128199,
-        128200,
-        128201,
-        128202,
-        128203,
-        128204,
-        128205,
-        128206,
-        128207,
-        128208,
-        128209,
-        128210,
-        128211,
-        128212,
-        128213,
-        128214,
-        128215,
-        128216,
-        128217,
-        128218,
-        128219,
-        128220,
-        128221,
-        128222,
-        128223,
-        128224,
-        128225,
-        128226,
-        128227,
-        128228,
-        128229,
-        128230,
-        128231,
-        128232,
-        128233,
-        128234,
-        128235,
-        128236,
-        128237,
-        128238,
-        128239,
-        128240,
-        128241,
-        128242,
-        128243,
-        128244,
-        128245,
-        128246,
-        128247,
-        128248,
-        128249,
-        128250,
-        128251,
-        128252,
-        128253,
-        128255,
-        128256,
-        128257,
-        128258,
-        128259,
-        128260,
-        128261,
-        128262,
-        128263,
-        128264,
-        128265,
-        128266,
-        128267,
-        128268,
-        128269,
-        128270,
-        128271,
-        128272,
-        128273,
-        128274,
-        128275,
-        128276,
-        128277,
-        128278,
-        128279,
-        128280,
-        128281,
-        128282,
-        128283,
-        128284,
-        128285,
-        128286,
-        128287,
-        128288,
-        128289,
-        128290,
-        128291,
-        128292,
-        128293,
-        128294,
-        128295,
-        128296,
-        128297,
-        128298,
-        128299,
-        128300,
-        128301,
-        128302,
-        128303,
-        128304,
-        128305,
-        128306,
-        128307,
-        128308,
-        128309,
-        128310,
-        128311,
-        128312,
-        128313,
-        128314,
-        128315,
-        128316,
-        128317,
-        128329,
-        128330,
-        128331,
-        128332,
-        128333,
-        128334,
-        128336,
-        128337,
-        128338,
-        128339,
-        128340,
-        128341,
-        128342,
-        128343,
-        128344,
-        128345,
-        128346,
-        128347,
-        128348,
-        128349,
-        128350,
-        128351,
-        128352,
-        128353,
-        128354,
-        128355,
-        128356,
-        128357,
-        128358,
-        128359,
-        128367,
-        128368,
-        128371,
-        128372,
-        128373,
-        128374,
-        128375,
-        128376,
-        128377,
-        128378,
-        128391,
-        128394,
-        128395,
-        128396,
-        128397,
-        128400,
-        128405,
-        128406,
-        128420,
-        128421,
-        128424,
-        128433,
-        128434,
-        128444,
-        128450,
-        128451,
-        128452,
-        128465,
-        128466,
-        128467,
-        128476,
-        128477,
-        128478,
-        128481,
-        128483,
-        128488,
-        128495,
-        128499,
-        128506,
-        128507,
-        128508,
-        128509,
-        128510,
-        128511,
-        128512,
-        128513,
-        128514,
-        128515,
-        128516,
-        128517,
-        128518,
-        128519,
-        128520,
-        128521,
-        128522,
-        128523,
-        128524,
-        128525,
-        128526,
-        128527,
-        128528,
-        128529,
-        128530,
-        128531,
-        128532,
-        128533,
-        128534,
-        128535,
-        128536,
-        128537,
-        128538,
-        128539,
-        128540,
-        128541,
-        128542,
-        128543,
-        128544,
-        128545,
-        128546,
-        128547,
-        128548,
-        128549,
-        128550,
-        128551,
-        128552,
-        128553,
-        128554,
-        128555,
-        128556,
-        128557,
-        128558,
-        128559,
-        128560,
-        128561,
-        128562,
-        128563,
-        128564,
-        128565,
-        128566,
-        128567,
-        128568,
-        128569,
-        128570,
-        128571,
-        128572,
-        128573,
-        128574,
-        128575,
-        128576,
-        128577,
-        128578,
-        128579,
-        128580,
-        128581,
-        128582,
-        128583,
-        128584,
-        128585,
-        128586,
-        128587,
-        128588,
-        128589,
-        128590,
-        128591,
-        128640,
-        128641,
-        128642,
-        128643,
-        128644,
-        128645,
-        128646,
-        128647,
-        128648,
-        128649,
-        128650,
-        128651,
-        128652,
-        128653,
-        128654,
-        128655,
-        128656,
-        128657,
-        128658,
-        128659,
-        128660,
-        128661,
-        128662,
-        128663,
-        128664,
-        128665,
-        128666,
-        128667,
-        128668,
-        128669,
-        128670,
-        128671,
-        128672,
-        128673,
-        128674,
-        128675,
-        128676,
-        128677,
-        128678,
-        128679,
-        128680,
-        128681,
-        128682,
-        128683,
-        128684,
-        128685,
-        128686,
-        128687,
-        128688,
-        128689,
-        128690,
-        128691,
-        128692,
-        128693,
-        128694,
-        128695,
-        128696,
-        128697,
-        128698,
-        128699,
-        128700,
-        128701,
-        128702,
-        128703,
-        128704,
-        128705,
-        128706,
-        128707,
-        128708,
-        128709,
-        128715,
-        128716,
-        128717,
-        128718,
-        128719,
-        128720,
-        128721,
-        128722,
-        128725,
-        128726,
-        128727,
-        128736,
-        128737,
-        128738,
-        128739,
-        128740,
-        128741,
-        128745,
-        128747,
-        128748,
-        128752,
-        128755,
-        128756,
-        128757,
-        128758,
-        128759,
-        128760,
-        128761,
-        128762,
-        128763,
-        128764,
-        128992,
-        128993,
-        128994,
-        128995,
-        128996,
-        128997,
-        128998,
-        128999,
-        129000,
-        129001,
-        129002,
-        129003,
-        129292,
-        129293,
-        129294,
-        129295,
-        129296,
-        129297,
-        129298,
-        129299,
-        129300,
-        129301,
-        129302,
-        129303,
-        129304,
-        129305,
-        129306,
-        129307,
-        129308,
-        129309,
-        129310,
-        129311,
-        129312,
-        129313,
-        129314,
-        129315,
-        129316,
-        129317,
-        129318,
-        129319,
-        129320,
-        129321,
-        129322,
-        129323,
-        129324,
-        129325,
-        129326,
-        129327,
-        129328,
-        129329,
-        129330,
-        129331,
-        129332,
-        129333,
-        129334,
-        129335,
-        129336,
-        129337,
-        129338,
-        129340,
-        129341,
-        129342,
-        129343,
-        129344,
-        129345,
-        129346,
-        129347,
-        129348,
-        129349,
-        129351,
-        129352,
-        129353,
-        129354,
-        129355,
-        129356,
-        129357,
-        129358,
-        129359,
-        129360,
-        129361,
-        129362,
-        129363,
-        129364,
-        129365,
-        129366,
-        129367,
-        129368,
-        129369,
-        129370,
-        129371,
-        129372,
-        129373,
-        129374,
-        129375,
-        129376,
-        129377,
-        129378,
-        129379,
-        129380,
-        129381,
-        129382,
-        129383,
-        129384,
-        129385,
-        129386,
-        129387,
-        129388,
-        129389,
-        129390,
-        129391,
-        129392,
-        129393,
-        129394,
-        129395,
-        129396,
-        129397,
-        129398,
-        129399,
-        129400,
-        129402,
-        129403,
-        129404,
-        129405,
-        129406,
-        129407,
-        129408,
-        129409,
-        129410,
-        129411,
-        129412,
-        129413,
-        129414,
-        129415,
-        129416,
-        129417,
-        129418,
-        129419,
-        129420,
-        129421,
-        129422,
-        129423,
-        129424,
-        129425,
-        129426,
-        129427,
-        129428,
-        129429,
-        129430,
-        129431,
-        129432,
-        129433,
-        129434,
-        129435,
-        129436,
-        129437,
-        129438,
-        129439,
-        129440,
-        129441,
-        129442,
-        129443,
-        129444,
-        129445,
-        129446,
-        129447,
-        129448,
-        129449,
-        129450,
-        129451,
-        129452,
-        129453,
-        129454,
-        129455,
-        129460,
-        129461,
-        129462,
-        129463,
-        129464,
-        129465,
-        129466,
-        129467,
-        129468,
-        129469,
-        129470,
-        129471,
-        129472,
-        129473,
-        129474,
-        129475,
-        129476,
-        129477,
-        129478,
-        129479,
-        129480,
-        129481,
-        129482,
-        129483,
-        129485,
-        129486,
-        129487,
-        129488,
-        129489,
-        129490,
-        129491,
-        129492,
-        129493,
-        129494,
-        129495,
-        129496,
-        129497,
-        129498,
-        129499,
-        129500,
-        129501,
-        129502,
-        129503,
-        129504,
-        129505,
-        129506,
-        129507,
-        129508,
-        129509,
-        129510,
-        129511,
-        129512,
-        129513,
-        129514,
-        129515,
-        129516,
-        129517,
-        129518,
-        129519,
-        129520,
-        129521,
-        129522,
-        129523,
-        129524,
-        129525,
-        129526,
-        129527,
-        129528,
-        129529,
-        129530,
-        129531,
-        129532,
-        129533,
-        129534,
-        129535,
-        129648,
-        129649,
-        129650,
-        129651,
-        129652,
-        129656,
-        129657,
-        129658,
-        129664,
-        129665,
-        129666,
-        129667,
-        129668,
-        129669,
-        129670,
-        129680,
-        129681,
-        129682,
-        129683,
-        129684,
-        129685,
-        129686,
-        129687,
-        129688,
-        129689,
-        129690,
-        129691,
-        129692,
-        129693,
-        129694,
-        129695,
-        129696,
-        129697,
-        129698,
-        129699,
-        129700,
-        129701,
-        129702,
-        129703,
-        129704,
-        129712,
-        129713,
-        129714,
-        129715,
-        129716,
-        129717,
-        129718,
-        129728,
-        129729,
-        129730,
-        129744,
-        129745,
-        129746,
-        129747,
-        129748,
-        129749,
-        129750
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f44e.png?v8"
     ],
-    "__processed": true,
     "a": [
         127344,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f170.png?v8"
@@ -1394,17 +71,45 @@
         128673,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6a1.png?v8"
     ],
+    "afghanistan": [
+        [
+            127462,
+            127467
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1eb.png?v8"
+    ],
     "airplane": [
         9992,
         "https://github.githubassets.com/images/icons/emoji/unicode/2708.png?v8"
+    ],
+    "aland_islands": [
+        [
+            127462,
+            127485
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1fd.png?v8"
     ],
     "alarm_clock": [
         9200,
         "https://github.githubassets.com/images/icons/emoji/unicode/23f0.png?v8"
     ],
+    "albania": [
+        [
+            127462,
+            127473
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1f1.png?v8"
+    ],
     "alembic": [
         9879,
         "https://github.githubassets.com/images/icons/emoji/unicode/2697.png?v8"
+    ],
+    "algeria": [
+        [
+            127465,
+            127487
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e9-1f1ff.png?v8"
     ],
     "alien": [
         128125,
@@ -1413,6 +118,13 @@
     "ambulance": [
         128657,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f691.png?v8"
+    ],
+    "american_samoa": [
+        [
+            127462,
+            127480
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1f8.png?v8"
     ],
     "amphora": [
         127994,
@@ -1426,6 +138,13 @@
         9875,
         "https://github.githubassets.com/images/icons/emoji/unicode/2693.png?v8"
     ],
+    "andorra": [
+        [
+            127462,
+            127465
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1e9.png?v8"
+    ],
     "angel": [
         128124,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f47c.png?v8"
@@ -1434,9 +153,23 @@
         128162,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4a2.png?v8"
     ],
+    "angola": [
+        [
+            127462,
+            127476
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1f4.png?v8"
+    ],
     "angry": [
         128544,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f620.png?v8"
+    ],
+    "anguilla": [
+        [
+            127462,
+            127470
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1ee.png?v8"
     ],
     "anguished": [
         128551,
@@ -1446,6 +179,20 @@
         128028,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f41c.png?v8"
     ],
+    "antarctica": [
+        [
+            127462,
+            127478
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1f6.png?v8"
+    ],
+    "antigua_barbuda": [
+        [
+            127462,
+            127468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1ec.png?v8"
+    ],
     "apple": [
         127822,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f34e.png?v8"
@@ -1454,9 +201,23 @@
         9810,
         "https://github.githubassets.com/images/icons/emoji/unicode/2652.png?v8"
     ],
+    "argentina": [
+        [
+            127462,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1f7.png?v8"
+    ],
     "aries": [
         9800,
         "https://github.githubassets.com/images/icons/emoji/unicode/2648.png?v8"
+    ],
+    "armenia": [
+        [
+            127462,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1f2.png?v8"
     ],
     "arrow_backward": [
         9664,
@@ -1550,9 +311,44 @@
         128752,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6f0.png?v8"
     ],
+    "artist": [
+        [
+            129489,
+            127912
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f3a8.png?v8"
+    ],
+    "aruba": [
+        [
+            127462,
+            127484
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1fc.png?v8"
+    ],
+    "ascension_island": [
+        [
+            127462,
+            127464
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1e8.png?v8"
+    ],
+    "asterisk": [
+        [
+            42,
+            8419
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/002a-20e3.png?v8"
+    ],
     "astonished": [
         128562,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f632.png?v8"
+    ],
+    "astronaut": [
+        [
+            129489,
+            128640
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f680.png?v8"
     ],
     "athletic_shoe": [
         128095,
@@ -1566,6 +362,20 @@
         9883,
         "https://github.githubassets.com/images/icons/emoji/unicode/269b.png?v8"
     ],
+    "australia": [
+        [
+            127462,
+            127482
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1fa.png?v8"
+    ],
+    "austria": [
+        [
+            127462,
+            127481
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1f9.png?v8"
+    ],
     "auto_rickshaw": [
         128762,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6fa.png?v8"
@@ -1577,6 +387,13 @@
     "axe": [
         129683,
         "https://github.githubassets.com/images/icons/emoji/unicode/1fa93.png?v8"
+    ],
+    "azerbaijan": [
+        [
+            127462,
+            127487
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1ff.png?v8"
     ],
     "b": [
         127345,
@@ -1626,9 +443,37 @@
         129366,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f956.png?v8"
     ],
+    "bahamas": [
+        [
+            127463,
+            127480
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1f8.png?v8"
+    ],
+    "bahrain": [
+        [
+            127463,
+            127469
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1ed.png?v8"
+    ],
     "balance_scale": [
         9878,
         "https://github.githubassets.com/images/icons/emoji/unicode/2696.png?v8"
+    ],
+    "bald_man": [
+        [
+            128104,
+            129458
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f9b2.png?v8"
+    ],
+    "bald_woman": [
+        [
+            128105,
+            129458
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f9b2.png?v8"
     ],
     "ballet_shoes": [
         129648,
@@ -1658,6 +503,13 @@
         8252,
         "https://github.githubassets.com/images/icons/emoji/unicode/203c.png?v8"
     ],
+    "bangladesh": [
+        [
+            127463,
+            127465
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1e9.png?v8"
+    ],
     "banjo": [
         129685,
         "https://github.githubassets.com/images/icons/emoji/unicode/1fa95.png?v8"
@@ -1669,6 +521,13 @@
     "bar_chart": [
         128202,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4ca.png?v8"
+    ],
+    "barbados": [
+        [
+            127463,
+            127463
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1e7.png?v8"
     ],
     "barber": [
         128136,
@@ -1685,6 +544,20 @@
     "basketball": [
         127936,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3c0.png?v8"
+    ],
+    "basketball_man": [
+        [
+            9977,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/26f9-2642.png?v8"
+    ],
+    "basketball_woman": [
+        [
+            9977,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/26f9-2640.png?v8"
     ],
     "bat": [
         129415,
@@ -1742,6 +615,27 @@
         128304,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f530.png?v8"
     ],
+    "belarus": [
+        [
+            127463,
+            127486
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1fe.png?v8"
+    ],
+    "belgium": [
+        [
+            127463,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1ea.png?v8"
+    ],
+    "belize": [
+        [
+            127463,
+            127487
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1ff.png?v8"
+    ],
     "bell": [
         128276,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f514.png?v8"
@@ -1754,13 +648,34 @@
         128718,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6ce.png?v8"
     ],
+    "benin": [
+        [
+            127463,
+            127471
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1ef.png?v8"
+    ],
     "bento": [
         127857,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f371.png?v8"
     ],
+    "bermuda": [
+        [
+            127463,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1f2.png?v8"
+    ],
     "beverage_box": [
         129475,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9c3.png?v8"
+    ],
+    "bhutan": [
+        [
+            127463,
+            127481
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1f9.png?v8"
     ],
     "bicyclist": [
         128692,
@@ -1769,6 +684,20 @@
     "bike": [
         128690,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6b2.png?v8"
+    ],
+    "biking_man": [
+        [
+            128692,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f6b4-2642.png?v8"
+    ],
+    "biking_woman": [
+        [
+            128692,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f6b4-2640.png?v8"
     ],
     "bikini": [
         128089,
@@ -1793,6 +722,13 @@
     "bison": [
         129452,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9ac.png?v8"
+    ],
+    "black_cat": [
+        [
+            128008,
+            11035
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f408-2b1b.png?v8"
     ],
     "black_circle": [
         9899,
@@ -1834,9 +770,30 @@
         128306,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f532.png?v8"
     ],
+    "blond_haired_man": [
+        [
+            128113,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f471-2642.png?v8"
+    ],
     "blond_haired_person": [
         128113,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f471.png?v8"
+    ],
+    "blond_haired_woman": [
+        [
+            128113,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f471-2640.png?v8"
+    ],
+    "blonde_woman": [
+        [
+            128113,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f471-2640.png?v8"
     ],
     "blossom": [
         127804,
@@ -1878,6 +835,13 @@
         9973,
         "https://github.githubassets.com/images/icons/emoji/unicode/26f5.png?v8"
     ],
+    "bolivia": [
+        [
+            127463,
+            127476
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1f4.png?v8"
+    ],
     "bomb": [
         128163,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4a3.png?v8"
@@ -1914,13 +878,48 @@
         128098,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f462.png?v8"
     ],
+    "bosnia_herzegovina": [
+        [
+            127463,
+            127462
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1e6.png?v8"
+    ],
+    "botswana": [
+        [
+            127463,
+            127484
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1fc.png?v8"
+    ],
+    "bouncing_ball_man": [
+        [
+            9977,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/26f9-2642.png?v8"
+    ],
     "bouncing_ball_person": [
         9977,
         "https://github.githubassets.com/images/icons/emoji/unicode/26f9.png?v8"
     ],
+    "bouncing_ball_woman": [
+        [
+            9977,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/26f9-2640.png?v8"
+    ],
     "bouquet": [
         128144,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f490.png?v8"
+    ],
+    "bouvet_island": [
+        [
+            127463,
+            127483
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1fb.png?v8"
     ],
     "bow": [
         128583,
@@ -1929,6 +928,20 @@
     "bow_and_arrow": [
         127993,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3f9.png?v8"
+    ],
+    "bowing_man": [
+        [
+            128583,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f647-2642.png?v8"
+    ],
+    "bowing_woman": [
+        [
+            128583,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f647-2640.png?v8"
     ],
     "bowl_with_spoon": [
         129379,
@@ -1950,6 +963,13 @@
         129504,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9e0.png?v8"
     ],
+    "brazil": [
+        [
+            127463,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1f7.png?v8"
+    ],
     "bread": [
         127838,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f35e.png?v8"
@@ -1963,8 +983,11 @@
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9f1.png?v8"
     ],
     "bride_with_veil": [
-        128112,
-        "https://github.githubassets.com/images/icons/emoji/unicode/1f470.png?v8"
+        [
+            128112,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f470-2640.png?v8"
     ],
     "bridge_at_night": [
         127753,
@@ -1973,6 +996,20 @@
     "briefcase": [
         128188,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4bc.png?v8"
+    ],
+    "british_indian_ocean_territory": [
+        [
+            127470,
+            127476
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ee-1f1f4.png?v8"
+    ],
+    "british_virgin_islands": [
+        [
+            127483,
+            127468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fb-1f1ec.png?v8"
     ],
     "broccoli": [
         129382,
@@ -1998,6 +1035,13 @@
         129003,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f7eb.png?v8"
     ],
+    "brunei": [
+        [
+            127463,
+            127475
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1f3.png?v8"
+    ],
     "bubble_tea": [
         129483,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9cb.png?v8"
@@ -2018,6 +1062,13 @@
         128161,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4a1.png?v8"
     ],
+    "bulgaria": [
+        [
+            127463,
+            127468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1ec.png?v8"
+    ],
     "bullettrain_front": [
         128645,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f685.png?v8"
@@ -2026,9 +1077,23 @@
         128644,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f684.png?v8"
     ],
+    "burkina_faso": [
+        [
+            127463,
+            127467
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1eb.png?v8"
+    ],
     "burrito": [
         127791,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f32f.png?v8"
+    ],
+    "burundi": [
+        [
+            127463,
+            127470
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1ee.png?v8"
     ],
     "bus": [
         128652,
@@ -2078,6 +1143,13 @@
         128242,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4f2.png?v8"
     ],
+    "cambodia": [
+        [
+            127472,
+            127469
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f0-1f1ed.png?v8"
+    ],
     "camel": [
         128043,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f42b.png?v8"
@@ -2090,9 +1162,30 @@
         128248,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4f8.png?v8"
     ],
+    "cameroon": [
+        [
+            127464,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1f2.png?v8"
+    ],
     "camping": [
         127957,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3d5.png?v8"
+    ],
+    "canada": [
+        [
+            127464,
+            127462
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1e6.png?v8"
+    ],
+    "canary_islands": [
+        [
+            127470,
+            127464
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ee-1f1e8.png?v8"
     ],
     "cancer": [
         9803,
@@ -2113,6 +1206,13 @@
     "canoe": [
         128758,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6f6.png?v8"
+    ],
+    "cape_verde": [
+        [
+            127464,
+            127483
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1fb.png?v8"
     ],
     "capital_abcd": [
         128288,
@@ -2138,6 +1238,13 @@
         128450,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f5c2.png?v8"
     ],
+    "caribbean_netherlands": [
+        [
+            127463,
+            127478
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1f6.png?v8"
+    ],
     "carousel_horse": [
         127904,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3a0.png?v8"
@@ -2162,9 +1269,37 @@
         128008,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f408.png?v8"
     ],
+    "cayman_islands": [
+        [
+            127472,
+            127486
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f0-1f1fe.png?v8"
+    ],
     "cd": [
         128191,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4bf.png?v8"
+    ],
+    "central_african_republic": [
+        [
+            127464,
+            127467
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1eb.png?v8"
+    ],
+    "ceuta_melilla": [
+        [
+            127466,
+            127462
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ea-1f1e6.png?v8"
+    ],
+    "chad": [
+        [
+            127481,
+            127465
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1e9.png?v8"
     ],
     "chains": [
         9939,
@@ -2226,6 +1361,13 @@
         128696,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6b8.png?v8"
     ],
+    "chile": [
+        [
+            127464,
+            127473
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1f1.png?v8"
+    ],
     "chipmunk": [
         128063,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f43f.png?v8"
@@ -2237,6 +1379,13 @@
     "chopsticks": [
         129378,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f962.png?v8"
+    ],
+    "christmas_island": [
+        [
+            127464,
+            127485
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1fd.png?v8"
     ],
     "christmas_tree": [
         127876,
@@ -2290,6 +1439,20 @@
         129495,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9d7.png?v8"
     ],
+    "climbing_man": [
+        [
+            129495,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d7-2642.png?v8"
+    ],
+    "climbing_woman": [
+        [
+            129495,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d7-2640.png?v8"
+    ],
     "clinking_glasses": [
         129346,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f942.png?v8"
@@ -2297,6 +1460,13 @@
     "clipboard": [
         128203,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4cb.png?v8"
+    ],
+    "clipperton_island": [
+        [
+            127464,
+            127477
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1f5.png?v8"
     ],
     "clock1": [
         128336,
@@ -2434,6 +1604,13 @@
         9827,
         "https://github.githubassets.com/images/icons/emoji/unicode/2663.png?v8"
     ],
+    "cn": [
+        [
+            127464,
+            127475
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1f3.png?v8"
+    ],
     "coat": [
         129509,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9e5.png?v8"
@@ -2449,6 +1626,13 @@
     "coconut": [
         129381,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f965.png?v8"
+    ],
+    "cocos_islands": [
+        [
+            127464,
+            127464
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1e8.png?v8"
     ],
     "coffee": [
         9749,
@@ -2474,9 +1658,23 @@
         128165,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4a5.png?v8"
     ],
+    "colombia": [
+        [
+            127464,
+            127476
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1f4.png?v8"
+    ],
     "comet": [
         9732,
         "https://github.githubassets.com/images/icons/emoji/unicode/2604.png?v8"
+    ],
+    "comoros": [
+        [
+            127472,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f0-1f1f2.png?v8"
     ],
     "compass": [
         129517,
@@ -2502,6 +1700,20 @@
         128533,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f615.png?v8"
     ],
+    "congo_brazzaville": [
+        [
+            127464,
+            127468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1ec.png?v8"
+    ],
+    "congo_kinshasa": [
+        [
+            127464,
+            127465
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1e9.png?v8"
+    ],
     "congratulations": [
         12951,
         "https://github.githubassets.com/images/icons/emoji/unicode/3297.png?v8"
@@ -2514,6 +1726,20 @@
         128119,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f477.png?v8"
     ],
+    "construction_worker_man": [
+        [
+            128119,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f477-2642.png?v8"
+    ],
+    "construction_worker_woman": [
+        [
+            128119,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f477-2640.png?v8"
+    ],
     "control_knobs": [
         127899,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f39b.png?v8"
@@ -2521,6 +1747,20 @@
     "convenience_store": [
         127978,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3ea.png?v8"
+    ],
+    "cook": [
+        [
+            129489,
+            127859
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f373.png?v8"
+    ],
+    "cook_islands": [
+        [
+            127464,
+            127472
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1f0.png?v8"
     ],
     "cookie": [
         127850,
@@ -2541,6 +1781,20 @@
     "corn": [
         127805,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f33d.png?v8"
+    ],
+    "costa_rica": [
+        [
+            127464,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1f7.png?v8"
+    ],
+    "cote_divoire": [
+        [
+            127464,
+            127470
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1ee.png?v8"
     ],
     "couch_and_lamp": [
         128715,
@@ -2594,6 +1848,13 @@
         127951,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3cf.png?v8"
     ],
+    "croatia": [
+        [
+            127469,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ed-1f1f7.png?v8"
+    ],
     "crocodile": [
         128010,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f40a.png?v8"
@@ -2630,6 +1891,13 @@
         128302,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f52e.png?v8"
     ],
+    "cuba": [
+        [
+            127464,
+            127482
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1fa.png?v8"
+    ],
     "cucumber": [
         129362,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f952.png?v8"
@@ -2646,9 +1914,30 @@
         128152,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f498.png?v8"
     ],
+    "curacao": [
+        [
+            127464,
+            127484
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1fc.png?v8"
+    ],
     "curling_stone": [
         129356,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f94c.png?v8"
+    ],
+    "curly_haired_man": [
+        [
+            128104,
+            129457
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f9b1.png?v8"
+    ],
+    "curly_haired_woman": [
+        [
+            128105,
+            129457
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f9b1.png?v8"
     ],
     "curly_loop": [
         10160,
@@ -2682,6 +1971,20 @@
         127744,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f300.png?v8"
     ],
+    "cyprus": [
+        [
+            127464,
+            127486
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1fe.png?v8"
+    ],
+    "czech_republic": [
+        [
+            127464,
+            127487
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1ff.png?v8"
+    ],
     "dagger": [
         128481,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f5e1.png?v8"
@@ -2693,6 +1996,20 @@
     "dancers": [
         128111,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f46f.png?v8"
+    ],
+    "dancing_men": [
+        [
+            128111,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f46f-2642.png?v8"
+    ],
+    "dancing_women": [
+        [
+            128111,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f46f-2640.png?v8"
     ],
     "dango": [
         127841,
@@ -2714,9 +2031,30 @@
         128197,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4c5.png?v8"
     ],
+    "de": [
+        [
+            127465,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e9-1f1ea.png?v8"
+    ],
+    "deaf_man": [
+        [
+            129487,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9cf-2642.png?v8"
+    ],
     "deaf_person": [
         129487,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9cf.png?v8"
+    ],
+    "deaf_woman": [
+        [
+            129487,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9cf-2640.png?v8"
     ],
     "deciduous_tree": [
         127795,
@@ -2725,6 +2063,13 @@
     "deer": [
         129420,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f98c.png?v8"
+    ],
+    "denmark": [
+        [
+            127465,
+            127472
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e9-1f1f0.png?v8"
     ],
     "department_store": [
         127980,
@@ -2758,6 +2103,13 @@
         9830,
         "https://github.githubassets.com/images/icons/emoji/unicode/2666.png?v8"
     ],
+    "diego_garcia": [
+        [
+            127465,
+            127468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e9-1f1ec.png?v8"
+    ],
     "disappointed": [
         128542,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f61e.png?v8"
@@ -2785,6 +2137,13 @@
     "dizzy_face": [
         128565,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f635.png?v8"
+    ],
+    "djibouti": [
+        [
+            127465,
+            127471
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e9-1f1ef.png?v8"
     ],
     "dna": [
         129516,
@@ -2817,6 +2176,20 @@
     "dolphin": [
         128044,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f42c.png?v8"
+    ],
+    "dominica": [
+        [
+            127465,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e9-1f1f2.png?v8"
+    ],
+    "dominican_republic": [
+        [
+            127465,
+            127476
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e9-1f1f4.png?v8"
     ],
     "door": [
         128682,
@@ -2874,7 +2247,7 @@
         128192,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4c0.png?v8"
     ],
-    "e-mail": [
+    "e_mail": [
         128231,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4e7.png?v8"
     ],
@@ -2906,6 +2279,13 @@
         127759,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f30f.png?v8"
     ],
+    "ecuador": [
+        [
+            127466,
+            127464
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ea-1f1e8.png?v8"
+    ],
     "egg": [
         129370,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f95a.png?v8"
@@ -2913,6 +2293,20 @@
     "eggplant": [
         127814,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f346.png?v8"
+    ],
+    "egypt": [
+        [
+            127466,
+            127468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ea-1f1ec.png?v8"
+    ],
+    "eight": [
+        [
+            56,
+            8419
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/0038-20e3.png?v8"
     ],
     "eight_pointed_black_star": [
         10036,
@@ -2925,6 +2319,13 @@
     "eject_button": [
         9167,
         "https://github.githubassets.com/images/icons/emoji/unicode/23cf.png?v8"
+    ],
+    "el_salvador": [
+        [
+            127480,
+            127483
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1fb.png?v8"
     ],
     "electric_plug": [
         128268,
@@ -2942,6 +2343,20 @@
         129501,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9dd.png?v8"
     ],
+    "elf_man": [
+        [
+            129501,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9dd-2642.png?v8"
+    ],
+    "elf_woman": [
+        [
+            129501,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9dd-2640.png?v8"
+    ],
     "email": [
         128231,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4e7.png?v8"
@@ -2958,6 +2373,48 @@
         128233,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4e9.png?v8"
     ],
+    "equatorial_guinea": [
+        [
+            127468,
+            127478
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1f6.png?v8"
+    ],
+    "eritrea": [
+        [
+            127466,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ea-1f1f7.png?v8"
+    ],
+    "es": [
+        [
+            127466,
+            127480
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ea-1f1f8.png?v8"
+    ],
+    "estonia": [
+        [
+            127466,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ea-1f1ea.png?v8"
+    ],
+    "ethiopia": [
+        [
+            127466,
+            127481
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ea-1f1f9.png?v8"
+    ],
+    "eu": [
+        [
+            127466,
+            127482
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ea-1f1fa.png?v8"
+    ],
     "euro": [
         128182,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4b6.png?v8"
@@ -2969,6 +2426,13 @@
     "european_post_office": [
         127972,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3e4.png?v8"
+    ],
+    "european_union": [
+        [
+            127466,
+            127482
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ea-1f1fa.png?v8"
     ],
     "evergreen_tree": [
         127794,
@@ -2990,6 +2454,13 @@
         128065,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f441.png?v8"
     ],
+    "eye_speech_bubble": [
+        [
+            128065,
+            128488
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f441-1f5e8.png?v8"
+    ],
     "eyeglasses": [
         128083,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f453.png?v8"
@@ -2998,9 +2469,30 @@
         128064,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f440.png?v8"
     ],
+    "face_exhaling": [
+        [
+            128558,
+            128168
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f62e-1f4a8.png?v8"
+    ],
+    "face_in_clouds": [
+        [
+            128566,
+            127787
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f636-1f32b.png?v8"
+    ],
     "face_with_head_bandage": [
         129301,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f915.png?v8"
+    ],
+    "face_with_spiral_eyes": [
+        [
+            128565,
+            128171
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f635-1f4ab.png?v8"
     ],
     "face_with_thermometer": [
         129298,
@@ -3018,13 +2510,41 @@
         127981,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3ed.png?v8"
     ],
+    "factory_worker": [
+        [
+            129489,
+            127981
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f3ed.png?v8"
+    ],
     "fairy": [
         129498,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9da.png?v8"
     ],
+    "fairy_man": [
+        [
+            129498,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9da-2642.png?v8"
+    ],
+    "fairy_woman": [
+        [
+            129498,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9da-2640.png?v8"
+    ],
     "falafel": [
         129478,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9c6.png?v8"
+    ],
+    "falkland_islands": [
+        [
+            127467,
+            127472
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1eb-1f1f0.png?v8"
     ],
     "fallen_leaf": [
         127810,
@@ -3033,6 +2553,48 @@
     "family": [
         128106,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f46a.png?v8"
+    ],
+    "family_man_boy": [
+        [
+            128104,
+            128102
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f466.png?v8"
+    ],
+    "family_man_girl": [
+        [
+            128104,
+            128103
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f467.png?v8"
+    ],
+    "family_woman_boy": [
+        [
+            128105,
+            128102
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f466.png?v8"
+    ],
+    "family_woman_girl": [
+        [
+            128105,
+            128103
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f467.png?v8"
+    ],
+    "farmer": [
+        [
+            129489,
+            127806
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f33e.png?v8"
+    ],
+    "faroe_islands": [
+        [
+            127467,
+            127476
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1eb-1f1f4.png?v8"
     ],
     "fast_forward": [
         9193,
@@ -3054,6 +2616,13 @@
         128062,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f43e.png?v8"
     ],
+    "female_detective": [
+        [
+            128373,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f575-2640.png?v8"
+    ],
     "female_sign": [
         9792,
         "https://github.githubassets.com/images/icons/emoji/unicode/2640.png?v8"
@@ -3069,6 +2638,13 @@
     "field_hockey": [
         127953,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3d1.png?v8"
+    ],
+    "fiji": [
+        [
+            127467,
+            127471
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1eb-1f1ef.png?v8"
     ],
     "file_cabinet": [
         128452,
@@ -3086,6 +2662,13 @@
         127902,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f39e.png?v8"
     ],
+    "finland": [
+        [
+            127467,
+            127470
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1eb-1f1ee.png?v8"
+    ],
     "fire": [
         128293,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f525.png?v8"
@@ -3101,6 +2684,13 @@
     "firecracker": [
         129512,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9e8.png?v8"
+    ],
+    "firefighter": [
+        [
+            129489,
+            128658
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f692.png?v8"
     ],
     "fireworks": [
         127878,
@@ -3145,6 +2735,13 @@
     "fist_right": [
         129308,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f91c.png?v8"
+    ],
+    "five": [
+        [
+            53,
+            8419
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/0035-20e3.png?v8"
     ],
     "flags": [
         127887,
@@ -3246,6 +2843,13 @@
         128395,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f58b.png?v8"
     ],
+    "four": [
+        [
+            52,
+            8419
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/0034-20e3.png?v8"
+    ],
     "four_leaf_clover": [
         127808,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f340.png?v8"
@@ -3254,6 +2858,13 @@
         129418,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f98a.png?v8"
     ],
+    "fr": [
+        [
+            127467,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1eb-1f1f7.png?v8"
+    ],
     "framed_picture": [
         128444,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f5bc.png?v8"
@@ -3261,6 +2872,27 @@
     "free": [
         127379,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f193.png?v8"
+    ],
+    "french_guiana": [
+        [
+            127468,
+            127467
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1eb.png?v8"
+    ],
+    "french_polynesia": [
+        [
+            127477,
+            127467
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f5-1f1eb.png?v8"
+    ],
+    "french_southern_territories": [
+        [
+            127481,
+            127467
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1eb.png?v8"
     ],
     "fried_egg": [
         127859,
@@ -3286,9 +2918,23 @@
         9785,
         "https://github.githubassets.com/images/icons/emoji/unicode/2639.png?v8"
     ],
+    "frowning_man": [
+        [
+            128589,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f64d-2642.png?v8"
+    ],
     "frowning_person": [
         128589,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f64d.png?v8"
+    ],
+    "frowning_woman": [
+        [
+            128589,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f64d-2640.png?v8"
     ],
     "fu": [
         128405,
@@ -3310,6 +2956,20 @@
         9905,
         "https://github.githubassets.com/images/icons/emoji/unicode/26b1.png?v8"
     ],
+    "gabon": [
+        [
+            127468,
+            127462
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1e6.png?v8"
+    ],
+    "gambia": [
+        [
+            127468,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1f2.png?v8"
+    ],
     "game_die": [
         127922,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3b2.png?v8"
@@ -3317,6 +2977,13 @@
     "garlic": [
         129476,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9c4.png?v8"
+    ],
+    "gb": [
+        [
+            127468,
+            127463
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1e7.png?v8"
     ],
     "gear": [
         9881,
@@ -3334,9 +3001,44 @@
         129502,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9de.png?v8"
     ],
+    "genie_man": [
+        [
+            129502,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9de-2642.png?v8"
+    ],
+    "genie_woman": [
+        [
+            129502,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9de-2640.png?v8"
+    ],
+    "georgia": [
+        [
+            127468,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1ea.png?v8"
+    ],
+    "ghana": [
+        [
+            127468,
+            127469
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1ed.png?v8"
+    ],
     "ghost": [
         128123,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f47b.png?v8"
+    ],
+    "gibraltar": [
+        [
+            127468,
+            127470
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1ee.png?v8"
     ],
     "gift": [
         127873,
@@ -3382,6 +3084,20 @@
         127948,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3cc.png?v8"
     ],
+    "golfing_man": [
+        [
+            127948,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f3cc-2642.png?v8"
+    ],
+    "golfing_woman": [
+        [
+            127948,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f3cc-2640.png?v8"
+    ],
     "gorilla": [
         129421,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f98d.png?v8"
@@ -3389,6 +3105,13 @@
     "grapes": [
         127815,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f347.png?v8"
+    ],
+    "greece": [
+        [
+            127468,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1f7.png?v8"
     ],
     "green_apple": [
         127823,
@@ -3414,6 +3137,20 @@
         129001,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f7e9.png?v8"
     ],
+    "greenland": [
+        [
+            127468,
+            127473
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1f1.png?v8"
+    ],
+    "grenada": [
+        [
+            127468,
+            127465
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1e9.png?v8"
+    ],
     "grey_exclamation": [
         10069,
         "https://github.githubassets.com/images/icons/emoji/unicode/2755.png?v8"
@@ -3434,13 +3171,69 @@
         128512,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f600.png?v8"
     ],
+    "guadeloupe": [
+        [
+            127468,
+            127477
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1f5.png?v8"
+    ],
+    "guam": [
+        [
+            127468,
+            127482
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1fa.png?v8"
+    ],
     "guard": [
         128130,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f482.png?v8"
     ],
+    "guardsman": [
+        [
+            128130,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f482-2642.png?v8"
+    ],
+    "guardswoman": [
+        [
+            128130,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f482-2640.png?v8"
+    ],
+    "guatemala": [
+        [
+            127468,
+            127481
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1f9.png?v8"
+    ],
+    "guernsey": [
+        [
+            127468,
+            127468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1ec.png?v8"
+    ],
     "guide_dog": [
         129454,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9ae.png?v8"
+    ],
+    "guinea": [
+        [
+            127468,
+            127475
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1f3.png?v8"
+    ],
+    "guinea_bissau": [
+        [
+            127468,
+            127484
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1fc.png?v8"
     ],
     "guitar": [
         127928,
@@ -3450,9 +3243,37 @@
         128299,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f52b.png?v8"
     ],
+    "guyana": [
+        [
+            127468,
+            127486
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1fe.png?v8"
+    ],
     "haircut": [
         128135,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f487.png?v8"
+    ],
+    "haircut_man": [
+        [
+            128135,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f487-2642.png?v8"
+    ],
+    "haircut_woman": [
+        [
+            128135,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f487-2640.png?v8"
+    ],
+    "haiti": [
+        [
+            127469,
+            127481
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ed-1f1f9.png?v8"
     ],
     "hamburger": [
         127828,
@@ -3498,6 +3319,13 @@
         128169,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4a9.png?v8"
     ],
+    "hash": [
+        [
+            35,
+            8419
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/0023-20e3.png?v8"
+    ],
     "hatched_chick": [
         128037,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f425.png?v8"
@@ -3514,9 +3342,23 @@
         129702,
         "https://github.githubassets.com/images/icons/emoji/unicode/1faa6.png?v8"
     ],
+    "health_worker": [
+        [
+            129489,
+            9877
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-2695.png?v8"
+    ],
     "hear_no_evil": [
         128585,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f649.png?v8"
+    ],
+    "heard_mcdonald_islands": [
+        [
+            127469,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ed-1f1f2.png?v8"
     ],
     "heart": [
         10084,
@@ -3533,6 +3375,13 @@
     "heart_eyes_cat": [
         128571,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f63b.png?v8"
+    ],
+    "heart_on_fire": [
+        [
+            10084,
+            128293
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/2764-1f525.png?v8"
     ],
     "heartbeat": [
         128147,
@@ -3622,6 +3471,13 @@
         128371,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f573.png?v8"
     ],
+    "honduras": [
+        [
+            127469,
+            127475
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ed-1f1f3.png?v8"
+    ],
     "honey_pot": [
         127855,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f36f.png?v8"
@@ -3629,6 +3485,13 @@
     "honeybee": [
         128029,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f41d.png?v8"
+    ],
+    "hong_kong": [
+        [
+            127469,
+            127472
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ed-1f1f0.png?v8"
     ],
     "hook": [
         129693,
@@ -3690,6 +3553,13 @@
         129303,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f917.png?v8"
     ],
+    "hungary": [
+        [
+            127469,
+            127482
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ed-1f1fa.png?v8"
+    ],
     "hushed": [
         128559,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f62f.png?v8"
@@ -3718,6 +3588,13 @@
         127846,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f366.png?v8"
     ],
+    "iceland": [
+        [
+            127470,
+            127480
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ee-1f1f8.png?v8"
+    ],
     "id": [
         127380,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f194.png?v8"
@@ -3738,13 +3615,23 @@
         128232,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4e8.png?v8"
     ],
+    "india": [
+        [
+            127470,
+            127475
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ee-1f1f3.png?v8"
+    ],
+    "indonesia": [
+        [
+            127470,
+            127465
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ee-1f1e9.png?v8"
+    ],
     "infinity": [
         9854,
         "https://github.githubassets.com/images/icons/emoji/unicode/267e.png?v8"
-    ],
-    "info": [
-        8505,
-        "https://github.githubassets.com/images/icons/emoji/unicode/2139.png?v8"
     ],
     "information_desk_person": [
         128129,
@@ -3766,6 +3653,48 @@
         128241,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4f1.png?v8"
     ],
+    "iran": [
+        [
+            127470,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ee-1f1f7.png?v8"
+    ],
+    "iraq": [
+        [
+            127470,
+            127478
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ee-1f1f6.png?v8"
+    ],
+    "ireland": [
+        [
+            127470,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ee-1f1ea.png?v8"
+    ],
+    "isle_of_man": [
+        [
+            127470,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ee-1f1f2.png?v8"
+    ],
+    "israel": [
+        [
+            127470,
+            127473
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ee-1f1f1.png?v8"
+    ],
+    "it": [
+        [
+            127470,
+            127481
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ee-1f1f9.png?v8"
+    ],
     "izakaya_lantern": [
         127982,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3ee.png?v8"
@@ -3773,6 +3702,13 @@
     "jack_o_lantern": [
         127875,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f383.png?v8"
+    ],
+    "jamaica": [
+        [
+            127471,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ef-1f1f2.png?v8"
     ],
     "japan": [
         128510,
@@ -3794,9 +3730,23 @@
         128086,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f456.png?v8"
     ],
+    "jersey": [
+        [
+            127471,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ef-1f1ea.png?v8"
+    ],
     "jigsaw": [
         129513,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9e9.png?v8"
+    ],
+    "jordan": [
+        [
+            127471,
+            127476
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ef-1f1f4.png?v8"
     ],
     "joy": [
         128514,
@@ -3810,6 +3760,20 @@
         128377,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f579.png?v8"
     ],
+    "jp": [
+        [
+            127471,
+            127477
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ef-1f1f5.png?v8"
+    ],
+    "judge": [
+        [
+            129489,
+            9878
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-2696.png?v8"
+    ],
     "juggling_person": [
         129337,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f939.png?v8"
@@ -3821,6 +3785,20 @@
     "kangaroo": [
         129432,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f998.png?v8"
+    ],
+    "kazakhstan": [
+        [
+            127472,
+            127487
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f0-1f1ff.png?v8"
+    ],
+    "kenya": [
+        [
+            127472,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f0-1f1ea.png?v8"
     ],
     "key": [
         128273,
@@ -3841,6 +3819,13 @@
     "kimono": [
         128088,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f458.png?v8"
+    ],
+    "kiribati": [
+        [
+            127472,
+            127470
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f0-1f1ee.png?v8"
     ],
     "kiss": [
         128139,
@@ -3874,9 +3859,23 @@
         129373,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f95d.png?v8"
     ],
+    "kneeling_man": [
+        [
+            129486,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9ce-2642.png?v8"
+    ],
     "kneeling_person": [
         129486,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9ce.png?v8"
+    ],
+    "kneeling_woman": [
+        [
+            129486,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9ce-2640.png?v8"
     ],
     "knife": [
         128298,
@@ -3893,6 +3892,34 @@
     "koko": [
         127489,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f201.png?v8"
+    ],
+    "kosovo": [
+        [
+            127485,
+            127472
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fd-1f1f0.png?v8"
+    ],
+    "kr": [
+        [
+            127472,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f0-1f1f7.png?v8"
+    ],
+    "kuwait": [
+        [
+            127472,
+            127484
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f0-1f1fc.png?v8"
+    ],
+    "kyrgyzstan": [
+        [
+            127472,
+            127468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f0-1f1ec.png?v8"
     ],
     "lab_coat": [
         129404,
@@ -3918,6 +3945,13 @@
         127982,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3ee.png?v8"
     ],
+    "laos": [
+        [
+            127473,
+            127462
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f1-1f1e6.png?v8"
+    ],
     "large_blue_circle": [
         128309,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f535.png?v8"
@@ -3942,6 +3976,13 @@
         10013,
         "https://github.githubassets.com/images/icons/emoji/unicode/271d.png?v8"
     ],
+    "latvia": [
+        [
+            127473,
+            127483
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f1-1f1fb.png?v8"
+    ],
     "laughing": [
         128518,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f606.png?v8"
@@ -3953,6 +3994,13 @@
     "leaves": [
         127811,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f343.png?v8"
+    ],
+    "lebanon": [
+        [
+            127473,
+            127463
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f1-1f1e7.png?v8"
     ],
     "ledger": [
         128210,
@@ -3990,13 +4038,41 @@
         128006,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f406.png?v8"
     ],
+    "lesotho": [
+        [
+            127473,
+            127480
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f1-1f1f8.png?v8"
+    ],
     "level_slider": [
         127898,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f39a.png?v8"
     ],
+    "liberia": [
+        [
+            127473,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f1-1f1f7.png?v8"
+    ],
     "libra": [
         9806,
         "https://github.githubassets.com/images/icons/emoji/unicode/264e.png?v8"
+    ],
+    "libya": [
+        [
+            127473,
+            127486
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f1-1f1fe.png?v8"
+    ],
+    "liechtenstein": [
+        [
+            127473,
+            127470
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f1-1f1ee.png?v8"
     ],
     "light_rail": [
         128648,
@@ -4017,6 +4093,13 @@
     "lipstick": [
         128132,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f484.png?v8"
+    ],
+    "lithuania": [
+        [
+            127473,
+            127481
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f1-1f1f9.png?v8"
     ],
     "lizard": [
         129422,
@@ -4058,6 +4141,20 @@
         129496,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9d8.png?v8"
     ],
+    "lotus_position_man": [
+        [
+            129496,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d8-2642.png?v8"
+    ],
+    "lotus_position_woman": [
+        [
+            129496,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d8-2640.png?v8"
+    ],
     "loud_sound": [
         128266,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f50a.png?v8"
@@ -4090,6 +4187,13 @@
         129729,
         "https://github.githubassets.com/images/icons/emoji/unicode/1fac1.png?v8"
     ],
+    "luxembourg": [
+        [
+            127473,
+            127482
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f1-1f1fa.png?v8"
+    ],
     "lying_face": [
         129317,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f925.png?v8"
@@ -4097,6 +4201,27 @@
     "m": [
         9410,
         "https://github.githubassets.com/images/icons/emoji/unicode/24c2.png?v8"
+    ],
+    "macau": [
+        [
+            127474,
+            127476
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1f4.png?v8"
+    ],
+    "macedonia": [
+        [
+            127474,
+            127472
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1f0.png?v8"
+    ],
+    "madagascar": [
+        [
+            127474,
+            127468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1ec.png?v8"
     ],
     "mag": [
         128269,
@@ -4109,6 +4234,20 @@
     "mage": [
         129497,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9d9.png?v8"
+    ],
+    "mage_man": [
+        [
+            129497,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d9-2642.png?v8"
+    ],
+    "mage_woman": [
+        [
+            129497,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d9-2640.png?v8"
     ],
     "magic_wand": [
         129668,
@@ -4138,9 +4277,51 @@
         128237,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4ed.png?v8"
     ],
+    "malawi": [
+        [
+            127474,
+            127484
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1fc.png?v8"
+    ],
+    "malaysia": [
+        [
+            127474,
+            127486
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1fe.png?v8"
+    ],
+    "maldives": [
+        [
+            127474,
+            127483
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1fb.png?v8"
+    ],
+    "male_detective": [
+        [
+            128373,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f575-2642.png?v8"
+    ],
     "male_sign": [
         9794,
         "https://github.githubassets.com/images/icons/emoji/unicode/2642.png?v8"
+    ],
+    "mali": [
+        [
+            127474,
+            127473
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1f1.png?v8"
+    ],
+    "malta": [
+        [
+            127474,
+            127481
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1f9.png?v8"
     ],
     "mammoth": [
         129443,
@@ -4150,17 +4331,223 @@
         128104,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f468.png?v8"
     ],
+    "man_artist": [
+        [
+            128104,
+            127912
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f3a8.png?v8"
+    ],
+    "man_astronaut": [
+        [
+            128104,
+            128640
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f680.png?v8"
+    ],
+    "man_beard": [
+        [
+            129492,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d4-2642.png?v8"
+    ],
+    "man_cartwheeling": [
+        [
+            129336,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f938-2642.png?v8"
+    ],
+    "man_cook": [
+        [
+            128104,
+            127859
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f373.png?v8"
+    ],
     "man_dancing": [
         128378,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f57a.png?v8"
     ],
+    "man_facepalming": [
+        [
+            129318,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f926-2642.png?v8"
+    ],
+    "man_factory_worker": [
+        [
+            128104,
+            127981
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f3ed.png?v8"
+    ],
+    "man_farmer": [
+        [
+            128104,
+            127806
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f33e.png?v8"
+    ],
+    "man_feeding_baby": [
+        [
+            128104,
+            127868
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f37c.png?v8"
+    ],
+    "man_firefighter": [
+        [
+            128104,
+            128658
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f692.png?v8"
+    ],
+    "man_health_worker": [
+        [
+            128104,
+            9877
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-2695.png?v8"
+    ],
+    "man_in_manual_wheelchair": [
+        [
+            128104,
+            129469
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f9bd.png?v8"
+    ],
+    "man_in_motorized_wheelchair": [
+        [
+            128104,
+            129468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f9bc.png?v8"
+    ],
     "man_in_tuxedo": [
-        129333,
-        "https://github.githubassets.com/images/icons/emoji/unicode/1f935.png?v8"
+        [
+            129333,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f935-2642.png?v8"
+    ],
+    "man_judge": [
+        [
+            128104,
+            9878
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-2696.png?v8"
+    ],
+    "man_juggling": [
+        [
+            129337,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f939-2642.png?v8"
+    ],
+    "man_mechanic": [
+        [
+            128104,
+            128295
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f527.png?v8"
+    ],
+    "man_office_worker": [
+        [
+            128104,
+            128188
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f4bc.png?v8"
+    ],
+    "man_pilot": [
+        [
+            128104,
+            9992
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-2708.png?v8"
+    ],
+    "man_playing_handball": [
+        [
+            129342,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f93e-2642.png?v8"
+    ],
+    "man_playing_water_polo": [
+        [
+            129341,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f93d-2642.png?v8"
+    ],
+    "man_scientist": [
+        [
+            128104,
+            128300
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f52c.png?v8"
+    ],
+    "man_shrugging": [
+        [
+            129335,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f937-2642.png?v8"
+    ],
+    "man_singer": [
+        [
+            128104,
+            127908
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f3a4.png?v8"
+    ],
+    "man_student": [
+        [
+            128104,
+            127891
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f393.png?v8"
+    ],
+    "man_teacher": [
+        [
+            128104,
+            127979
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f3eb.png?v8"
+    ],
+    "man_technologist": [
+        [
+            128104,
+            128187
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f4bb.png?v8"
     ],
     "man_with_gua_pi_mao": [
         128114,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f472.png?v8"
+    ],
+    "man_with_probing_cane": [
+        [
+            128104,
+            129455
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f9af.png?v8"
+    ],
+    "man_with_turban": [
+        [
+            128115,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f473-2642.png?v8"
+    ],
+    "man_with_veil": [
+        [
+            128112,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f470-2642.png?v8"
     ],
     "mandarin": [
         127818,
@@ -4186,9 +4573,23 @@
         127809,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f341.png?v8"
     ],
+    "marshall_islands": [
+        [
+            127474,
+            127469
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1ed.png?v8"
+    ],
     "martial_arts_uniform": [
         129355,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f94b.png?v8"
+    ],
+    "martinique": [
+        [
+            127474,
+            127478
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1f6.png?v8"
     ],
     "mask": [
         128567,
@@ -4198,13 +4599,55 @@
         128134,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f486.png?v8"
     ],
+    "massage_man": [
+        [
+            128134,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f486-2642.png?v8"
+    ],
+    "massage_woman": [
+        [
+            128134,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f486-2640.png?v8"
+    ],
     "mate": [
         129481,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9c9.png?v8"
     ],
+    "mauritania": [
+        [
+            127474,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1f7.png?v8"
+    ],
+    "mauritius": [
+        [
+            127474,
+            127482
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1fa.png?v8"
+    ],
+    "mayotte": [
+        [
+            127486,
+            127481
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fe-1f1f9.png?v8"
+    ],
     "meat_on_bone": [
         127830,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f356.png?v8"
+    ],
+    "mechanic": [
+        [
+            129489,
+            128295
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f527.png?v8"
     ],
     "mechanical_arm": [
         129470,
@@ -4238,6 +4681,20 @@
         128221,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4dd.png?v8"
     ],
+    "men_wrestling": [
+        [
+            129340,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f93c-2642.png?v8"
+    ],
+    "mending_heart": [
+        [
+            10084,
+            129657
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/2764-1fa79.png?v8"
+    ],
     "menorah": [
         128334,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f54e.png?v8"
@@ -4245,6 +4702,20 @@
     "mens": [
         128697,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6b9.png?v8"
+    ],
+    "mermaid": [
+        [
+            129500,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9dc-2640.png?v8"
+    ],
+    "merman": [
+        [
+            129500,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9dc-2642.png?v8"
     ],
     "merperson": [
         129500,
@@ -4258,9 +4729,23 @@
         128647,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f687.png?v8"
     ],
+    "mexico": [
+        [
+            127474,
+            127485
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1fd.png?v8"
+    ],
     "microbe": [
         129440,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9a0.png?v8"
+    ],
+    "micronesia": [
+        [
+            127467,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1eb-1f1f2.png?v8"
     ],
     "microphone": [
         127908,
@@ -4302,6 +4787,20 @@
         128244,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4f4.png?v8"
     ],
+    "moldova": [
+        [
+            127474,
+            127465
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1e9.png?v8"
+    ],
+    "monaco": [
+        [
+            127474,
+            127464
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1e8.png?v8"
+    ],
     "money_mouth_face": [
         129297,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f911.png?v8"
@@ -4313,6 +4812,13 @@
     "moneybag": [
         128176,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4b0.png?v8"
+    ],
+    "mongolia": [
+        [
+            127474,
+            127475
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1f3.png?v8"
     ],
     "monkey": [
         128018,
@@ -4330,6 +4836,20 @@
         128669,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f69d.png?v8"
     ],
+    "montenegro": [
+        [
+            127474,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1ea.png?v8"
+    ],
+    "montserrat": [
+        [
+            127474,
+            127480
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1f8.png?v8"
+    ],
     "moon": [
         127764,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f314.png?v8"
@@ -4337,6 +4857,13 @@
     "moon_cake": [
         129390,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f96e.png?v8"
+    ],
+    "morocco": [
+        [
+            127474,
+            127462
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1e6.png?v8"
     ],
     "mortar_board": [
         127891,
@@ -4382,6 +4909,20 @@
         128693,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6b5.png?v8"
     ],
+    "mountain_biking_man": [
+        [
+            128693,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f6b5-2642.png?v8"
+    ],
+    "mountain_biking_woman": [
+        [
+            128693,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f6b5-2640.png?v8"
+    ],
     "mountain_cableway": [
         128672,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6a0.png?v8"
@@ -4414,6 +4955,13 @@
         128511,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f5ff.png?v8"
     ],
+    "mozambique": [
+        [
+            127474,
+            127487
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1ff.png?v8"
+    ],
     "mrs_claus": [
         129334,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f936.png?v8"
@@ -4442,6 +4990,20 @@
         128263,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f507.png?v8"
     ],
+    "mx_claus": [
+        [
+            129489,
+            127876
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f384.png?v8"
+    ],
+    "myanmar": [
+        [
+            127474,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1f2.png?v8"
+    ],
     "nail_care": [
         128133,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f485.png?v8"
@@ -4450,9 +5012,23 @@
         128219,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4db.png?v8"
     ],
+    "namibia": [
+        [
+            127475,
+            127462
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f3-1f1e6.png?v8"
+    ],
     "national_park": [
         127966,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3de.png?v8"
+    ],
+    "nauru": [
+        [
+            127475,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f3-1f1f7.png?v8"
     ],
     "nauseated_face": [
         129314,
@@ -4470,6 +5046,13 @@
         10062,
         "https://github.githubassets.com/images/icons/emoji/unicode/274e.png?v8"
     ],
+    "nepal": [
+        [
+            127475,
+            127477
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f3-1f1f5.png?v8"
+    ],
     "nerd_face": [
         129299,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f913.png?v8"
@@ -4477,6 +5060,13 @@
     "nesting_dolls": [
         129670,
         "https://github.githubassets.com/images/icons/emoji/unicode/1fa86.png?v8"
+    ],
+    "netherlands": [
+        [
+            127475,
+            127473
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f3-1f1f1.png?v8"
     ],
     "neutral_face": [
         128528,
@@ -4486,6 +5076,13 @@
         127381,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f195.png?v8"
     ],
+    "new_caledonia": [
+        [
+            127475,
+            127464
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f3-1f1e8.png?v8"
+    ],
     "new_moon": [
         127761,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f311.png?v8"
@@ -4493,6 +5090,13 @@
     "new_moon_with_face": [
         127770,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f31a.png?v8"
+    ],
+    "new_zealand": [
+        [
+            127475,
+            127487
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f3-1f1ff.png?v8"
     ],
     "newspaper": [
         128240,
@@ -4510,13 +5114,62 @@
         127382,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f196.png?v8"
     ],
+    "ng_man": [
+        [
+            128581,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f645-2642.png?v8"
+    ],
+    "ng_woman": [
+        [
+            128581,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f645-2640.png?v8"
+    ],
+    "nicaragua": [
+        [
+            127475,
+            127470
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f3-1f1ee.png?v8"
+    ],
+    "niger": [
+        [
+            127475,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f3-1f1ea.png?v8"
+    ],
+    "nigeria": [
+        [
+            127475,
+            127468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f3-1f1ec.png?v8"
+    ],
     "night_with_stars": [
         127747,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f303.png?v8"
     ],
+    "nine": [
+        [
+            57,
+            8419
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/0039-20e3.png?v8"
+    ],
     "ninja": [
         129399,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f977.png?v8"
+    ],
+    "niue": [
+        [
+            127475,
+            127482
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f3-1f1fa.png?v8"
     ],
     "no_bell": [
         128277,
@@ -4538,6 +5191,20 @@
         128581,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f645.png?v8"
     ],
+    "no_good_man": [
+        [
+            128581,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f645-2642.png?v8"
+    ],
+    "no_good_woman": [
+        [
+            128581,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f645-2640.png?v8"
+    ],
     "no_mobile_phones": [
         128245,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4f5.png?v8"
@@ -4554,9 +5221,37 @@
         128685,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6ad.png?v8"
     ],
-    "non-potable_water": [
+    "non_potable_water": [
         128689,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6b1.png?v8"
+    ],
+    "norfolk_island": [
+        [
+            127475,
+            127467
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f3-1f1eb.png?v8"
+    ],
+    "north_korea": [
+        [
+            127472,
+            127477
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f0-1f1f5.png?v8"
+    ],
+    "northern_mariana_islands": [
+        [
+            127474,
+            127477
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1f5.png?v8"
+    ],
+    "norway": [
+        [
+            127475,
+            127476
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f3-1f1f4.png?v8"
     ],
     "nose": [
         128067,
@@ -4602,6 +5297,13 @@
         127970,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3e2.png?v8"
     ],
+    "office_worker": [
+        [
+            129489,
+            128188
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f4bc.png?v8"
+    ],
     "oil_drum": [
         128738,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6e2.png?v8"
@@ -4614,9 +5316,23 @@
         128076,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f44c.png?v8"
     ],
+    "ok_man": [
+        [
+            128582,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f646-2642.png?v8"
+    ],
     "ok_person": [
         128582,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f646.png?v8"
+    ],
+    "ok_woman": [
+        [
+            128582,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f646-2640.png?v8"
     ],
     "old_key": [
         128477,
@@ -4642,6 +5358,13 @@
         128329,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f549.png?v8"
     ],
+    "oman": [
+        [
+            127476,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f4-1f1f2.png?v8"
+    ],
     "on": [
         128283,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f51b.png?v8"
@@ -4661,6 +5384,13 @@
     "oncoming_taxi": [
         128662,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f696.png?v8"
+    ],
+    "one": [
+        [
+            49,
+            8419
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/0031-20e3.png?v8"
     ],
     "one_piece_swimsuit": [
         129649,
@@ -4762,6 +5492,27 @@
         128396,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f58c.png?v8"
     ],
+    "pakistan": [
+        [
+            127477,
+            127472
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f5-1f1f0.png?v8"
+    ],
+    "palau": [
+        [
+            127477,
+            127484
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f5-1f1fc.png?v8"
+    ],
+    "palestinian_territories": [
+        [
+            127477,
+            127480
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f5-1f1f8.png?v8"
+    ],
     "palm_tree": [
         127796,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f334.png?v8"
@@ -4769,6 +5520,13 @@
     "palms_up_together": [
         129330,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f932.png?v8"
+    ],
+    "panama": [
+        [
+            127477,
+            127462
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f5-1f1e6.png?v8"
     ],
     "pancakes": [
         129374,
@@ -4786,9 +5544,23 @@
         128391,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f587.png?v8"
     ],
+    "papua_new_guinea": [
+        [
+            127477,
+            127468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f5-1f1ec.png?v8"
+    ],
     "parachute": [
         129666,
         "https://github.githubassets.com/images/icons/emoji/unicode/1fa82.png?v8"
+    ],
+    "paraguay": [
+        [
+            127477,
+            127486
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f5-1f1fe.png?v8"
     ],
     "parasol_on_ground": [
         9969,
@@ -4882,13 +5654,69 @@
         128547,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f623.png?v8"
     ],
+    "person_bald": [
+        [
+            129489,
+            129458
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f9b2.png?v8"
+    ],
+    "person_curly_hair": [
+        [
+            129489,
+            129457
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f9b1.png?v8"
+    ],
+    "person_feeding_baby": [
+        [
+            129489,
+            127868
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f37c.png?v8"
+    ],
     "person_fencing": [
         129338,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f93a.png?v8"
     ],
+    "person_in_manual_wheelchair": [
+        [
+            129489,
+            129469
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f9bd.png?v8"
+    ],
+    "person_in_motorized_wheelchair": [
+        [
+            129489,
+            129468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f9bc.png?v8"
+    ],
     "person_in_tuxedo": [
         129333,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f935.png?v8"
+    ],
+    "person_red_hair": [
+        [
+            129489,
+            129456
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f9b0.png?v8"
+    ],
+    "person_white_hair": [
+        [
+            129489,
+            129459
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f9b3.png?v8"
+    ],
+    "person_with_probing_cane": [
+        [
+            129489,
+            129455
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f9af.png?v8"
     ],
     "person_with_turban": [
         128115,
@@ -4898,9 +5726,23 @@
         128112,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f470.png?v8"
     ],
+    "peru": [
+        [
+            127477,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f5-1f1ea.png?v8"
+    ],
     "petri_dish": [
         129515,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9eb.png?v8"
+    ],
+    "philippines": [
+        [
+            127477,
+            127469
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f5-1f1ed.png?v8"
     ],
     "phone": [
         9742,
@@ -4934,6 +5776,13 @@
         128138,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f48a.png?v8"
     ],
+    "pilot": [
+        [
+            129489,
+            9992
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-2708.png?v8"
+    ],
     "pinata": [
         129669,
         "https://github.githubassets.com/images/icons/emoji/unicode/1fa85.png?v8"
@@ -4954,9 +5803,23 @@
         127955,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3d3.png?v8"
     ],
+    "pirate_flag": [
+        [
+            127988,
+            9760
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f3f4-2620.png?v8"
+    ],
     "pisces": [
         9811,
         "https://github.githubassets.com/images/icons/emoji/unicode/2653.png?v8"
+    ],
+    "pitcairn_islands": [
+        [
+            127477,
+            127475
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f5-1f1f3.png?v8"
     ],
     "pizza": [
         127829,
@@ -5006,6 +5869,20 @@
         128070,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f446.png?v8"
     ],
+    "poland": [
+        [
+            127477,
+            127473
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f5-1f1f1.png?v8"
+    ],
+    "polar_bear": [
+        [
+            128059,
+            10052
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f43b-2744.png?v8"
+    ],
     "police_car": [
         128659,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f693.png?v8"
@@ -5013,6 +5890,20 @@
     "police_officer": [
         128110,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f46e.png?v8"
+    ],
+    "policeman": [
+        [
+            128110,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f46e-2642.png?v8"
+    ],
+    "policewoman": [
+        [
+            128110,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f46e-2640.png?v8"
     ],
     "poodle": [
         128041,
@@ -5025,6 +5916,13 @@
     "popcorn": [
         127871,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f37f.png?v8"
+    ],
+    "portugal": [
+        [
+            127477,
+            127481
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f5-1f1f9.png?v8"
     ],
     "post_office": [
         127971,
@@ -5074,6 +5972,20 @@
         128590,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f64e.png?v8"
     ],
+    "pouting_man": [
+        [
+            128590,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f64e-2642.png?v8"
+    ],
+    "pouting_woman": [
+        [
+            128590,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f64e-2640.png?v8"
+    ],
     "pray": [
         128591,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f64f.png?v8"
@@ -5110,6 +6022,13 @@
         129455,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9af.png?v8"
     ],
+    "puerto_rico": [
+        [
+            127477,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f5-1f1f7.png?v8"
+    ],
     "punch": [
         128074,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f44a.png?v8"
@@ -5137,6 +6056,13 @@
     "put_litter_in_its_place": [
         128686,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6ae.png?v8"
+    ],
+    "qatar": [
+        [
+            127478,
+            127462
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f6-1f1e6.png?v8"
     ],
     "question": [
         10067,
@@ -5190,6 +6116,13 @@
         127752,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f308.png?v8"
     ],
+    "rainbow_flag": [
+        [
+            127987,
+            127752
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f3f3-1f308.png?v8"
+    ],
     "raised_back_of_hand": [
         129306,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f91a.png?v8"
@@ -5213,6 +6146,20 @@
     "raising_hand": [
         128587,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f64b.png?v8"
+    ],
+    "raising_hand_man": [
+        [
+            128587,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f64b-2642.png?v8"
+    ],
+    "raising_hand_woman": [
+        [
+            128587,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f64b-2640.png?v8"
     ],
     "ram": [
         128015,
@@ -5254,6 +6201,20 @@
         129511,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9e7.png?v8"
     ],
+    "red_haired_man": [
+        [
+            128104,
+            129456
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f9b0.png?v8"
+    ],
+    "red_haired_woman": [
+        [
+            128105,
+            129456
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f9b0.png?v8"
+    ],
     "red_square": [
         128997,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f7e5.png?v8"
@@ -5289,6 +6250,13 @@
     "restroom": [
         128699,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6bb.png?v8"
+    ],
+    "reunion": [
+        [
+            127479,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f7-1f1ea.png?v8"
     ],
     "revolving_hearts": [
         128158,
@@ -5366,6 +6334,13 @@
         128764,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6fc.png?v8"
     ],
+    "romania": [
+        [
+            127479,
+            127476
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f7-1f1f4.png?v8"
+    ],
     "rooster": [
         128019,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f413.png?v8"
@@ -5390,6 +6365,27 @@
         128675,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6a3.png?v8"
     ],
+    "rowing_man": [
+        [
+            128675,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f6a3-2642.png?v8"
+    ],
+    "rowing_woman": [
+        [
+            128675,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f6a3-2640.png?v8"
+    ],
+    "ru": [
+        [
+            127479,
+            127482
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f7-1f1fa.png?v8"
+    ],
     "rugby_football": [
         127945,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3c9.png?v8"
@@ -5402,9 +6398,30 @@
         127939,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3c3.png?v8"
     ],
+    "running_man": [
+        [
+            127939,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f3c3-2642.png?v8"
+    ],
     "running_shirt_with_sash": [
         127933,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3bd.png?v8"
+    ],
+    "running_woman": [
+        [
+            127939,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f3c3-2640.png?v8"
+    ],
+    "rwanda": [
+        [
+            127479,
+            127484
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f7-1f1fc.png?v8"
     ],
     "sa": [
         127490,
@@ -5434,6 +6451,20 @@
         129474,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9c2.png?v8"
     ],
+    "samoa": [
+        [
+            127484,
+            127480
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fc-1f1f8.png?v8"
+    ],
+    "san_marino": [
+        [
+            127480,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1f2.png?v8"
+    ],
     "sandal": [
         128097,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f461.png?v8"
@@ -5446,9 +6477,30 @@
         127877,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f385.png?v8"
     ],
+    "sao_tome_principe": [
+        [
+            127480,
+            127481
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1f9.png?v8"
+    ],
     "sari": [
         129403,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f97b.png?v8"
+    ],
+    "sassy_man": [
+        [
+            128129,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f481-2642.png?v8"
+    ],
+    "sassy_woman": [
+        [
+            128129,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f481-2640.png?v8"
     ],
     "satellite": [
         128225,
@@ -5458,9 +6510,30 @@
         128518,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f606.png?v8"
     ],
+    "saudi_arabia": [
+        [
+            127480,
+            127462
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1e6.png?v8"
+    ],
+    "sauna_man": [
+        [
+            129494,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d6-2642.png?v8"
+    ],
     "sauna_person": [
         129494,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9d6.png?v8"
+    ],
+    "sauna_woman": [
+        [
+            129494,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d6-2640.png?v8"
     ],
     "sauropod": [
         129429,
@@ -5481,6 +6554,13 @@
     "school_satchel": [
         127890,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f392.png?v8"
+    ],
+    "scientist": [
+        [
+            129489,
+            128300
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f52c.png?v8"
     ],
     "scissors": [
         9986,
@@ -5534,9 +6614,44 @@
         129331,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f933.png?v8"
     ],
+    "senegal": [
+        [
+            127480,
+            127475
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1f3.png?v8"
+    ],
+    "serbia": [
+        [
+            127479,
+            127480
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f7-1f1f8.png?v8"
+    ],
+    "service_dog": [
+        [
+            128021,
+            129466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f415-1f9ba.png?v8"
+    ],
+    "seven": [
+        [
+            55,
+            8419
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/0037-20e3.png?v8"
+    ],
     "sewing_needle": [
         129697,
         "https://github.githubassets.com/images/icons/emoji/unicode/1faa1.png?v8"
+    ],
+    "seychelles": [
+        [
+            127480,
+            127464
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1e8.png?v8"
     ],
     "shallow_pan_of_food": [
         129368,
@@ -5614,9 +6729,44 @@
         129323,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f92b.png?v8"
     ],
+    "sierra_leone": [
+        [
+            127480,
+            127473
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1f1.png?v8"
+    ],
     "signal_strength": [
         128246,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4f6.png?v8"
+    ],
+    "singapore": [
+        [
+            127480,
+            127468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1ec.png?v8"
+    ],
+    "singer": [
+        [
+            129489,
+            127908
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f3a4.png?v8"
+    ],
+    "sint_maarten": [
+        [
+            127480,
+            127485
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1fd.png?v8"
+    ],
+    "six": [
+        [
+            54,
+            8419
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/0036-20e3.png?v8"
     ],
     "six_pointed_star": [
         128303,
@@ -5677,6 +6827,20 @@
     "sloth": [
         129445,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9a5.png?v8"
+    ],
+    "slovakia": [
+        [
+            127480,
+            127472
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1f0.png?v8"
+    ],
+    "slovenia": [
+        [
+            127480,
+            127470
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1ee.png?v8"
     ],
     "small_airplane": [
         128745,
@@ -5786,6 +6950,20 @@
         129358,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f94e.png?v8"
     ],
+    "solomon_islands": [
+        [
+            127480,
+            127463
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1e7.png?v8"
+    ],
+    "somalia": [
+        [
+            127480,
+            127476
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1f4.png?v8"
+    ],
     "soon": [
         128284,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f51c.png?v8"
@@ -5797,6 +6975,27 @@
     "sound": [
         128265,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f509.png?v8"
+    ],
+    "south_africa": [
+        [
+            127487,
+            127462
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ff-1f1e6.png?v8"
+    ],
+    "south_georgia_south_sandwich_islands": [
+        [
+            127468,
+            127480
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1f8.png?v8"
+    ],
+    "south_sudan": [
+        [
+            127480,
+            127480
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1f8.png?v8"
     ],
     "space_invader": [
         128126,
@@ -5874,13 +7073,83 @@
         129425,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f991.png?v8"
     ],
+    "sri_lanka": [
+        [
+            127473,
+            127472
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f1-1f1f0.png?v8"
+    ],
+    "st_barthelemy": [
+        [
+            127463,
+            127473
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e7-1f1f1.png?v8"
+    ],
+    "st_helena": [
+        [
+            127480,
+            127469
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1ed.png?v8"
+    ],
+    "st_kitts_nevis": [
+        [
+            127472,
+            127475
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f0-1f1f3.png?v8"
+    ],
+    "st_lucia": [
+        [
+            127473,
+            127464
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f1-1f1e8.png?v8"
+    ],
+    "st_martin": [
+        [
+            127474,
+            127467
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f2-1f1eb.png?v8"
+    ],
+    "st_pierre_miquelon": [
+        [
+            127477,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f5-1f1f2.png?v8"
+    ],
+    "st_vincent_grenadines": [
+        [
+            127483,
+            127464
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fb-1f1e8.png?v8"
+    ],
     "stadium": [
         127967,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3df.png?v8"
     ],
+    "standing_man": [
+        [
+            129485,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9cd-2642.png?v8"
+    ],
     "standing_person": [
         129485,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9cd.png?v8"
+    ],
+    "standing_woman": [
+        [
+            129485,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9cd-2640.png?v8"
     ],
     "star": [
         11088,
@@ -5958,6 +7227,13 @@
         128540,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f61c.png?v8"
     ],
+    "student": [
+        [
+            129489,
+            127891
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f393.png?v8"
+    ],
     "studio_microphone": [
         127897,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f399.png?v8"
@@ -5965,6 +7241,13 @@
     "stuffed_flatbread": [
         129369,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f959.png?v8"
+    ],
+    "sudan": [
+        [
+            127480,
+            127465
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1e9.png?v8"
     ],
     "sun_behind_large_cloud": [
         127781,
@@ -5981,10 +7264,6 @@
     "sun_with_face": [
         127774,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f31e.png?v8"
-    ],
-    "sundae": [
-        127848,
-        "https://github.githubassets.com/images/icons/emoji/unicode/1f368.png?v8"
     ],
     "sunflower": [
         127803,
@@ -6010,13 +7289,62 @@
         129464,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9b8.png?v8"
     ],
+    "superhero_man": [
+        [
+            129464,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9b8-2642.png?v8"
+    ],
+    "superhero_woman": [
+        [
+            129464,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9b8-2640.png?v8"
+    ],
     "supervillain": [
         129465,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9b9.png?v8"
     ],
+    "supervillain_man": [
+        [
+            129465,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9b9-2642.png?v8"
+    ],
+    "supervillain_woman": [
+        [
+            129465,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9b9-2640.png?v8"
+    ],
     "surfer": [
         127940,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3c4.png?v8"
+    ],
+    "surfing_man": [
+        [
+            127940,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f3c4-2642.png?v8"
+    ],
+    "surfing_woman": [
+        [
+            127940,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f3c4-2640.png?v8"
+    ],
+    "suriname": [
+        [
+            127480,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1f7.png?v8"
     ],
     "sushi": [
         127843,
@@ -6026,9 +7354,23 @@
         128671,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f69f.png?v8"
     ],
+    "svalbard_jan_mayen": [
+        [
+            127480,
+            127471
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1ef.png?v8"
+    ],
     "swan": [
         129442,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9a2.png?v8"
+    ],
+    "swaziland": [
+        [
+            127480,
+            127487
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1ff.png?v8"
     ],
     "sweat": [
         128531,
@@ -6042,6 +7384,13 @@
         128517,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f605.png?v8"
     ],
+    "sweden": [
+        [
+            127480,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1ea.png?v8"
+    ],
     "sweet_potato": [
         127840,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f360.png?v8"
@@ -6054,6 +7403,27 @@
         127946,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3ca.png?v8"
     ],
+    "swimming_man": [
+        [
+            127946,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f3ca-2642.png?v8"
+    ],
+    "swimming_woman": [
+        [
+            127946,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f3ca-2640.png?v8"
+    ],
+    "switzerland": [
+        [
+            127464,
+            127469
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e8-1f1ed.png?v8"
+    ],
     "symbols": [
         128291,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f523.png?v8"
@@ -6062,11 +7432,18 @@
         128333,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f54d.png?v8"
     ],
+    "syria": [
+        [
+            127480,
+            127486
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f8-1f1fe.png?v8"
+    ],
     "syringe": [
         128137,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f489.png?v8"
     ],
-    "t-rex": [
+    "t_rex": [
         129430,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f996.png?v8"
     ],
@@ -6077,6 +7454,20 @@
     "tada": [
         127881,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f389.png?v8"
+    ],
+    "taiwan": [
+        [
+            127481,
+            127484
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1fc.png?v8"
+    ],
+    "tajikistan": [
+        [
+            127481,
+            127471
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1ef.png?v8"
     ],
     "takeout_box": [
         129377,
@@ -6094,6 +7485,13 @@
         127818,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f34a.png?v8"
     ],
+    "tanzania": [
+        [
+            127481,
+            127487
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1ff.png?v8"
+    ],
     "taurus": [
         9801,
         "https://github.githubassets.com/images/icons/emoji/unicode/2649.png?v8"
@@ -6106,9 +7504,23 @@
         127861,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f375.png?v8"
     ],
+    "teacher": [
+        [
+            129489,
+            127979
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f3eb.png?v8"
+    ],
     "teapot": [
         129750,
         "https://github.githubassets.com/images/icons/emoji/unicode/1fad6.png?v8"
+    ],
+    "technologist": [
+        [
+            129489,
+            128187
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d1-1f4bb.png?v8"
     ],
     "teddy_bear": [
         129528,
@@ -6138,6 +7550,13 @@
         129514,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9ea.png?v8"
     ],
+    "thailand": [
+        [
+            127481,
+            127469
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1ed.png?v8"
+    ],
     "thermometer": [
         127777,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f321.png?v8"
@@ -6157,6 +7576,13 @@
     "thread": [
         129525,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9f5.png?v8"
+    ],
+    "three": [
+        [
+            51,
+            8419
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/0033-20e3.png?v8"
     ],
     "thumbsdown": [
         128078,
@@ -6186,9 +7612,30 @@
         9202,
         "https://github.githubassets.com/images/icons/emoji/unicode/23f2.png?v8"
     ],
+    "timor_leste": [
+        [
+            127481,
+            127473
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1f1.png?v8"
+    ],
+    "tipping_hand_man": [
+        [
+            128129,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f481-2642.png?v8"
+    ],
     "tipping_hand_person": [
         128129,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f481.png?v8"
+    ],
+    "tipping_hand_woman": [
+        [
+            128129,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f481-2640.png?v8"
     ],
     "tired_face": [
         128555,
@@ -6198,9 +7645,23 @@
         8482,
         "https://github.githubassets.com/images/icons/emoji/unicode/2122.png?v8"
     ],
+    "togo": [
+        [
+            127481,
+            127468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1ec.png?v8"
+    ],
     "toilet": [
         128701,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6bd.png?v8"
+    ],
+    "tokelau": [
+        [
+            127481,
+            127472
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1f0.png?v8"
     ],
     "tokyo_tower": [
         128508,
@@ -6209,6 +7670,13 @@
     "tomato": [
         127813,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f345.png?v8"
+    ],
+    "tonga": [
+        [
+            127481,
+            127476
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1f4.png?v8"
     ],
     "tongue": [
         128069,
@@ -6238,6 +7706,13 @@
         127786,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f32a.png?v8"
     ],
+    "tr": [
+        [
+            127481,
+            127479
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1f7.png?v8"
+    ],
     "trackball": [
         128434,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f5b2.png?v8"
@@ -6262,6 +7737,13 @@
         128650,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f68a.png?v8"
     ],
+    "transgender_flag": [
+        [
+            127987,
+            9895
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f3f3-26a7.png?v8"
+    ],
     "transgender_symbol": [
         9895,
         "https://github.githubassets.com/images/icons/emoji/unicode/26a7.png?v8"
@@ -6277,6 +7759,20 @@
     "trident": [
         128305,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f531.png?v8"
+    ],
+    "trinidad_tobago": [
+        [
+            127481,
+            127481
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1f9.png?v8"
+    ],
+    "tristan_da_cunha": [
+        [
+            127481,
+            127462
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1e6.png?v8"
     ],
     "triumph": [
         128548,
@@ -6318,13 +7814,41 @@
         129347,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f943.png?v8"
     ],
+    "tunisia": [
+        [
+            127481,
+            127475
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1f3.png?v8"
+    ],
     "turkey": [
         129411,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f983.png?v8"
     ],
+    "turkmenistan": [
+        [
+            127481,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1f2.png?v8"
+    ],
+    "turks_caicos_islands": [
+        [
+            127481,
+            127464
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1e8.png?v8"
+    ],
     "turtle": [
         128034,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f422.png?v8"
+    ],
+    "tuvalu": [
+        [
+            127481,
+            127483
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1f9-1f1fb.png?v8"
     ],
     "tv": [
         128250,
@@ -6333,6 +7857,13 @@
     "twisted_rightwards_arrows": [
         128256,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f500.png?v8"
+    ],
+    "two": [
+        [
+            50,
+            8419
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/0032-20e3.png?v8"
     ],
     "two_hearts": [
         128149,
@@ -6390,6 +7921,27 @@
         127539,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f233.png?v8"
     ],
+    "uganda": [
+        [
+            127482,
+            127468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fa-1f1ec.png?v8"
+    ],
+    "uk": [
+        [
+            127468,
+            127463
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ec-1f1e7.png?v8"
+    ],
+    "ukraine": [
+        [
+            127482,
+            127462
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fa-1f1e6.png?v8"
+    ],
     "umbrella": [
         9748,
         "https://github.githubassets.com/images/icons/emoji/unicode/2614.png?v8"
@@ -6406,6 +7958,20 @@
         129412,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f984.png?v8"
     ],
+    "united_arab_emirates": [
+        [
+            127462,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1e6-1f1ea.png?v8"
+    ],
+    "united_nations": [
+        [
+            127482,
+            127475
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fa-1f1f3.png?v8"
+    ],
     "unlock": [
         128275,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f513.png?v8"
@@ -6418,6 +7984,41 @@
         128579,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f643.png?v8"
     ],
+    "uruguay": [
+        [
+            127482,
+            127486
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fa-1f1fe.png?v8"
+    ],
+    "us": [
+        [
+            127482,
+            127480
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fa-1f1f8.png?v8"
+    ],
+    "us_outlying_islands": [
+        [
+            127482,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fa-1f1f2.png?v8"
+    ],
+    "us_virgin_islands": [
+        [
+            127483,
+            127470
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fb-1f1ee.png?v8"
+    ],
+    "uzbekistan": [
+        [
+            127482,
+            127487
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fa-1f1ff.png?v8"
+    ],
     "v": [
         9996,
         "https://github.githubassets.com/images/icons/emoji/unicode/270c.png?v8"
@@ -6425,6 +8026,41 @@
     "vampire": [
         129499,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9db.png?v8"
+    ],
+    "vampire_man": [
+        [
+            129499,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9db-2642.png?v8"
+    ],
+    "vampire_woman": [
+        [
+            129499,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9db-2640.png?v8"
+    ],
+    "vanuatu": [
+        [
+            127483,
+            127482
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fb-1f1fa.png?v8"
+    ],
+    "vatican_city": [
+        [
+            127483,
+            127462
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fb-1f1e6.png?v8"
+    ],
+    "venezuela": [
+        [
+            127483,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fb-1f1ea.png?v8"
     ],
     "vertical_traffic_light": [
         128678,
@@ -6445,6 +8081,13 @@
     "video_game": [
         127918,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3ae.png?v8"
+    ],
+    "vietnam": [
+        [
+            127483,
+            127475
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fb-1f1f3.png?v8"
     ],
     "violin": [
         127931,
@@ -6481,6 +8124,27 @@
     "walking": [
         128694,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f6b6.png?v8"
+    ],
+    "walking_man": [
+        [
+            128694,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f6b6-2642.png?v8"
+    ],
+    "walking_woman": [
+        [
+            128694,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f6b6-2640.png?v8"
+    ],
+    "wallis_futuna": [
+        [
+            127484,
+            127467
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fc-1f1eb.png?v8"
     ],
     "waning_crescent_moon": [
         127768,
@@ -6546,6 +8210,27 @@
         127947,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f3cb.png?v8"
     ],
+    "weight_lifting_man": [
+        [
+            127947,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f3cb-2642.png?v8"
+    ],
+    "weight_lifting_woman": [
+        [
+            127947,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f3cb-2640.png?v8"
+    ],
+    "western_sahara": [
+        [
+            127466,
+            127469
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ea-1f1ed.png?v8"
+    ],
     "whale": [
         128051,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f433.png?v8"
@@ -6577,6 +8262,20 @@
     "white_flower": [
         128174,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4ae.png?v8"
+    ],
+    "white_haired_man": [
+        [
+            128104,
+            129459
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f468-1f9b3.png?v8"
+    ],
+    "white_haired_woman": [
+        [
+            128105,
+            129459
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f9b3.png?v8"
     ],
     "white_heart": [
         129293,
@@ -6634,13 +8333,223 @@
         128105,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f469.png?v8"
     ],
+    "woman_artist": [
+        [
+            128105,
+            127912
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f3a8.png?v8"
+    ],
+    "woman_astronaut": [
+        [
+            128105,
+            128640
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f680.png?v8"
+    ],
+    "woman_beard": [
+        [
+            129492,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9d4-2640.png?v8"
+    ],
+    "woman_cartwheeling": [
+        [
+            129336,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f938-2640.png?v8"
+    ],
+    "woman_cook": [
+        [
+            128105,
+            127859
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f373.png?v8"
+    ],
     "woman_dancing": [
         128131,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f483.png?v8"
     ],
+    "woman_facepalming": [
+        [
+            129318,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f926-2640.png?v8"
+    ],
+    "woman_factory_worker": [
+        [
+            128105,
+            127981
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f3ed.png?v8"
+    ],
+    "woman_farmer": [
+        [
+            128105,
+            127806
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f33e.png?v8"
+    ],
+    "woman_feeding_baby": [
+        [
+            128105,
+            127868
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f37c.png?v8"
+    ],
+    "woman_firefighter": [
+        [
+            128105,
+            128658
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f692.png?v8"
+    ],
+    "woman_health_worker": [
+        [
+            128105,
+            9877
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-2695.png?v8"
+    ],
+    "woman_in_manual_wheelchair": [
+        [
+            128105,
+            129469
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f9bd.png?v8"
+    ],
+    "woman_in_motorized_wheelchair": [
+        [
+            128105,
+            129468
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f9bc.png?v8"
+    ],
+    "woman_in_tuxedo": [
+        [
+            129333,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f935-2640.png?v8"
+    ],
+    "woman_judge": [
+        [
+            128105,
+            9878
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-2696.png?v8"
+    ],
+    "woman_juggling": [
+        [
+            129337,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f939-2640.png?v8"
+    ],
+    "woman_mechanic": [
+        [
+            128105,
+            128295
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f527.png?v8"
+    ],
+    "woman_office_worker": [
+        [
+            128105,
+            128188
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f4bc.png?v8"
+    ],
+    "woman_pilot": [
+        [
+            128105,
+            9992
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-2708.png?v8"
+    ],
+    "woman_playing_handball": [
+        [
+            129342,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f93e-2640.png?v8"
+    ],
+    "woman_playing_water_polo": [
+        [
+            129341,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f93d-2640.png?v8"
+    ],
+    "woman_scientist": [
+        [
+            128105,
+            128300
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f52c.png?v8"
+    ],
+    "woman_shrugging": [
+        [
+            129335,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f937-2640.png?v8"
+    ],
+    "woman_singer": [
+        [
+            128105,
+            127908
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f3a4.png?v8"
+    ],
+    "woman_student": [
+        [
+            128105,
+            127891
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f393.png?v8"
+    ],
+    "woman_teacher": [
+        [
+            128105,
+            127979
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f3eb.png?v8"
+    ],
+    "woman_technologist": [
+        [
+            128105,
+            128187
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f4bb.png?v8"
+    ],
     "woman_with_headscarf": [
         129493,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9d5.png?v8"
+    ],
+    "woman_with_probing_cane": [
+        [
+            128105,
+            129455
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f469-1f9af.png?v8"
+    ],
+    "woman_with_turban": [
+        [
+            128115,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f473-2640.png?v8"
+    ],
+    "woman_with_veil": [
+        [
+            128112,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f470-2640.png?v8"
     ],
     "womans_clothes": [
         128090,
@@ -6649,6 +8558,13 @@
     "womans_hat": [
         128082,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f452.png?v8"
+    ],
+    "women_wrestling": [
+        [
+            129340,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f93c-2640.png?v8"
     ],
     "womens": [
         128698,
@@ -6710,6 +8626,13 @@
         129000,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f7e8.png?v8"
     ],
+    "yemen": [
+        [
+            127486,
+            127466
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1fe-1f1ea.png?v8"
+    ],
     "yen": [
         128180,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f4b4.png?v8"
@@ -6726,6 +8649,13 @@
         128523,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f60b.png?v8"
     ],
+    "zambia": [
+        [
+            127487,
+            127474
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ff-1f1f2.png?v8"
+    ],
     "zany_face": [
         129322,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f92a.png?v8"
@@ -6738,6 +8668,20 @@
         129427,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f993.png?v8"
     ],
+    "zero": [
+        [
+            48,
+            8419
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/0030-20e3.png?v8"
+    ],
+    "zimbabwe": [
+        [
+            127487,
+            127484
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f1ff-1f1fc.png?v8"
+    ],
     "zipper_mouth_face": [
         129296,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f910.png?v8"
@@ -6745,6 +8689,20 @@
     "zombie": [
         129503,
         "https://github.githubassets.com/images/icons/emoji/unicode/1f9df.png?v8"
+    ],
+    "zombie_man": [
+        [
+            129503,
+            9794
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9df-2642.png?v8"
+    ],
+    "zombie_woman": [
+        [
+            129503,
+            9792
+        ],
+        "https://github.githubassets.com/images/icons/emoji/unicode/1f9df-2640.png?v8"
     ],
     "zzz": [
         128164,

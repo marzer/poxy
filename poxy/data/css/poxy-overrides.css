@@ -261,7 +261,7 @@ h6:last-child
 }
 
 /* table of contents */
-@media screen and (min-width: 1300px) and (min-height: 700px)
+@media screen and (min-width: 1300px) and (min-height: 775px)
 {
 	:root
 	{
@@ -270,7 +270,7 @@ h6:last-child
 	.poxy-toc
 	{
 		position: fixed;
-		top: 7rem;
+		top: 5rem;
 		left: calc(50% + 470px + var(--wide-page-left-offset));
 		min-width: 200px;
 		z-index: 5;
@@ -369,12 +369,14 @@ code.poxy-impl
 article section:target > .m-code,
 article section:target > .m-console,
 article section:target > .m-note,
+article section:target > .m-block,
 article section:target > .m-container-inflate > .m-code,
 article section:target > .m-container-inflate > .m-console,
 article section:target > .m-container-inflate > .m-note,
+article section:target > .m-container-inflate > .m-block,
 article section:target section.m-doc-details > div > h3:first-child
 {
-		border-color: var(--article-heading-color) !important;
+	border-color: var(--article-heading-color) !important;
 }
 article section:target section.m-doc-details > div > h3:first-child
 {
@@ -387,6 +389,16 @@ article section:target section.m-doc-details > div > h3:first-child
 {
   color: var(--background-color) !important;	
 }
+
+/* figures with captions */
+figure.m-figure > figcaption
+{
+	font-weight: initial !important;
+	font-size: 1rem !important;
+	text-align: center;
+	margin-top: initial;
+}
+
 
 /* links in transparent 'success' blocks */
 .m-success:not(.m-note, .m-button) a
@@ -422,4 +434,16 @@ article section:target section.m-doc-details > div > h3:first-child
 .m-danger:not(.m-note, .m-button) a:active
 {
 	color: var(--danger-link-active-color);
+} 
+
+/* links in transparent 'info' blocks */
+.m-info:not(.m-note, .m-button) a
+{
+	color: var(--info-color);
+}
+.m-info:not(.m-note, .m-button) a:hover,
+.m-info:not(.m-note, .m-button) a:focus,
+.m-info:not(.m-note, .m-button) a:active
+{
+	color: var(--info-link-active-color);
 } 
