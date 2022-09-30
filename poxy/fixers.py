@@ -892,4 +892,6 @@ class MarkTOC(HTMLFixer):
 		if doc.table_of_contents is None:
 			return False
 		soup.add_class(doc.table_of_contents, r'poxy-toc')
+		doc.table_of_contents['id'] = r'poxy-toc'
+		soup.add_class(doc.body, r'poxy-has-toc')
 		return True

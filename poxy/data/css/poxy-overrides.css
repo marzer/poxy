@@ -260,14 +260,14 @@ h6:last-child
 	margin-left: inherit;
 }
 
-/* table of contents */
+/* wide screens with room for a floating TOC */
 @media screen and (min-width: 1300px) and (min-height: 775px)
 {
 	:root
 	{
 		--wide-page-left-offset: -160px;
 	}
-	.poxy-toc
+	#poxy-toc
 	{
 		position: fixed;
 		top: 5rem;
@@ -277,7 +277,12 @@ h6:last-child
 		margin: 0px 20px 0px 0px !important;
 		background-color: var(--background-color);
 	}
-	.m-container > .m-row
+	header nav > .m-container
+	{
+		width: 100%;
+	}
+	main article > .m-container > .m-row,
+	footer nav > .m-container > .m-row
 	{
 		margin-left: var(--wide-page-left-offset);
 		margin-right: calc(var(--wide-page-left-offset) * -1);

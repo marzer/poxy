@@ -11,9 +11,10 @@
   --theme-surface2: hsl(var(--theme-hue), 20%, 99%);
   --theme-surface3: hsl(var(--theme-hue), calc(var(--theme-saturation) * 0.3), 85%); /* footer color */
   --theme-surface4: hsl(var(--theme-hue), 20%, 93%); /* background */
-  --theme-surface5: hsl(var(--theme-hue), calc(var(--theme-saturation) * 0.5), 60%); /* header bg color */
+  --theme-surface5: hsl(var(--theme-hue), calc(var(--theme-saturation) * 0.5), 55%); /* header bg color */
   --theme-surface6: hsl(var(--theme-hue), calc(var(--theme-saturation) * 0.5), 68%); /* header active link bg color */
   --theme-surface7: hsl(var(--theme-hue), var(--theme-saturation), 90%); /* header active link color */
+  --theme-surface8: hsl(var(--theme-hue), calc(var(--theme-saturation) * 0.8), 50%); /* link color */
 }
 
 .poxy-theme-light { /* NOTE: in vanilla m.css this is the :root element */
@@ -42,7 +43,7 @@
   --background-color: var(--theme-surface4);
   --color: var(--theme-text1);
   --line-color: var(--theme-surface6);
-  --link-color: var(--theme-color);
+  --link-color: var(--theme-surface8);
   --link-active-color: var(--theme-text2);
   --mark-color: #2f83cc;
   --mark-background-color: #c7cf2f;
@@ -87,7 +88,7 @@
   /* Article */
   --article-header-color: #f0f0f0;
   --article-footer-color: #c5c5c5;
-  --article-heading-color: var(--theme-color);
+  --article-heading-color: var(--theme-surface8);
   --article-heading-active-color: var(--theme-text2);
 
   /* Right navigation panel */
@@ -117,7 +118,7 @@
   --primary-filled-link-active-color: var(--primary-filled-color);
 
   --success-hue: 138;
-  --success-saturation: 50%;
+  --success-saturation: 40%;
   --success-luminosity: 45%;
   --success-color: hsl(var(--success-hue), var(--success-saturation), var(--success-luminosity));
   --success-link-active-color: hsl(var(--success-hue), var(--success-saturation), calc(var(--success-luminosity) * 0.7));
@@ -126,9 +127,9 @@
   --success-filled-link-color: hsl(var(--success-hue), calc(var(--success-saturation) * 0.8), 40%);
   --success-filled-link-active-color: var(--success-filled-color);
   
-  --warning-hue: 55;
+  --warning-hue: 53;
   --warning-saturation: 50%;
-  --warning-luminosity: 45%;
+  --warning-luminosity: 44%;
   --warning-color: hsl(var(--warning-hue), var(--warning-saturation), var(--warning-luminosity));
   --warning-link-active-color: hsl(var(--warning-hue), var(--warning-saturation), calc(var(--warning-luminosity) * 0.7));
   --warning-filled-color: hsl(var(--warning-hue), var(--warning-saturation), 20%);
@@ -137,7 +138,7 @@
   --warning-filled-link-active-color: var(--warning-filled-color);
 
   --danger-hue: 0;
-  --danger-saturation: 100%;
+  --danger-saturation: 70%;
   --danger-luminosity: 50%;
   --danger-color: hsl(var(--danger-hue), var(--danger-saturation), var(--danger-luminosity));
   --danger-link-active-color: hsl(var(--danger-hue), var(--danger-saturation), calc(var(--danger-luminosity) * 0.7));

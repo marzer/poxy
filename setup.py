@@ -6,7 +6,7 @@
 
 # set up based on this: https://thucnc.medium.com/how-to-publish-your-own-python-package-to-pypi-4318868210f9
 # windows:
-# py setup.py sdist bdist_wheel && twine upload dist/* && rmdir /S /Q dist
+# rmdir /S /Q dist && py setup.py sdist bdist_wheel && twine upload dist/* && rmdir /S /Q dist
 
 import sys
 from setuptools import setup, find_packages
