@@ -10,6 +10,7 @@
 import html
 from bs4 import NavigableString
 from .utils import *
+from .svg import SVG
 from . import soup
 
 #=======================================================================================================================
@@ -29,7 +30,7 @@ class PlainTextFixer(object):
 
 
 #=======================================================================================================================
-# custom html tags
+# HTML post-processes
 #=======================================================================================================================
 
 
@@ -163,13 +164,7 @@ class CustomTags(HTMLFixer):
 
 
 
-#=======================================================================================================================
-# C++
-#=======================================================================================================================
-
-
-
-class _ModifiersBase(HTMLFixer):
+class _CPPModifiersBase(HTMLFixer):
 	'''
 	Base type for modifier parsing fixers.
 	'''
@@ -189,11 +184,11 @@ class _ModifiersBase(HTMLFixer):
 
 
 
-class Modifiers1(_ModifiersBase):
+class CPPModifiers1(_CPPModifiersBase):
 	'''
 	Fixes improperly-parsed modifiers on function signatures in the various 'detail view' sections.
 	'''
-	__expression = re.compile(rf'(\s+)({_ModifiersBase._modifierRegex})(\s+)')
+	__expression = re.compile(rf'(\s+)({_CPPModifiersBase._modifierRegex})(\s+)')
 	__sections = ('pub-static-methods', 'pub-methods', 'friends', 'func-members')
 
 	@classmethod
@@ -215,11 +210,11 @@ class Modifiers1(_ModifiersBase):
 
 
 
-class Modifiers2(_ModifiersBase):
+class CPPModifiers2(_CPPModifiersBase):
 	'''
 	Fixes improperly-parsed modifiers on function signatures in the 'Function documentation' section.
 	'''
-	__expression = re.compile(rf'\s+({_ModifiersBase._modifierRegex})\s+')
+	__expression = re.compile(rf'\s+({_CPPModifiersBase._modifierRegex})\s+')
 
 	@classmethod
 	def __substitute(cls, m, matches):
@@ -262,7 +257,7 @@ class Modifiers2(_ModifiersBase):
 
 
 
-class TemplateTemplate(HTMLFixer):
+class CPPTemplateTemplate(HTMLFixer):
 	'''
 	Spreads consecutive template <> declarations out over multiple lines.
 	'''
@@ -314,55 +309,6 @@ class StripIncludes(HTMLFixer):
 
 
 
-class ImplementationDetails(PlainTextFixer):
-	'''
-	Replaces implementation details with appropriate shorthands.
-	'''
-	__shorthands = ((r'POXY_IMPLEMENTATION_DETAIL_IMPL', r'<code class="m-note m-dim poxy-impl">/* ... */</code>'), )
-
-	def __call__(self, doc, context):
-		changed = False
-		for shorthand, replacement in self.__shorthands:
-			idx = doc[0].find(shorthand)
-			while idx >= 0:
-				doc[0] = doc[0][:idx] + replacement + doc[0][idx + len(shorthand):]
-				changed = True
-				idx = doc[0].find(shorthand)
-		return changed
-
-
-
-#=======================================================================================================================
-# markdown
-#=======================================================================================================================
-
-
-
-class MarkdownPages(PlainTextFixer):
-	'''
-	Cleans up some HTML snafus from markdown-based pages.
-	'''
-
-	def __call__(self, doc, context):
-		if not doc[1].name.lower().startswith(r'md_') and not doc[1].name.lower().startswith(r'm_d__'):
-			return False
-
-		WBR = r'(?:<wbr[ \t]*/?>)?'
-		PREFIX = rf'_{WBR}_{WBR}poxy_{WBR}thiswasan_{WBR}'
-		doc[0] = re.sub(rf'{PREFIX}amp', r'&amp;', doc[0])
-		doc[0] = re.sub(rf'{PREFIX}at', r'@', doc[0])
-		doc[0] = re.sub(rf'{PREFIX}fe0f', r'&#xFE0F;', doc[0])
-
-		return True
-
-
-
-#=======================================================================================================================
-# index.html banner
-#=======================================================================================================================
-
-
-
 class Banner(HTMLFixer):
 	'''
 	Makes the first image on index.html a 'banner'
@@ -386,12 +332,7 @@ class Banner(HTMLFixer):
 
 		banner = banner.extract()
 		h1.replace_with(banner)
-
-		# if the image was a local SVG we can sub it into the HTML directly
-		if not is_uri(banner[r'src']) and banner[r'src'].lower().endswith('.svg'):
-			src_path = Path(doc.path.parent, banner[r'src'])
-			if src_path.exists() and src_path.is_file():
-				banner = soup.replace_tag(banner, r'<div>' + read_all_text_from_file(src_path) + r'</div>')[0]
+		banner[r'id'] = r'poxy-main-banner'
 
 		if context.badges:
 			parent = doc.new_tag('div', class_='gh-badges', after=banner)
@@ -401,14 +342,7 @@ class Banner(HTMLFixer):
 				else:
 					anchor = doc.new_tag('a', parent=parent, href=href, target='_blank')
 					doc.new_tag('img', parent=anchor, src=src, alt=alt)
-			soup.add_class(banner, 'poxy-main-banner')
 		return True
-
-
-
-#=======================================================================================================================
-# <code> blocks
-#=======================================================================================================================
 
 
 
@@ -681,20 +615,6 @@ class CodeBlocks(HTMLFixer):
 
 
 
-#=======================================================================================================================
-# <a> tags
-#=======================================================================================================================
-
-
-
-def m_doc_anchor_tags(tag):
-	return (
-		tag.name == 'a' and tag.has_attr('class') and ('m-doc' in tag['class'])  # or 'm-doc-self' in tag['class'])
-		and (tag.string is not None or tag.strings is not None)
-	)
-
-
-
 class AutoDocLinks(HTMLFixer):
 	'''
 	Adds links to additional sources where appropriate.
@@ -714,6 +634,14 @@ class AutoDocLinks(HTMLFixer):
 
 		# first check all existing doc links to make sure they aren't erroneously linked to the wrong thing
 		if 1:
+
+			def m_doc_anchor_tags(tag):
+				return (
+					tag.name == 'a' and tag.has_attr('class')
+					and ('m-doc' in tag['class'])  # or 'm-doc-self' in tag['class'])
+					and (tag.string is not None or tag.strings is not None)
+				)
+
 			existing_doc_links = doc.article_content.find_all(m_doc_anchor_tags)
 			for link in existing_doc_links:
 				done = False
@@ -854,12 +782,6 @@ class Links(HTMLFixer):
 
 
 
-#=======================================================================================================================
-# empty tags
-#=======================================================================================================================
-
-
-
 class EmptyTags(HTMLFixer):
 	'''
 	Prunes the tree of various empty tags (happens as a side-effect of some other operations).
@@ -877,12 +799,6 @@ class EmptyTags(HTMLFixer):
 
 
 
-#=======================================================================================================================
-# marks the table of contents
-#=======================================================================================================================
-
-
-
 class MarkTOC(HTMLFixer):
 	'''
 	Marks any table-of-contents with a custom class.
@@ -894,4 +810,79 @@ class MarkTOC(HTMLFixer):
 		soup.add_class(doc.table_of_contents, r'poxy-toc')
 		doc.table_of_contents['id'] = r'poxy-toc'
 		soup.add_class(doc.body, r'poxy-has-toc')
+		return True
+
+
+
+class InjectSVGs(HTMLFixer):
+	'''
+	Injects the contents of SVG <img> tags directly into the document.
+	'''
+
+	def __call__(self, doc, context):
+		imgs = doc.body.find_all(r'img')
+		if not imgs:
+			return False
+		imgs = [
+			i for i in imgs
+			if r'src' in i.attrs and i[r'src'] and not is_uri(i[r'src']) and i[r'src'].lower().endswith(r'.svg')
+		]
+		count = 0
+		for img in imgs:
+			src = Path(doc.path.parent, img[r'src'])
+			if not src.exists() or not src.is_file():
+				continue
+			img_id = img[r'id'] if r'id' in img.attrs else rf'poxy-injected-svg-{count}'
+			svg = SVG(
+				src,  #
+				logger=context.verbose_logger,
+				id_prefix=rf'{img_id}-',
+				root_id=img_id
+			)
+			img = soup.replace_tag(img, str(svg))[0]
+			soup.add_class(img, r'poxy-injected-svg')
+			count += 1
+		return count > 0
+
+
+
+#=======================================================================================================================
+# plain text post-processes
+#=======================================================================================================================
+
+
+
+class ImplementationDetails(PlainTextFixer):
+	'''
+	Replaces implementation details with appropriate shorthands.
+	'''
+	__shorthands = ((r'POXY_IMPLEMENTATION_DETAIL_IMPL', r'<code class="m-note m-dim poxy-impl">/* ... */</code>'), )
+
+	def __call__(self, doc, context):
+		changed = False
+		for shorthand, replacement in self.__shorthands:
+			idx = doc[0].find(shorthand)
+			while idx >= 0:
+				doc[0] = doc[0][:idx] + replacement + doc[0][idx + len(shorthand):]
+				changed = True
+				idx = doc[0].find(shorthand)
+		return changed
+
+
+
+class MarkdownPages(PlainTextFixer):
+	'''
+	Cleans up some HTML snafus from markdown-based pages.
+	'''
+
+	def __call__(self, doc, context):
+		if not doc[1].name.lower().startswith(r'md_') and not doc[1].name.lower().startswith(r'm_d__'):
+			return False
+
+		WBR = r'(?:<wbr[ \t]*/?>)?'
+		PREFIX = rf'_{WBR}_{WBR}poxy_{WBR}thiswasan_{WBR}'
+		doc[0] = re.sub(rf'{PREFIX}amp', r'&amp;', doc[0])
+		doc[0] = re.sub(rf'{PREFIX}at', r'@', doc[0])
+		doc[0] = re.sub(rf'{PREFIX}fe0f', r'&#xFE0F;', doc[0])
+
 		return True

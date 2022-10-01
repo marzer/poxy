@@ -79,12 +79,12 @@ pre.m-console a
 }
 
 /* nav bar */
-nav .m-thin
+body > header > nav .m-thin
 {
 	margin-left: 0.5em;
 }
-nav .poxy-icon img,
-nav .poxy-icon svg
+body > header > nav .poxy-icon img,
+body > header > nav .poxy-icon svg
 {
 	width: 1.5rem !important;
 	height: 1.5rem !important;
@@ -96,12 +96,16 @@ body > header > nav #m-navbar-collapse a.m-doc-search-icon svg
 	height: 1.25rem !important;
 	vertical-align: -12.5%;
 }
-nav #m-navbar-brand img
+body > header > nav a#m-navbar-brand svg,
+body > header > nav #m-navbar-brand a svg
 {
-	vertical-align: -17.5% !important;
+	width: 1.75rem;
+	height: 1.75rem;
+	vertical-align: -22.5%;
+	margin-right: 0.5rem;
 }
-nav a.poxy-icon.theme:hover,
-nav #m-navbar-current:hover
+body > header > nav a.poxy-icon.theme:hover,
+body > header > nav #m-navbar-current:hover
 {
 	color: var(--header-link-active-color) !important;
 	border-color: var(--header-link-active-color) !important;
@@ -109,12 +113,13 @@ nav #m-navbar-current:hover
 }
 @media screen and (max-width: 768px)
 {
-	nav .m-thin, nav .repo
+	body > header > nav .m-thin,
+	body > header > nav .repo
 	{
 		display: none;
 	}
 }
-header nav a:hover
+body > header > nav a:hover
 {
 	text-decoration: none !important;
 }
@@ -187,7 +192,7 @@ h1 span.m-thin
 }
 
 /* banner on index page */
-.poxy-main-banner
+#poxy-main-banner
 {
 	margin-left: -1rem !important;
 	margin-right: -1rem !important;
@@ -328,7 +333,7 @@ article section.m-doc-details > div > h3:first-child
 }
 article section.m-doc-details > div::before
 {
-	border-color: var(--detail-section-header-color) !important;
+	border-color: var(--detail-section-header-color);
 	background-color: var(--detail-section-background-color);
 }
 
@@ -379,7 +384,8 @@ article section:target > .m-container-inflate > .m-code,
 article section:target > .m-container-inflate > .m-console,
 article section:target > .m-container-inflate > .m-note,
 article section:target > .m-container-inflate > .m-block,
-article section:target section.m-doc-details > div > h3:first-child
+article section:target section.m-doc-details > div > h3:first-child,
+article section.m-doc-details:target > div > h3:first-child
 {
 	border-color: var(--article-heading-color) !important;
 }
@@ -403,7 +409,6 @@ figure.m-figure > figcaption
 	text-align: center;
 	margin-top: initial;
 }
-
 
 /* links in transparent 'success' blocks */
 .m-success:not(.m-note, .m-button) a

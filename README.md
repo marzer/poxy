@@ -29,6 +29,9 @@ a fantastic live search feature. **Poxy** builds upon both by:
 -   Automatically integrating the cppreference.com doxygen tagfile
 -   Providing a number of additional built-in doxygen `@alias` commands
 -   Giving more control over the HTML inline using square-bracket `[tags][/tags]`
+-   Adding a switchable light theme
+-   Self-hosting fonts to reduce external HTTP requests
+-   Inlining SVGs so they can take advantage of [`currentColor`]
 -   Quite a bit more!
 
 <br><br>
@@ -159,3 +162,4 @@ Significant credit must go to Vladimír Vondruš ([mosra]) and his amazing [m.cs
 [c++ feature test macros]: https://en.cppreference.com/w/cpp/feature_test
 [configuration options]: https://github.com/marzer/poxy/wiki/Configuration-options
 [feature request]: https://github.com/marzer/poxy/issues/new
+[`currentcolor`]: https://gomakethings.com/currentcolor-and-svgs

@@ -7,7 +7,6 @@
 The 'actually do the thing' module.
 """
 
-from distutils.dir_util import copy_tree
 import os
 import subprocess
 import concurrent.futures as futures
@@ -20,6 +19,8 @@ from . import project
 from . import doxygen
 from . import soup
 from . import fixers
+from .svg import SVG
+from distutils.dir_util import copy_tree
 
 #=======================================================================================================================
 # PRE/POST PROCESSORS
@@ -344,21 +345,30 @@ def preprocess_doxyfile(context):
 						if bar[i] == r'repo' and context.repo:
 							icon_path = Path(dirs.DATA, context.repo.icon_filename)
 							if icon_path.exists():
+								svg = SVG(
+									icon_path,
+									logger=context.verbose_logger,
+									root_id=r'poxy-repo-icon',
+									id_prefix=r'poxy-repo-icon-'
+								)
 								bar[i] = (
 									rf'<a title="View on {type(context.repo).__name__}" '
 									+ rf'target="_blank" href="{context.repo.uri}" '
-									+ rf'class="poxy-icon repo {context.repo.KEY}">'
-									+ read_all_text_from_file(icon_path, logger=context.verbose_logger) + r'</a>', []
+									+ rf'class="poxy-icon repo {context.repo.KEY}">{svg}</a>', []
 								)
 							else:
 								bar[i] = None
 						elif bar[i] == r'theme':
+							svg = SVG(
+								Path(dirs.DATA, r'poxy-icon-theme.svg'),
+								logger=context.verbose_logger,
+								root_id=r'poxy-theme-switch-img',
+								id_prefix=r'poxy-theme-switch-img-'
+							)
 							bar[i] = (
 								r'<a title="Toggle dark and light themes" '
 								+ r'id="poxy-theme-switch" href="javascript:void(null);" role="button" '
-								+ r'class="poxy-icon theme" onClick="toggle_theme();">' + read_all_text_from_file(
-								Path(dirs.DATA, "poxy-icon-theme.svg"), logger=context.verbose_logger
-								) + r'</a>', []
+								+ rf'class="poxy-icon theme" onClick="toggle_theme();">{svg}</a>', []
 							)
 					bar = [b for b in bar if b is not None]
 					split = min(max(int(len(bar) / 2) + len(bar) % 2, 2), len(bar))
@@ -1011,9 +1021,9 @@ def postprocess_html(context):
 			fixers.MarkTOC(),
 			fixers.CodeBlocks(),
 			fixers.Banner(),
-			fixers.Modifiers1(),
-			fixers.Modifiers2(),
-			fixers.TemplateTemplate(),
+			fixers.CPPModifiers1(),
+			fixers.CPPModifiers2(),
+			fixers.CPPTemplateTemplate(),
 			fixers.StripIncludes(),
 			fixers.AutoDocLinks(),
 			fixers.Links(),
@@ -1021,6 +1031,7 @@ def postprocess_html(context):
 			fixers.EmptyTags(),
 			fixers.ImplementationDetails(),
 			fixers.MarkdownPages(),
+			fixers.InjectSVGs(),
 		)
 		context.verbose(rf'Post-processing {len(files)} HTML files...')
 		if threads > 1:

@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.8.2 - 2022-10-01
+
+-   added post-process to inline all local SVGs
+-   minor style fixes
+
 ## v0.8.1 - 2022-09-30
 
 -   minor style fixes

@@ -10,6 +10,9 @@
 			"**/build": true,
 			"**/*.egg-info": true,
 			"**/poxy/html": true,
-		}
+		},
+		"prettier.tabWidth": 4,
+		"html.format.indentInnerHtml": true,
+		"prettier.useTabs": true
 	}
 }

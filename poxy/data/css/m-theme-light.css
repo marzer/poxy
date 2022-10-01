@@ -82,8 +82,8 @@
   --cover-image-background-color: #0f1217;
 
   /* Search (used only by m-documentation.css) */
-  --search-overlay-color: var(--header-background-color-landing);
-  --search-background-color: var(--header-background-color);
+  --search-overlay-color: hsla(var(--theme-hue), calc(var(--theme-saturation) * 0.5), 75%, 85%);
+  --search-background-color: var(--theme-surface4);
 
   /* Article */
   --article-header-color: #f0f0f0;

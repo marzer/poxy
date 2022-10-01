@@ -26,6 +26,7 @@
 *.rc               text         eol=crlf    encoding=UTF-8
 *.runsettings      text         eol=lf      encoding=UTF-8
 *.sln              text         eol=crlf    encoding=UTF-8-BOM
+*.svg              text         eol=lf      encoding=UTF-8
 *.toml             text         eol=lf      encoding=UTF-8
 *.txt              text         eol=lf      encoding=UTF-8
 *.vcxproj          text         eol=crlf    encoding=UTF-8-BOM
