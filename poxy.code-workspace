@@ -9,10 +9,20 @@
 			"**/__pycache__": true,
 			"**/build": true,
 			"**/*.egg-info": true,
-			"**/poxy/html": true,
+			"**/poxy/html": true
 		},
 		"prettier.tabWidth": 4,
 		"html.format.indentInnerHtml": true,
-		"prettier.useTabs": true
+		"prettier.useTabs": true,
+		"files.associations": {
+			"type_traits": "cpp",
+			"concepts": "cpp",
+			"cstddef": "cpp",
+			"cstdint": "cpp",
+			"cstdlib": "cpp",
+			"initializer_list": "cpp",
+			"xstddef": "cpp",
+			"xtr1common": "cpp"
+		}
 	}
 }

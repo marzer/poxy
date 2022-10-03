@@ -248,3 +248,25 @@ class Error(Exception):
 class WarningTreatedAsError(Error):
 	"""Raised when a warning is generated and the user has chosen to treat warnings as errors."""
 	pass
+
+
+
+#=======================================================================================================================
+# Defer (baby's first RAII)
+#=======================================================================================================================
+
+
+
+class Defer(object):
+
+	def __init__(self, callable, *args, **kwargs):
+		self.__callable = callable
+		self.__args = args
+		self.__kwargs = kwargs
+
+	def __enter__(self):
+		return self
+
+	def __exit__(self, type, value, traceback):
+		if self.__callable is not None:
+			self.__callable(*self.__args, **self.__kwargs)

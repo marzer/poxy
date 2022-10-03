@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.9.5" xml:lang="en-US">
+  <compound refid="classtest1_1_1foo_1_1bar" kind="class"><name>test1::foo::bar</name>
+  </compound>
+  <compound refid="structtest1_1_1foo" kind="struct"><name>test1::foo</name>
+  </compound>
+  <compound refid="concepttest1_1_1concept2" kind="concept"><name>test1::concept2</name>
+  </compound>
+  <compound refid="concepttest1_1_1foo_1_1concept1" kind="concept"><name>test1::foo::concept1</name>
+  </compound>
+  <compound refid="concepttest1_1_1test2_1_1concept3" kind="concept"><name>test1::test2::concept3</name>
+  </compound>
+  <compound refid="namespacetest1" kind="namespace"><name>test1</name>
+  </compound>
+  <compound refid="namespacetest1_1_1empty" kind="namespace"><name>test1::empty</name>
+  </compound>
+  <compound refid="namespacetest1_1_1test2" kind="namespace"><name>test1::test2</name>
+  </compound>
+  <compound refid="code_8h" kind="file"><name>code.h</name>
+  </compound>
+  <compound refid="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir"><name>src</name>
+  </compound>
+</doxygenindex>

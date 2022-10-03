@@ -42,31 +42,32 @@ Doxyfile           text         eol=lf      encoding=UTF-8
 Doxyfile-mcss      text         eol=lf      encoding=UTF-8
 meson.build        text         eol=lf      encoding=UTF-8
 
-*.cs            eol=lf diff=csharp
+*.cs                eol=lf diff=csharp
 
-*.doc           diff=astextplain
-*.DOC           diff=astextplain
-*.docx          diff=astextplain
-*.DOCX          diff=astextplain
-*.dot           diff=astextplain
-*.DOT           diff=astextplain
-*.pdf           diff=astextplain
-*.PDF           diff=astextplain
-*.rtf           diff=astextplain
-*.RTF           diff=astextplain
+*.doc               diff=astextplain
+*.DOC               diff=astextplain
+*.docx              diff=astextplain
+*.DOCX              diff=astextplain
+*.dot               diff=astextplain
+*.DOT               diff=astextplain
+*.pdf               diff=astextplain
+*.PDF               diff=astextplain
+*.rtf               diff=astextplain
+*.RTF               diff=astextplain
 
-*.ai               binary
-*.bin              binary
-*.bmp              binary
-*.dat              binary
-*.gif              binary
-*.ico              binary
-*.jpeg             binary
-*.jpg              binary
-*.png              binary
-*.psd              binary
-*.rc               binary
-*.xlsx             binary
+*.ai                binary
+*.bin               binary
+*.bmp               binary
+*.dat               binary
+*.gif               binary
+*.ico               binary
+*.jpeg              binary
+*.jpg               binary
+*.png               binary
+*.psd               binary
+*.rc                binary
+*.xlsx              binary
 
-*/generated/**  linguist-generated
-*/m.css/**      linguist-vendored
+*/generated/**      linguist-generated
+*/m.css/**          linguist-vendored
+*/tests/test_*/**   linguist-generated

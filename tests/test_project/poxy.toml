@@ -1,0 +1,9 @@
+name = 'Test!'
+description = 'A C++ Project'
+cpp = 20
+navbar = [ 'files', 'namespaces', 'classes', 'concepts' ]
+show_includes = true
+
+[sources]
+paths = './src'
+strip_paths = '.'

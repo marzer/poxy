@@ -836,7 +836,6 @@ class InjectSVGs(HTMLFixer):
 			svg = SVG(
 				src,  #
 				logger=context.verbose_logger,
-				id_prefix=rf'{img_id}-',
 				root_id=img_id
 			)
 			img = soup.replace_tag(img, str(svg))[0]

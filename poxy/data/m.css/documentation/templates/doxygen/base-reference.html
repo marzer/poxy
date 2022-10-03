@@ -7,6 +7,7 @@
 {% macro entry_file(file) %}{% include 'entry-file.html' %}{% endmacro %}
 {% macro entry_namespace(namespace) %}{% include 'entry-namespace.html' %}{% endmacro %}
 {% macro entry_class(class) %}{% include 'entry-class.html' %}{% endmacro %}
+{% macro entry_concept(concept) %}{% include 'entry-concept.html' %}{% endmacro %}
 {% macro entry_enum(enum) %}{% include 'entry-enum.html' %}{% endmacro %}
 {% macro entry_typedef(typedef) %}{% include 'entry-typedef.html' %}{% endmacro %}
 {% macro entry_func(func) %}{% include 'entry-func.html' %}{% endmacro %}
@@ -25,8 +26,8 @@
         {% if compound.brief %}
         <p>{{ compound.brief }}</p>
         {% endif %}
-        {% if compound.sections or compound.modules or compound.dirs or compound.files or compound.namespaces or compound.classes or compound.typedefs or compound.funcs or compound.vars or compound.defines or compound.groups %}
-        <nav class="m-block m-default">
+        {% if compound.sections or compound.modules or compound.dirs or compound.files or compound.namespaces or compound.classes or compound.concepts or compound.typedefs or compound.funcs or compound.vars or compound.defines or compound.groups %}
+        <nav id="table-of-contents" class="m-block m-default">
           <h3>Contents</h3>
           <ul>
             {% for id, name, children in compound.sections recursive %}
@@ -41,7 +42,7 @@
             <li><a href="#{{ id }}">{{ name }}</a></li>
             {% endif %}
             {% endfor %}
-            {% if compound.modules or compound.dirs or compound.files or compound.namespaces or compound.classes or compound.typedefs or compound.funcs or compound.vars or compound.defines or compound.groups %}
+            {% if compound.modules or compound.dirs or compound.files or compound.namespaces or compound.classes or compound.concepts or compound.typedefs or compound.funcs or compound.vars or compound.defines or compound.groups %}
             <li>
               Reference
               <ul>
@@ -59,6 +60,9 @@
                 {% endif %}
                 {% if compound.classes %}
                 <li><a href="#nested-classes">Classes</a></li>
+                {% endif %}
+                {% if compound.concepts %}
+                <li><a href="#nested-concepts">Concepts</a></li>
                 {% endif %}
                 {% if compound.enums %}
                 <li><a href="#enum-members">Enums</a></li>
@@ -137,6 +141,16 @@
           </dl>
         </section>
         {% endif %}
+        {% if compound.concepts %}
+        <section id="nested-concepts">
+          <h2><a href="#nested-concepts">Concepts</a></h2>
+          <dl class="m-doc">
+            {% for concept in compound.concepts %}
+{{ entry_concept(concept) }}
+            {% endfor %}
+          </dl>
+        </section>
+        {% endif %}
         {% if compound.enums %}
         <section id="enum-members">
           <h2><a href="#enum-members">Enums</a></h2>
@@ -199,6 +213,8 @@
 {{ entry_namespace(member) }}
             {% elif kind == 'class' %}
 {{ entry_class(member) }}
+            {% elif kind == 'concept' %}
+{{ entry_concept(member) }}
             {% elif kind == 'enum' %}
 {{ entry_enum(member) }}
             {% elif kind == 'typedef' %}
@@ -215,7 +231,7 @@
         </section>
         {% endfor %}
         {% if compound.has_enum_details %}
-        <section>
+        <section id="enum-documentation">
           <h2>Enum documentation</h2>
           {% for enum in compound.enums %}
           {% if enum.has_details %}
@@ -232,7 +248,7 @@
         </section>
         {% endif %}
         {% if compound.has_typedef_details %}
-        <section>
+        <section id="typedef-documentation">
           <h2>Typedef documentation</h2>
           {% for typedef in compound.typedefs %}
           {% if typedef.has_details %}
@@ -249,7 +265,7 @@
         </section>
         {% endif %}
         {% if compound.has_func_details %}
-        <section>
+        <section id="func-documentation">
           <h2>Function documentation</h2>
           {% for func in compound.funcs %}
           {% if func.has_details %}
@@ -266,7 +282,7 @@
         </section>
         {% endif %}
         {% if compound.has_var_details %}
-        <section>
+        <section id="var-documentation">
           <h2>Variable documentation</h2>
           {% for var in compound.vars %}
           {% if var.has_details %}
@@ -283,7 +299,7 @@
         </section>
         {% endif %}
         {% if compound.has_define_details %}
-        <section>
+        <section id="define-documentation">
           <h2>Define documentation</h2>
           {% for define in compound.defines %}
           {% if define.has_details %}

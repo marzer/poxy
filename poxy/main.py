@@ -115,19 +115,24 @@ def main(invoker=True):
 		help=r"pattern matching HTML file names to exclude from post-processing (default: none)"
 	)
 	args.add_argument(
-		r'--nocleanup',  #
-		action=r'store_true',
-		help=r"does not clean up after itself, leaving the XML and other temp files intact"
-	)
-	args.add_argument(
 		r'--theme',  #
 		choices=[r'auto', r'light', r'dark', r'custom'],
 		default=r'auto',
 		help=r'the CSS theme to use (default: %(default)s)'
 	)
 	#--------------------------------------------------------------
-	# hidden developer-only arguments
+	# hidden developer-only/diagnostic arguments
 	#--------------------------------------------------------------
+	args.add_argument(
+		r'--nocleanup',  #
+		action=r'store_true',
+		help=argparse.SUPPRESS
+	)
+	args.add_argument(
+		r'--noassets',  #
+		action=r'store_true',
+		help=argparse.SUPPRESS
+	)
 	args.add_argument(
 		r'--update-styles',  #
 		action=r'store_true',
@@ -215,7 +220,7 @@ def main(invoker=True):
 	if args.update_emoji:
 		emoji.update_database_file()
 
-	if args.update_styles or args.update_emoji:
+	if args.update_styles or args.update_fonts or args.update_emoji or args.mcss is not None:
 		return
 
 	with ScopeTimer(r'All tasks', print_start=False, print_end=not args.dry) as timer:
@@ -232,7 +237,8 @@ def main(invoker=True):
 			html_include=args.ppinclude,
 			html_exclude=args.ppexclude,
 			treat_warnings_as_errors=True if args.werror else None,
-			theme=None if args.theme == r'auto' else args.theme
+			theme=None if args.theme == r'auto' else args.theme,
+			copy_assets=not args.noassets
 		)
 
 

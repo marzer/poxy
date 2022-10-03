@@ -21,24 +21,25 @@ class SVG(object):
 		self,  #
 		file_path: Union[Path, str],
 		logger=None,
-		id_prefix: str = None,
-		root_id: str = None
+		root_id: str = None,
+		id_namespace: str = None
 	):
 
 		# read file
 		svg = read_all_text_from_file(file_path, logger=logger)
 
-		# add a prefix to the #ids if requested
+		# add a namespace prefix to the #ids if requested
 		# (so they're unique when injected into HTML etc)
-		if id_prefix is not None:
-			id_prefix = str(id_prefix)
-		if id_prefix:
-			svg = svg.replace(r'id="', rf'id="{id_prefix}')
-			svg = re.sub(r'url\(\s*"\s*#', rf'url("#{id_prefix}', svg, flags=re.I)
-			svg = re.sub(r"url\(\s*'\s*#", rf"url('#{id_prefix}", svg, flags=re.I)
-			svg = re.sub(r'url\(\s*#', rf'url(#{id_prefix}', svg, flags=re.I)
-			svg = re.sub(r'xlink:href="\s*#', rf'xlink:href="#{id_prefix}', svg, flags=re.I)
-			svg = re.sub(r"xlink:href='\s*#", rf"xlink:href='#{id_prefix}", svg, flags=re.I)
+		if root_id is not None:
+			root_id = str(root_id).strip()
+		if id_namespace is not None:
+			id_namespace = str(id_namespace).strip()
+		if root_id and id_namespace is None:
+			id_namespace = root_id
+		if id_namespace:
+			svg = svg.replace(r'id="', rf'id="{id_namespace}-')
+			svg = re.sub(r'''url\s*\(\s*(["']?)\s*#''', rf'url(\1#{id_namespace}-', svg, flags=re.I)
+			svg = re.sub(r'''xlink:href\s*=\s*(["'])\s*#''', rf"xlink:href=\1#{id_namespace}-", svg, flags=re.I)
 
 		# parse into XML
 		parser = etree.XMLParser(
@@ -52,19 +53,15 @@ class SVG(object):
 		root = self.__xml.getroot()
 		attrs = root.attrib
 
-		# set root id
-		if root_id is not None:
-			root_id = str(root_id)
-		if root_id:
-			attrs[r'id'] = root_id
-
-		# normalize various svg attributes
+		# set/normalize various attributes
 		if r'xmlns' not in attrs:
 			attrs[r'xmlns'] = r'http://www.w3.org/2000/svg'
 		# if r'xmlns:xlink' not in attrs:
 		#	attrs[r'xmlns:xlink'] = r'http://www.w3.org/1999/xlink')
 		if r'version' not in attrs:
 			attrs[r'version'] = r'1.1'
+		if root_id:
+			attrs[r'id'] = root_id
 
 	def __str__(self) -> str:
 		return etree.tostring(self.__xml.getroot(), encoding=r'unicode', xml_declaration=False, pretty_print=True)

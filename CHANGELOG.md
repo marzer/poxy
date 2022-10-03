@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.0 - 2022-10-03
+
+-   added support for C++20 concepts
+
 ## v0.8.2 - 2022-10-01
 
 -   added post-process to inline all local SVGs

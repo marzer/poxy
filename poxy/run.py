@@ -147,11 +147,10 @@ def preprocess_doxyfile(context):
 
 	with doxygen.Doxyfile(
 		input_path=None,
-		output_path=context.doxyfile_path,
+		output_path=context.doxyfile_path if not context.dry_run else None,
 		cwd=context.input_dir,
 		logger=context.verbose_logger,
-		doxygen_path=context.doxygen_path,
-		flush_at_exit=not context.dry_run
+		doxygen_path=context.doxygen_path
 	) as df, StringIO(newline='\n') as conf_py:
 
 		df.append()
@@ -181,6 +180,7 @@ def preprocess_doxyfile(context):
 			df.add_value(
 				r'ENABLED_SECTIONS', (r'private', r'internal') if context.internal_docs else (r'public', r'external')
 			)
+			df.add_value(r'ENABLED_SECTIONS', r'poxy_supports_concepts')
 
 			if context.generate_tagfile:
 				context.tagfile_path = Path(
@@ -345,12 +345,7 @@ def preprocess_doxyfile(context):
 						if bar[i] == r'repo' and context.repo:
 							icon_path = Path(dirs.DATA, context.repo.icon_filename)
 							if icon_path.exists():
-								svg = SVG(
-									icon_path,
-									logger=context.verbose_logger,
-									root_id=r'poxy-repo-icon',
-									id_prefix=r'poxy-repo-icon-'
-								)
+								svg = SVG(icon_path, logger=context.verbose_logger, root_id=r'poxy-repo-icon')
 								bar[i] = (
 									rf'<a title="View on {type(context.repo).__name__}" '
 									+ rf'target="_blank" href="{context.repo.uri}" '
@@ -362,8 +357,7 @@ def preprocess_doxyfile(context):
 							svg = SVG(
 								Path(dirs.DATA, r'poxy-icon-theme.svg'),
 								logger=context.verbose_logger,
-								root_id=r'poxy-theme-switch-img',
-								id_prefix=r'poxy-theme-switch-img-'
+								root_id=r'poxy-theme-switch-img'
 							)
 							bar[i] = (
 								r'<a title="Toggle dark and light themes" '
@@ -521,24 +515,6 @@ def postprocess_xml(context):
 							delete_file(xml_file, logger=context.verbose_logger)
 							deleted = True
 
-				# concepts - not currently supported by m.css
-				if not context.xml_only:
-					for xml_file in get_all_files(context.xml_dir, all=(r'concept*.xml')):
-						xml = etree.parse(str(xml_file), parser=xml_parser)
-						compounddef = xml.getroot().find(r'compounddef')
-						if compounddef is None or compounddef.get(r'kind') != r'concept':
-							continue
-						compoundname = compounddef.find(r'compoundname')
-						assert compoundname is not None
-						assert compoundname.text
-						context.warning(
-							rf"C++20 concepts are not currently supported! No documentation will be generated for '{compoundname.text}'."
-							+
-							r" Surround your concepts in a '@cond poxy_supports_concepts' block to suppress this warning until"
-							+ r" poxy is updated to support them."
-						)
-						delete_file(xml_file, logger=context.verbose_logger)
-
 			extracted_implementation = False
 			tentative_macros = regex_or(context.code_blocks.macros)
 			macros = set()
@@ -546,6 +522,7 @@ def postprocess_xml(context):
 			xml_files = get_all_files(context.xml_dir, any=(r'*.xml'))
 			tagfiles = [f for _, (f, _) in context.tagfiles.items()]
 			xml_files = xml_files + tagfiles
+			all_inners_by_type = {r'namespace': set(), r'class': set(), r'concept': set()}
 			for xml_file in xml_files:
 
 				context.verbose(rf'Pre-processing {xml_file}')
@@ -620,7 +597,7 @@ def postprocess_xml(context):
 				elif root.tag == r'tagfile':
 					for compound in [
 						tag for tag in root.findall(r'compound')
-						if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')
+						if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union', r'concept')
 					]:
 
 						compound_name = compound.find(r'name').text
@@ -628,14 +605,14 @@ def postprocess_xml(context):
 							continue
 
 						compound_type = compound.get(r'kind')
-						if compound_type in (r'class', r'struct', r'union'):
+						if compound_type in (r'class', r'struct', r'union', r'concept'):
 							cpp_tree.add_type(compound_name)
 						else:
 							cpp_tree.add_namespace(compound_name)
 
 						for member in [
 							tag for tag in compound.findall(r'member')
-							if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')
+							if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union', r'concept')
 						]:
 
 							member_name = member.find(r'name').text
@@ -643,7 +620,7 @@ def postprocess_xml(context):
 								continue
 
 							member_type = member.get(r'kind')
-							if member_type in (r'class', r'struct', r'union'):
+							if member_type in (r'class', r'struct', r'union', r'concept'):
 								cpp_tree.add_type(compound_name)
 							else:
 								cpp_tree.add_namespace(compound_name)
@@ -654,12 +631,26 @@ def postprocess_xml(context):
 					if compounddef is None:
 						context.warning(rf'{xml_file} did not contain a <compounddef>!')
 						continue
-					compoundname = compounddef.find(r'compoundname')
-					assert compoundname is not None
-					assert compoundname.text
 
-					if compounddef.get(r'kind'
-										) in (r'namespace', r'class', r'struct', r'union', r'enum', r'file', r'group'):
+					compound_id = compounddef.get(r'id')
+					if compound_id is None or not compound_id:
+						context.warning(rf'{xml_file} did not have attribute "id"!')
+						continue
+
+					compound_kind = compounddef.get(r'kind')
+					if compound_kind is None or not compound_kind:
+						context.warning(rf'{xml_file} did not have attribute "kind"!')
+						continue
+
+					compound_name = compounddef.find(r'compoundname')
+					if compound_name is None or not compound_name.text:
+						context.warning(rf'{xml_file} did not contain a valid <compoundname>!')
+						continue
+					compound_name = str(compound_name.text).strip()
+
+					if compound_kind in (
+						r'namespace', r'class', r'struct', r'union', r'enum', r'file', r'group', r'concept'
+					):
 
 						# merge user-defined sections with the same name
 						sectiondefs = [
@@ -745,25 +736,21 @@ def postprocess_xml(context):
 								members = [tag for tag in section.findall(r'memberdef')]
 								for tag in members:
 									section.remove(tag)
-								groups = [([tag for tag in members if tag.get(r'kind') == r'define'], True),
+								# fmt: off
+								# yapf: disable
+								groups = [
+									([tag for tag in members if tag.get(r'kind') == r'define'], True),  #
 									([tag for tag in members if tag.get(r'kind') == r'typedef'], True),
+									([tag for tag in members if tag.get(r'kind') == r'concept'], True),
 									([tag for tag in members if tag.get(r'kind') == r'enum'], True),
-									([
-									tag for tag in members
-									if tag.get(r'kind') == r'variable' and tag.get(r'static') == r'yes'
-									], True),
-									([
-									tag for tag in members
-									if tag.get(r'kind') == r'variable' and tag.get(r'static') == r'no'
-									], compounddef.get(r'kind') not in (r'class', r'struct', r'union')),
-									([
-									tag for tag in members
-									if tag.get(r'kind') == r'function' and tag.get(r'static') == r'yes'
-									], True),
-									([
-									tag for tag in members
-									if tag.get(r'kind') == r'function' and tag.get(r'static') == r'no'
-									], True), ([tag for tag in members if tag.get(r'kind') == r'friend'], True)]
+									([tag for tag in members if tag.get(r'kind') == r'variable' and tag.get(r'static') == r'yes'], True),
+									([tag for tag in members if tag.get(r'kind') == r'variable' and tag.get(r'static') == r'no'], compound_kind not in (r'class', r'struct', r'union')),
+									([tag for tag in members if tag.get(r'kind') == r'function' and tag.get(r'static') == r'yes'], True),
+									([tag for tag in members if tag.get(r'kind') == r'function' and tag.get(r'static') == r'no'], True),
+									([tag for tag in members if tag.get(r'kind') == r'friend'], True)
+								]
+								# yapf: enable
+								# fmt: on
 								for group, sort in groups:
 									if sort:
 										group.sort(key=sort_members_by_name)
@@ -779,18 +766,18 @@ def postprocess_xml(context):
 										section.append(tag)
 
 					# namespaces
-					if compounddef.get(r'kind') == r'namespace':
+					if compound_kind == r'namespace':
 
 						# set inline namespaces
 						if context.inline_namespaces:
 							for nsid in inline_namespace_ids:
-								if compounddef.get(r'id') == nsid:
+								if compound_id == nsid:
 									compounddef.set(r'inline', r'yes')
 									changed = True
 									break
 
 					# dirs
-					if compounddef.get(r'kind') == r'dir':
+					if compound_kind == r'dir':
 
 						# remove implementation headers
 						if context.implementation_headers:
@@ -800,7 +787,7 @@ def postprocess_xml(context):
 									changed = True
 
 					# files
-					if compounddef.get(r'kind') == r'file':
+					if compound_kind == r'file':
 
 						# simplify the XML by removing junk not used by mcss
 						if not context.xml_only:
@@ -822,7 +809,7 @@ def postprocess_xml(context):
 
 						# rip the good bits out of implementation headers
 						if context.implementation_headers:
-							iid = compounddef.get(r'id')
+							iid = compound_id
 							if iid in implementation_header_mappings:
 								hid = implementation_header_mappings[iid][2]
 								innernamespaces = compounddef.findall(r'innernamespace')
@@ -847,9 +834,9 @@ def postprocess_xml(context):
 										changed = True
 
 					# groups and namespaces
-					if compounddef.get(r'kind') in (r'group', r'namespace'):
+					if compound_kind in (r'group', r'namespace'):
 
-						# fix inner(class|namespace|group) sorting
+						# fix inner(class|namespace|group|concept) sorting
 						inners = [tag for tag in compounddef.iterchildren() if tag.tag.startswith(r'inner')]
 						if inners:
 							changed = True
@@ -858,6 +845,12 @@ def postprocess_xml(context):
 							inners.sort(key=lambda tag: tag.text)
 							for tag in inners:
 								compounddef.append(tag)
+
+					# all namespace 'innerXXXXXX'
+					if compound_kind in (r'namespace', r'struct', r'class', r'union', r'concept'):
+						if compound_name.rfind(r'::') != -1:
+							all_inners_by_type[r'class' if compound_kind in (r'struct',
+								r'union') else compound_kind].add((compound_id, compound_name))
 
 				if changed:
 					write_xml_to_file(xml, xml_file)
@@ -868,6 +861,47 @@ def postprocess_xml(context):
 			context.code_blocks.enums.add(cpp_tree.matcher(CppTree.ENUM_VALUES))
 			for macro in macros:
 				context.code_blocks.macros.add(macro)
+
+			# fix up namespaces/classes that are missing <innerXXXX> nodes
+			if 1:
+				outer_namespaces = dict()
+				for inner_type, ids_and_names in all_inners_by_type.items():
+					for id, name in ids_and_names:
+						ns = name[:name.rfind(r'::')]
+						assert ns
+						if ns not in outer_namespaces:
+							outer_namespaces[ns] = []
+						outer_namespaces[ns].append((inner_type, id, name))
+				for ns, vals in outer_namespaces.items():
+					xml_file = None
+					for outer_type in (r'namespace', r'struct', r'class', r'union'):
+						f = Path(context.xml_dir, rf'{outer_type}{doxygen.mangle_name(ns)}.xml')
+						if f.exists():
+							xml_file = f
+							break
+					if not xml_file:
+						continue
+					xml = etree.parse(str(xml_file), parser=xml_parser)
+					compounddef = xml.getroot().find(r'compounddef')
+					if compounddef is None:
+						continue
+					changed = False
+					existing_inner_ids = set()
+					for inner_type in (r'class', r'namespace', r'concept'):
+						for elem in compounddef.findall(rf'inner{inner_type}'):
+							id = elem.get(r'refid')
+							if id:
+								existing_inner_ids.add(str(id))
+					for (inner_type, id, name) in vals:
+						if id not in existing_inner_ids:
+							elem = etree.SubElement(compounddef, rf'inner{inner_type}')
+							elem.text = name
+							elem.set(r'refid', id)
+							elem.set(r'prot', r'public')  # todo: this isn't necessarily correct
+							existing_inner_ids.add(id)
+							changed = True
+					if changed:
+						write_xml_to_file(xml, xml_file)
 
 			# merge extracted implementations
 			if extracted_implementation:
@@ -1148,7 +1182,8 @@ def run(
 	html_include=None,
 	html_exclude=None,
 	treat_warnings_as_errors=None,
-	theme=None
+	theme=None,
+	copy_assets=True
 ):
 
 	with project.Context(
@@ -1164,7 +1199,8 @@ def run(
 		html_include=html_include,
 		html_exclude=html_exclude,
 		treat_warnings_as_errors=treat_warnings_as_errors,
-		theme=theme
+		theme=theme,
+		copy_assets=copy_assets
 	) as context:
 
 		# preprocess the doxyfile
@@ -1307,8 +1343,9 @@ def run(
 				copy_file(source_path, dest_path, logger=context.verbose_logger)
 
 		# copy fonts
-		with ScopeTimer(r'Copying fonts', print_start=True, print_end=context.verbose_logger) as t:
-			copy_tree(str(dirs.FONTS), str(Path(context.assets_dir, r'fonts')))
+		if context.copy_assets:
+			with ScopeTimer(r'Copying fonts', print_start=True, print_end=context.verbose_logger) as t:
+				copy_tree(str(dirs.FONTS), str(Path(context.assets_dir, r'fonts')))
 
 		# move the tagfile into the html directory
 		if context.generate_tagfile:

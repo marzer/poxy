@@ -1265,7 +1265,7 @@ class Context(object):
 
 	def __init__(
 		self, config_path, output_dir, threads, cleanup, verbose, doxygen_path, logger, dry_run, xml_only, html_include,
-		html_exclude, treat_warnings_as_errors, theme
+		html_exclude, treat_warnings_as_errors, theme, copy_assets
 	):
 
 		self.logger = logger
@@ -1273,6 +1273,7 @@ class Context(object):
 		self.dry_run = bool(dry_run)
 		self.xml_only = bool(xml_only)
 		self.cleanup = bool(cleanup)
+		self.copy_assets = bool(copy_assets)
 		self.verbose_logger = logger if self.__verbose else None
 
 		self.version = lib_version()
@@ -1354,6 +1355,7 @@ class Context(object):
 			self.html_dir = Path(self.output_dir, r'html')
 			self.assets_dir = Path(self.html_dir, r'poxy')
 			self.verbose_value(r'Context.html_dir', self.html_dir)
+			self.verbose_value(r'Context.assets_dir', self.assets_dir)
 			assert self.output_dir.is_absolute()
 			assert self.xml_dir.is_absolute()
 			assert self.html_dir.is_absolute()
@@ -1376,6 +1378,15 @@ class Context(object):
 			self.verbose_value(r'Context.temp_pages_dir', self.temp_pages_dir)
 			assert self.temp_dir.is_absolute()
 			assert self.temp_pages_dir.is_absolute()
+
+			# delete leftovers from previous run and initialize various dirs
+			if not self.dry_run:
+				delete_directory(self.xml_dir, logger=self.verbose_logger)
+				delete_directory(self.temp_dir, logger=self.verbose_logger)
+				if not self.xml_only:
+					delete_directory(self.html_dir, logger=self.verbose_logger)
+				self.temp_dir.mkdir(exist_ok=True, parents=True)
+				self.temp_pages_dir.mkdir(exist_ok=True, parents=True)
 
 			# doxygen
 			if doxygen_path is not None:
@@ -1427,17 +1438,6 @@ class Context(object):
 			assert_existing_file(self.cppref_tagfile)
 			assert self.cppref_tagfile.is_absolute()
 
-			# initialize temp + output dirs
-			if not self.dry_run:
-				delete_directory(self.xml_dir, logger=self.verbose_logger)
-				if not self.xml_only:
-					delete_directory(self.html_dir, logger=self.verbose_logger)
-				if self.cleanup:
-					delete_directory(self.temp_dir, logger=self.verbose_logger)
-				dirs.TEMP.mkdir(exist_ok=True)
-				self.temp_dir.mkdir(exist_ok=True)
-				self.temp_pages_dir.mkdir(exist_ok=True)
-
 		# read + check config
 		if 1:
 			extra_files = []
@@ -1447,6 +1447,9 @@ class Context(object):
 
 			def add_internal_asset(p):
 				nonlocal extra_files
+				nonlocal self
+				if not self.copy_assets:
+					return
 				p = coerce_path(p)
 				if not p.is_absolute():
 					p = Path(dirs.DATA, p)
@@ -1661,6 +1664,7 @@ class Context(object):
 						raise Error(rf'changelog: {config["changelog"]} did not exist or was not a file')
 			self.verbose_value(r'Context.changelog', self.changelog)
 			if self.changelog and not self.dry_run:
+				self.temp_pages_dir.mkdir(exist_ok=True, parents=True)
 				copy_file(self.changelog, Path(self.temp_pages_dir, r'poxy_changelog.md'), logger=self.verbose_logger)
 				self.changelog = Path(self.temp_pages_dir, r'poxy_changelog.md')
 
@@ -1936,9 +1940,9 @@ class Context(object):
 
 	def __exit__(self, type, value, traceback):
 		if not self.dry_run and self.cleanup:
+			delete_directory(self.temp_dir, logger=self.verbose_logger)
 			if not self.xml_only:
 				delete_directory(self.xml_dir, logger=self.verbose_logger)
-			delete_directory(self.temp_dir, logger=self.verbose_logger)
 
 	def __bool__(self):
 		return True

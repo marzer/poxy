@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% macro entry_class(class) %}{% include 'entry-class.html' %}{% endmacro %}
+{% macro entry_concept(concept) %}{% include 'entry-concept.html' %}{% endmacro %}
 {% macro entry_typedef(typedef, mark_nonpublic=False) %}{% include 'entry-typedef.html' %}{% endmacro %}
 {% macro entry_enum(enum, mark_nonpublic=False) %}{% include 'entry-enum.html' %}{% endmacro %}
 {% macro entry_func(func, mark_nonpublic=False) %}{% include 'entry-func.html' %}{% endmacro %}
@@ -19,7 +20,7 @@
         <h1>
           {% if compound.templates != None %}
           {% if compound.include %}
-          <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="{{ compound.include[1] }}">{{ compound.include[0] }}</a></div>
+          <div id="include-directive" class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="{{ compound.include[1] }}">{{ compound.include[0] }}</a></div>
           {% endif %}
           {% set j = joiner(', ') %}
           <div class="m-doc-template">template&lt;{% for t in compound.templates %}{{ j() }}{{ t.type }}{% if t.name %} {{ t.name }}{% endif %}{% if t.default %} = {{ t.default }}{% endif%}{% endfor %}&gt;</div>
@@ -28,7 +29,7 @@
           {# need an explicit space here otherwise the newline gets removed #}
 
           {% if compound.include and compound.templates == None %}
-          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="{{ compound.include[1] }}">{{ compound.include[0] }}</a></div>
+          <div id="include-directive" class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="{{ compound.include[1] }}">{{ compound.include[0] }}</a></div>
           {% endif %}
         </h1>
         {% if compound.brief %}
@@ -50,7 +51,7 @@
         </table>
         {% endif %}
         {% if compound.sections or compound.public_types or compound.public_static_funcs or compound.typeless_funcs or compound.public_funcs or compound.signals or compound.public_slots or compound.public_static_vars or compound.public_vars or compound.protected_types or compound.protected_static_funcs or compound.protected_funcs or compound.protected_signals or compound.protected_static_vars or compound.protected_vars or compound.private_funcs or compound.private_slots or compound.groups or compound.friend_funcs or compound.related %}
-        <nav class="m-block m-default">
+        <nav id="table-of-contents" class="m-block m-default">
           <h3>Contents</h3>
           <ul>
             {% for id, name, children in compound.sections recursive %}
@@ -166,6 +167,8 @@
             {% for kind, type in compound.public_types %}
             {% if kind == 'class' %}
 {{ entry_class(type) }}
+            {% elif kind == 'concept' %}
+{{ entry_concept(type) }}
             {% elif kind == 'enum' %}
 {{ entry_enum(type) }}
             {% elif kind == 'typedef' %}
@@ -252,6 +255,8 @@
             {% for kind, type in compound.protected_types %}
             {% if kind == 'class' %}
 {{ entry_class(type) }}
+            {% elif kind == 'concept' %}
+{{ entry_concept(type) }}
             {% elif kind == 'enum' %}
 {{ entry_enum(type) }}
             {% elif kind == 'typedef' %}
@@ -383,7 +388,7 @@
         </section>
         {% endif %}
         {% if compound.has_enum_details %}
-        <section>
+        <section id="enum-documentation">
           <h2>Enum documentation</h2>
           {% for kind, member in compound.public_types %}
           {% if kind == 'enum' and member.has_details %}
@@ -410,7 +415,7 @@
         </section>
         {% endif %}
         {% if compound.has_typedef_details %}
-        <section>
+        <section id="typedef-documentation">
           <h2>Typedef documentation</h2>
           {% for kind, member in compound.public_types %}
           {% if kind == 'typedef' and member.has_details %}
@@ -437,7 +442,7 @@
         </section>
         {% endif %}
         {% if compound.has_func_details %}
-        <section>
+        <section id="func-documentation">
           <h2>Function documentation</h2>
           {% for func in compound.public_static_funcs %}
           {% if func.has_details %}
@@ -509,7 +514,7 @@
         </section>
         {% endif %}
         {% if compound.has_var_details %}
-        <section>
+        <section id="var-documentation">
           <h2>Variable documentation</h2>
           {% for var in compound.public_static_vars %}
           {% if var.has_details %}
@@ -546,7 +551,7 @@
         </section>
         {% endif %}
         {% if compound.has_define_details %}
-        <section>
+        <section id="define-documentation">
           <h2>Define documentation</h2>
           {% for kind, member in compound.related %}
           {% if kind == 'define' and member.has_details %}

@@ -30,6 +30,7 @@ a fantastic live search feature. **Poxy** builds upon both by:
 -   Providing a number of additional built-in doxygen `@alias` commands
 -   Giving more control over the HTML inline using square-bracket `[tags][/tags]`
 -   Adding a switchable light theme
+-   Adding support for C++20 concepts
 -   Self-hosting fonts to reduce external HTTP requests
 -   Inlining SVGs so they can take advantage of [`currentColor`]
 -   Quite a bit more!
@@ -66,7 +67,7 @@ Poxy is a command-line application.
 
 ```
 poxy [-h] [-v] [--doxygen <path>] [--dry] [--threads N] [--version] [--werror] [--xmlonly]
-            [--ppinclude <regex>] [--ppexclude <regex>] [--nocleanup] [--theme {auto,light,dark,custom}]
+            [--ppinclude <regex>] [--ppexclude <regex>] [--theme {auto,light,dark,custom}]
             [config]
 
 Generate fancy C++ documentation.
@@ -85,7 +86,6 @@ options:
   --xmlonly             stop after generating and preprocessing the Doxygen xml
   --ppinclude <regex>   pattern matching HTML file names to post-process (default: all)
   --ppexclude <regex>   pattern matching HTML file names to exclude from post-processing (default: none)
-  --nocleanup           does not clean up after itself, leaving the XML and other temp files intact
   --theme {auto,light,dark,custom}
                         the CSS theme to use (default: auto)
 ```
