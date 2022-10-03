@@ -830,16 +830,15 @@ class InjectSVGs(HTMLFixer):
 		count = 0
 		for img in imgs:
 			src = Path(doc.path.parent, img[r'src'])
-			if not src.exists() or not src.is_file():
+			if not src.exists() or not src.is_file() or src.stat().st_size > (1024 * 16):  # max 16 kb
 				continue
-			img_id = img[r'id'] if r'id' in img.attrs else rf'poxy-injected-svg-{count}'
 			svg = SVG(
 				src,  #
 				logger=context.verbose_logger,
-				root_id=img_id
+				root_id=img[r'id'] if r'id' in img.attrs else rf'poxy-injected-svg-{count}',
+				root_classes=(*soup.get_classes(img), r'poxy-injected-svg')
 			)
 			img = soup.replace_tag(img, str(svg))[0]
-			soup.add_class(img, r'poxy-injected-svg')
 			count += 1
 		return count > 0
 

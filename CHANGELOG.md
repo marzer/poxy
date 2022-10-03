@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+-   fixed SVG inlining not preserving original image class attributes
+-   fixed ValueError when reading some SVG files
+
 ## v0.9.0 - 2022-10-03
 
 -   added support for C++20 concepts

@@ -131,6 +131,16 @@ def set_class(tag, classes):
 
 
 
+def get_classes(tag):
+	if 'class' not in tag.attrs:
+		return []
+	classes = tag['class']
+	if not is_collection(classes):
+		classes = [classes]
+	return [str(c) for c in classes]
+
+
+
 #=======================================================================================================================
 # HTML DOCUMENT
 #=======================================================================================================================

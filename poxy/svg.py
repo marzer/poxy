@@ -9,8 +9,7 @@ Functions and classes for working with SVG files.
 
 from lxml import etree
 from .utils import *
-from typing import Union
-from io import StringIO
+from typing import Union, Sequence
 
 
 
@@ -22,7 +21,8 @@ class SVG(object):
 		file_path: Union[Path, str],
 		logger=None,
 		root_id: str = None,
-		id_namespace: str = None
+		id_namespace: str = None,
+		root_classes: Union[str, Sequence[str]] = None
 	):
 
 		# read file
@@ -49,9 +49,8 @@ class SVG(object):
 			ns_clean=True,
 			encoding=r'utf-8'
 		)
-		self.__xml = etree.parse(StringIO(svg), parser=parser)
-		root = self.__xml.getroot()
-		attrs = root.attrib
+		self.__xml = etree.fromstring(svg.encode(r'utf-8'), parser=parser)
+		attrs = self.__xml.attrib
 
 		# set/normalize various attributes
 		if r'xmlns' not in attrs:
@@ -63,5 +62,18 @@ class SVG(object):
 		if root_id:
 			attrs[r'id'] = root_id
 
+		# some editors use the root attribute to store a bunch of metadata
+		# and tracking garbage so delete it
+		if r'content' in attrs:
+			del attrs[r'content']
+
+		# set class attribute if specified
+		if root_classes is not None:
+			root_classes = list(coerce_collection(root_classes))
+			if root_classes:
+				attrs[r'class'] = r' '.join(list(coerce_collection(root_classes)))
+			elif r'class' in attrs:
+				del attrs[r'class']
+
 	def __str__(self) -> str:
-		return etree.tostring(self.__xml.getroot(), encoding=r'unicode', xml_declaration=False, pretty_print=True)
+		return etree.tostring(self.__xml, encoding=r'unicode', xml_declaration=False, pretty_print=True)
