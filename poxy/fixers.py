@@ -11,6 +11,7 @@ import html
 from bs4 import NavigableString
 from .utils import *
 from .svg import SVG
+from .project import Context
 from . import soup
 
 #=======================================================================================================================
@@ -107,7 +108,7 @@ class CustomTags(HTMLFixer):
 		else:
 			return f'<{m[1]}{(" " + tag_content) if tag_content else ""}>'
 
-	def __call__(self, doc, context):
+	def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
 		if doc.article_content is None:
 			return False
 		changed = False
@@ -195,7 +196,7 @@ class CPPModifiers1(_CPPModifiersBase):
 	def __substitute(cls, m, out):
 		return f'{m[1]}<span class="poxy-injected m-label m-flat {cls._modifierClasses[m[2]]}">{m[2]}</span>{m[3]}'
 
-	def __call__(self, doc, context):
+	def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
 		if doc.article_content is None:
 			return False
 		changed = False
@@ -221,7 +222,7 @@ class CPPModifiers2(_CPPModifiersBase):
 		matches.append(m[1])
 		return ' '
 
-	def __call__(self, doc, context):
+	def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
 		if doc.article_content is None:
 			return False
 		changed = False
@@ -267,7 +268,7 @@ class CPPTemplateTemplate(HTMLFixer):
 	def __substitute(cls, m):
 		return f'{m[1]}<br>\n{m[2]}'
 
-	def __call__(self, doc, context):
+	def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
 		changed = False
 		for template in doc.body('div', class_='m-doc-template'):
 			replacer = RegexReplacer(self.__expression, lambda m, out: self.__substitute(m), str(template))
@@ -283,7 +284,7 @@ class StripIncludes(HTMLFixer):
 	Strips #include <paths/to/headers.h> based on context.sources.strip_includes.
 	'''
 
-	def __call__(self, doc, context):
+	def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
 		if doc.article is None or not context.sources.strip_includes:
 			return False
 		changed = False
@@ -314,8 +315,8 @@ class Banner(HTMLFixer):
 	Makes the first image on index.html a 'banner'
 	'''
 
-	def __call__(self, doc, context):
-		if doc.article_content is None or doc.path.name.lower() != 'index.html':
+	def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
+		if doc.article_content is None or path.name.lower() != 'index.html':
 			return False
 		parent = doc.article_content
 
@@ -333,15 +334,17 @@ class Banner(HTMLFixer):
 		banner = banner.extract()
 		h1.replace_with(banner)
 		banner[r'id'] = r'poxy-main-banner'
+		soup.add_class(doc.body, r'poxy-has-main-banner')
 
 		if context.badges:
-			parent = doc.new_tag('div', class_='gh-badges', after=banner)
+			parent = doc.new_tag('div', id='poxy-badges', after=banner)
 			for (alt, src, href) in context.badges:
 				if alt is None and src is None and href is None:
 					doc.new_tag('br', parent=parent)
 				else:
 					anchor = doc.new_tag('a', parent=parent, href=href, target='_blank')
 					doc.new_tag('img', parent=anchor, src=src, alt=alt)
+			soup.add_class(doc.body, r'poxy-has-badges')
 		return True
 
 
@@ -447,7 +450,7 @@ class CodeBlocks(HTMLFixer):
 			return False
 		return True
 
-	def __call__(self, doc, context):
+	def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
 		changed = False
 
 		# fix up syntax highlighting
@@ -626,7 +629,7 @@ class AutoDocLinks(HTMLFixer):
 		external = uri.startswith('http')
 		return rf'''<a href="{uri}" class="m-doc poxy-injected{' poxy-external' if external else ''}"{' target="_blank"' if external else ''}>{m[0]}</a>'''
 
-	def __call__(self, doc, context):
+	def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
 		if doc.article_content is None:
 			return False
 
@@ -658,7 +661,7 @@ class AutoDocLinks(HTMLFixer):
 							continue  # don't override internal self-links
 						if anchor != -1:
 							href = href[:anchor]
-						if href == uri or href == doc.path.name:  # don't override internal self-links
+						if href == uri or href == path.name:  # don't override internal self-links
 							continue
 					link['href'] = uri
 					soup.set_class(link, ['m-doc', 'poxy-injected'])
@@ -681,7 +684,7 @@ class AutoDocLinks(HTMLFixer):
 				strings = strings + soup.string_descendants(tag, lambda t: soup.find_parent(t, 'a', tag) is None)
 			strings = [s for s in strings if s.parent is not None]
 			for expr, uri in context.autolinks:
-				if uri == doc.path.name:  # don't create unnecessary self-links
+				if uri == path.name:  # don't create unnecessary self-links
 					continue
 				i = 0
 				while i < len(strings):
@@ -717,7 +720,7 @@ class Links(HTMLFixer):
 	__godbolt = re.compile(r'^\s*https[:]//godbolt.org/z/.+?$', re.I)
 	__local_href = re.compile(r'^([-/_a-zA-Z0-9]+\.[a-zA-Z]+)(?:#(.*))?$')
 
-	def __call__(self, doc, context):
+	def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
 		changed = False
 		for anchor in doc.body('a', href=True):
 			href = anchor['href']
@@ -746,7 +749,7 @@ class Links(HTMLFixer):
 
 			# make sure links to local files point to actual existing files
 			match = self.__local_href.fullmatch(href)
-			if match and not coerce_path(doc.path.parent, match[1]).exists():
+			if match and not coerce_path(path.parent, match[1]).exists():
 				changed = True
 				if is_mdoc:
 					href = r'#'
@@ -787,7 +790,7 @@ class EmptyTags(HTMLFixer):
 	Prunes the tree of various empty tags (happens as a side-effect of some other operations).
 	'''
 
-	def __call__(self, doc, context):
+	def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
 		changed = False
 		for tag in doc.body((r'p', r'span')):
 			if not tag.contents or (
@@ -804,7 +807,7 @@ class MarkTOC(HTMLFixer):
 	Marks any table-of-contents with a custom class.
 	'''
 
-	def __call__(self, doc, context):
+	def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
 		if doc.table_of_contents is None:
 			return False
 		soup.add_class(doc.table_of_contents, r'poxy-toc')
@@ -819,7 +822,7 @@ class InjectSVGs(HTMLFixer):
 	Injects the contents of SVG <img> tags directly into the document.
 	'''
 
-	def __call__(self, doc, context):
+	def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
 		imgs = doc.body.find_all(r'img')
 		if not imgs:
 			return False
@@ -829,7 +832,7 @@ class InjectSVGs(HTMLFixer):
 		]
 		count = 0
 		for img in imgs:
-			src = Path(doc.path.parent, img[r'src'])
+			src = Path(path.parent, img[r'src'])
 			if not src.exists() or not src.is_file() or src.stat().st_size > (1024 * 16):  # max 16 kb
 				continue
 			svg = SVG(
@@ -856,15 +859,13 @@ class ImplementationDetails(PlainTextFixer):
 	'''
 	__shorthands = ((r'POXY_IMPLEMENTATION_DETAIL_IMPL', r'<code class="m-note m-dim poxy-impl">/* ... */</code>'), )
 
-	def __call__(self, doc, context):
-		changed = False
+	def __call__(self, context: Context, text: str, path: Path) -> str:
 		for shorthand, replacement in self.__shorthands:
-			idx = doc[0].find(shorthand)
+			idx = text.find(shorthand)
 			while idx >= 0:
-				doc[0] = doc[0][:idx] + replacement + doc[0][idx + len(shorthand):]
-				changed = True
-				idx = doc[0].find(shorthand)
-		return changed
+				text = text[:idx] + replacement + text[idx + len(shorthand):]
+				idx = text.find(shorthand)
+		return text
 
 
 
@@ -873,14 +874,11 @@ class MarkdownPages(PlainTextFixer):
 	Cleans up some HTML snafus from markdown-based pages.
 	'''
 
-	def __call__(self, doc, context):
-		if not doc[1].name.lower().startswith(r'md_') and not doc[1].name.lower().startswith(r'm_d__'):
-			return False
-
-		WBR = r'(?:<wbr[ \t]*/?>)?'
-		PREFIX = rf'_{WBR}_{WBR}poxy_{WBR}thiswasan_{WBR}'
-		doc[0] = re.sub(rf'{PREFIX}amp', r'&amp;', doc[0])
-		doc[0] = re.sub(rf'{PREFIX}at', r'@', doc[0])
-		doc[0] = re.sub(rf'{PREFIX}fe0f', r'&#xFE0F;', doc[0])
-
-		return True
+	def __call__(self, context: Context, text: str, path: Path) -> str:
+		if path.name.lower().startswith(r'md_') or path.name.lower().startswith(r'm_d__'):
+			WBR = r'(?:<wbr[ \t]*/?>)?'
+			PREFIX = rf'_{WBR}_{WBR}poxy_{WBR}thiswasan_{WBR}'
+			text = re.sub(rf'{PREFIX}amp', r'&amp;', text)
+			text = re.sub(rf'{PREFIX}at', r'@', text)
+			text = re.sub(rf'{PREFIX}fe0f', r'&#xFE0F;', text)
+		return text

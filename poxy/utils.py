@@ -92,7 +92,7 @@ DOWNLOAD_HEADERS = {r'User-Agent': r'Mozilla/5.0 (Windows NT 10.0; Win64; x64; r
 def download_text(uri: str, timeout=10, encoding='utf-8') -> str:
 	assert uri is not None
 	global DOWNLOAD_HEADERS
-	response = requests.get(str(uri), headers=DOWNLOAD_HEADERS, timeout=timeout)
+	response = requests.get(str(uri), headers=DOWNLOAD_HEADERS, timeout=timeout, stream=False, allow_redirects=True)
 	if encoding is not None:
 		response.encoding = encoding
 	return response.text
@@ -102,7 +102,7 @@ def download_text(uri: str, timeout=10, encoding='utf-8') -> str:
 def download_binary(uri: str, timeout=10) -> bytes:
 	assert uri is not None
 	global DOWNLOAD_HEADERS
-	response = requests.get(str(uri), headers=DOWNLOAD_HEADERS, timeout=timeout)
+	response = requests.get(str(uri), headers=DOWNLOAD_HEADERS, timeout=timeout, stream=False, allow_redirects=True)
 	return response.content
 
 

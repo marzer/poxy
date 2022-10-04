@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+  <compounddef id="classtest_1_1class__1" kind="class" language="C++" prot="public">
+    <compoundname>test::class_1</compoundname>
+    <includes local="no">code.h</includes>
+    <briefdescription>
+<para>A class. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>More info. </para>
+    </detaileddescription>
+    <location file="src/code.h" line="23" column="1" bodyfile="src/code.h" bodystart="24" bodyend="24"/>
+    <listofallmembers>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

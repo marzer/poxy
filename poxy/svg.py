@@ -76,4 +76,4 @@ class SVG(object):
 				del attrs[r'class']
 
 	def __str__(self) -> str:
-		return etree.tostring(self.__xml, encoding=r'unicode', xml_declaration=False, pretty_print=True)
+		return etree.tostring(self.__xml, encoding=r'unicode', xml_declaration=False, pretty_print=False)

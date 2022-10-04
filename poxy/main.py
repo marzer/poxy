@@ -56,7 +56,7 @@ def main(invoker=True):
 		r'config',
 		type=Path,
 		nargs='?',
-		default=None,
+		default=Path('.'),
 		help=r'path to poxy.toml or a directory containing it (default: %(default)s)'
 	)
 	args.add_argument(
@@ -73,9 +73,24 @@ def main(invoker=True):
 		help=r"specify the Doxygen executable to use (default: find on system path)"
 	)
 	args.add_argument(
-		r'--dry',  #
-		action=r'store_true',
-		help=r"do a 'dry run' only, stopping after emitting the effective Doxyfile"
+		r'--ppinclude',  #
+		type=str,
+		default=None,
+		metavar=r'<regex>',
+		help=r"pattern matching HTML file names to post-process (default: all)"
+	)
+	args.add_argument(
+		r'--ppexclude',  #
+		type=str,
+		default=None,
+		metavar=r'<regex>',
+		help=r"pattern matching HTML file names to exclude from post-processing (default: none)"
+	)
+	args.add_argument(
+		r'--theme',  #
+		choices=[r'auto', r'light', r'dark', r'custom'],
+		default=r'auto',
+		help=r'the CSS theme to use (default: %(default)s)'
 	)
 	args.add_argument(
 		r'--threads',  #
@@ -99,26 +114,6 @@ def main(invoker=True):
 		r'--xmlonly',  #
 		action=r'store_true',
 		help=r"stop after generating and preprocessing the Doxygen xml"
-	)
-	args.add_argument(
-		r'--ppinclude',  #
-		type=str,
-		default=None,
-		metavar=r'<regex>',
-		help=r"pattern matching HTML file names to post-process (default: all)"
-	)
-	args.add_argument(
-		r'--ppexclude',  #
-		type=str,
-		default=None,
-		metavar=r'<regex>',
-		help=r"pattern matching HTML file names to exclude from post-processing (default: none)"
-	)
-	args.add_argument(
-		r'--theme',  #
-		choices=[r'auto', r'light', r'dark', r'custom'],
-		default=r'auto',
-		help=r'the CSS theme to use (default: %(default)s)'
 	)
 	#--------------------------------------------------------------
 	# hidden developer-only/diagnostic arguments
@@ -223,7 +218,7 @@ def main(invoker=True):
 	if args.update_styles or args.update_fonts or args.update_emoji or args.mcss is not None:
 		return
 
-	with ScopeTimer(r'All tasks', print_start=False, print_end=not args.dry) as timer:
+	with ScopeTimer(r'All tasks', print_start=False, print_end=True) as timer:
 		run(
 			config_path=args.config,
 			output_dir=Path.cwd(),
@@ -232,7 +227,6 @@ def main(invoker=True):
 			verbose=args.verbose,
 			doxygen_path=args.doxygen,
 			logger=True,  # stderr + stdout
-			dry_run=args.dry,
 			xml_only=args.xmlonly,
 			html_include=args.ppinclude,
 			html_exclude=args.ppexclude,

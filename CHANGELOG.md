@@ -1,9 +1,16 @@
 # Changelog
 
-## Unreleased
+## v0.9.1 - 2022-10-04
 
 -   fixed SVG inlining not preserving original image class attributes
--   fixed ValueError when reading some SVG files
+-   fixed `ValueError` when reading some SVG files
+-   fixed `navbar` option allowing duplicates
+-   fixed custom navbar items always being transformed to lowercase
+-   fixed navbar generating links to empty pages
+-   added `concepts` to the default set of links in `navbar`
+-   added `navbar` values `all` and `default`
+-   reduced I/O churn during HTML post-processing
+-   removed command-line option `dry`
 
 ## v0.9.0 - 2022-10-03
 

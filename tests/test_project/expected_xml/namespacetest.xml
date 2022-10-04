@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+  <compounddef id="namespacetest" kind="namespace" language="C++">
+    <compoundname>test</compoundname>
+    <briefdescription>
+<para>A namespace. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>More info. </para>
+    </detaileddescription>
+    <location file="src/code.h" line="9" column="1"/>
+  <innerclass refid="classtest_1_1class__1" prot="public">test::class_1</innerclass>
+    <innernamespace refid="namespacetest_1_1empty">test::empty</innernamespace>
+    <innernamespace refid="namespacetest_1_1nested">test::nested</innernamespace>
+    <innerclass refid="structtest_1_1struct__1" prot="public">test::struct_1</innerclass>
+    <innerclass refid="classtest_1_1template__class__1" prot="public">test::template_class_1</innerclass>
+    <innerconcept refid="concepttest_1_1concept__1" prot="public">test::concept_1</innerconcept></compounddef>
+</doxygen>

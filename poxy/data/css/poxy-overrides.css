@@ -150,8 +150,8 @@ body > header > nav a:hover
 	margin-top: 1.0rem;
 }
 
-/* github badges (index.html) */
-.gh-badges
+/* index page badges */
+#poxy-badges
 {
 	padding-bottom: 0.25rem;
 	margin-left: -0.9rem;
@@ -160,24 +160,24 @@ body > header > nav a:hover
 }
 @media screen and (min-width: 992px)
 {
-	.gh-badges
+	#poxy-badges
 	{
 		display: flex;
 		justify-content: space-between;
 	}
-	.gh-badges br
+	#poxy-badges br
 	{
 		display: none;
 	}
 }
 @media screen and (max-width: 992px)
 {
-	.gh-badges
+	#poxy-badges
 	{
 		text-align: center;
 		line-height: 1.75rem;
 	}
-	.gh-badges a
+	#poxy-badges a
 	{
 		margin-left: 0.2rem;
 		margin-right: 0.2rem;

@@ -66,9 +66,9 @@ pip install poxy
 Poxy is a command-line application.
 
 ```
-poxy [-h] [-v] [--doxygen <path>] [--dry] [--threads N] [--version] [--werror] [--xmlonly]
-            [--ppinclude <regex>] [--ppexclude <regex>] [--theme {auto,light,dark,custom}]
-            [config]
+poxy [-h] [-v] [--doxygen <path>] [--ppinclude <regex>] [--ppexclude <regex>]
+     [--theme {auto,light,dark,custom}] [--threads N] [--version] [--werror] [--xmlonly]
+     [config]
 
 Generate fancy C++ documentation.
 
@@ -79,15 +79,14 @@ options:
   -h, --help            show this help message and exit
   -v, --verbose         enable very noisy diagnostic output
   --doxygen <path>      specify the Doxygen executable to use (default: find on system path)
-  --dry                 do a 'dry run' only, stopping after emitting the effective Doxyfile
-  --threads N           set the number of threads to use (default: automatic)
-  --version             print the version and exit
-  --werror              always treat warnings as errors regardless of config file settings
-  --xmlonly             stop after generating and preprocessing the Doxygen xml
   --ppinclude <regex>   pattern matching HTML file names to post-process (default: all)
   --ppexclude <regex>   pattern matching HTML file names to exclude from post-processing (default: none)
   --theme {auto,light,dark,custom}
                         the CSS theme to use (default: auto)
+  --threads N           set the number of threads to use (default: automatic)
+  --version             print the version and exit
+  --werror              always treat warnings as errors regardless of config file settings
+  --xmlonly             stop after generating and preprocessing the Doxygen xml
 ```
 
 The basic three-step to using Poxy is similar to Doxygen:
@@ -95,9 +94,6 @@ The basic three-step to using Poxy is similar to Doxygen:
 1. Create your `poxy.toml` (Poxy's answer to the `Doxyfile`)
 2. Invoke Poxy on it: `poxy path/to/poxy.toml` (or simply `poxy` if the cwd contains the config file)
 3. See your HTML documentation `<cwd>/html`
-
-ℹ&#xFE0F; If there exists a `Doxyfile` or `Doxyfile-mcss` in the same directory as your `poxy.toml` it will be loaded
-first, then the Poxy overrides applied on top of it. Otherwise a 'default' Doxyfile is used as the base.
 
 <br><br>
 

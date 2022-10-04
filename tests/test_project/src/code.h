@@ -6,57 +6,57 @@
 
 /// \brief A namespace.
 /// \details More info.
-namespace test1
+namespace test
 {
-
-	/// \brief A foo.
+	/// \brief A struct.
 	/// \details More info.
-	struct foo
+	struct struct_1
 	{
-		/// \brief A bar.
+		/// \brief A nested struct.
 		/// \details More info.
-		/// \tparam T A type.
-		template <typename T>
-		class bar
+		struct nested_struct
 		{};
-
-		/// \brief A concept.
-		/// \details More info.
-		/// \tparam T A type.
-		template <typename T>
-		concept concept1 = requires(T a) {
-							{
-								std::hash<T>{}(a)
-								} -> std::convertible_to<std::size_t>;
-						};
 	};
+
+	/// \brief A class.
+	/// \details More info.
+	class class_1
+	{};
+
+	/// \brief A template class.
+	/// \details More info.
+	/// \tparam T A type.
+	template <typename T>
+	class template_class_1
+	{};
 
 	/// \brief A concept.
 	/// \details More info.
 	/// \tparam T A type.
 	template <typename T>
-	concept concept2 = requires(T a) {
-						   {
-							   std::hash<T>{}(a)
-							   } -> std::convertible_to<std::size_t>;
-					   };
+	concept concept_1 = requires(T a) {
+							{
+								std::hash<T>{}(a)
+								} -> std::convertible_to<std::size_t>;
+						};
 
 	/// \brief Another namespace.
-	namespace test2
+	namespace nested
 	{
 		/// \brief A concept.
 		/// \details More info.
 		/// \tparam T A type.
 		template <typename T>
-		concept concept3 = requires(T a) {
-							{
-								std::hash<T>{}(a)
-								} -> std::convertible_to<std::size_t>;
-						};
+		concept concept_2 = requires(T a) {
+								{
+									std::hash<T>{}(a)
+									} -> std::convertible_to<std::size_t>;
+							};
 	}
 
-	/// \brief A empty namespace.
+	/// \brief An empty namespace.
 	/// \details More info.
 	namespace empty
-	{}
+	{
+	}
 }

@@ -149,11 +149,15 @@ def get_classes(tag):
 
 class HTMLDocument(object):
 
-	def __init__(self, path, logger):
+	def __init__(self, source: Union[str, Path], logger):
 		self.__logger = logger
-		self.path = path
-		with open(self.path, 'r', encoding='utf-8') as f:
-			self.__doc = bs4.BeautifulSoup(f, 'html5lib', from_encoding='utf-8')
+
+		assert source is not None
+		if isinstance(source, Path):
+			with open(str(source), 'r', encoding='utf-8') as f:
+				self.__doc = bs4.BeautifulSoup(f, 'html5lib', from_encoding='utf-8')
+		else:
+			self.__doc = bs4.BeautifulSoup(source, 'html5lib')
 
 		self.html = self.__doc.html
 		self.head = self.__doc.head
@@ -182,18 +186,13 @@ class HTMLDocument(object):
 	def smooth(self):
 		self.__doc.smooth()
 
-	def flush(self):
-		log(self.__logger, rf'Writing {self.path}')
+	def write(self, path):
+		log(self.__logger, rf'Writing {path}')
 		with open(self.path, 'w', encoding='utf-8', newline='\n') as f:
 			f.write(str(self.__doc))
 
-	def __enter__(self):
-		return self
-
-	def __exit__(self, type, value, traceback):
-		if traceback is None:
-			self.smooth()
-			self.flush()
+	def __str__(self) -> str:
+		return str(self.__doc)
 
 	def new_tag(self, tag_name, parent=None, string=None, class_=None, index=None, before=None, after=None, **kwargs):
 		tag = self.__doc.new_tag(tag_name, **kwargs)

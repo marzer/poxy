@@ -4,6 +4,7 @@
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 
+import re
 from utils import *
 from pathlib import Path
 
@@ -27,19 +28,30 @@ def regenerate_expected_outputs():
 		print(rf"Regenerating {subdir}...")
 		run_poxy(subdir, r'--nocleanup', r'--noassets')
 
-		GARBAGE = (r'*.xslt', r'*.xsd', r'Doxyfile.xml')
+		# delete junk
+		GARBAGE = (r'*.xslt', r'*.xsd', r'Doxyfile.xml', r'*.tagfile.xml')
 		garbage = enumerate_files(html_dir, any=GARBAGE)
 		garbage += enumerate_files(xml_dir, any=GARBAGE)
 		for file in garbage:
 			delete_file(file, logger=True)
 
-		for file_path in enumerate_files(html_dir, any=(r'*.html')):
-			html = read_all_text_from_file(file_path)
-			html = html.replace(r'href="poxy/poxy.css"', r'href="../../../poxy/data/css/poxy.css"')
-			html = html.replace(r'src="poxy/poxy.js"', r'src="../../../poxy/data/poxy.js"')
-			print(rf"Writing {file_path}")
-			with open(file_path, r'w', encoding=r'utf-8', newline='\n') as f:
-				f.write(html)
+		# normalize html files
+		for path in enumerate_files(html_dir, any=(r'*.html')):
+			text = read_all_text_from_file(path)
+			text = text.replace(r'href="poxy/poxy.css"', r'href="../../../poxy/data/css/poxy.css"')
+			text = text.replace(r'src="poxy/poxy.js"', r'src="../../../poxy/data/poxy.js"')
+			text = re.sub(r'Poxy v[0-9]+[.][0-9]+[.][0-9]+', r'Poxy v0.0.0', text)
+			print(rf"Writing {path}")
+			with open(path, r'w', encoding=r'utf-8', newline='\n') as f:
+				f.write(text)
+
+		# normalize xml files
+		for path in enumerate_files(xml_dir, any=(r'*.xml')):
+			text = read_all_text_from_file(path)
+			text = re.sub(r'version="\s*[0-9]+[.][0-9]+[.][0-9]+\s*"', r'version="0.0.0"', text)
+			print(rf"Writing {path}")
+			with open(path, r'w', encoding=r'utf-8', newline='\n') as f:
+				f.write(text)
 
 		html_dir.rename(expected_html_dir)
 		xml_dir.rename(expected_xml_dir)

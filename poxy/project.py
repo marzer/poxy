@@ -659,7 +659,8 @@ class Defaults(object):
 		r'(?:::)?TArray(?:s)?':
 			r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Core/Containers/TArray/',
 	}
-	navbar = [r'files', r'groups', r'namespaces', r'classes']
+	navbar = (r'files', r'groups', r'namespaces', r'classes', r'concepts')
+	navbar_all = (r'pages', *navbar, r'repo', r'theme')
 	aliases = {
 		# poxy
 		r'cpp':
@@ -1264,13 +1265,12 @@ class Context(object):
 				self.verbose_value(rf'{name}.{k}', v)
 
 	def __init__(
-		self, config_path, output_dir, threads, cleanup, verbose, doxygen_path, logger, dry_run, xml_only, html_include,
+		self, config_path, output_dir, threads, cleanup, verbose, doxygen_path, logger, xml_only, html_include,
 		html_exclude, treat_warnings_as_errors, theme, copy_assets
 	):
 
 		self.logger = logger
 		self.__verbose = bool(verbose)
-		self.dry_run = bool(dry_run)
 		self.xml_only = bool(xml_only)
 		self.cleanup = bool(cleanup)
 		self.copy_assets = bool(copy_assets)
@@ -1278,14 +1278,12 @@ class Context(object):
 
 		self.version = lib_version()
 		self.version_string = r'.'.join([str(v) for v in lib_version()])
-		if not self.dry_run or self.__verbose:
-			self.info(rf'Poxy v{self.version_string}')
+		self.info(rf'Poxy v{self.version_string}')
 
-		self.verbose_value(r'Context.dry_run', self.dry_run)
 		self.verbose_value(r'Context.xml_only', self.xml_only)
 		self.verbose_value(r'Context.cleanup', self.cleanup)
 
-		threads = int(threads)
+		threads = int(threads) if threads is not None else 0
 		if threads <= 0:
 			threads = os.cpu_count()
 		self.threads = max(1, min(os.cpu_count(), threads))
@@ -1380,13 +1378,12 @@ class Context(object):
 			assert self.temp_pages_dir.is_absolute()
 
 			# delete leftovers from previous run and initialize various dirs
-			if not self.dry_run:
-				delete_directory(self.xml_dir, logger=self.verbose_logger)
-				delete_directory(self.temp_dir, logger=self.verbose_logger)
-				if not self.xml_only:
-					delete_directory(self.html_dir, logger=self.verbose_logger)
-				self.temp_dir.mkdir(exist_ok=True, parents=True)
-				self.temp_pages_dir.mkdir(exist_ok=True, parents=True)
+			delete_directory(self.xml_dir, logger=self.verbose_logger)
+			delete_directory(self.temp_dir, logger=self.verbose_logger)
+			if not self.xml_only:
+				delete_directory(self.html_dir, logger=self.verbose_logger)
+			self.temp_dir.mkdir(exist_ok=True, parents=True)
+			self.temp_pages_dir.mkdir(exist_ok=True, parents=True)
 
 			# doxygen
 			if doxygen_path is not None:
@@ -1458,9 +1455,7 @@ class Context(object):
 			config = dict()
 			if self.config_path.exists():
 				assert_existing_file(self.config_path)
-				config = pytomlpp.loads(
-					read_all_text_from_file(self.config_path, logger=self.verbose_logger if dry_run else self.logger)
-				)
+				config = pytomlpp.loads(read_all_text_from_file(self.config_path, logger=self.logger))
 			config = assert_no_unexpected_keys(config, self.__config_schema.validate(config))
 
 			self.warnings = Warnings(config)
@@ -1651,7 +1646,7 @@ class Context(object):
 							if self.changelog or candidate_dir.parent == candidate_dir:
 								break
 							candidate_dir = candidate_dir.parent
-						if not self.changelog and not self.dry_run:
+						if not self.changelog:
 							self.warning(
 								rf'changelog: Option was set to true but no file with a known changelog file name could be found! Consider using an explicit path.'
 							)
@@ -1662,11 +1657,11 @@ class Context(object):
 						self.changelog = Path(self.input_dir, self.changelog)
 					if not self.changelog.exists() or not self.changelog.is_file():
 						raise Error(rf'changelog: {config["changelog"]} did not exist or was not a file')
+			if self.changelog:
+				temp_changelog_path = Path(self.temp_pages_dir, r'poxy_changelog.md')
+				copy_file(self.changelog, temp_changelog_path, logger=self.verbose_logger)
+				self.changelog = temp_changelog_path
 			self.verbose_value(r'Context.changelog', self.changelog)
-			if self.changelog and not self.dry_run:
-				self.temp_pages_dir.mkdir(exist_ok=True, parents=True)
-				copy_file(self.changelog, Path(self.temp_pages_dir, r'poxy_changelog.md'), logger=self.verbose_logger)
-				self.changelog = Path(self.temp_pages_dir, r'poxy_changelog.md')
 
 			# sources (INPUT, FILE_PATTERNS, STRIP_FROM_PATH, STRIP_FROM_INC_PATH, EXTRACT_ALL)
 			self.sources = Sources(
@@ -1674,10 +1669,11 @@ class Context(object):
 				r'sources',
 				self.input_dir,
 				additional_inputs=(
-				self.temp_pages_dir if not self.dry_run else None,
-				self.changelog if self.changelog and not self.dry_run else None, *[f for f, d in self.blog_files]
+				self.temp_pages_dir,  #
+				self.changelog if self.changelog else None,
+				*[f for f, d in self.blog_files]
 				),
-				additional_strip_paths=(self.temp_pages_dir if not self.dry_run else None, )
+				additional_strip_paths=(self.temp_pages_dir, )
 			)
 			self.verbose_object(r'Context.sources', self.sources)
 
@@ -1723,45 +1719,76 @@ class Context(object):
 					assert_existing_file(k)
 			self.verbose_value(r'Context.tagfiles', self.tagfiles)
 
-			# m.css navbar
-			if r'navbar' in config:
+			# navbar
+			if 1:
+				# initialize
 				self.navbar = []
-				for v in coerce_collection(config['navbar']):
-					val = v.strip().lower()
-					if val:
-						self.navbar.append(val)
-			else:
-				self.navbar = copy.deepcopy(Defaults.navbar)
-			for i in range(len(self.navbar)):
-				if self.navbar[i] == 'classes':
-					self.navbar[i] = 'annotated'
-				elif self.navbar[i] == 'groups':
-					self.navbar[i] = 'modules'
-			# repo buttons
-			if not self.repo:
-				# remove all repo buttons if there's no repo
-				for KEY in (r'repo', r'repository', *repos.KEYS):
-					if KEY in self.navbar:
-						self.navbar.remove(KEY)
-			else:
-				# remove repo buttons matching an uninstantiated repo type
-				for TYPE in repos.TYPES:
-					if not isinstance(self.repo, TYPE) and TYPE.KEY in self.navbar:
-						self.navbar.remove(TYPE.KEY)
-				# sub all remaining repo key aliases for simply 'repo'
+				if r'navbar' in config:
+					for v in coerce_collection(config['navbar']):
+						val = v.strip()
+						if val:
+							self.navbar.append(val)
+				else:
+					self.navbar = list(copy.deepcopy(Defaults.navbar))
+
+				# expand 'default' and 'all'
+				new_navbar = []
+				for link in self.navbar:
+					if link == r'all':
+						new_navbar += [*Defaults.navbar_all]
+					elif link == r'default':
+						new_navbar += [*Defaults.navbar]
+					else:
+						new_navbar.append(link)
+				self.navbar = new_navbar
+
+				# normalize aliases
 				for i in range(len(self.navbar)):
-					if self.navbar[i] in (r'repository', *repos.KEYS):
+					if self.navbar[i] == r'annotated':  # 'annotated' is doxygen-speak for 'classes'
+						self.navbar[i] = r'classes'
+					elif self.navbar[i] == r'modules':  # 'modules' is doxygen-speak for 'groups'
+						self.navbar[i] = r'groups'
+					elif self.navbar[i] == r'repository':
 						self.navbar[i] = r'repo'
-				# add a repo button to the end if none was present
-				if r'repo' not in self.navbar:
-					self.navbar.append(r'repo')
-			# theme button
-			if self.theme != r'custom' and r'theme' not in self.navbar:
-				self.navbar.append(r'theme')
-			if self.theme == r'custom' and r'theme' in self.navbar:
-				self.navbar.remove(r'theme')
-			self.navbar = tuple(self.navbar)
-			self.verbose_value(r'Context.navbar', self.navbar)
+
+				# repo logic
+				if not self.repo:
+					for KEY in (r'repo', *repos.KEYS):
+						if KEY in self.navbar:
+							self.navbar.remove(KEY)
+				else:
+					# remove repo buttons matching an uninstantiated repo type
+					for TYPE in repos.TYPES:
+						if not isinstance(self.repo, TYPE) and TYPE.KEY in self.navbar:
+							self.navbar.remove(TYPE.KEY)
+					# sub all remaining repo key aliases for simply 'repo'
+					for i in range(len(self.navbar)):
+						if self.navbar[i] in repos.KEYS:
+							self.navbar[i] = r'repo'
+					# add a repo button to the end if none was present
+					if r'repo' not in self.navbar:
+						self.navbar.append(r'repo')
+
+				# theme logic
+				if self.theme != r'custom' and r'theme' not in self.navbar:
+					self.navbar.append(r'theme')
+				if self.theme == r'custom' and r'theme' in self.navbar:
+					self.navbar.remove(r'theme')
+
+				# remove duplicate keywords
+				seen_keywords = set()
+				new_navbar = []
+				for nav in self.navbar:
+					if nav in (
+						r'files', r'pages', r'modules', r'namespaces', r'annotated', r'concepts', r'repo', r'theme'
+					):
+						if nav not in seen_keywords:
+							seen_keywords.add(nav)
+							new_navbar.append(nav)
+					else:
+						new_navbar.append(nav)
+				self.navbar = tuple(new_navbar)
+				self.verbose_value(r'Context.navbar', self.navbar)
 
 			# <meta> tags
 			self.meta_tags = {}
@@ -1931,15 +1958,13 @@ class Context(object):
 			self.verbose_value(r'Context.html_header', self.html_header)
 
 		# init emoji db
-		self.emoji = None
-		if not self.dry_run:
-			self.emoji = emoji.Database()
+		self.emoji = emoji.Database()
 
 	def __enter__(self):
 		return self
 
 	def __exit__(self, type, value, traceback):
-		if not self.dry_run and self.cleanup:
+		if self.cleanup:
 			delete_directory(self.temp_dir, logger=self.verbose_logger)
 			if not self.xml_only:
 				delete_directory(self.xml_dir, logger=self.verbose_logger)

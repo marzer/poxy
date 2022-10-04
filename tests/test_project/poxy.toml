@@ -1,7 +1,7 @@
 name = 'Test!'
 description = 'A C++ Project'
 cpp = 20
-navbar = [ 'files', 'namespaces', 'classes', 'concepts' ]
+navbar = 'all'
 show_includes = true
 
 [sources]
