@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+-   fixed `static` keyword sometimes appearing twice on variables
+-   fixed `constexpr` keyword sometimes leaking into variable type
+-   added support for C++20's `constinit`
+
 ## v0.9.1 - 2022-10-04
 
 -   fixed SVG inlining not preserving original image class attributes

@@ -8,7 +8,7 @@
           {# need an explicit space here otherwise the newline gets removed #}
 
           {% if compound.include %}
-          <div id="include-directive" class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="{{ compound.include[1] }}">{{ compound.include[0] }}</a></div>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="{{ compound.include[1] }}">{{ compound.include[0] }}</a></div>
           {% endif %}
         </h1>
 {% endblock %}

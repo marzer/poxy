@@ -27,7 +27,7 @@
         <p>{{ compound.brief }}</p>
         {% endif %}
         {% if compound.sections or compound.modules or compound.dirs or compound.files or compound.namespaces or compound.classes or compound.concepts or compound.typedefs or compound.funcs or compound.vars or compound.defines or compound.groups %}
-        <nav id="table-of-contents" class="m-block m-default">
+        <nav class="m-block m-default">
           <h3>Contents</h3>
           <ul>
             {% for id, name, children in compound.sections recursive %}
@@ -231,7 +231,7 @@
         </section>
         {% endfor %}
         {% if compound.has_enum_details %}
-        <section id="enum-documentation">
+        <section>
           <h2>Enum documentation</h2>
           {% for enum in compound.enums %}
           {% if enum.has_details %}
@@ -248,7 +248,7 @@
         </section>
         {% endif %}
         {% if compound.has_typedef_details %}
-        <section id="typedef-documentation">
+        <section>
           <h2>Typedef documentation</h2>
           {% for typedef in compound.typedefs %}
           {% if typedef.has_details %}
@@ -265,7 +265,7 @@
         </section>
         {% endif %}
         {% if compound.has_func_details %}
-        <section id="func-documentation">
+        <section>
           <h2>Function documentation</h2>
           {% for func in compound.funcs %}
           {% if func.has_details %}
@@ -282,7 +282,7 @@
         </section>
         {% endif %}
         {% if compound.has_var_details %}
-        <section id="var-documentation">
+        <section>
           <h2>Variable documentation</h2>
           {% for var in compound.vars %}
           {% if var.has_details %}
@@ -299,7 +299,7 @@
         </section>
         {% endif %}
         {% if compound.has_define_details %}
-        <section id="define-documentation">
+        <section>
           <h2>Define documentation</h2>
           {% for define in compound.defines %}
           {% if define.has_details %}

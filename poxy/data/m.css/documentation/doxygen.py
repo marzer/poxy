@@ -2196,19 +2196,31 @@ def parse_var(state: State, element: ET.Element):
 
     var = Empty()
     state.current_definition_url_base, var.base_url, var.id, var.include, var.has_details = parse_id_and_include(state, element)
-    var.type = parse_type(state, element.find('type'))
-    if var.type.startswith('constexpr'):
-        var.type = var.type[10:]
-        var.is_constexpr = True
-    else:
-        var.is_constexpr = False
-    var.is_static = element.attrib['static'] == 'yes'
     var.is_protected = element.attrib['prot'] == 'protected'
     var.is_private = element.attrib['prot'] == 'private'
     var.name = element.find('name').text
     var.brief = parse_desc(state, element.find('briefdescription'))
     var.description, templates, search_keywords, var.deprecated, var.since = parse_var_desc(state, element)
     var.has_template_details, var.templates = parse_template_params(state, element.find('templateparamlist'), templates)
+
+    # in 1.9.2+ the static and constexpr specifiers sometimes leak into the type definition
+    # while _also_ being exposed as an XML attribute, leading to nightmares like "static static int x"
+    # (this logic is a simplified version of the same fix in parse_func())
+    var.type = parse_type(state, element.find('type'))
+    matched_keyword = True
+    while matched_keyword:
+        matched_keyword = False
+        for kw in ('static', 'constexpr', 'constinit'):
+            if var.type.startswith(kw + ' '):
+                var.type = var.type[len(kw):].strip()
+            elif var.type.endswith(' ' + kw):
+                var.type = var.type[:len(kw)].strip()
+            else:
+                continue
+            matched_keyword = True
+            setattr(var, 'is_' + kw, True)
+    for kw in ('static', 'constexpr', 'constinit'):
+        setattr(var, 'is_' + kw, getattr(var, 'is_' + kw, False) or (kw in element.attrib and element.attrib[kw] == 'yes'))
 
     if var.base_url == state.current_compound_url and (var.description or var.has_template_details):
         var.has_details = True # has_details might already be True from above
