@@ -28,5 +28,8 @@ GENERATED = Path(DATA, r'generated')
 FONTS = Path(GENERATED, r'fonts')
 """Directory containing all the self-hosted google fonts."""
 
+TESTS = Path(PACKAGE, r'..', r'tests')
+"""The root directory of the repository's tests."""
+
 TEMP = Path(tempfile.gettempdir(), r'poxy')
 """A global temp directory shared by all instances of poxy."""

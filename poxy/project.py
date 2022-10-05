@@ -9,7 +9,13 @@ Everything relating to the 'project context' object that describes the project f
 
 import os
 import copy
-import pytomlpp
+try:
+	import pytomlpp as toml  # fast; based on toml++ (C++)
+except:
+	try:
+		import tomllib as toml  # PEP 680
+	except:
+		import tomli as toml
 import datetime
 import shutil
 import itertools
@@ -1455,7 +1461,7 @@ class Context(object):
 			config = dict()
 			if self.config_path.exists():
 				assert_existing_file(self.config_path)
-				config = pytomlpp.loads(read_all_text_from_file(self.config_path, logger=self.logger))
+				config = toml.loads(read_all_text_from_file(self.config_path, logger=self.logger))
 			config = assert_no_unexpected_keys(config, self.__config_schema.validate(config))
 
 			self.warnings = Warnings(config)

@@ -5,6 +5,7 @@
 -   fixed `static` keyword sometimes appearing twice on variables
 -   fixed `constexpr` keyword sometimes leaking into variable type
 -   added support for C++20's `constinit`
+-   added fallback to `tomllib` or `tomli` if `pytomlpp` is not available
 
 ## v0.9.1 - 2022-10-04
 

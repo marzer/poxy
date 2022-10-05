@@ -16,6 +16,7 @@ from .run import run
 from . import dirs
 from . import css
 from . import emoji
+from . import mcss
 
 
 
@@ -144,6 +145,11 @@ def main(invoker=True):
 		help=argparse.SUPPRESS
 	)
 	args.add_argument(
+		r'--update-tests',  #
+		action=r'store_true',
+		help=argparse.SUPPRESS
+	)
+	args.add_argument(
 		r'--update-mcss',  #
 		type=Path,
 		default=None,
@@ -160,50 +166,7 @@ def main(invoker=True):
 	if args.mcss is not None:
 		args.update_styles = True
 		args.update_fonts = True
-		args.mcss = coerce_path(args.mcss).resolve()
-		assert_existing_directory(args.mcss)
-		assert_existing_file(Path(args.mcss, r'documentation/doxygen.py'))
-		if dirs.MCSS == args.mcss:
-			raise Exception(r'm.css source path may not be the same as the internal destination.')
-		if dirs.MCSS.exists():
-			delete_directory(dirs.MCSS, logger=True)
-		print(rf'Updating bundled m.css from {args.mcss}')
-		shutil.copytree(
-			args.mcss,
-			dirs.MCSS,
-			symlinks=False,
-			dirs_exist_ok=True,
-			ignore=shutil.ignore_patterns(
-			r'.git*',  #
-			r'.editor*',
-			r'.circleci*',
-			r'.coverage*',
-			r'.istanbul*',
-			r'*.idx',
-			r'*.pyc',
-			r'*.compiled.css',
-			r'__pycache__*',
-			r'artwork*',
-			r'circleci*',
-			r'test_doxygen*',
-			r'test_python*',
-			r'pelican-theme*',
-			r'pygments-*.py',
-			r'postprocess.sh',
-			r'postprocess.py',
-			r'm-*dark.css',  # the m.css themes have local copies in data/ for *reasons*
-			r'm-*light.css'
-			)
-		)
-		for folder in (
-			r'doc',  #
-			r'documentation/test',
-			r'documentation/templates/python',
-			r'package',
-			r'plugins/m/test',
-			r'site',
-		):
-			delete_directory(Path(dirs.MCSS, folder), logger=True)
+		mcss.update_bundled_install(args.mcss)
 	assert_existing_directory(dirs.MCSS)
 	assert_existing_file(Path(dirs.MCSS, r'documentation/doxygen.py'))
 
@@ -215,7 +178,14 @@ def main(invoker=True):
 	if args.update_emoji:
 		emoji.update_database_file()
 
-	if args.update_styles or args.update_fonts or args.update_emoji or args.mcss is not None:
+	if args.update_tests:
+		if not dirs.TESTS.exists() or not dirs.TESTS.is_dir():
+			raise Exception(
+				f'{dirs.TESTS} did not exist or was not a directory (--update-tests is only for editable installations)'
+			)
+		run_python_script(Path(dirs.TESTS, r'regenerate_tests.py'))
+
+	if (args.update_styles or args.update_fonts or args.update_emoji or args.update_tests or args.mcss is not None):
 		return
 
 	with ScopeTimer(r'All tasks', print_start=False, print_end=True) as timer:
