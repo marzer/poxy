@@ -1271,13 +1271,27 @@ class Context(object):
 				self.verbose_value(rf'{name}.{k}', v)
 
 	def __init__(
-		self, config_path, output_dir, threads, cleanup, verbose, doxygen_path, logger, xml_only, html_include,
-		html_exclude, treat_warnings_as_errors, theme, copy_assets
+		self,  #
+		config_path: Path,
+		output_dir: Path,
+		output_html: bool,
+		output_xml: bool,
+		threads: int,
+		cleanup: bool,
+		verbose: bool,
+		doxygen_path: Path,
+		logger,
+		html_include: str,
+		html_exclude: str,
+		treat_warnings_as_errors: bool,
+		theme: str,
+		copy_assets: bool
 	):
 
 		self.logger = logger
 		self.__verbose = bool(verbose)
-		self.xml_only = bool(xml_only)
+		self.output_html = bool(output_html)
+		self.output_xml = bool(output_xml)
 		self.cleanup = bool(cleanup)
 		self.copy_assets = bool(copy_assets)
 		self.verbose_logger = logger if self.__verbose else None
@@ -1286,7 +1300,8 @@ class Context(object):
 		self.version_string = r'.'.join([str(v) for v in lib_version()])
 		self.info(rf'Poxy v{self.version_string}')
 
-		self.verbose_value(r'Context.xml_only', self.xml_only)
+		self.verbose_value(r'Context.output_html', self.output_html)
+		self.verbose_value(r'Context.output_xml', self.output_xml)
 		self.verbose_value(r'Context.cleanup', self.cleanup)
 
 		threads = int(threads) if threads is not None else 0
@@ -1296,14 +1311,13 @@ class Context(object):
 		self.verbose_value(r'Context.threads', self.threads)
 
 		self.fixers = None
-		self.tagfile_path = None
 
 		# initial warning state
 		# note that this is overwritten after the config is read;
 		# it is set here first so that we can have correct 'treat_as_errors' behaviour if we add any pre-config warnings
 		self.warnings = Warnings(None)
-		if treat_warnings_as_errors:
-			self.warnings.treat_as_errors = True
+		if treat_warnings_as_errors is not None:
+			self.warnings.treat_as_errors = bool(treat_warnings_as_errors)
 
 		if html_include is not None:
 			html_include = re.compile(str(html_include))
@@ -1353,22 +1367,6 @@ class Context(object):
 			assert_existing_directory(self.input_dir)
 			assert self.input_dir.is_absolute()
 
-			# output paths
-			self.xml_dir = Path(self.output_dir, r'xml')
-			self.verbose_value(r'Context.xml_dir', self.xml_dir)
-			self.html_dir = Path(self.output_dir, r'html')
-			self.assets_dir = Path(self.html_dir, r'poxy')
-			self.verbose_value(r'Context.html_dir', self.html_dir)
-			self.verbose_value(r'Context.assets_dir', self.assets_dir)
-			assert self.output_dir.is_absolute()
-			assert self.xml_dir.is_absolute()
-			assert self.html_dir.is_absolute()
-
-			# blog dir
-			self.blog_dir = Path(self.input_dir, r'blog')
-			self.verbose_value(r'Context.blog_dir', self.blog_dir)
-			assert self.blog_dir.is_absolute()
-
 			# temp dirs
 			self.temp_dir = re.sub(r'''[!@#$%^&*()+={}<>;:'"_\\/\n\t -]+''', r'_', str(self.input_dir).strip(r'\/'))
 			if len(self.temp_dir) > 256:
@@ -1383,11 +1381,26 @@ class Context(object):
 			assert self.temp_dir.is_absolute()
 			assert self.temp_pages_dir.is_absolute()
 
-			# delete leftovers from previous run and initialize various dirs
-			delete_directory(self.xml_dir, logger=self.verbose_logger)
+			# output paths
+			self.xml_dir = Path(self.output_dir, r'xml') if self.output_xml else Path(self.temp_dir, r'xml')
+			self.verbose_value(r'Context.xml_dir', self.xml_dir)
+			self.html_dir = Path(self.output_dir, r'html')
+			self.assets_dir = Path(self.html_dir, r'poxy')
+			self.verbose_value(r'Context.html_dir', self.html_dir)
+			self.verbose_value(r'Context.assets_dir', self.assets_dir)
+			assert self.output_dir.is_absolute()
+			assert self.xml_dir.is_absolute()
+			assert self.html_dir.is_absolute()
+
+			# blog dir
+			self.blog_dir = Path(self.input_dir, r'blog')
+			self.verbose_value(r'Context.blog_dir', self.blog_dir)
+			assert self.blog_dir.is_absolute()
+
+			# delete leftovers from previous run and initialize temp dirs
+			delete_directory(Path(self.output_dir, r'xml'), logger=self.verbose_logger)
+			delete_directory(self.html_dir, logger=self.verbose_logger)
 			delete_directory(self.temp_dir, logger=self.verbose_logger)
-			if not self.xml_only:
-				delete_directory(self.html_dir, logger=self.verbose_logger)
 			self.temp_dir.mkdir(exist_ok=True, parents=True)
 			self.temp_pages_dir.mkdir(exist_ok=True, parents=True)
 
@@ -1465,8 +1478,8 @@ class Context(object):
 			config = assert_no_unexpected_keys(config, self.__config_schema.validate(config))
 
 			self.warnings = Warnings(config)
-			if treat_warnings_as_errors:
-				self.warnings.treat_as_errors = True
+			if treat_warnings_as_errors is not None:
+				self.warnings.treat_as_errors = bool(treat_warnings_as_errors)
 			self.verbose_value(r'Context.warnings', self.warnings)
 
 			# project name (PROJECT_NAME)
@@ -1843,9 +1856,12 @@ class Context(object):
 			self.verbose_value(r'Context.internal_docs', self.internal_docs)
 
 			# generate_tagfile (GENERATE_TAGFILE)
-			self.generate_tagfile = True  # not (self.private_repo or self.internal_docs)
-			if 'generate_tagfile' in config:
-				self.generate_tagfile = bool(config['generate_tagfile'])
+			self.generate_tagfile = True
+			self.tagfile_path = Path(
+				self.temp_dir, rf'{self.name.replace(" ","_")}.tagfile.xml' if self.name else r'tagfile.xml'
+			)
+			if r'generate_tagfile' in config:
+				self.generate_tagfile = bool(config[r'generate_tagfile'])
 			self.verbose_value(r'Context.generate_tagfile', self.generate_tagfile)
 
 			# favicon (M_FAVICON)
@@ -1972,8 +1988,6 @@ class Context(object):
 	def __exit__(self, type, value, traceback):
 		if self.cleanup:
 			delete_directory(self.temp_dir, logger=self.verbose_logger)
-			if not self.xml_only:
-				delete_directory(self.xml_dir, logger=self.verbose_logger)
 
 	def __bool__(self):
 		return True

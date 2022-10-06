@@ -33,11 +33,11 @@ data_subdirs = [str(d)[len(package_dir):].strip('\\/').replace('\\', '/') for d 
 data_subdirs = [rf'{d}/*' for d in data_subdirs]
 
 README = ''
-with open('README.md', encoding='utf-8') as file:
+with open(r'README.md', encoding='utf-8') as file:
 	README = file.read().strip()
 
 CHANGELOG = ''
-with open('CHANGELOG.md', encoding='utf-8') as file:
+with open(r'CHANGELOG.md', encoding='utf-8') as file:
 	CHANGELOG = file.read().strip()
 
 VERSION = ''
@@ -99,7 +99,7 @@ SETUP_ARGS = {
 }
 
 REQUIRES = None
-with open('requirements.txt', encoding='utf-8') as file:
+with open(r'requirements.txt', encoding='utf-8') as file:
 	REQUIRES = file.read().strip().split()
 
 if __name__ == '__main__':

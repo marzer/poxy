@@ -55,7 +55,7 @@ The homepage + documentation for [toml++] is built using poxy:
 
 ### Then:
 
-```sh
+```
 pip install poxy
 ```
 
@@ -66,9 +66,10 @@ pip install poxy
 Poxy is a command-line application.
 
 ```
-poxy [-h] [-v] [--doxygen <path>] [--ppinclude <regex>] [--ppexclude <regex>]
-     [--theme {auto,light,dark,custom}] [--threads N] [--version] [--werror] [--xmlonly]
-     [config]
+usage: poxy [-h] [-v] [--doxygen <path>] [--html | --no-html] [--ppinclude <regex>]
+            [--ppexclude <regex>] [--theme {light,dark,custom}] [--threads N] [--version]
+            [--xml | --no-xml] [--werror | --no-werror]
+            [config]
 
 Generate fancy C++ documentation.
 
@@ -79,14 +80,16 @@ options:
   -h, --help            show this help message and exit
   -v, --verbose         enable very noisy diagnostic output
   --doxygen <path>      specify the Doxygen executable to use (default: find on system path)
+  --html, --no-html     specify whether HTML output is required (default: True)
   --ppinclude <regex>   pattern matching HTML file names to post-process (default: all)
   --ppexclude <regex>   pattern matching HTML file names to exclude from post-processing (default: none)
-  --theme {auto,light,dark,custom}
-                        the CSS theme to use (default: auto)
+  --theme {light,dark,custom}
+                        override the default visual theme (default: read from config)
   --threads N           set the number of threads to use (default: automatic)
   --version             print the version and exit
-  --werror              always treat warnings as errors regardless of config file settings
-  --xmlonly             stop after generating and preprocessing the Doxygen xml
+  --xml, --no-xml       specify whether XML output is required (default: False)
+  --werror, --no-werror
+                        override the treating of warnings as errors (default: read from config)
 ```
 
 The basic three-step to using Poxy is similar to Doxygen:
@@ -99,7 +102,8 @@ The basic three-step to using Poxy is similar to Doxygen:
 
 ## Config file options
 
-For a self-contained `poxy.toml` example to copy and paste from, see [the one used by toml++](https://github.com/marzer/tomlplusplus/blob/master/docs/poxy.toml).
+For a self-contained `poxy.toml` example to copy and paste from,
+see [the one used by toml++](https://github.com/marzer/tomlplusplus/blob/master/docs/poxy.toml).
 
 For a full list of options, with full descriptions, schemas and usage examples, see the [Configuration options] wiki page.
 
@@ -128,18 +132,21 @@ so Poxy does away with it.
 
 #### **⚠&#xFE0F; Output is always emitted to CWD**
 
-Poxy always emits the output html to `<cwd>/html`. This is largely to simplify the HTML post-process step.
+Poxy always emits HTML to `<cwd>/html` and XML to `<cwd>/xml`. You cannot use your config file to specify where any
+output will be placed - use your command-line environment for this purpose instead by changing the CWD.
+This is to eliminate nasty surprises brought on by goofy config file decisions and help with portability.
 
 #### **⚠&#xFE0F; Poxy config files are self-contained**
 
-There is no equivalent to Doxygen's `@INCLUDE`. If your project is structured in such a way that a multi-level Doxyfile hierarchy is necessary, Poxy isn't for you.
+There is no equivalent to Doxygen's `@INCLUDE`. If your project is structured in such a way that a
+multi-level Doxyfile hierarchy is necessary, Poxy isn't for you.
 
 <br><br>
 
 ## Why the name "Poxy"?
 
-Originally it was simply called "dox", but there's already a C++ documentation project with that name, so I smashed
-"python" and "dox" together and this is what I came up with.
+Originally it was simply called "dox", but there's already a C++ documentation project with that name,
+so I smashed "python" and "dox" together and this is what I came up with.
 
 Also "poxy" can be slang for cheap, inferior, poor quality, etc., which I thought was funny.
 
@@ -149,7 +156,9 @@ Also "poxy" can be slang for cheap, inferior, poor quality, etc., which I though
 
 This project is published under the terms of the [MIT license](https://github.com/marzer/poxy/blob/main/LICENSE.txt).
 
-Significant credit must go to Vladimír Vondruš ([mosra]) and his amazing [m.css] framework. Poxy bundles a fork of m.css, used per the [MIT/Expat license](https://github.com/mosra/m.css/blob/master/COPYING) (which can also be found in the installed python package).
+Significant credit must go to Vladimír Vondruš ([mosra]) and his amazing [m.css] Doxygen theme.
+Poxy bundles a fork of m.css, used per the [MIT/Expat license](https://github.com/marzer/poxy/blob/main/poxy/data/m.css/COPYING)
+(which can also be found in the installed python package).
 
 [m.css]: https://mcss.mosra.cz/documentation/doxygen/
 [mosra]: https://github.com/mosra

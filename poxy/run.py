@@ -190,10 +190,7 @@ def preprocess_doxyfile(context: Context):
 		df.add_value(r'ENABLED_SECTIONS', r'poxy_supports_concepts')
 
 		if context.generate_tagfile:
-			context.tagfile_path = Path(
-				context.output_dir, rf'{context.name.replace(" ","_")}.tagfile.xml' if context.name else r'tagfile.xml'
-			)
-			df.set_value(r'GENERATE_TAGFILE', context.tagfile_path.name)
+			df.set_value(r'GENERATE_TAGFILE', context.tagfile_path)
 		else:
 			df.set_value(r'GENERATE_TAGFILE', None)
 
@@ -662,12 +659,11 @@ def postprocess_xml(context: Context):
 				# files
 				if compound_kind == r'file':
 
-					# simplify the XML by removing junk not used by mcss
-					if not context.xml_only:
-						for tag in (r'includes', r'includedby', r'incdepgraph', r'invincdepgraph'):
-							for t in compounddef.findall(tag):
-								compounddef.remove(t)
-								changed = True
+					# simplify the XML by removing unnecessary junk
+					for tag in (r'includes', r'includedby', r'incdepgraph', r'invincdepgraph'):
+						for t in compounddef.findall(tag):
+							compounddef.remove(t)
+							changed = True
 
 					# get any macros for the syntax highlighter
 					for sectiondef in [
@@ -1336,19 +1332,20 @@ def run_mcss(context: Context):
 
 
 def run(
-	config_path=None,
-	output_dir='.',
-	threads=-1,
-	cleanup=True,
-	verbose=False,
-	doxygen_path=None,
+	config_path: Path = None,
+	output_dir: Path = '.',
+	output_html: bool = True,
+	output_xml: bool = False,
+	threads: int = -1,
+	cleanup: bool = True,
+	verbose: bool = False,
+	doxygen_path: Path = None,
 	logger=None,
-	xml_only=False,
-	html_include=None,
-	html_exclude=None,
-	treat_warnings_as_errors=None,
-	theme=None,
-	copy_assets=True
+	html_include: str = None,
+	html_exclude: str = None,
+	treat_warnings_as_errors: bool = None,
+	theme: str = None,
+	copy_assets: bool = True
 ):
 
 	timer = lambda desc: ScopeTimer(desc, print_start=True, print_end=context.verbose_logger)
@@ -1356,12 +1353,13 @@ def run(
 	with Context(
 		config_path=config_path,
 		output_dir=output_dir,
+		output_html=output_html,
+		output_xml=output_xml,
 		threads=threads,
 		cleanup=cleanup,
 		verbose=verbose,
 		doxygen_path=doxygen_path,
 		logger=logger,
-		xml_only=xml_only,
 		html_include=html_include,
 		html_exclude=html_exclude,
 		treat_warnings_as_errors=treat_warnings_as_errors,
@@ -1373,38 +1371,44 @@ def run(
 		preprocess_tagfiles(context)
 		preprocess_changelog(context)
 
+		if not context.output_html and not context.output_xml:
+			return
+
 		# generate + postprocess XML
+		# (we always do this even when output_xml is false because it is required by the html)
 		with timer(r'Generating XML files with Doxygen') as t:
 			run_doxygen(context)
 		with timer(r'Post-processing XML files') as t:
 			postprocess_xml(context)
-		if context.xml_only:
-			return
 
-		# generate HTML with mcss
-		preprocess_mcss_config(context)
-		with timer(r'Generating HTML files with m.css') as t:
-			run_mcss(context)
+		if context.output_html:
 
-		# copy extra_files
-		with ScopeTimer(r'Copying extra_files', print_start=True, print_end=context.verbose_logger) as t:
-			for dest_name, source_path in context.extra_files.items():
-				dest_path = Path(context.html_dir, dest_name).resolve()
-				dest_path.parent.mkdir(exist_ok=True)
-				copy_file(source_path, dest_path, logger=context.verbose_logger)
+			# generate HTML with mcss
+			preprocess_mcss_config(context)
+			with timer(r'Generating HTML files with m.css') as t:
+				run_mcss(context)
 
-		# copy fonts
-		if context.copy_assets:
-			with ScopeTimer(r'Copying fonts', print_start=True, print_end=context.verbose_logger) as t:
-				copy_tree(str(dirs.FONTS), str(Path(context.assets_dir, r'fonts')))
+			# copy extra_files
+			with ScopeTimer(r'Copying extra_files', print_start=True, print_end=context.verbose_logger) as t:
+				for dest_name, source_path in context.extra_files.items():
+					dest_path = Path(context.html_dir, dest_name).resolve()
+					dest_path.parent.mkdir(exist_ok=True)
+					copy_file(source_path, dest_path, logger=context.verbose_logger)
 
-		# move the tagfile into the html directory
-		if context.generate_tagfile:
-			if context.tagfile_path.exists():
-				move_file(context.tagfile_path, Path(context.output_dir, r'html'), logger=context.verbose_logger)
-			else:
-				context.warning(rf'Doxygen tagfile {context.tagfile_path} not found!')
+			# copy fonts
+			if context.copy_assets:
+				with ScopeTimer(r'Copying fonts', print_start=True, print_end=context.verbose_logger) as t:
+					copy_tree(str(dirs.FONTS), str(Path(context.assets_dir, r'fonts')))
 
-		# post-process html files
-		with timer(r'Post-processing HTML files') as t:
-			postprocess_html(context)
+			# copy tagfile into the HTML dir
+			if context.generate_tagfile:
+				copy_file(context.tagfile_path, context.html_dir, logger=context.verbose_logger)
+
+			# post-process html files
+			with timer(r'Post-processing HTML files') as t:
+				postprocess_html(context)
+
+		# copy tagfile into the XML dir
+		# (done last so the XML files don't interfere with m.css etc)
+		if context.generate_tagfile and context.output_xml:
+			copy_file(context.tagfile_path, context.xml_dir, logger=context.verbose_logger)

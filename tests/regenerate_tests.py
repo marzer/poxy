@@ -37,13 +37,13 @@ def regenerate_expected_outputs():
 		config_path = Path(subdir, r'test.toml')
 		if config_path.exists():
 			config = toml.loads(read_all_text_from_file(config_path, logger=True))
-		requires_html = config[r'html'] if r'html' in config else True
-		requires_xml = config[r'xml'] if r'xml' in config else True
-		args = [r'--noassets']
-		if requires_xml and not requires_html:
-			args.append(r'--xmlonly')
-		elif requires_xml:
-			args.append(r'--nocleanup')
+		output_html = config[r'html'] if r'html' in config else True
+		output_xml = config[r'xml'] if r'xml' in config else False
+		args = [
+			r'--noassets',  #
+			rf'--{"no-" if not output_html else ""}html',
+			rf'--{"no-" if not output_xml else ""}xml'
+		]
 
 		# run poxy
 		print(rf"Regenerating {subdir}...")
@@ -55,14 +55,14 @@ def regenerate_expected_outputs():
 			*(coerce_collection(config[r'garbage']) if r'garbage' in config else [])
 		)
 		garbage = (
-			*(enumerate_files(html_dir, any=garbage) if requires_html else []),
-			*(enumerate_files(xml_dir, any=garbage) if requires_xml else [])
+			*(enumerate_files(html_dir, any=garbage) if output_html else []),
+			*(enumerate_files(xml_dir, any=garbage) if output_xml else [])
 		)
 		for file in garbage:
 			delete_file(file, logger=True)
 
 		# process html files
-		if not requires_html:
+		if not output_html:
 			delete_directory(html_dir, logger=True)
 		else:
 			for path in enumerate_files(html_dir, any=(r'*.html')):
@@ -77,7 +77,7 @@ def regenerate_expected_outputs():
 			html_dir.rename(expected_html_dir)
 
 		# process xml files
-		if not requires_xml:
+		if not output_xml:
 			delete_directory(xml_dir, logger=True)
 		else:
 			for path in enumerate_files(xml_dir, any=(r'*.xml')):

@@ -6,6 +6,10 @@
 -   fixed `constexpr` keyword sometimes leaking into variable type
 -   added support for C++20's `constinit`
 -   added fallback to `tomllib` or `tomli` if `pytomlpp` is not available
+-   added command-line options `--html`, `--no-html`
+-   added command-line options `--xml`, `--no-xml`
+-   added command-line option `--no-werror`
+-   deprecated command-line option `--xmlonly`
 
 ## v0.9.1 - 2022-10-04
 

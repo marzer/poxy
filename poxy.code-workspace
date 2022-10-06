@@ -23,6 +23,9 @@
 			"initializer_list": "cpp",
 			"xstddef": "cpp",
 			"xtr1common": "cpp"
-		}
+		},
+		"editor.rulers": [
+		120
+		]
 	}
 }

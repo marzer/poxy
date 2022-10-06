@@ -74,6 +74,12 @@ def main(invoker=True):
 		help=r"specify the Doxygen executable to use (default: find on system path)"
 	)
 	args.add_argument(
+		r'--html',  #
+		default=True,
+		action=argparse.BooleanOptionalAction,
+		help=r'specify whether HTML output is required'
+	)
+	args.add_argument(
 		r'--ppinclude',  #
 		type=str,
 		default=None,
@@ -89,9 +95,9 @@ def main(invoker=True):
 	)
 	args.add_argument(
 		r'--theme',  #
-		choices=[r'auto', r'light', r'dark', r'custom'],
-		default=r'auto',
-		help=r'the CSS theme to use (default: %(default)s)'
+		choices=[r'light', r'dark', r'custom'],
+		default=None,
+		help=r'override the default visual theme (default: read from config)'
 	)
 	args.add_argument(
 		r'--threads',  #
@@ -107,17 +113,19 @@ def main(invoker=True):
 		dest=r'print_version'
 	)
 	args.add_argument(
-		r'--werror',  #
-		action=r'store_true',
-		help=r"always treat warnings as errors regardless of config file settings"
+		r'--xml',  #
+		default=False,
+		action=argparse.BooleanOptionalAction,
+		help=r'specify whether XML output is required'
 	)
 	args.add_argument(
-		r'--xmlonly',  #
-		action=r'store_true',
-		help=r"stop after generating and preprocessing the Doxygen xml"
+		r'--werror',  #
+		default=None,
+		action=argparse.BooleanOptionalAction,
+		help=r"override the treating of warnings as errors (default: read from config)"
 	)
 	#--------------------------------------------------------------
-	# hidden developer-only/diagnostic arguments
+	# hidden/developer-only/deprecated/diagnostic arguments
 	#--------------------------------------------------------------
 	args.add_argument(
 		r'--nocleanup',  #
@@ -157,11 +165,24 @@ def main(invoker=True):
 		help=argparse.SUPPRESS,
 		dest=r'mcss'
 	)
+	args.add_argument( # --xml and --html are the replacements for --xmlonly 
+		r'--xmlonly',  #
+		action=r'store_true',
+		help=argparse.SUPPRESS,
+	)
 	args = args.parse_args()
+
+	#--------------------------------------------------------------
+	# --version
+	#--------------------------------------------------------------
 
 	if args.print_version:
 		print(r'.'.join([str(v) for v in lib_version()]))
 		return
+
+	#--------------------------------------------------------------
+	# developer-only subcommands
+	#--------------------------------------------------------------
 
 	if args.mcss is not None:
 		args.update_styles = True
@@ -188,20 +209,29 @@ def main(invoker=True):
 	if (args.update_styles or args.update_fonts or args.update_emoji or args.update_tests or args.mcss is not None):
 		return
 
+	#--------------------------------------------------------------
+	# regular invocation
+	#--------------------------------------------------------------
+
+	if args.xmlonly:
+		args.html = False
+		args.xml = True
+
 	with ScopeTimer(r'All tasks', print_start=False, print_end=True) as timer:
 		run(
 			config_path=args.config,
 			output_dir=Path.cwd(),
+			output_html=args.html,
+			output_xml=args.xml,
 			threads=args.threads,
 			cleanup=not args.nocleanup,
 			verbose=args.verbose,
 			doxygen_path=args.doxygen,
 			logger=True,  # stderr + stdout
-			xml_only=args.xmlonly,
 			html_include=args.ppinclude,
 			html_exclude=args.ppexclude,
-			treat_warnings_as_errors=True if args.werror else None,
-			theme=None if args.theme == r'auto' else args.theme,
+			treat_warnings_as_errors=args.werror,
+			theme=args.theme,
 			copy_assets=not args.noassets
 		)
 
