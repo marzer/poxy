@@ -9,7 +9,6 @@ Functions and classes for working with SVG files.
 
 from lxml import etree
 from .utils import *
-from typing import Union, Sequence
 
 
 
@@ -18,11 +17,11 @@ class SVG(object):
 
 	def __init__(
 		self,  #
-		file_path: Union[Path, str],
+		file_path: typing.Union[Path, str],
 		logger=None,
 		root_id: str = None,
 		id_namespace: str = None,
-		root_classes: Union[str, Sequence[str]] = None
+		root_classes: typing.Union[str, typing.Sequence[str]] = None
 	):
 
 		# read file

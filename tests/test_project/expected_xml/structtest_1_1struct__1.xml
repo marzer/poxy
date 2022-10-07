@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+  <compounddef id="structtest_1_1struct__1" kind="struct" language="C++" prot="public">
+    <compoundname>test::struct_1</compoundname>
+    <includes local="no">code.h</includes>
+    <innerclass refid="structtest_1_1struct__1_1_1nested__struct" prot="public">test::struct_1::nested_struct</innerclass>
+      <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="structtest_1_1struct__1_1a93dfbf581e6e3abb295161832143dc75" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>constexpr bool</type>
+        <definition>constexpr bool test::struct_1::static_variable</definition>
+        <argsstring/>
+        <name>static_variable</name>
+        <qualifiedname>test::struct_1::static_variable</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+<para>A static variable. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>More info. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/code.h" line="21" column="23" bodyfile="src/code.h" bodystart="21" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>A struct. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>More info. </para>
+    </detaileddescription>
+    <location file="src/code.h" line="17" column="1" bodyfile="src/code.h" bodystart="18" bodyend="27"/>
+    <listofallmembers>
+      <member refid="structtest_1_1struct__1_1a93dfbf581e6e3abb295161832143dc75" prot="public" virt="non-virtual"><scope>test::struct_1</scope><name>static_variable</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -12,7 +12,7 @@ import re
 import io
 import logging
 import requests
-from typing import Tuple, Union
+import typing
 from pathlib import Path
 from misk import *
 from . import dirs
@@ -66,7 +66,7 @@ def is_uri(s):
 
 
 
-def lib_version() -> Tuple[int, int, int]:
+def lib_version() -> typing.Tuple[int, int, int]:
 	if not hasattr(lib_version, "val"):
 		with open(Path(dirs.DATA, 'version.txt'), encoding='utf-8') as file:
 			lib_version.val = [int(v.strip()) for v in file.read().strip().split('.')]

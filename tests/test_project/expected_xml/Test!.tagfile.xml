@@ -1,0 +1,182 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<tagfile doxygen_version="0.0.0" doxygen_gitid="2f6875a5ca481a69a6f32650c77a667f87d25e88">
+  <compound kind="file">
+    <name>code.h</name>
+    <filename>code_8h.html</filename>
+    <class kind="struct">test::struct_1</class>
+    <class kind="struct">test::struct_1::nested_struct</class>
+    <class kind="class">test::class_1</class>
+    <class kind="class">test::template_class_1</class>
+    <namespace>test</namespace>
+    <namespace>test::nested</namespace>
+    <namespace>test::empty</namespace>
+    <concept>test::concept_1</concept>
+    <concept>test::nested::concept_2</concept>
+    <member kind="enumeration">
+      <type></type>
+      <name>unscoped_enum</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>ac1a212ff6fd8b8aa63bd0d5536ae7065</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>LEGACY_ENUM_VAL_0</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>ac1a212ff6fd8b8aa63bd0d5536ae7065a3b6f77dbd09e17c5e8a30dcd3474012f</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>LEGACY_ENUM_VAL_1</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>ac1a212ff6fd8b8aa63bd0d5536ae7065af18ad5a3bf0d316003544836a8734fd4</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>LEGACY_ENUM_VAL_2</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>ac1a212ff6fd8b8aa63bd0d5536ae7065a731c49ced9fc7748acfebc0a4910494d</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumeration">
+      <type></type>
+      <name>scoped_enum</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a3a2b94881b2cd4942667975879b992b9</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>val_0</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a3a2b94881b2cd4942667975879b992b9a6213c48b94bbb16eb0c651aefaf24ea7</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>val_1</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a3a2b94881b2cd4942667975879b992b9ac4dee934709e2f9294ce014a21c6a417</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>val_2</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a3a2b94881b2cd4942667975879b992b9aa7a802b397c1b97cdcebd36241979e4a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>constexpr bool</type>
+      <name>inline_variable</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>af2f5b0612e98ea3ef9de39eb10981879</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>test::class_1</name>
+    <filename>classtest_1_1class__1.html</filename>
+  </compound>
+  <compound kind="struct">
+    <name>test::struct_1::nested_struct</name>
+    <filename>structtest_1_1struct__1_1_1nested__struct.html</filename>
+  </compound>
+  <compound kind="struct">
+    <name>test::struct_1</name>
+    <filename>structtest_1_1struct__1.html</filename>
+    <class kind="struct">test::struct_1::nested_struct</class>
+    <member kind="variable" static="yes">
+      <type>static constexpr bool</type>
+      <name>static_variable</name>
+      <anchorfile>structtest_1_1struct__1.html</anchorfile>
+      <anchor>a93dfbf581e6e3abb295161832143dc75</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>test::template_class_1</name>
+    <filename>classtest_1_1template__class__1.html</filename>
+    <templarg>typename T</templarg>
+  </compound>
+  <compound kind="concept">
+    <name>test::concept_1</name>
+    <filename>concepttest_1_1concept__1.html</filename>
+  </compound>
+  <compound kind="concept">
+    <name>test::nested::concept_2</name>
+    <filename>concepttest_1_1nested_1_1concept__2.html</filename>
+  </compound>
+  <compound kind="namespace">
+    <name>test</name>
+    <filename>namespacetest.html</filename>
+    <namespace>test::empty</namespace>
+    <namespace>test::nested</namespace>
+    <class kind="class">test::class_1</class>
+    <class kind="struct">test::struct_1</class>
+    <class kind="class">test::template_class_1</class>
+    <concept>test::concept_1</concept>
+    <member kind="enumeration">
+      <type></type>
+      <name>unscoped_enum</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>ac1a212ff6fd8b8aa63bd0d5536ae7065</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>LEGACY_ENUM_VAL_0</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>ac1a212ff6fd8b8aa63bd0d5536ae7065a3b6f77dbd09e17c5e8a30dcd3474012f</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>LEGACY_ENUM_VAL_1</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>ac1a212ff6fd8b8aa63bd0d5536ae7065af18ad5a3bf0d316003544836a8734fd4</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>LEGACY_ENUM_VAL_2</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>ac1a212ff6fd8b8aa63bd0d5536ae7065a731c49ced9fc7748acfebc0a4910494d</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumeration">
+      <type></type>
+      <name>scoped_enum</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a3a2b94881b2cd4942667975879b992b9</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>val_0</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a3a2b94881b2cd4942667975879b992b9a6213c48b94bbb16eb0c651aefaf24ea7</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>val_1</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a3a2b94881b2cd4942667975879b992b9ac4dee934709e2f9294ce014a21c6a417</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>val_2</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a3a2b94881b2cd4942667975879b992b9aa7a802b397c1b97cdcebd36241979e4a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>constexpr bool</type>
+      <name>inline_variable</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>af2f5b0612e98ea3ef9de39eb10981879</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="namespace">
+    <name>test::empty</name>
+    <filename>namespacetest_1_1empty.html</filename>
+  </compound>
+  <compound kind="namespace">
+    <name>test::nested</name>
+    <filename>namespacetest_1_1nested.html</filename>
+    <concept>test::nested::concept_2</concept>
+  </compound>
+</tagfile>

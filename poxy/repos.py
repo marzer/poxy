@@ -13,7 +13,7 @@ RX_REPO_PAIR = re.compile(r"""\s*([a-zA-Z0-9_+-]+)\s*[/\\:,;|]\s*([a-zA-Z0-9_+-]
 
 
 
-def extract_user_and_repo(s) -> Tuple[str, str]:
+def extract_user_and_repo(s) -> typing.Tuple[str, str]:
 	assert s is not None
 	s = str(s)
 	global RX_REPO_PAIR

@@ -149,7 +149,7 @@ def get_classes(tag):
 
 class HTMLDocument(object):
 
-	def __init__(self, source: Union[str, Path], logger):
+	def __init__(self, source: typing.Union[str, Path], logger):
 		self.__logger = logger
 
 		assert source is not None

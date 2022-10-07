@@ -5,5 +5,5 @@ navbar = 'all'
 show_includes = true
 
 [sources]
-paths = './src'
+recursive_paths = './src'
 strip_paths = '.'

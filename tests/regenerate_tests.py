@@ -51,7 +51,7 @@ def regenerate_expected_outputs():
 
 		# delete garbage
 		garbage = (
-			r'*.xslt', r'*.xsd', r'Doxyfile.xml', r'*tagfile.xml', r'favicon*', r'search-v2.js',
+			r'*.xslt', r'*.xsd', r'favicon*', r'search-v2.js',
 			*(coerce_collection(config[r'garbage']) if r'garbage' in config else [])
 		)
 		garbage = (

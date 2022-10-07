@@ -178,7 +178,7 @@ def preprocess_doxyfile(context: Context):
 		df.append(r'# general config', end='\n\n')  # ---------------------------------------------------
 
 		df.set_value(r'OUTPUT_DIRECTORY', context.output_dir)
-		df.set_value(r'XML_OUTPUT', context.xml_dir)
+		df.set_value(r'XML_OUTPUT', context.temp_xml_dir)
 		df.set_value(r'PROJECT_NAME', context.name)
 		df.set_value(r'PROJECT_BRIEF', context.description)
 		df.set_value(r'PROJECT_LOGO', context.logo)
@@ -283,7 +283,6 @@ def preprocess_changelog(context: Context):
 		nlnl = text.find(r'\n\n')
 		if nlnl != -1:
 			text = f'{text[:nlnl]}\n\n\\tableofcontents\n\n{text[nlnl:]}'
-		pass
 	text += '\n\n'
 	context.verbose(rf'Writing {context.changelog}')
 	with open(context.changelog, r'w', encoding=r'utf-8', newline='\n') as f:
@@ -312,7 +311,7 @@ def postprocess_xml(context: Context):
 	assert context is not None
 	assert isinstance(context, Context)
 
-	xml_files = get_all_files(context.xml_dir, any=(r'*.xml'))
+	xml_files = get_all_files(context.temp_xml_dir, any=(r'*.xml'))
 	if not xml_files:
 		return
 
@@ -357,8 +356,8 @@ def postprocess_xml(context: Context):
 			for (ip, ifn, iid) in hdata[3]:
 				implementation_header_mappings[iid] = hdata
 
-	setattr(context, r'compound_pages', dict())
-	setattr(context, r'compound_kinds', set())
+	context.compound_pages = dict()
+	context.compound_kinds = set()
 
 	# process xml files
 	if 1:
@@ -368,14 +367,14 @@ def postprocess_xml(context: Context):
 			# 'file' entries for markdown and dox files
 			dox_files = [rf'*{doxygen.mangle_name(ext)}.xml' for ext in (r'.dox', r'.md')]
 			dox_files.append(r'md_home.xml')
-			for xml_file in get_all_files(context.xml_dir, any=dox_files):
+			for xml_file in get_all_files(context.temp_xml_dir, any=dox_files):
 				delete_file(xml_file, logger=context.verbose_logger)
 
 			# 'dir' entries for empty directories
 			deleted = True
 			while deleted:
 				deleted = False
-				for xml_file in get_all_files(context.xml_dir, all=(r'dir*.xml')):
+				for xml_file in get_all_files(context.temp_xml_dir, all=(r'dir*.xml')):
 					xml = etree.parse(str(xml_file), parser=xml_parser)
 					compounddef = xml.getroot().find(r'compounddef')
 					if compounddef is None or compounddef.get(r'kind') != r'dir':
@@ -383,7 +382,7 @@ def postprocess_xml(context: Context):
 					existing_inners = 0
 					for subtype in (r'innerfile', r'innerdir'):
 						for inner in compounddef.findall(subtype):
-							ref_file = Path(context.xml_dir, rf'{inner.get(r"refid")}.xml')
+							ref_file = Path(context.temp_xml_dir, rf'{inner.get(r"refid")}.xml')
 							if ref_file.exists():
 								existing_inners = existing_inners + 1
 					if not existing_inners:
@@ -394,7 +393,7 @@ def postprocess_xml(context: Context):
 		tentative_macros = regex_or(context.code_blocks.macros)
 		macros = set()
 		cpp_tree = CppTree()
-		xml_files = get_all_files(context.xml_dir, any=(r'*.xml'))
+		xml_files = get_all_files(context.temp_xml_dir, any=(r'*.xml'))
 		tagfiles = [f for _, (f, _) in context.tagfiles.items()]
 		xml_files = xml_files + tagfiles
 		all_inners_by_type = {r'namespace': set(), r'class': set(), r'concept': set()}
@@ -415,7 +414,7 @@ def postprocess_xml(context: Context):
 				for compound in [
 					tag for tag in root.findall(r'compound') if tag.get(r'kind') in (r'file', r'dir', r'concept')
 				]:
-					ref_file = Path(context.xml_dir, rf'{compound.get(r"refid")}.xml')
+					ref_file = Path(context.temp_xml_dir, rf'{compound.get(r"refid")}.xml')
 					if not ref_file.exists():
 						root.remove(compound)
 						changed = True
@@ -746,7 +745,7 @@ def postprocess_xml(context: Context):
 			for ns, vals in outer_namespaces.items():
 				xml_file = None
 				for outer_type in (r'namespace', r'struct', r'class', r'union'):
-					f = Path(context.xml_dir, rf'{outer_type}{doxygen.mangle_name(ns)}.xml')
+					f = Path(context.temp_xml_dir, rf'{outer_type}{doxygen.mangle_name(ns)}.xml')
 					if f.exists():
 						xml_file = f
 						break
@@ -777,7 +776,7 @@ def postprocess_xml(context: Context):
 		# merge extracted implementations
 		if extracted_implementation:
 			for (hp, hfn, hid, impl) in implementation_header_data:
-				xml_file = Path(context.xml_dir, rf'{hid}.xml')
+				xml_file = Path(context.temp_xml_dir, rf'{hid}.xml')
 				context.verbose(rf'Merging implementation nodes into {xml_file}')
 				xml = etree.parse(str(xml_file), parser=xml_parser)
 				compounddef = xml.getroot().find(r'compounddef')
@@ -839,11 +838,11 @@ def postprocess_xml(context: Context):
 	if 1 and context.implementation_headers:
 		for hdata in implementation_header_data:
 			for (ip, ifn, iid) in hdata[3]:
-				delete_file(Path(context.xml_dir, rf'{iid}.xml'), logger=context.verbose_logger)
+				delete_file(Path(context.temp_xml_dir, rf'{iid}.xml'), logger=context.verbose_logger)
 
 	# scan through the files and substitute impl header ids and paths as appropriate
 	if 1 and context.implementation_headers:
-		xml_files = get_all_files(context.xml_dir, any=('*.xml'))
+		xml_files = get_all_files(context.temp_xml_dir, any=('*.xml'))
 		for xml_file in xml_files:
 			context.verbose(rf"Re-linking implementation headers in '{xml_file}'")
 			xml_text = read_all_text_from_file(xml_file, logger=context.verbose_logger)
@@ -856,7 +855,22 @@ def postprocess_xml(context: Context):
 				xml = etree.parse(b, parser=xml_parser)
 				write_xml_to_file(xml, xml_file)
 
-	# convert the definition lists into compiled regexes since we've now extracted everything useful
+
+
+def postprocess_xml2(context: Context):
+	assert context is not None
+	assert isinstance(context, Context)
+
+	g = doxygen.read_graph_from_xml(context.temp_xml_dir, logger=context.logger)
+	delete_directory(context.temp_xml_dir, logger=context.logger)
+	doxygen.write_graph_to_xml(g, context.temp_xml_dir)
+
+
+
+def compile_syntax_highlighter_regexes(context: Context):
+	assert context is not None
+	assert isinstance(context, Context)
+
 	context.code_blocks.namespaces = regex_or(
 		context.code_blocks.namespaces, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?'
 	)
@@ -1374,13 +1388,29 @@ def run(
 		if not context.output_html and not context.output_xml:
 			return
 
-		# generate + postprocess XML
+		# generate + postprocess XML in temp_xml_dir
 		# (we always do this even when output_xml is false because it is required by the html)
 		with timer(r'Generating XML files with Doxygen') as t:
 			run_doxygen(context)
 		with timer(r'Post-processing XML files') as t:
 			postprocess_xml(context)
+			#postprocess_xml2(context)
+			pass
 
+		# postprocess_xml extracts type information so now we can compile the highlighter regexes
+		compile_syntax_highlighter_regexes(context)
+
+		# XML (the user-requested copy)
+		if context.output_xml:
+
+			with ScopeTimer(r'Copying XML', print_start=True, print_end=context.verbose_logger) as t:
+				copy_tree(str(context.temp_xml_dir), str(context.xml_dir))
+
+			# copy tagfile
+			if context.generate_tagfile:
+				copy_file(context.tagfile_path, context.xml_dir, logger=context.verbose_logger)
+
+		# HTML
 		if context.output_html:
 
 			# generate HTML with mcss
@@ -1400,15 +1430,10 @@ def run(
 				with ScopeTimer(r'Copying fonts', print_start=True, print_end=context.verbose_logger) as t:
 					copy_tree(str(dirs.FONTS), str(Path(context.assets_dir, r'fonts')))
 
-			# copy tagfile into the HTML dir
+			# copy tagfile
 			if context.generate_tagfile:
 				copy_file(context.tagfile_path, context.html_dir, logger=context.verbose_logger)
 
 			# post-process html files
 			with timer(r'Post-processing HTML files') as t:
 				postprocess_html(context)
-
-		# copy tagfile into the XML dir
-		# (done last so the XML files don't interfere with m.css etc)
-		if context.generate_tagfile and context.output_xml:
-			copy_file(context.tagfile_path, context.xml_dir, logger=context.verbose_logger)

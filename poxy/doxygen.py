@@ -8,7 +8,9 @@ Functions and classes for working with Doxygen.
 """
 
 import subprocess
+from lxml import etree
 from .utils import *
+from . import graph
 
 #=======================================================================================================================
 # functions
@@ -135,7 +137,7 @@ class Doxyfile(object):
 		if self.__output_path is not None:
 			log(self.__logger, rf'Writing {self.__output_path}')
 			with open(self.__output_path, 'w', encoding='utf-8', newline='\n') as f:
-				print(self.__text, file=f)
+				f.write(self.__text)
 
 	def hash(self):
 		return sha1(self.__text)
@@ -209,3 +211,170 @@ class Doxyfile(object):
 	def __exit__(self, type, value, traceback):
 		if traceback is None and self.__autoflush:
 			self.flush()
+
+
+
+#=======================================================================================================================
+# XML <=> Graph
+#=======================================================================================================================
+
+COMPOUNDS = {r'dir', r'file', r'group', r'page', r'class', r'struct', r'union', r'concept', r'namespace'}
+KINDS = {*COMPOUNDS, r'typedef', r'enum', r'enumvalue', r'variable', r'function', r'define'}
+KINDS_TO_NODE_TYPES = {
+	r'dir': graph.Directory,
+	r'file': graph.File,
+	r'group': graph.Group,
+	r'class': graph.Class,
+	r'struct': graph.Struct,
+	r'union': graph.Union,
+	r'concept': graph.Concept,
+	r'namespace': graph.Namespace,
+	r'typedef': graph.Typedef,
+	r'enum': graph.Enum,
+	r'enumvalue': graph.Variable,
+	r'variable': graph.Variable,
+	r'function': graph.Namespace,
+	r'define': graph.Namespace
+}
+NODE_TYPES_TO_KINDS = {t: k for k, t in KINDS_TO_NODE_TYPES.items()}
+
+
+
+def _to_kind(node_type) -> str:
+	if node_type is None:
+		return None
+	global NODE_TYPES_TO_KINDS
+	assert node_type in NODE_TYPES_TO_KINDS
+	return NODE_TYPES_TO_KINDS[node_type]
+
+
+
+def _to_node_type(kind: str):
+	if kind is None:
+		return None
+	global KINDS_TO_NODE_TYPES
+	assert kind in KINDS_TO_NODE_TYPES
+	return KINDS_TO_NODE_TYPES[kind]
+
+
+
+def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, logger=None):
+	assert g is not None
+	assert path is not None
+	assert parser is not None
+
+	root = etree.fromstring(read_all_text_from_file(path, logger=logger).encode(r'utf-8'), parser=parser)
+
+	def extract_qualified_name(elem):
+		assert elem is not None
+		for tag in (r'qualifiedname', r'compoundname', r'name'):
+			n = elem.find(tag)
+			if n is not None:
+				n = n.text.strip()
+			if n:
+				return n
+		return None
+
+	if root.tag not in (r'doxygenindex', r'doxygen'):
+		return
+
+	if not hasattr(g, r'doxygen_version') and root.get(r'doxygen_version'):
+		g.doxygen_version = root.get(r'doxygen_version')
+	if not hasattr(g, r'doxygen_version') and root.get(r'version'):
+		g.doxygen_version = root.get(r'version')
+
+	# the index file:
+	if root.tag == r'doxygenindex':
+		for compound in root.findall(r'compound'):
+			node = g.get_or_create_node(compound.get(r'refid'))
+			node.type = _to_node_type(compound.get(r'kind'))
+			node.qualified_name = extract_qualified_name(compound)
+		return
+
+	# some compounddef
+	assert root.tag == r'doxygen'
+	root = root.find(r'compounddef')
+	if root is None:
+		return
+
+	node = g.get_or_create_node(root.get(r'id'))
+	node.type = _to_node_type(root.get(r'kind'))
+	node.qualified_name = extract_qualified_name(root)
+
+	# inners
+	for inner_suffix in (r'class', r'namespace', r'concept'):
+		for inner_elem in root.findall(rf'inner{inner_suffix}'):
+			inner = g.get_or_create_node(inner_elem.get(r'refid'))
+			if inner_suffix == r'class':
+				if inner.id.startswith(r'class'):
+					inner.type = graph.Class
+				elif inner.id.startswith(r'struct'):
+					inner.type = graph.Struct
+				elif inner.id.startswith(r'union'):
+					inner.type = graph.Union
+			else:
+				inner.type = _to_node_type(inner_suffix)
+			inner.qualified_name = inner_elem
+			node.add_child(inner)
+
+
+
+def read_graph_from_xml(folder, logger=None) -> graph.Graph:
+	assert folder is not None
+	folder = coerce_path(folder).resolve()
+	parser = etree.XMLParser(
+		remove_blank_text=True,  #
+		recover=True,
+		remove_comments=True,
+		ns_clean=True,
+		encoding=r'utf-8'
+	)
+	g = graph.Graph()
+	for path in get_all_files(folder, all=r"*.xml"):
+		_parse_xml_file(g=g, path=path, parser=parser, logger=logger)
+	if not hasattr(g, r'doxygen_version'):
+		g.doxygen_version = r'1.9.0'
+	return g
+
+
+
+def write_graph_to_xml(g: graph.Graph, folder: Path):
+	assert folder is not None
+	folder.mkdir(exist_ok=True, parents=True)
+	parser = etree.XMLParser(
+		remove_blank_text=True,  #
+		recover=True,
+		remove_comments=True,
+		ns_clean=True,
+		strip_cdata=True
+	)
+
+	version = getattr(g, r'doxygen_version', r'1.9.0')
+
+	# serialize the compound nodes
+	global COMPOUNDS
+	for id, node in g:
+		if not node:
+			continue
+		kind = _to_kind(node.type)
+		if kind not in COMPOUNDS:
+			continue
+		path = Path(folder, rf'{node.id}.xml')
+		xml = etree.ElementTree(
+			etree.XML(
+			rf'''<doxygen
+						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+						xsi:noNamespaceSchemaLocation="compound.xsd"
+						version="{version}"
+						xml:lang="en-US">
+					<compounddef id="{node.id}" kind="{kind}" language="C++">
+						<compoundname>{node.qualified_name}</compoundname>
+					</compounddef>
+				</doxygen>''',
+			parser=parser
+			)
+		)
+
+		root = xml.getroot().find(r'compounddef')
+
+		xml.write(str(path), encoding=r'utf-8', pretty_print=True, xml_declaration=True, standalone=None)

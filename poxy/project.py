@@ -1310,7 +1310,10 @@ class Context(object):
 		self.threads = max(1, min(os.cpu_count(), threads))
 		self.verbose_value(r'Context.threads', self.threads)
 
-		self.fixers = None
+		# these are overridden/initialized elsewhere; they're here so duck-typing still quacks
+		self.fixers = []
+		self.compound_pages = dict()
+		self.compound_kinds = set()
 
 		# initial warning state
 		# note that this is overwritten after the config is read;
@@ -1367,7 +1370,7 @@ class Context(object):
 			assert_existing_directory(self.input_dir)
 			assert self.input_dir.is_absolute()
 
-			# temp dirs
+			# root temp dir for this run
 			self.temp_dir = re.sub(r'''[!@#$%^&*()+={}<>;:'"_\\/\n\t -]+''', r'_', str(self.input_dir).strip(r'\/'))
 			if len(self.temp_dir) > 256:
 				self.temp_dir = str(self.input_dir)
@@ -1376,21 +1379,32 @@ class Context(object):
 				self.temp_dir = sha1(self.temp_dir)
 			self.temp_dir = Path(dirs.TEMP, self.temp_dir)
 			self.verbose_value(r'Context.temp_dir', self.temp_dir)
-			self.temp_pages_dir = Path(self.temp_dir, r'pages')
-			self.verbose_value(r'Context.temp_pages_dir', self.temp_pages_dir)
 			assert self.temp_dir.is_absolute()
+
+			# temp pages dir
+			self.temp_pages_dir = Path(self.temp_dir, r'pages')
+			self.verbose_value(r'Context.pages_dir', self.temp_pages_dir)
 			assert self.temp_pages_dir.is_absolute()
 
-			# output paths
-			self.xml_dir = Path(self.output_dir, r'xml') if self.output_xml else Path(self.temp_dir, r'xml')
+			# temp xml output path used by doxygen
+			self.temp_xml_dir = Path(self.temp_dir, r'xml')
+			self.verbose_value(r'Context.temp_xml_dir', self.temp_xml_dir)
+			assert self.temp_xml_dir.is_absolute()
+
+			# xml output path (--xml)
+			self.xml_dir = Path(self.output_dir, r'xml')
 			self.verbose_value(r'Context.xml_dir', self.xml_dir)
-			self.html_dir = Path(self.output_dir, r'html')
-			self.assets_dir = Path(self.html_dir, r'poxy')
-			self.verbose_value(r'Context.html_dir', self.html_dir)
-			self.verbose_value(r'Context.assets_dir', self.assets_dir)
-			assert self.output_dir.is_absolute()
 			assert self.xml_dir.is_absolute()
+
+			# html output path (--xml)
+			self.html_dir = Path(self.output_dir, r'html')
+			self.verbose_value(r'Context.html_dir', self.html_dir)
 			assert self.html_dir.is_absolute()
+
+			# assets subdir in html output
+			self.assets_dir = Path(self.html_dir, r'poxy')
+			self.verbose_value(r'Context.assets_dir', self.assets_dir)
+			assert self.assets_dir.is_absolute()
 
 			# blog dir
 			self.blog_dir = Path(self.input_dir, r'blog')
@@ -1398,9 +1412,9 @@ class Context(object):
 			assert self.blog_dir.is_absolute()
 
 			# delete leftovers from previous run and initialize temp dirs
-			delete_directory(Path(self.output_dir, r'xml'), logger=self.verbose_logger)
-			delete_directory(self.html_dir, logger=self.verbose_logger)
 			delete_directory(self.temp_dir, logger=self.verbose_logger)
+			delete_directory(self.xml_dir, logger=self.verbose_logger)
+			delete_directory(self.html_dir, logger=self.verbose_logger)
 			self.temp_dir.mkdir(exist_ok=True, parents=True)
 			self.temp_pages_dir.mkdir(exist_ok=True, parents=True)
 

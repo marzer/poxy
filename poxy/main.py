@@ -9,7 +9,6 @@ The various entry-point methods used when poxy is invoked from the command line.
 
 import argparse
 import datetime
-import shutil
 from schema import SchemaError
 from .utils import *
 from .run import run

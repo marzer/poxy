@@ -1,0 +1,119 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+  <compounddef id="namespacetest" kind="namespace" language="C++">
+    <compoundname>test</compoundname>
+    <sectiondef kind="enum">
+      <memberdef kind="enum" id="namespacetest_1a3a2b94881b2cd4942667975879b992b9" prot="public" static="no" strong="no">
+        <type/>
+        <name>scoped_enum</name>
+        <qualifiedname>test::scoped_enum</qualifiedname>
+        <enumvalue id="namespacetest_1a3a2b94881b2cd4942667975879b992b9a6213c48b94bbb16eb0c651aefaf24ea7" prot="public">
+          <name>val_0</name>
+          <briefdescription>
+<para>Value zero. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="namespacetest_1a3a2b94881b2cd4942667975879b992b9ac4dee934709e2f9294ce014a21c6a417" prot="public">
+          <name>val_1</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>Value one. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="namespacetest_1a3a2b94881b2cd4942667975879b992b9aa7a802b397c1b97cdcebd36241979e4a" prot="public">
+          <name>val_2</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+<para>Value two. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>A C++11 scoped enum. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>More info. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/code.h" line="84" column="1" bodyfile="src/code.h" bodystart="85" bodyend="91"/>
+      </memberdef>
+      <memberdef kind="enum" id="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065" prot="public" static="no" strong="no">
+        <type/>
+        <name>unscoped_enum</name>
+        <qualifiedname>test::unscoped_enum</qualifiedname>
+        <enumvalue id="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065a3b6f77dbd09e17c5e8a30dcd3474012f" prot="public">
+          <name>LEGACY_ENUM_VAL_0</name>
+          <briefdescription>
+<para>Value zero. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065af18ad5a3bf0d316003544836a8734fd4" prot="public">
+          <name>LEGACY_ENUM_VAL_1</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>Value one. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065a731c49ced9fc7748acfebc0a4910494d" prot="public">
+          <name>LEGACY_ENUM_VAL_2</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+<para>Value two. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>A pre-C++11 unscoped enum. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>More info. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/code.h" line="73" column="1" bodyfile="src/code.h" bodystart="74" bodyend="80"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacetest_1af2f5b0612e98ea3ef9de39eb10981879" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>constexpr bool</type>
+        <definition>constexpr bool test::inline_variable</definition>
+        <argsstring/>
+        <name>inline_variable</name>
+        <qualifiedname>test::inline_variable</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+<para>An inline variable. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>More info. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/code.h" line="13" column="23" bodyfile="src/code.h" bodystart="13" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>A namespace. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>More info. </para>
+    </detaileddescription>
+    <location file="src/code.h" line="9" column="1"/>
+  <innerclass refid="classtest_1_1class__1" prot="public">test::class_1</innerclass>
+    <innernamespace refid="namespacetest_1_1empty">test::empty</innernamespace>
+    <innernamespace refid="namespacetest_1_1nested">test::nested</innernamespace>
+      <innerclass refid="structtest_1_1struct__1" prot="public">test::struct_1</innerclass>
+    <innerclass refid="classtest_1_1template__class__1" prot="public">test::template_class_1</innerclass>
+    <innerconcept refid="concepttest_1_1concept__1" prot="public">test::concept_1</innerconcept></compounddef>
+</doxygen>

@@ -44,7 +44,7 @@ def has_mcss_filename(path) -> bool:
 
 
 
-def resolve_imports(text, cwd=None, use_cached_fonts=True) -> Tuple[str, bool]:
+def resolve_imports(text, cwd=None, use_cached_fonts=True) -> typing.Tuple[str, bool]:
 	if cwd is None:
 		cwd = Path.cwd()
 	cwd = coerce_path(cwd).resolve()
