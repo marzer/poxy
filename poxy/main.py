@@ -164,13 +164,13 @@ def main(invoker=True):
 		help=argparse.SUPPRESS,
 		dest=r'mcss'
 	)
-	args.add_argument( # --xml and --html are the replacements for --xmlonly 
+	args.add_argument( # --xml and --html are the replacements for --xmlonly
 		r'--xmlonly',  #
 		action=r'store_true',
 		help=argparse.SUPPRESS,
 	)
 	args.add_argument(
-		r'--experimental-xml-v2',  #
+		r'--xml-v2',  #
 		action=r'store_true',
 		help=argparse.SUPPRESS
 	)
@@ -208,7 +208,10 @@ def main(invoker=True):
 			raise Exception(
 				f'{dirs.TESTS} did not exist or was not a directory (--update-tests is only for editable installations)'
 			)
-		run_python_script(Path(dirs.TESTS, r'regenerate_tests.py'))
+		run_python_script(
+			Path(dirs.TESTS, r'regenerate_tests.py'),  #
+			*[a for a in (r'--verbose' if args.verbose else None, r'--nocleanup' if args.nocleanup else None) if a]
+		)
 
 	if (args.update_styles or args.update_fonts or args.update_emoji or args.update_tests or args.mcss is not None):
 		return
@@ -239,7 +242,7 @@ def main(invoker=True):
 			theme=args.theme,
 			copy_assets=not args.noassets,
 			# kwargs:
-			experimental_xml_v2=args.experimental_xml_v2
+			xml_v2=args.xml_v2
 		)
 
 

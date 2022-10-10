@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
-<tagfile doxygen_version="1.9.5" doxygen_gitid="2f6875a5ca481a69a6f32650c77a667f87d25e88">
+<tagfile doxygen_version="0.0.0" doxygen_gitid="000000000000000000000000000000000000000">
   <compound kind="file">
     <name>code.h</name>
     <filename>code_8h.html</filename>
@@ -43,24 +43,9 @@
       <anchorfile>namespacetest.html</anchorfile>
       <anchor>a3a2b94881b2cd4942667975879b992b9</anchor>
       <arglist></arglist>
-    </member>
-    <member kind="enumvalue">
-      <name>val_0</name>
-      <anchorfile>namespacetest.html</anchorfile>
-      <anchor>a3a2b94881b2cd4942667975879b992b9a6213c48b94bbb16eb0c651aefaf24ea7</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="enumvalue">
-      <name>val_1</name>
-      <anchorfile>namespacetest.html</anchorfile>
-      <anchor>a3a2b94881b2cd4942667975879b992b9ac4dee934709e2f9294ce014a21c6a417</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="enumvalue">
-      <name>val_2</name>
-      <anchorfile>namespacetest.html</anchorfile>
-      <anchor>a3a2b94881b2cd4942667975879b992b9aa7a802b397c1b97cdcebd36241979e4a</anchor>
-      <arglist></arglist>
+      <enumvalue file="namespacetest.html" anchor="a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3">val_0</enumvalue>
+      <enumvalue file="namespacetest.html" anchor="a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641">val_1</enumvalue>
+      <enumvalue file="namespacetest.html" anchor="a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c">val_2</enumvalue>
     </member>
     <member kind="variable">
       <type>constexpr bool</type>
@@ -73,6 +58,34 @@
   <compound kind="class">
     <name>test::class_1</name>
     <filename>classtest_1_1class__1.html</filename>
+    <member kind="variable">
+      <type>bool</type>
+      <name>public_variable</name>
+      <anchorfile>classtest_1_1class__1.html</anchorfile>
+      <anchor>a1942e4b40fc0cc1b939b24d1c5f4e54c</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static constexpr bool</type>
+      <name>public_static_variable</name>
+      <anchorfile>classtest_1_1class__1.html</anchorfile>
+      <anchor>a27966148032ee64e169e8e24ad6c7449</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" protection="protected">
+      <type>bool</type>
+      <name>protected_variable</name>
+      <anchorfile>classtest_1_1class__1.html</anchorfile>
+      <anchor>ae4d8ef41c2f2be17d38d9eac40e53699</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" protection="protected" static="yes">
+      <type>static constexpr bool</type>
+      <name>protected_static_variable</name>
+      <anchorfile>classtest_1_1class__1.html</anchorfile>
+      <anchor>a330993e9b2ae74c6db1a28553759fe96</anchor>
+      <arglist></arglist>
+    </member>
   </compound>
   <compound kind="struct">
     <name>test::struct_1::nested_struct</name>
@@ -82,6 +95,16 @@
     <name>test::struct_1</name>
     <filename>structtest_1_1struct__1.html</filename>
     <class kind="struct">test::struct_1::nested_struct</class>
+    <member kind="enumeration">
+      <type></type>
+      <name>nested_enum</name>
+      <anchorfile>structtest_1_1struct__1.html</anchorfile>
+      <anchor>a2d7cf0473e91c0a7815b11dd2f213f0c</anchor>
+      <arglist></arglist>
+      <enumvalue file="structtest_1_1struct__1.html" anchor="a2d7cf0473e91c0a7815b11dd2f213f0ca209e4404bac5df6700a512df9e988ba3">val_0</enumvalue>
+      <enumvalue file="structtest_1_1struct__1.html" anchor="a2d7cf0473e91c0a7815b11dd2f213f0cad69dff41cc115965adfeaa0f58fed641">val_1</enumvalue>
+      <enumvalue file="structtest_1_1struct__1.html" anchor="a2d7cf0473e91c0a7815b11dd2f213f0ca3745be12e7d2d79a55682a6b1ef5863c">val_2</enumvalue>
+    </member>
     <member kind="variable" static="yes">
       <type>static constexpr bool</type>
       <name>static_variable</name>
@@ -143,24 +166,9 @@
       <anchorfile>namespacetest.html</anchorfile>
       <anchor>a3a2b94881b2cd4942667975879b992b9</anchor>
       <arglist></arglist>
-    </member>
-    <member kind="enumvalue">
-      <name>val_0</name>
-      <anchorfile>namespacetest.html</anchorfile>
-      <anchor>a3a2b94881b2cd4942667975879b992b9a6213c48b94bbb16eb0c651aefaf24ea7</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="enumvalue">
-      <name>val_1</name>
-      <anchorfile>namespacetest.html</anchorfile>
-      <anchor>a3a2b94881b2cd4942667975879b992b9ac4dee934709e2f9294ce014a21c6a417</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="enumvalue">
-      <name>val_2</name>
-      <anchorfile>namespacetest.html</anchorfile>
-      <anchor>a3a2b94881b2cd4942667975879b992b9aa7a802b397c1b97cdcebd36241979e4a</anchor>
-      <arglist></arglist>
+      <enumvalue file="namespacetest.html" anchor="a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3">val_0</enumvalue>
+      <enumvalue file="namespacetest.html" anchor="a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641">val_1</enumvalue>
+      <enumvalue file="namespacetest.html" anchor="a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c">val_2</enumvalue>
     </member>
     <member kind="variable">
       <type>constexpr bool</type>

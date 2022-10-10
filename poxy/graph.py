@@ -7,9 +7,8 @@
 Functions and types for working with C++ project graphs.
 """
 
-import enum
+import enum as _enum
 from .utils import *
-from lxml import etree
 
 #=======================================================================================================================
 # Node types
@@ -18,81 +17,97 @@ from lxml import etree
 
 
 class Namespace(object):
+	'''Namespaces.'''
 	pass
 
 
 
 class Class(object):
+	'''Classes.'''
 	pass
 
 
 
 class Struct(object):
+	'''Structs.'''
 	pass
 
 
 
 class Union(object):
+	'''Unions.'''
 	pass
 
 
 
 class Concept(object):
+	'''C++20 `concept`.'''
 	pass
 
 
 
 class Function(object):
+	'''Functions.'''
 	pass
 
 
 
 class Variable(object):
+	'''Variables.'''
 	pass
 
 
 
 class Enum(object):
+	'''Enums.'''
 	pass
 
 
 
 class EnumValue(object):
+	'''Enum values.'''
 	pass
 
 
 
 class Typedef(object):
+	'''Typedefs/aliases.'''
 	pass
 
 
 
 class Define(object):
+	'''Preprocessor `#defines`'''
 	pass
 
 
 
 class Group(object):
+	'''Groups (at the global level).'''
 	pass
 
 
 
 class MemberGroup(object):
+	'''Member groups (at the class/union/struct level).'''
 	pass
 
 
 
 class Article(object):
+	'''A documentation article (e.g. Doxygen's `@page`).'''
 	pass
 
 
 
 class Directory(object):
+	'''A directory in the filesystem.'''
 	pass
 
 
 
 class File(object):
+	'''A file.'''
 	pass
 
 
@@ -120,8 +135,8 @@ Directory.CAN_CONNECT_TO = {Directory, File}
 
 
 
-@enum.unique
-class ProtectionLevel(enum.Enum):
+@_enum.unique
+class AccessLevel(_enum.Enum):
 	PRIVATE = 0
 	PROTECTED = 1
 	PUBLIC = 2
@@ -136,10 +151,14 @@ class ProtectionLevel(enum.Enum):
 
 class Node(object):
 
+	class _Props(object):
+		pass
+
 	def __init__(self, id: str):
 		assert id is not None
 		self.__id = id
 		self.__connections = dict()
+		self.__props = Node._Props()
 
 	#==============
 	# getters
@@ -147,28 +166,28 @@ class Node(object):
 
 	def __property_get(self, name: str, out_type=None, default=None):
 		assert name is not None
-		val = getattr(self, rf'_Node__{name}', None)
-		if val is not None:
-			if out_type is not None and not isinstance(val, out_type):
-				val = out_type(val)
-			return val
-		return default
+		value = getattr(self.__props, str(name), None)
+		if value is None:
+			value = default
+		if value is not None and out_type is not None and not isinstance(value, out_type):
+			value = out_type(value)
+		return value
 
 	@property
 	def id(self) -> str:
 		return self.__id
 
 	@property
-	def type(self):
-		return self.__property_get(r'type')
+	def node_type(self):
+		return self.__property_get(r'node_type')
 
 	@property
-	def has_type(self) -> bool:
-		return self.type is not None
+	def has_node_type(self) -> bool:
+		return self.node_type is not None
 
 	@property
-	def type_name(self) -> str:
-		t = self.type
+	def node_type_name(self) -> str:
+		t = self.node_type
 		if t is None:
 			return ''
 		return t.__name__
@@ -180,6 +199,14 @@ class Node(object):
 	@property
 	def local_name(self) -> str:
 		return self.__property_get(r'local_name', str, r'')
+
+	@property
+	def type(self) -> str:
+		return self.__property_get(r'type', str, r'')
+
+	@property
+	def definition(self) -> str:
+		return self.__property_get(r'definition', str, r'')
 
 	@property
 	def static(self) -> bool:
@@ -222,10 +249,17 @@ class Node(object):
 		return self.__property_get(r'virtual', bool, False)
 
 	@property
-	def protection_level(self) -> ProtectionLevel:
+	def mutable(self) -> bool:
+		return self.__property_get(r'mutable', bool, False)
+
+	@property
+	def strong(self) -> bool:
+		return self.__property_get(r'strong', bool, False)
+
+	@property
+	def access_level(self) -> AccessLevel:
 		return self.__property_get(
-			r'protection_level', ProtectionLevel,
-			ProtectionLevel.PRIVATE if self.type is Class else ProtectionLevel.PUBLIC
+			r'access_level', AccessLevel, AccessLevel.PRIVATE if self.node_type is Class else AccessLevel.PUBLIC
 		)
 
 	@property
@@ -237,17 +271,18 @@ class Node(object):
 		return self.__property_get(r'detail', str, r'')
 
 	def __bool__(self) -> bool:
-		return self.has_type and bool(self.id) and bool(self.qualified_name)
+		return self.has_node_type and bool(self.id)
 
 	#==============
 	# setters
 	#==============
 
+	def __property_is_set(self, name: str) -> bool:
+		assert name is not None
+		return hasattr(self.__props, str(name))
+
 	def __property_set(self, name: str, out_type, value):
 		assert name is not None
-		# lxml elements can be assigned directly to take their text as a value
-		if isinstance(value, (etree.ElementBase, etree._Element)):
-			value = value.text
 		# known types that have a sensible __bool__ operator can convert to None if false
 		if isinstance(value, (str, Path, list, tuple, dict)):
 			value = value if value else None
@@ -260,26 +295,25 @@ class Node(object):
 					value = True
 				else:
 					raise Exception(rf"C++ node '{self.id}' property '{name}' could not parse a boolean from '{value}'")
-			elif out_type is ProtectionLevel:
+			elif out_type is AccessLevel:
 				if value.lower() in (r'pub', r'public'):
-					value = ProtectionLevel.PUBLIC
+					value = AccessLevel.PUBLIC
 				elif value.lower() in (r'prot', r'protected'):
-					value = ProtectionLevel.PROTECTED
+					value = AccessLevel.PROTECTED
 				elif value.lower() in (r'priv', r'private'):
-					value = ProtectionLevel.PRIVATE
+					value = AccessLevel.PRIVATE
 				else:
 					raise Exception(
-						rf"C++ node '{self.id}' property '{name}' could not parse protection level from '{value}'"
+						rf"C++ node '{self.id}' property '{name}' could not parse access level from '{value}'"
 					)
-				assert isinstance(value, ProtectionLevel)
+				assert isinstance(value, AccessLevel)
 		# None == keep whatever the current value is (no-op)
 		# (None is never a valid value for a real graph attribute)
 		if value is None:
 			return
 		if out_type is not None and not isinstance(value, out_type):
-			print(value)
 			value = out_type(value)
-		current = getattr(self, rf'_Node__{name}', None)
+		current = getattr(self.__props, str(name), None)
 		# it's OK if there's already a value as long as it's identical to the new one,
 		# otherwise we throw so that we can detect when the source data is bad or the adapter is faulty
 		# (since if a property _can_ be defined in multiple places it should be identical in all of them)
@@ -293,38 +327,76 @@ class Node(object):
 					rf"C++ node '{self.id}' property '{name}' first seen with value {current}, now seen with value {value}"
 				)
 			return
-		setattr(self, rf'_Node__{name}', value)
+		setattr(self.__props, str(name), value)
 
-	@type.setter
-	def type(self, value):
+	@node_type.setter
+	def node_type(self, value):
 		global NODE_TYPES
 		if value is None:
 			return
 		if value not in NODE_TYPES:
 			raise Exception(rf"Unknown C++ node type '{value}'")
-		had_type = self.has_type
-		self.__property_set(r'type', None, value)
-		# if this was the setter responsible for enforcing the type, validate all existing connections
-		# (since so far they have gone unchecked)
-		if had_type != self.has_type:
-			for id, node in self.__connections:
+		had_node_type = self.has_node_type
+		self.__property_set(r'node_type', None, value)
+		if had_node_type != self.has_node_type:
+			self.__deduce_local_name()
+			for _, node in self.__connections:
 				Node._check_connection(self, node)
 
-	@qualified_name.setter
-	def qualified_name(self, value: str):
-		self.__property_set(r'qualified_name', str, value)
-		if self.qualified_name and not self.local_name and self.type in (
-			Namespace, Class, Struct, Union, Concept, Function, Variable, Enum, Typedef
-		):
+	def __deduce_local_name(self):
+		if not self.qualified_name or self.local_name or not self.has_node_type:
+			return
+		if self.node_type in (Namespace, Class, Struct, Union, Concept, Function, Variable, Enum, Typedef):
 			ln = self.qualified_name
+			if ln.find(r'<') != -1:  # templates might have template args with '::' so ignore them
+				return
 			pos = ln.rfind(r'::')
 			if pos != -1:
 				ln = ln[pos + 2:]
-			ln = self.local_name
+			self.local_name = ln
+		elif self.node_type in (Directory, File):
+			ln = self.qualified_name
+			pos = ln.rfind(r'/')
+			if pos != -1:
+				ln = ln[pos + 1:]
+			self.local_name = ln
+
+	@qualified_name.setter
+	def qualified_name(self, value: str):
+		if value is not None:
+			value = str(value).strip()
+		self.__property_set(r'qualified_name', str, value)
+		self.__deduce_local_name()
 
 	@local_name.setter
 	def local_name(self, value: str):
+		if value is not None:
+			value = str(value).strip()
 		self.__property_set(r'local_name', str, value)
+
+	@type.setter
+	def type(self, value: str):
+		if value is not None:
+			value = str(value).strip()
+		# extract constexpr, constinit, static, mutable etc out of the type if possible
+		attrs = re.fullmatch(r'^((?:(?:const(?:expr|init|eval)|static|mutable)\s)+).*?$', value)
+		if attrs:
+			value = value[len(attrs[1]):].strip()
+			if attrs[1].find(r'constexpr') != -1:
+				self.constexpr = True
+			if attrs[1].find(r'constinit') != -1:
+				self.constinit = True
+			if attrs[1].find(r'consteval') != -1:
+				self.consteval = True
+			if attrs[1].find(r'static') != -1:
+				self.static = True
+			if attrs[1].find(r'mutable') != -1:
+				self.mutable = True
+		self.__property_set(r'type', str, value)
+
+	@definition.setter
+	def definition(self, value: str):
+		self.__property_set(r'definition', str, value)
 
 	@static.setter
 	def static(self, value: bool):
@@ -366,9 +438,17 @@ class Node(object):
 	def virtual(self, value: bool):
 		self.__property_set(r'virtual', bool, value)
 
-	@protection_level.setter
-	def protection_level(self, value: ProtectionLevel):
-		self.__property_set(r'protection_level', ProtectionLevel, value)
+	@mutable.setter
+	def mutable(self, value: bool):
+		self.__property_set(r'mutable', bool, value)
+
+	@strong.setter
+	def strong(self, value: bool):
+		self.__property_set(r'strong', bool, value)
+
+	@access_level.setter
+	def access_level(self, value: AccessLevel):
+		self.__property_set(r'access_level', AccessLevel, value)
 
 	#==============
 	# membership
@@ -385,18 +465,18 @@ class Node(object):
 		assert dest is not None
 		assert isinstance(dest, Node)
 
-		# self-connection is always illegal, regardless of type information
+		# self-connection is always illegal, regardless of node_type information
 		if id(source) == id(dest):
 			raise Exception(rf"C++ node '{source.id}' may not connect to itself")
 
-		# otherwise if we don't have type information the connection is 'OK'
+		# otherwise if we don't have node_type information the connection is 'OK'
 		# (really this just means we defer the check until later)
-		if not source.has_type or not dest.has_type:
+		if not source.has_node_type or not dest.has_node_type:
 			return
 
-		if dest.type not in source.type.CAN_CONNECT_TO:
+		if dest.node_type not in source.node_type.CAN_CONNECT_TO:
 			raise Exception(
-				rf"C++ node '{source.id}' with type {source.type_name} is not allowed to connect to nodes of type {dest.type_name}"
+				rf"C++ node '{source.id}' with type {source.node_type_name} is not allowed to connect to nodes of type {dest.node_type_name}"
 			)
 
 	def connect_to(self, dest):
@@ -425,22 +505,22 @@ class Node(object):
 		for id, node in self.__connections.items():
 			yield (id, node)
 
-	def iterator(self, *types):
-		assert types is not None
-		if not types:
+	def __call__(self, *node_types):
+		assert node_types is not None
+		if not node_types:
 			return self.__iter__()
 
 		global NODE_TYPES
-		for t in types:
+		for t in node_types:
 			assert t is None or isinstance(t, bool) or t in NODE_TYPES
 
 		def make_generator(nodes):
-			nonlocal types
-			yield_with_no_type = False in types or None in types
-			yield_with_any_type = True in types
+			nonlocal node_types
+			yield_with_no_node_type = False in node_types or None in node_types
+			yield_with_any_node_type = True in node_types
 			for id, node in nodes:
-				if ((node.type is None and yield_with_no_type)
-					or (node.type is not None and (yield_with_any_type or node.type in types))):
+				if ((node.node_type is None and yield_with_no_node_type)
+					or (node.node_type is not None and (yield_with_any_node_type or node.node_type in node_types))):
 					yield (id, node)
 
 		return make_generator(self.__connections.items())
@@ -473,22 +553,22 @@ class Graph(object):
 		for id, node in self.__nodes.items():
 			yield (id, node)
 
-	def iterator(self, *types):
-		assert types is not None
-		if not types:
+	def __call__(self, *node_types):
+		assert node_types is not None
+		if not node_types:
 			return self.__iter__()
 
 		global NODE_TYPES
-		for t in types:
+		for t in node_types:
 			assert t is None or isinstance(t, bool) or t in NODE_TYPES
 
 		def make_generator(nodes):
-			nonlocal types
-			yield_with_no_type = False in types or None in types
-			yield_with_any_type = True in types
+			nonlocal node_types
+			yield_with_no_node_type = False in node_types or None in node_types
+			yield_with_any_node_type = True in node_types
 			for id, node in nodes:
-				if ((node.type is None and yield_with_no_type)
-					or (node.type is not None and (yield_with_any_type or node.type in types))):
+				if ((node.node_type is None and yield_with_no_node_type)
+					or (node.node_type is not None and (yield_with_any_node_type or node.node_type in node_types))):
 					yield (id, node)
 
 		return make_generator(self.__nodes.items())

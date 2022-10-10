@@ -1166,6 +1166,7 @@ def postprocess_html(context: Context):
 
 	context.fixers = (
 		fixers.MarkTOC(),
+		fixers.Pygments(),
 		fixers.CodeBlocks(),
 		fixers.Banner(),
 		fixers.CPPModifiers1(),
@@ -1397,7 +1398,7 @@ def run(
 		with timer(r'Generating XML files with Doxygen') as t:
 			run_doxygen(context)
 		with timer(r'Post-processing XML files') as t:
-			if context.experimental_xml_v2:
+			if context.xml_v2:
 				postprocess_xml_v2(context)
 			else:
 				postprocess_xml(context)

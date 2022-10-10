@@ -1,10 +1,20 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="0.0.0" xml:lang="en-US">
   <compound refid="classtest_1_1class__1" kind="class"><name>test::class_1</name>
+    <member refid="classtest_1_1class__1_1a27966148032ee64e169e8e24ad6c7449" kind="variable"><name>public_static_variable</name></member>
+    <member refid="classtest_1_1class__1_1a1942e4b40fc0cc1b939b24d1c5f4e54c" kind="variable"><name>public_variable</name></member>
+    <member refid="classtest_1_1class__1_1a330993e9b2ae74c6db1a28553759fe96" kind="variable"><name>protected_static_variable</name></member>
+    <member refid="classtest_1_1class__1_1ae4d8ef41c2f2be17d38d9eac40e53699" kind="variable"><name>protected_variable</name></member>
+    <member refid="classtest_1_1class__1_1a2c7531e04784d4531785b2daac34a28c" kind="variable"><name>private_static_variable</name></member>
+    <member refid="classtest_1_1class__1_1a75103e4c3f5e4bc442416e302be44c57" kind="variable"><name>private_variable</name></member>
   </compound>
   <compound refid="structtest_1_1struct__1_1_1nested__struct" kind="struct"><name>test::struct_1::nested_struct</name>
   </compound>
   <compound refid="structtest_1_1struct__1" kind="struct"><name>test::struct_1</name>
+    <member refid="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0c" kind="enum"><name>nested_enum</name></member>
+    <member refid="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0ca209e4404bac5df6700a512df9e988ba3" kind="enumvalue"><name>val_0</name></member>
+    <member refid="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0cad69dff41cc115965adfeaa0f58fed641" kind="enumvalue"><name>val_1</name></member>
+    <member refid="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0ca3745be12e7d2d79a55682a6b1ef5863c" kind="enumvalue"><name>val_2</name></member>
     <member refid="structtest_1_1struct__1_1a93dfbf581e6e3abb295161832143dc75" kind="variable"><name>static_variable</name></member>
   </compound>
   <compound refid="classtest_1_1template__class__1" kind="class"><name>test::template_class_1</name>
@@ -19,9 +29,9 @@
     <member refid="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065af18ad5a3bf0d316003544836a8734fd4" kind="enumvalue"><name>LEGACY_ENUM_VAL_1</name></member>
     <member refid="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065a731c49ced9fc7748acfebc0a4910494d" kind="enumvalue"><name>LEGACY_ENUM_VAL_2</name></member>
     <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9" kind="enum"><name>scoped_enum</name></member>
-    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9a6213c48b94bbb16eb0c651aefaf24ea7" kind="enumvalue"><name>val_0</name></member>
-    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9ac4dee934709e2f9294ce014a21c6a417" kind="enumvalue"><name>val_1</name></member>
-    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9aa7a802b397c1b97cdcebd36241979e4a" kind="enumvalue"><name>val_2</name></member>
+    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3" kind="enumvalue"><name>val_0</name></member>
+    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641" kind="enumvalue"><name>val_1</name></member>
+    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c" kind="enumvalue"><name>val_2</name></member>
     <member refid="namespacetest_1af2f5b0612e98ea3ef9de39eb10981879" kind="variable"><name>inline_variable</name></member>
   </compound>
   <compound refid="namespacetest_1_1empty" kind="namespace"><name>test::empty</name>
@@ -34,9 +44,9 @@
     <member refid="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065af18ad5a3bf0d316003544836a8734fd4" kind="enumvalue"><name>LEGACY_ENUM_VAL_1</name></member>
     <member refid="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065a731c49ced9fc7748acfebc0a4910494d" kind="enumvalue"><name>LEGACY_ENUM_VAL_2</name></member>
     <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9" kind="enum"><name>scoped_enum</name></member>
-    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9a6213c48b94bbb16eb0c651aefaf24ea7" kind="enumvalue"><name>val_0</name></member>
-    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9ac4dee934709e2f9294ce014a21c6a417" kind="enumvalue"><name>val_1</name></member>
-    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9aa7a802b397c1b97cdcebd36241979e4a" kind="enumvalue"><name>val_2</name></member>
+    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3" kind="enumvalue"><name>val_0</name></member>
+    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641" kind="enumvalue"><name>val_1</name></member>
+    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c" kind="enumvalue"><name>val_2</name></member>
     <member refid="namespacetest_1af2f5b0612e98ea3ef9de39eb10981879" kind="variable"><name>inline_variable</name></member>
   </compound>
   <compound refid="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir"><name>src</name>

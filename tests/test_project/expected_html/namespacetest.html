@@ -73,7 +73,15 @@
             </li>
           </ul>
         </nav>
-<p>More info.</p>
+<p>More info. Here's some C++:</p><pre class="m-code"><span class="k">int</span> <span class="nf">foo</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="mi">42_a_numeric_udl</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">const</span> <span class="k">char</span><span class="o">*</span> <span class="nf">bar</span><span class="p">()</span> <span class="k">noexcept</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="s">""_a_string_udl</span><span class="p">;</span>
+<span class="p">}</span></pre>
         <section id="namespaces">
           <h2><a href="#namespaces">Namespaces</a></h2>
           <dl class="m-doc">
@@ -115,9 +123,9 @@
           <h2><a href="#enum-members">Enums</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">enum <a class="m-doc" href="#a3a2b94881b2cd4942667975879b992b9">scoped_enum</a> { </span><span class="m-doc-wrap"><a class="m-doc" href="#a3a2b94881b2cd4942667975879b992b9a6213c48b94bbb16eb0c651aefaf24ea7">val_0</a>,
-              <a class="m-doc" href="#a3a2b94881b2cd4942667975879b992b9ac4dee934709e2f9294ce014a21c6a417">val_1</a> = 1,
-              <a class="m-doc" href="#a3a2b94881b2cd4942667975879b992b9aa7a802b397c1b97cdcebd36241979e4a">val_2</a> = 2 }</span>
+              <span class="m-doc-wrap-bumper">enum class <a class="m-doc" href="#a3a2b94881b2cd4942667975879b992b9">scoped_enum</a> { </span><span class="m-doc-wrap"><a class="m-doc" href="#a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3">val_0</a>,
+              <a class="m-doc" href="#a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641">val_1</a> = 1,
+              <a class="m-doc" href="#a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c">val_2</a> = 2 }</span>
             </dt>
             <dd>A C++11 scoped enum.</dd>
             <dt>
@@ -141,7 +149,7 @@
           <h2>Enum documentation</h2>
           <section class="m-doc-details" id="a3a2b94881b2cd4942667975879b992b9"><div>
             <h3>
-              enum test::<wbr/><a class="m-doc-self" href="#a3a2b94881b2cd4942667975879b992b9">scoped_enum</a>
+              enum class test::<wbr/><a class="m-doc-self" href="#a3a2b94881b2cd4942667975879b992b9">scoped_enum</a>
               <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="code_8h.html">&lt;src/code.h&gt;</a></div>
             </h3>
             <p>A C++11 scoped enum.</p>
@@ -150,19 +158,19 @@
               <thead><tr><th style="width: 1%">Enumerators</th><th></th></tr></thead>
               <tbody>
                 <tr>
-                  <td><a class="m-doc-self" href="#a3a2b94881b2cd4942667975879b992b9a6213c48b94bbb16eb0c651aefaf24ea7" id="a3a2b94881b2cd4942667975879b992b9a6213c48b94bbb16eb0c651aefaf24ea7">val_0</a></td>
+                  <td><a class="m-doc-self" href="#a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3" id="a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3">val_0</a></td>
                   <td>
                   <p>Value zero.</p>
                   </td>
                 </tr>
                 <tr>
-                  <td><a class="m-doc-self" href="#a3a2b94881b2cd4942667975879b992b9ac4dee934709e2f9294ce014a21c6a417" id="a3a2b94881b2cd4942667975879b992b9ac4dee934709e2f9294ce014a21c6a417">val_1</a></td>
+                  <td><a class="m-doc-self" href="#a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641" id="a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641">val_1</a></td>
                   <td>
                   <p>Value one.</p>
                   </td>
                 </tr>
                 <tr>
-                  <td><a class="m-doc-self" href="#a3a2b94881b2cd4942667975879b992b9aa7a802b397c1b97cdcebd36241979e4a" id="a3a2b94881b2cd4942667975879b992b9aa7a802b397c1b97cdcebd36241979e4a">val_2</a></td>
+                  <td><a class="m-doc-self" href="#a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c" id="a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c">val_2</a></td>
                   <td>
                   <p>Value two.</p>
                   </td>

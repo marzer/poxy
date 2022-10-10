@@ -3,11 +3,11 @@
   <compounddef id="namespacetest" kind="namespace" language="C++">
     <compoundname>test</compoundname>
     <sectiondef kind="enum">
-      <memberdef kind="enum" id="namespacetest_1a3a2b94881b2cd4942667975879b992b9" prot="public" static="no" strong="no">
+      <memberdef kind="enum" id="namespacetest_1a3a2b94881b2cd4942667975879b992b9" prot="public" static="no" strong="yes">
         <type/>
         <name>scoped_enum</name>
         <qualifiedname>test::scoped_enum</qualifiedname>
-        <enumvalue id="namespacetest_1a3a2b94881b2cd4942667975879b992b9a6213c48b94bbb16eb0c651aefaf24ea7" prot="public">
+        <enumvalue id="namespacetest_1a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3" prot="public">
           <name>val_0</name>
           <briefdescription>
 <para>Value zero. </para>
@@ -15,7 +15,7 @@
           <detaileddescription>
           </detaileddescription>
         </enumvalue>
-        <enumvalue id="namespacetest_1a3a2b94881b2cd4942667975879b992b9ac4dee934709e2f9294ce014a21c6a417" prot="public">
+        <enumvalue id="namespacetest_1a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641" prot="public">
           <name>val_1</name>
           <initializer>= 1</initializer>
           <briefdescription>
@@ -24,7 +24,7 @@
           <detaileddescription>
           </detaileddescription>
         </enumvalue>
-        <enumvalue id="namespacetest_1a3a2b94881b2cd4942667975879b992b9aa7a802b397c1b97cdcebd36241979e4a" prot="public">
+        <enumvalue id="namespacetest_1a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c" prot="public">
           <name>val_2</name>
           <initializer>= 2</initializer>
           <briefdescription>
@@ -41,7 +41,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="84" column="1" bodyfile="src/code.h" bodystart="85" bodyend="91"/>
+        <location file="src/code.h" line="132" column="1" bodyfile="src/code.h" bodystart="133" bodyend="139"/>
       </memberdef>
       <memberdef kind="enum" id="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065" prot="public" static="no" strong="no">
         <type/>
@@ -81,7 +81,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="73" column="1" bodyfile="src/code.h" bodystart="74" bodyend="80"/>
+        <location file="src/code.h" line="121" column="1" bodyfile="src/code.h" bodystart="122" bodyend="128"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="var">
@@ -100,16 +100,25 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="13" column="23" bodyfile="src/code.h" bodystart="13" bodyend="-1"/>
+        <location file="src/code.h" line="23" column="23" bodyfile="src/code.h" bodystart="23" bodyend="-1"/>
       </memberdef>
       </sectiondef>
     <briefdescription>
 <para>A namespace. </para>
     </briefdescription>
     <detaileddescription>
-<para>More info. </para>
+<para>More info. Here's some C++: <programlisting filename=".cpp"><codeline><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>foo()</highlight></codeline>
+<codeline><highlight class="normal">{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>42_a_numeric_udl;</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline><highlight class="normal"/></codeline>
+<codeline><highlight class="normal"/><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>bar()<sp/>noexcept</highlight></codeline>
+<codeline><highlight class="normal">{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">""</highlight><highlight class="normal">_a_string_udl;</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+</programlisting> </para>
     </detaileddescription>
-    <location file="src/code.h" line="9" column="1"/>
+    <location file="src/code.h" line="19" column="1"/>
   <innerclass refid="classtest_1_1class__1" prot="public">test::class_1</innerclass>
     <innernamespace refid="namespacetest_1_1empty">test::empty</innernamespace>
     <innernamespace refid="namespacetest_1_1nested">test::nested</innernamespace>

@@ -4,11 +4,13 @@
 
 -   fixed `static` keyword sometimes appearing twice on variables
 -   fixed `constexpr` keyword sometimes leaking into variable type
+-   fixed newer versions of pygments adding unnecessary markup to whitespace
 -   added support for C++20's `constinit`
 -   added fallback to `tomllib` or `tomli` if `pytomlpp` is not available
 -   added command-line options `--html`, `--no-html`
 -   added command-line options `--xml`, `--no-xml`
 -   added command-line option `--no-werror`
+-   added `CHANGES` to the set of candidate changelog filenames
 -   deprecated command-line option `--xmlonly`
 
 ## v0.9.1 - 2022-10-04

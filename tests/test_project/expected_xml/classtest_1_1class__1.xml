@@ -1,16 +1,133 @@
-<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<?xml version='1.0' encoding='UTF-8'?>
 <doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
   <compounddef id="classtest_1_1class__1" kind="class" language="C++" prot="public">
     <compoundname>test::class_1</compoundname>
     <includes local="no">code.h</includes>
+      <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classtest_1_1class__1_1a27966148032ee64e169e8e24ad6c7449" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>constexpr bool</type>
+        <definition>constexpr bool test::class_1::public_static_variable</definition>
+        <argsstring/>
+        <name>public_static_variable</name>
+        <qualifiedname>test::class_1::public_static_variable</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+<para>A public static variable. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>More info. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/code.h" line="57" column="23" bodyfile="src/code.h" bodystart="57" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classtest_1_1class__1_1a1942e4b40fc0cc1b939b24d1c5f4e54c" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool test::class_1::public_variable</definition>
+        <argsstring/>
+        <name>public_variable</name>
+        <qualifiedname>test::class_1::public_variable</qualifiedname>
+        <briefdescription>
+<para>A public variable. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>More info. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/code.h" line="61" column="6" bodyfile="src/code.h" bodystart="61" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="protected-static-attrib">
+      <memberdef kind="variable" id="classtest_1_1class__1_1a330993e9b2ae74c6db1a28553759fe96" prot="protected" static="yes" constexpr="yes" mutable="no">
+        <type>constexpr bool</type>
+        <definition>constexpr bool test::class_1::protected_static_variable</definition>
+        <argsstring/>
+        <name>protected_static_variable</name>
+        <qualifiedname>test::class_1::protected_static_variable</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+<para>A protected static variable. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>More info. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/code.h" line="66" column="23" bodyfile="src/code.h" bodystart="66" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="protected-attrib">
+      <memberdef kind="variable" id="classtest_1_1class__1_1ae4d8ef41c2f2be17d38d9eac40e53699" prot="protected" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool test::class_1::protected_variable</definition>
+        <argsstring/>
+        <name>protected_variable</name>
+        <qualifiedname>test::class_1::protected_variable</qualifiedname>
+        <briefdescription>
+<para>A protected variable. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>More info. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/code.h" line="70" column="6" bodyfile="src/code.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classtest_1_1class__1_1a2c7531e04784d4531785b2daac34a28c" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>constexpr bool</type>
+        <definition>constexpr bool test::class_1::private_static_variable</definition>
+        <argsstring/>
+        <name>private_static_variable</name>
+        <qualifiedname>test::class_1::private_static_variable</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+<para>A private static variable. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>More info. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/code.h" line="75" column="23" bodyfile="src/code.h" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classtest_1_1class__1_1a75103e4c3f5e4bc442416e302be44c57" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool test::class_1::private_variable</definition>
+        <argsstring/>
+        <name>private_variable</name>
+        <qualifiedname>test::class_1::private_variable</qualifiedname>
+        <briefdescription>
+<para>A private variable. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>More info. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/code.h" line="79" column="6" bodyfile="src/code.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
     <briefdescription>
 <para>A class. </para>
     </briefdescription>
     <detaileddescription>
 <para>More info. </para>
     </detaileddescription>
-    <location file="src/code.h" line="31" column="1" bodyfile="src/code.h" bodystart="32" bodyend="32"/>
+    <location file="src/code.h" line="52" column="1" bodyfile="src/code.h" bodystart="53" bodyend="80"/>
     <listofallmembers>
+      <member refid="classtest_1_1class__1_1a2c7531e04784d4531785b2daac34a28c" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>private_static_variable</name></member>
+      <member refid="classtest_1_1class__1_1a75103e4c3f5e4bc442416e302be44c57" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>private_variable</name></member>
+      <member refid="classtest_1_1class__1_1a330993e9b2ae74c6db1a28553759fe96" prot="protected" virt="non-virtual"><scope>test::class_1</scope><name>protected_static_variable</name></member>
+      <member refid="classtest_1_1class__1_1ae4d8ef41c2f2be17d38d9eac40e53699" prot="protected" virt="non-virtual"><scope>test::class_1</scope><name>protected_variable</name></member>
+      <member refid="classtest_1_1class__1_1a27966148032ee64e169e8e24ad6c7449" prot="public" virt="non-virtual"><scope>test::class_1</scope><name>public_static_variable</name></member>
+      <member refid="classtest_1_1class__1_1a1942e4b40fc0cc1b939b24d1c5f4e54c" prot="public" virt="non-virtual"><scope>test::class_1</scope><name>public_variable</name></member>
     </listofallmembers>
   </compounddef>
 </doxygen>

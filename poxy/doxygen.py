@@ -8,6 +8,7 @@ Functions and classes for working with Doxygen.
 """
 
 import subprocess
+import itertools
 from lxml import etree
 from .utils import *
 from . import graph
@@ -214,6 +215,26 @@ class Doxyfile(object):
 
 
 
+class Bool(object):
+
+	def __init__(self, value: bool):
+		self.__value = bool(value)
+
+	def __str__(self) -> str:
+		return r'yes' if self.__value else r'no'
+
+
+
+class Prot(object):
+
+	def __init__(self, value: graph.AccessLevel):
+		self.__value = value
+
+	def __str__(self) -> str:
+		return self.__value.name.lower()
+
+
+
 #=======================================================================================================================
 # XML <=> Graph
 #=======================================================================================================================
@@ -234,9 +255,12 @@ KINDS_TO_NODE_TYPES = {
 	r'enumvalue': graph.EnumValue,
 	r'variable': graph.Variable,
 	r'function': graph.Function,
-	r'define': graph.Define
+	r'define': graph.Define,
+	r'page': graph.Article
 }
 NODE_TYPES_TO_KINDS = {t: k for k, t in KINDS_TO_NODE_TYPES.items()}
+COMPOUND_NODE_TYPES = {KINDS_TO_NODE_TYPES[c] for c in COMPOUNDS}
+VERSION = r'1.9.5'
 
 
 
@@ -265,9 +289,17 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 
 	root = etree.fromstring(read_all_text_from_file(path, logger=log_func).encode(r'utf-8'), parser=parser)
 
+	def extract_subelement_text(elem, subelem_tag: str):
+		assert elem is not None
+		assert subelem_tag is not None
+		subelem = elem.find(subelem_tag)
+		if subelem is not None:
+			return subelem.text
+		return None
+
 	def extract_qualified_name(elem):
 		assert elem is not None
-		for tag in (r'qualifiedname', r'compoundname', r'name'):
+		for tag in (r'qualifiedname', r'compoundname'):
 			n = elem.find(tag)
 			if n is not None:
 				n = n.text.strip()
@@ -278,40 +310,113 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 	if root.tag not in (r'doxygenindex', r'doxygen'):
 		return
 
-	if not hasattr(g, r'doxygen_version') and root.get(r'doxygen_version'):
-		g.doxygen_version = root.get(r'doxygen_version')
-	if not hasattr(g, r'doxygen_version') and root.get(r'version'):
-		g.doxygen_version = root.get(r'version')
-
 	# <compound>
 	# (these are doxygen's version of 'forward declarations')
 	for compound in root.findall(r'compound'):
 		node = g.get_or_create_node(compound.get(r'refid'))
-		node.type = _to_node_type(compound.get(r'kind'))
+		node.node_type = _to_node_type(compound.get(r'kind'))
 		node.qualified_name = extract_qualified_name(compound)
+
+		# <member>
+		for member_elem in compound.findall(rf'member'):
+			member_kind = member_elem.get(r'kind')
+			if member_kind == r'enumvalue':
+				continue
+			member = g.get_or_create_node(member_elem.get(r'refid'))
+			member.node_type = _to_node_type(member_kind)
+			node.connect_to(member)
+			# manually rebuild the fully-qualified name
+			name = extract_subelement_text(member_elem, r'name')
+			if name:
+				if node.node_type is graph.Directory and member.node_type in (graph.Directory, graph.File):
+					member.qualified_name = rf'{node.qualified_name}/{name}'
+				elif (
+					node.node_type not in (graph.Directory, graph.File)  #
+					and member.node_type not in (graph.Directory, graph.File)
+				):
+					member.qualified_name = rf'{node.qualified_name}::{name}'
 
 	# <compounddef>
-	for compound in root.findall(r'compounddef'):
-		node = g.get_or_create_node(compound.get(r'id'))
-		node.type = _to_node_type(compound.get(r'kind'))
-		node.qualified_name = extract_qualified_name(compound)
-		node.protection_level = compound.get(r'prot')
+	for compounddef in root.findall(r'compounddef'):
+		node = g.get_or_create_node(compounddef.get(r'id'))
+		node.node_type = _to_node_type(compounddef.get(r'kind'))
+		node.qualified_name = extract_qualified_name(compounddef)
+		node.access_level = compounddef.get(r'prot')
 
-		# inners
-		for inner_suffix in (r'class', r'namespace', r'concept', r'file', r'dir'):
-			for inner_elem in compound.findall(rf'inner{inner_suffix}'):
+		def get_all_memberdefs(kind: str, *sectiondef_kinds):
+			nonlocal compounddef
+			memberdefs = [
+				s for s in compounddef.findall(r'sectiondef') if (s.get(r'kind') in {kind, *sectiondef_kinds})
+			]
+			memberdefs = [s.findall(r'memberdef') for s in memberdefs]  # list of lists of memberdefs
+			memberdefs = list(itertools.chain.from_iterable(memberdefs))  # list of memberdefs
+			return [m for m in memberdefs if m.get(r'kind') == kind]  # matching memberdefs
+
+		def get_all_type_memberdefs(kind: str):
+			return get_all_memberdefs(kind, r'public-type', r'protected-type', r'private-type')
+
+		def get_all_attrib_memberdefs(kind: str):
+			return get_all_memberdefs(
+				kind,  #
+				r'var',
+				r'public-static-attrib',
+				r'protected-static-attrib',
+				r'private-static-attrib',
+				r'public-attrib',
+				r'protected-attrib',
+				r'private-attrib'
+			)
+
+		# enums
+		for enum_elem in get_all_type_memberdefs(r'enum'):
+			enum = g.get_or_create_node(enum_elem.get(r'id'))
+			enum.node_type = graph.Enum
+			enum.access_level = enum_elem.get(r'prot')
+			enum.strong = enum_elem.get(r'strong')
+			enum.static = enum_elem.get(r'static')
+			enum.local_name = extract_subelement_text(enum_elem, r'name')
+			enum.qualified_name = extract_qualified_name(enum_elem)
+			node.connect_to(enum)
+			for value_elem in enum_elem.findall(r'enumvalue'):
+				value = g.get_or_create_node(value_elem.get(r'id'))
+				value.node_type = graph.EnumValue
+				value.access_level = value_elem.get(r'prot')
+				value.local_name = extract_subelement_text(value_elem, r'name')
+				enum.connect_to(value)
+
+		# vars
+		for var_elem in get_all_attrib_memberdefs(r'variable'):
+			var = g.get_or_create_node(var_elem.get(r'id'))
+			var.node_type = graph.Variable
+			var.access_level = var_elem.get(r'prot')
+			var.static = var_elem.get(r'static')
+			var.constexpr = var_elem.get(r'constexpr')
+			var.constinit = var_elem.get(r'constinit')
+			var.mutable = var_elem.get(r'mutable')
+			var.type = extract_subelement_text(var_elem, r'type')
+			var.definition = extract_subelement_text(var_elem, r'definition')
+			var.local_name = extract_subelement_text(var_elem, r'name')
+			var.qualified_name = extract_qualified_name(var_elem)
+			node.connect_to(var)
+
+		# <inner(namespace|class|concept|file|dir)>
+		for inner_suffix in (r'namespace', r'class', r'concept', r'dir', r'file'):
+			for inner_elem in compounddef.findall(rf'inner{inner_suffix}'):
 				inner = g.get_or_create_node(inner_elem.get(r'refid'))
 				if inner_suffix == r'class':
 					if inner.id.startswith(r'class'):
-						inner.type = graph.Class
+						inner.node_type = graph.Class
 					elif inner.id.startswith(r'struct'):
-						inner.type = graph.Struct
+						inner.node_type = graph.Struct
 					elif inner.id.startswith(r'union'):
-						inner.type = graph.Union
+						inner.node_type = graph.Union
 				else:
-					inner.type = _to_node_type(inner_suffix)
-				inner.qualified_name = inner_elem
+					inner.node_type = _to_node_type(inner_suffix)
+				inner.qualified_name = inner_elem.text
 				node.connect_to(inner)
+
+	# deduce any missing qualified_names
+	# for _, node in g(graph.Namespace, graph.Class, graph.Struct, graph.Union):
 
 
 
@@ -328,8 +433,6 @@ def read_graph_from_xml(folder, log_func=None) -> graph.Graph:
 	g = graph.Graph()
 	for path in get_all_files(folder, all=r"*.xml"):
 		_parse_xml_file(g=g, path=path, parser=parser, log_func=log_func)
-	if not hasattr(g, r'doxygen_version'):
-		g.doxygen_version = r'1.9.0'
 	return g
 
 
@@ -341,34 +444,31 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 		remove_blank_text=True,  #
 		recover=True,
 		remove_comments=False,
-		ns_clean=True,
-		strip_cdata=True
+		ns_clean=True
 	)
 
-	version = getattr(g, r'doxygen_version', r'1.9.0')
-
 	global COMPOUNDS
+	global COMPOUND_NODE_TYPES
 	global KINDS_TO_NODE_TYPES
 	global NODE_TYPES_TO_KINDS
-
-	def find_containing_file(node):
-		nonlocal g
-		assert node.type is not graph.File
+	global VERSION
 
 	# serialize the compound nodes
-	for id, node in g:
+	for _, node in g(*COMPOUND_NODE_TYPES):
 		if not node:
 			continue
-		kind = _to_kind(node.type)
-		if kind not in COMPOUNDS:
-			continue
+		assert node.qualified_name
+
+		kind = _to_kind(node.node_type)
+		assert kind in COMPOUNDS
+
 		path = Path(folder, rf'{node.id}.xml')
 		xml = etree.ElementTree(
 			etree.XML(
 			rf'''<doxygen
 						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 						xsi:noNamespaceSchemaLocation="compound.xsd"
-						version="{version}"
+						version="{VERSION}"
 						xml:lang="en-US">
 					<!-- This file was created by Poxy - https://github.com/marzer/poxy -->
 					<compounddef id="{node.id}" kind="{kind}" language="C++">
@@ -379,31 +479,120 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 			)
 		)
 
+		# create the root <compounddef>
 		compounddef = xml.getroot().find(r'compounddef')
-		if node.type not in (graph.Namespace, graph.Directory, graph.File):
-			compounddef.set(r'prot', node.protection_level.name.lower())
+		if node.node_type not in (graph.Namespace, graph.Directory, graph.File):
+			compounddef.set(r'prot', str(Prot(node.access_level)))
 
-		# figure out what file this belongs to (if any)
-		files = [f.qualified_name for _, f in g.iterator(graph.File) if (f and f is not node and node in f)]
-		for f in files:
-			elem = etree.SubElement(compounddef, rf'includes')
-			elem.set(r'local', r'no')
-			elem.text = f
+		# <includes>
+		if node.node_type in (graph.Class, graph.Struct, graph.Union):
+			files = [f for _, f in g(graph.File) if (f and f is not node and node in f)]
+			for f in files:
+				assert f.qualified_name
+				elem = etree.SubElement(compounddef, rf'includes', attrib={r'local': r'no'})
+				elem.text = f.qualified_name
 
 		# add the inners
-		for inner_id, inner_node in node.iterator(
+		for _, inner_node in node(
 			graph.Namespace, graph.Class, graph.Struct, graph.Union, graph.Concept, graph.Directory, graph.File
 		):
 			if not inner_node:
 				continue
-			kind = NODE_TYPES_TO_KINDS[inner_node.type]
-			if inner_node.type in (graph.Struct, graph.Union):
+			assert inner_node.qualified_name
+
+			kind = NODE_TYPES_TO_KINDS[inner_node.node_type]
+			if inner_node.node_type in (graph.Struct, graph.Union):
 				kind = r'class'
-			inner_elem = etree.SubElement(compounddef, rf'inner{kind}')
-			inner_elem.set(r'refid', inner_id)
-			if node.type not in (graph.Namespace, graph.Directory, graph.File):
-				inner_elem.set(r'prot', inner_node.protection_level.name.lower())
+			inner_elem = etree.SubElement(compounddef, rf'inner{kind}', attrib={r'refid': inner_node.id})
+			if node.node_type not in (graph.Namespace, graph.Directory, graph.File):
+				inner_elem.set(r'prot', str(Prot(inner_node.access_level)))
 			inner_elem.text = inner_node.qualified_name
+
+		# create all the <sectiondefs>
+		# (empty ones will be deleted at the end)
+		sectiondefs = (
+			# namespace/file sections:
+			r'enum',
+			r'var',
+			# class/struct/union sections:
+			r'public-type',
+			r'protected-type',
+			r'private-type',
+			r'public-static-attrib',
+			r'protected-static-attrib',
+			r'private-static-attrib',
+			r'public-attrib',
+			r'protected-attrib',
+			r'private-attrib'
+		)
+		sectiondefs = {k: etree.SubElement(compounddef, r'sectiondef', attrib={r'kind': k}) for k in sectiondefs}
+
+		# enums
+		for _, enum in node(graph.Enum):
+			section = r'enum'
+			if node.node_type in (graph.Class, graph.Struct, graph.Union):
+				section = rf'{Prot(enum.access_level)}-type'
+			enum_elem = etree.SubElement(
+				sectiondefs[section],
+				rf'memberdef',
+				attrib={
+				r'id': enum.id,
+				r'kind': r'enum',
+				r'static': str(Bool(enum.static)),
+				r'strong': str(Bool(enum.strong)),
+				r'prot': str(Prot(enum.access_level))
+				}
+			)
+			etree.SubElement(enum_elem, r'type').text = enum.type
+			etree.SubElement(enum_elem, r'name').text = enum.local_name
+			etree.SubElement(enum_elem, r'qualified_name').text = enum.qualified_name
+			etree.SubElement(enum_elem, r'briefdescription')
+			etree.SubElement(enum_elem, r'detaileddescription')
+			etree.SubElement(enum_elem, r'inbodydescription')
+			for _, value in enum(graph.EnumValue):
+				value_elem = etree.SubElement(
+					enum_elem, rf'enumvalue', attrib={
+					r'id': value.id,
+					r'prot': str(Prot(value.access_level))
+					}
+				)
+				etree.SubElement(value_elem, r'name').text = value.local_name
+				etree.SubElement(value_elem, r'briefdescription')
+				etree.SubElement(value_elem, r'detaileddescription')
+
+		# variables
+		for _, var in node(graph.Variable):
+			section = r'var'
+			if node.node_type in (graph.Class, graph.Struct, graph.Union):
+				section = rf'{Prot(var.access_level)}-{"static-" if var.static else ""}attrib'
+			var_elem = etree.SubElement(
+				sectiondefs[section],
+				rf'memberdef',
+				attrib={
+				r'id': var.id,
+				r'kind': r'variable',
+				r'prot': str(Prot(var.access_level)),
+				r'static': str(Bool(var.static)),
+				r'constexpr': str(Bool(var.constexpr)),
+				r'constinit': str(Bool(var.constinit)),
+				r'mutable': str(Bool(var.strong)),
+				}
+			)
+			etree.SubElement(var_elem, r'type').text = var.type
+			etree.SubElement(var_elem, r'definition').text = var.definition
+			etree.SubElement(var_elem, r'name').text = var.local_name
+			etree.SubElement(var_elem, r'qualified_name').text = var.qualified_name
+			etree.SubElement(var_elem, r'briefdescription')
+			etree.SubElement(var_elem, r'detaileddescription')
+
+		# <listofallmembers>
+		if node.node_type in (graph.Class, graph.Struct, graph.Union):
+			listofallmembers = etree.SubElement(compounddef, rf'listofallmembers')
+
+		# prune empty <sectiondefs>
+		for _, elem in sectiondefs.items():
+			if not len(elem):
+				elem.getparent().remove(elem)
 
 		if log_func:
 			log_func(rf'Writing {path}')

@@ -5,7 +5,17 @@
 #include <concepts>
 
 /// \brief A namespace.
-/// \details More info.
+/// \details More info. Here's some C++: \code{cpp}
+/// int foo()
+/// {
+///     return 42_a_numeric_udl;
+/// }
+///
+/// const char* bar() noexcept
+/// {
+///     return ""_a_string_udl;
+/// }
+/// \endcode
 namespace test
 {
 	/// \brief An inline variable.
@@ -24,12 +34,50 @@ namespace test
 		/// \details More info.
 		struct nested_struct
 		{};
+
+		/// \brief A C++11 scoped enum.
+		/// \details More info.
+		enum class nested_enum
+		{
+			val_0,	   ///< Value zero.
+			val_1 = 1, ///< Value one.
+
+			/// \brief Value two.
+			val_2 = 2
+		};
 	};
 
 	/// \brief A class.
 	/// \details More info.
 	class class_1
-	{};
+	{
+	  public:
+		/// \brief A public static variable.
+		/// \details More info.
+		static constexpr bool public_static_variable = false;
+
+		/// \brief A public variable.
+		/// \details More info.
+		bool public_variable;
+
+	  protected:
+		/// \brief A protected static variable.
+		/// \details More info.
+		static constexpr bool protected_static_variable = false;
+
+		/// \brief A protected variable.
+		/// \details More info.
+		bool protected_variable;
+
+	  private:
+		/// \brief A private static variable.
+		/// \details More info.
+		static constexpr bool private_static_variable = false;
+
+		/// \brief A private variable.
+		/// \details More info.
+		bool private_variable;
+	};
 
 	/// \brief A template class.
 	/// \details More info.
@@ -81,7 +129,7 @@ namespace test
 
 	/// \brief A C++11 scoped enum.
 	/// \details More info.
-	enum scoped_enum
+	enum class scoped_enum
 	{
 		val_0,	   ///< Value zero.
 		val_1 = 1, ///< Value one.

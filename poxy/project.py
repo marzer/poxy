@@ -1312,8 +1312,8 @@ class Context(object):
 		self.verbose_value(r'Context.threads', self.threads)
 
 		# additional kwargs (experimental stuff etc)
-		self.experimental_xml_v2 = bool(kwargs[r'experimental_xml_v2']) if r'experimental_xml_v2' in kwargs else False
-		self.verbose_value(r'Context.experimental_xml_v2', self.experimental_xml_v2)
+		self.xml_v2 = bool(kwargs[r'xml_v2']) if r'xml_v2' in kwargs else False
+		self.verbose_value(r'Context.xml_v2', self.xml_v2)
 
 		# these are overridden/initialized elsewhere; they're here so duck-typing still quacks
 		self.fixers = []
@@ -1671,12 +1671,15 @@ class Context(object):
 			if r'changelog' in config:
 				if isinstance(config['changelog'], bool):
 					if config['changelog']:
-						candidate_names = (r'CHANGELOG', r'HISTORY', r'changelog', r'history')
+						candidate_names = (r'CHANGELOG', r'CHANGES', r'HISTORY')
 						candidate_extensions = (r'.md', r'.txt', r'')
+						as_lowercase = (False, True)
 						candidate_dir = self.input_dir
 						while True:
-							for name, ext in itertools.product(candidate_names, candidate_extensions):
-								candidate_file = Path(candidate_dir, rf'{name}{ext}')
+							for name, ext, lower in itertools.product(
+								candidate_names, candidate_extensions, as_lowercase
+							):
+								candidate_file = Path(candidate_dir, rf'{name.lower() if lower else name}{ext}')
 								if candidate_file.exists() and candidate_file.is_file(
 								) and candidate_file.stat().st_size <= 1024 * 1024 * 2:
 									self.changelog = candidate_file

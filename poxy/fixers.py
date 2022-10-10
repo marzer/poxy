@@ -882,3 +882,33 @@ class MarkdownPages(PlainTextFixer):
 			text = re.sub(rf'{PREFIX}at', r'@', text)
 			text = re.sub(rf'{PREFIX}fe0f', r'&#xFE0F;', text)
 		return text
+
+
+
+class Pygments(PlainTextFixer):
+	'''
+	Fixes minor issues with pygments-generated markup.
+	'''
+
+	def __call__(self, context: Context, text: str, path: Path) -> str:
+		if re.search(r'class="[^"]*?m-code[^"]*?"', text):
+
+			# at some point pygments started adding markup to whitespace,
+			# adding an awful lot of markup bloat. m.css does not style this markup
+			# so we can safely strip it away.
+			text = re.sub(r'<span class="w">(\s+)</span>', r'\1', text)
+
+			# fix numeric UDLs being treated as a separate token
+			text = re.sub(
+				r'<span class="(m[bfhio])">([0-9]+)</span><span class="n">(_[a-zA-Z0-9_]*)</span>',
+				r'<span class="\1">\2\3</span>', text
+			)
+
+			# fix string UDLs being treated as a separate token
+			text = re.sub(
+				r'<span class="s">(.*?)</span><span class="n">(_[a-zA-Z0-9_]*)</span>',  #
+				r'<span class="s">\1\2</span>',
+				text
+			)
+
+		return text
