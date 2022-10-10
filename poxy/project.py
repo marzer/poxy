@@ -1285,7 +1285,8 @@ class Context(object):
 		html_exclude: str,
 		treat_warnings_as_errors: bool,
 		theme: str,
-		copy_assets: bool
+		copy_assets: bool,
+		**kwargs
 	):
 
 		self.logger = logger
@@ -1309,6 +1310,10 @@ class Context(object):
 			threads = os.cpu_count()
 		self.threads = max(1, min(os.cpu_count(), threads))
 		self.verbose_value(r'Context.threads', self.threads)
+
+		# additional kwargs (experimental stuff etc)
+		self.experimental_xml_v2 = bool(kwargs[r'experimental_xml_v2']) if r'experimental_xml_v2' in kwargs else False
+		self.verbose_value(r'Context.experimental_xml_v2', self.experimental_xml_v2)
 
 		# these are overridden/initialized elsewhere; they're here so duck-typing still quacks
 		self.fixers = []

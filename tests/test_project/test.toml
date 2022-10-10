@@ -1,1 +1,6 @@
-xml = true
+[html]
+#enabled = false
+
+[xml]
+enabled = true
+#v2 = true

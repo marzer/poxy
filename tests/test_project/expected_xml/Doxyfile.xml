@@ -188,16 +188,16 @@
   <option  id='INPUT_FILE_ENCODING' default='yes' type='stringlist'>
   </option>
   <option  id='FILE_PATTERNS' default='no' type='stringlist'>
-    <value><![CDATA[*.dox]]></value>
-    <value><![CDATA[*.markdown]]></value>
-    <value><![CDATA[*.hxx]]></value>
-    <value><![CDATA[*.hpp]]></value>
-    <value><![CDATA[*.inc]]></value>
     <value><![CDATA[*.hh]]></value>
+    <value><![CDATA[*.dox]]></value>
     <value><![CDATA[*.h]]></value>
+    <value><![CDATA[*.markdown]]></value>
+    <value><![CDATA[*.h++]]></value>
+    <value><![CDATA[*.hxx]]></value>
+    <value><![CDATA[*.inc]]></value>
+    <value><![CDATA[*.hpp]]></value>
     <value><![CDATA[*.md]]></value>
     <value><![CDATA[*.ixx]]></value>
-    <value><![CDATA[*.h++]]></value>
   </option>
   <option  id='RECURSIVE' default='yes' type='bool'><value>NO</value></option>
   <option  id='EXCLUDE' default='no' type='stringlist'>

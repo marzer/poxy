@@ -7,8 +7,8 @@
 Functions and types for working with C++ project graphs.
 """
 
+import enum
 from .utils import *
-from enum import Enum
 from lxml import etree
 
 #=======================================================================================================================
@@ -57,12 +57,12 @@ class Enum(object):
 
 
 
-class Typedef(object):
+class EnumValue(object):
 	pass
 
 
 
-class Group(object):
+class Typedef(object):
 	pass
 
 
@@ -72,7 +72,17 @@ class Define(object):
 
 
 
-class File(object):
+class Group(object):
+	pass
+
+
+
+class MemberGroup(object):
+	pass
+
+
+
+class Article(object):
 	pass
 
 
@@ -82,26 +92,36 @@ class Directory(object):
 
 
 
+class File(object):
+	pass
+
+
+
 NODE_TYPES = {
-	Namespace, Class, Struct, Union, Concept, Function, Variable, Enum, Typedef, Group, Define, File, Directory
+	Namespace, Class, Struct, Union, Concept, Function, Variable, Enum, EnumValue, Typedef, Define, Group, MemberGroup,
+	Article, Directory, File
 }
-Namespace.CONNECTS_TO = {Function, Class, Struct, Union, Variable, Typedef, Namespace, Concept, Enum}
-Class.CONNECTS_TO = {Class, Struct, Union}
-Struct.CONNECTS_TO = {Class, Struct, Union}
-Union.CONNECTS_TO = {Class, Struct, Union}
-Concept.CONNECTS_TO = set()
-Function.CONNECTS_TO = {Class, Struct, Union, Variable, Enum, Typedef}
-Variable.CONNECTS_TO = set()
-Enum.CONNECTS_TO = {Variable}
-Typedef.CONNECTS_TO = set()
-Group.CONNECTS_TO = NODE_TYPES
-Define.CONNECTS_TO = set()
-File.CONNECTS_TO = {Namespace, Class, Struct, Union, Concept, Function, Variable, Enum, Typedef, Define}
-Directory.CONNECTS_TO = {File, Directory}
+Namespace.CAN_CONNECT_TO = {Function, Class, Struct, Union, Variable, Typedef, Namespace, Concept, Enum}
+Class.CAN_CONNECT_TO = {Class, Struct, Union, Function, Variable, Typedef, Enum, MemberGroup}
+Struct.CAN_CONNECT_TO = Class.CAN_CONNECT_TO
+Union.CAN_CONNECT_TO = Class.CAN_CONNECT_TO
+Concept.CAN_CONNECT_TO = set()
+Function.CAN_CONNECT_TO = set()  # not stricty true in C++ but true w.r.t documentation
+Variable.CAN_CONNECT_TO = set()
+Enum.CAN_CONNECT_TO = {EnumValue}
+EnumValue.CAN_CONNECT_TO = set()
+Typedef.CAN_CONNECT_TO = set()
+Define.CAN_CONNECT_TO = set()
+Group.CAN_CONNECT_TO = {t for t in NODE_TYPES if t not in (Article, )}
+MemberGroup.CAN_CONNECT_TO = {t for t in Class.CAN_CONNECT_TO if t not in (MemberGroup, )}
+Article.CAN_CONNECT_TO = set()
+File.CAN_CONNECT_TO = {Namespace, Class, Struct, Union, Concept, Function, Variable, Enum, Typedef, Define, Article}
+Directory.CAN_CONNECT_TO = {Directory, File}
 
 
 
-class Visibility(Enum):
+@enum.unique
+class ProtectionLevel(enum.Enum):
 	PRIVATE = 0
 	PROTECTED = 1
 	PUBLIC = 2
@@ -117,19 +137,20 @@ class Visibility(Enum):
 class Node(object):
 
 	def __init__(self, id: str):
-		assert id
+		assert id is not None
 		self.__id = id
+		self.__connections = dict()
 
 	#==============
 	# getters
 	#==============
 
-	def __property_get(self, name: str, type_func=None, default=None):
+	def __property_get(self, name: str, out_type=None, default=None):
 		assert name is not None
 		val = getattr(self, rf'_Node__{name}', None)
 		if val is not None:
-			if type_func is not None:
-				val = type_func(val)
+			if out_type is not None and not isinstance(val, out_type):
+				val = out_type(val)
 			return val
 		return default
 
@@ -201,9 +222,10 @@ class Node(object):
 		return self.__property_get(r'virtual', bool, False)
 
 	@property
-	def visibility(self) -> Visibility:
+	def protection_level(self) -> ProtectionLevel:
 		return self.__property_get(
-			r'visibility', Visibility, Visibility.PRIVATE if self.type is Class else Visibility.PUBLIC
+			r'protection_level', ProtectionLevel,
+			ProtectionLevel.PRIVATE if self.type is Class else ProtectionLevel.PUBLIC
 		)
 
 	@property
@@ -218,25 +240,49 @@ class Node(object):
 		return self.has_type and bool(self.id) and bool(self.qualified_name)
 
 	#==============
-	# getters
+	# setters
 	#==============
 
-	def __property_set(self, name: str, type_func, value):
+	def __property_set(self, name: str, out_type, value):
 		assert name is not None
+		# lxml elements can be assigned directly to take their text as a value
+		if isinstance(value, (etree.ElementBase, etree._Element)):
+			value = value.text
+		# known types that have a sensible __bool__ operator can convert to None if false
 		if isinstance(value, (str, Path, list, tuple, dict)):
 			value = value if value else None
-		if isinstance(value, (etree.ElementBase, etree._Element)):
-			value = value.text.strip()
-		if isinstance(value, str) and type_func is bool:
-			if value.lower() in (r'no', r'false', r'disabled'):
-				value = False
-			elif value.lower() in (r'yes', r'true', r'enabled'):
-				value = True
+		# converting from strings sometimes lets us do some light parsing, as a treat
+		if isinstance(value, str):
+			if out_type is bool:
+				if value.lower() in (r'no', r'false', r'disabled'):
+					value = False
+				elif value.lower() in (r'yes', r'true', r'enabled'):
+					value = True
+				else:
+					raise Exception(rf"C++ node '{self.id}' property '{name}' could not parse a boolean from '{value}'")
+			elif out_type is ProtectionLevel:
+				if value.lower() in (r'pub', r'public'):
+					value = ProtectionLevel.PUBLIC
+				elif value.lower() in (r'prot', r'protected'):
+					value = ProtectionLevel.PROTECTED
+				elif value.lower() in (r'priv', r'private'):
+					value = ProtectionLevel.PRIVATE
+				else:
+					raise Exception(
+						rf"C++ node '{self.id}' property '{name}' could not parse protection level from '{value}'"
+					)
+				assert isinstance(value, ProtectionLevel)
+		# None == keep whatever the current value is (no-op)
+		# (None is never a valid value for a real graph attribute)
 		if value is None:
 			return
-		if type_func is not None:
-			value = type_func(value)
+		if out_type is not None and not isinstance(value, out_type):
+			print(value)
+			value = out_type(value)
 		current = getattr(self, rf'_Node__{name}', None)
+		# it's OK if there's already a value as long as it's identical to the new one,
+		# otherwise we throw so that we can detect when the source data is bad or the adapter is faulty
+		# (since if a property _can_ be defined in multiple places it should be identical in all of them)
 		if current is not None:
 			if type(current) != type(value):
 				raise Exception(
@@ -252,9 +298,17 @@ class Node(object):
 	@type.setter
 	def type(self, value):
 		global NODE_TYPES
-		if value is not None and value not in NODE_TYPES:
+		if value is None:
+			return
+		if value not in NODE_TYPES:
 			raise Exception(rf"Unknown C++ node type '{value}'")
+		had_type = self.has_type
 		self.__property_set(r'type', None, value)
+		# if this was the setter responsible for enforcing the type, validate all existing connections
+		# (since so far they have gone unchecked)
+		if had_type != self.has_type:
+			for id, node in self.__connections:
+				Node._check_connection(self, node)
 
 	@qualified_name.setter
 	def qualified_name(self, value: str):
@@ -312,63 +366,84 @@ class Node(object):
 	def virtual(self, value: bool):
 		self.__property_set(r'virtual', bool, value)
 
-	@visibility.setter
-	def visibility(self, value: Visibility):
-		self.__property_set(r'visibility', Visibility, value)
+	@protection_level.setter
+	def protection_level(self, value: ProtectionLevel):
+		self.__property_set(r'protection_level', ProtectionLevel, value)
 
 	#==============
 	# membership
 	#==============
 
 	@property
-	def is_child(self) -> bool:
-		if not hasattr(self, r'_Node__parents'):
-			return False
-		return bool(self.__parents)
+	def is_leaf(self) -> bool:
+		return not bool(self.__connections)
 
-	@property
-	def is_parent(self) -> bool:
-		if not hasattr(self, r'_Node__children'):
-			return False
-		return bool(self.__children)
+	@classmethod
+	def _check_connection(cls, source, dest):
+		assert source is not None
+		assert isinstance(source, Node)
+		assert dest is not None
+		assert isinstance(dest, Node)
 
-	def add_child(self, node):
-		assert node is not None
-		assert isinstance(node, Node)
+		# self-connection is always illegal, regardless of type information
+		if id(source) == id(dest):
+			raise Exception(rf"C++ node '{source.id}' may not connect to itself")
 
-		# make sure we tick the minimum boxes to be allowed to connect these two nodes
-		if not self.has_type:
-			raise Exception(rf"C++ node '{self.id}' must have a type before children can be added to it")
-		if not node.has_type:
-			raise Exception(rf"C++ node '{node.id}' must have a type before it can be added as a child")
-		if node.type not in self.type.CONNECTS_TO:
+		# otherwise if we don't have type information the connection is 'OK'
+		# (really this just means we defer the check until later)
+		if not source.has_type or not dest.has_type:
+			return
+
+		if dest.type not in source.type.CAN_CONNECT_TO:
 			raise Exception(
-				rf"C++ node '{node.id}' with type {self.type_name} is not allowed to connect to nodes of type {node.type_name}"
+				rf"C++ node '{source.id}' with type {source.type_name} is not allowed to connect to nodes of type {dest.type_name}"
 			)
 
-		# lazy-initialize the storage
-		if not hasattr(self, r'_Node__children'):
-			self.__children = []
-			self.__children_by_id = dict()
-			self.__parents = []
-			self.__parents_by_id = dict()
-		if not hasattr(node, r'_Node__children'):
-			node.__children = []
-			node.__children_by_id = dict()
-			node.__parents = []
-			node.__parents_by_id = dict()
+	def connect_to(self, dest):
+		assert dest is not None
+		assert isinstance(dest, Node)
 
-		# check that identity is unique
-		if node.id in self.__children_by_id:
-			other = self.__children_by_id[node.id]
-			if id(node) == id(other):
-				return
-			raise Exception(rf"Two different C++ nodes seen with the same ID ('{node.id}')")
+		Node._check_connection(self, dest)
 
-		self.__children.append(node)
-		self.__children_by_id[node.id] = node
-		node.__parents.append(self)
-		node.__parents_by_id[self.id] = self
+		# connecting to the same node twice is fine (no-op)
+		if dest.id in self.__connections:
+			existing_dest = self.__connections[dest.id]
+			# check that identity is unique
+			if id(dest) != id(existing_dest):
+				raise Exception(rf"Two different C++ nodes seen with the same ID ('{dest.id}')")
+			return
+
+		self.__connections[dest.id] = dest
+
+	def __contains__(self, node_or_id) -> bool:
+		assert isinstance(node_or_id, (str, Node))
+		if isinstance(node_or_id, str):
+			return node_or_id in self.__connections
+		return node_or_id in self.__connections.values()
+
+	def __iter__(self):
+		for id, node in self.__connections.items():
+			yield (id, node)
+
+	def iterator(self, *types):
+		assert types is not None
+		if not types:
+			return self.__iter__()
+
+		global NODE_TYPES
+		for t in types:
+			assert t is None or isinstance(t, bool) or t in NODE_TYPES
+
+		def make_generator(nodes):
+			nonlocal types
+			yield_with_no_type = False in types or None in types
+			yield_with_any_type = True in types
+			for id, node in nodes:
+				if ((node.type is None and yield_with_no_type)
+					or (node.type is not None and (yield_with_any_type or node.type in types))):
+					yield (id, node)
+
+		return make_generator(self.__connections.items())
 
 
 
@@ -395,5 +470,25 @@ class Graph(object):
 		return node
 
 	def __iter__(self):
-		for k, v in self.__nodes.items():
-			yield (k, v)
+		for id, node in self.__nodes.items():
+			yield (id, node)
+
+	def iterator(self, *types):
+		assert types is not None
+		if not types:
+			return self.__iter__()
+
+		global NODE_TYPES
+		for t in types:
+			assert t is None or isinstance(t, bool) or t in NODE_TYPES
+
+		def make_generator(nodes):
+			nonlocal types
+			yield_with_no_type = False in types or None in types
+			yield_with_any_type = True in types
+			for id, node in nodes:
+				if ((node.type is None and yield_with_no_type)
+					or (node.type is not None and (yield_with_any_type or node.type in types))):
+					yield (id, node)
+
+		return make_generator(self.__nodes.items())

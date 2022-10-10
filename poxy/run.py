@@ -857,13 +857,15 @@ def postprocess_xml(context: Context):
 
 
 
-def postprocess_xml2(context: Context):
+def postprocess_xml_v2(context: Context):
 	assert context is not None
 	assert isinstance(context, Context)
 
-	g = doxygen.read_graph_from_xml(context.temp_xml_dir, logger=context.logger)
-	delete_directory(context.temp_xml_dir, logger=context.logger)
-	doxygen.write_graph_to_xml(g, context.temp_xml_dir)
+	log_func = lambda m: context.verbose(m)
+
+	g = doxygen.read_graph_from_xml(context.temp_xml_dir, log_func=log_func)
+	delete_directory(context.temp_xml_dir, logger=log_func)
+	doxygen.write_graph_to_xml(g, context.temp_xml_dir, log_func=log_func)
 
 
 
@@ -1359,7 +1361,8 @@ def run(
 	html_exclude: str = None,
 	treat_warnings_as_errors: bool = None,
 	theme: str = None,
-	copy_assets: bool = True
+	copy_assets: bool = True,
+	**kwargs
 ):
 
 	timer = lambda desc: ScopeTimer(desc, print_start=True, print_end=context.verbose_logger)
@@ -1378,7 +1381,8 @@ def run(
 		html_exclude=html_exclude,
 		treat_warnings_as_errors=treat_warnings_as_errors,
 		theme=theme,
-		copy_assets=copy_assets
+		copy_assets=copy_assets,
+		**kwargs
 	) as context:
 
 		preprocess_doxyfile(context)
@@ -1393,9 +1397,10 @@ def run(
 		with timer(r'Generating XML files with Doxygen') as t:
 			run_doxygen(context)
 		with timer(r'Post-processing XML files') as t:
-			postprocess_xml(context)
-			#postprocess_xml2(context)
-			pass
+			if context.experimental_xml_v2:
+				postprocess_xml_v2(context)
+			else:
+				postprocess_xml(context)
 
 		# postprocess_xml extracts type information so now we can compile the highlighter regexes
 		compile_syntax_highlighter_regexes(context)

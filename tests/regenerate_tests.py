@@ -17,6 +17,24 @@ except:
 
 
 
+def _cfg(config, path, default=None):
+	assert isinstance(config, dict)
+	assert path is not None
+	path = coerce_collection(path)
+	assert path
+
+	for p in range(len(path) - 1):
+		if path[p] not in config:
+			return default
+		config = config[path[p]]
+		assert isinstance(config, dict)
+
+	if path[-1] not in config:
+		return default
+	return config[path[-1]]
+
+
+
 def regenerate_expected_outputs():
 	test_root = Path(Path(__file__).parent).resolve()
 
@@ -27,23 +45,28 @@ def regenerate_expected_outputs():
 		expected_html_dir = Path(subdir, r'expected_html')
 		expected_xml_dir = Path(subdir, r'expected_xml')
 
-		delete_directory(html_dir, logger=True)
-		delete_directory(xml_dir, logger=True)
-		delete_directory(expected_html_dir, logger=True)
-		delete_directory(expected_xml_dir, logger=True)
-
 		# read in test config
 		config = {}
 		config_path = Path(subdir, r'test.toml')
 		if config_path.exists():
 			config = toml.loads(read_all_text_from_file(config_path, logger=True))
-		output_html = config[r'html'] if r'html' in config else True
-		output_xml = config[r'xml'] if r'xml' in config else False
+		if _cfg(config, r'skip', False):
+			continue
+		output_html = bool(_cfg(config, (r'html', r'enabled'), True))
+		output_xml = bool(_cfg(config, (r'xml', r'enabled'), False))
 		args = [
 			r'--noassets',  #
 			rf'--{"no-" if not output_html else ""}html',
-			rf'--{"no-" if not output_xml else ""}xml'
+			rf'--{"no-" if not output_xml else ""}xml',
 		]
+		if bool(_cfg(config, (r'xml', r'v2'), False)):
+			args.append(r'--experimental-xml-v2')
+
+		# delete all previous outputs
+		delete_directory(html_dir, logger=True)
+		delete_directory(xml_dir, logger=True)
+		delete_directory(expected_html_dir, logger=True)
+		delete_directory(expected_xml_dir, logger=True)
 
 		# run poxy
 		print(rf"Regenerating {subdir}...")
@@ -52,7 +75,7 @@ def regenerate_expected_outputs():
 		# delete garbage
 		garbage = (
 			r'*.xslt', r'*.xsd', r'favicon*', r'search-v2.js',
-			*(coerce_collection(config[r'garbage']) if r'garbage' in config else [])
+			*(coerce_collection([r'garbage']) if r'garbage' in config else [])
 		)
 		garbage = (
 			*(enumerate_files(html_dir, any=garbage) if output_html else []),

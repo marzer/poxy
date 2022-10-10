@@ -1,1 +1,2 @@
-xml = false
+[xml]
+enabled = false

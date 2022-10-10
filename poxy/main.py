@@ -169,6 +169,11 @@ def main(invoker=True):
 		action=r'store_true',
 		help=argparse.SUPPRESS,
 	)
+	args.add_argument(
+		r'--experimental-xml-v2',  #
+		action=r'store_true',
+		help=argparse.SUPPRESS
+	)
 	args = args.parse_args()
 
 	#--------------------------------------------------------------
@@ -218,6 +223,7 @@ def main(invoker=True):
 
 	with ScopeTimer(r'All tasks', print_start=False, print_end=True) as timer:
 		run(
+			# named args:
 			config_path=args.config,
 			output_dir=Path.cwd(),
 			output_html=args.html,
@@ -231,7 +237,9 @@ def main(invoker=True):
 			html_exclude=args.ppexclude,
 			treat_warnings_as_errors=args.werror,
 			theme=args.theme,
-			copy_assets=not args.noassets
+			copy_assets=not args.noassets,
+			# kwargs:
+			experimental_xml_v2=args.experimental_xml_v2
 		)
 
 
