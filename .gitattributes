@@ -30,6 +30,10 @@
 *.psd               binary
 *.rc                binary
 *.xlsx              binary
+*.woff              binary
+*.woff2             binary
+*.otf               binary
+*.ttf               binary
 
 */generated/**      linguist-generated
 */m.css/**          linguist-vendored

@@ -12,6 +12,13 @@
     <namespace>test::empty</namespace>
     <concept>test::concept_1</concept>
     <concept>test::nested::concept_2</concept>
+    <member kind="define">
+      <type>#define</type>
+      <name>KEK</name>
+      <anchorfile>code_8h.html</anchorfile>
+      <anchor>a867e1e9e6c924393462cf7c1a78c6c3e</anchor>
+      <arglist></arglist>
+    </member>
     <member kind="enumeration">
       <type></type>
       <name>unscoped_enum</name>

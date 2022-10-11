@@ -289,6 +289,9 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 
 	root = etree.fromstring(read_all_text_from_file(path, logger=log_func).encode(r'utf-8'), parser=parser)
 
+	if root.tag not in (r'doxygenindex', r'doxygen'):
+		return
+
 	def extract_subelement_text(elem, subelem_tag: str):
 		assert elem is not None
 		assert subelem_tag is not None
@@ -307,14 +310,60 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 				return n
 		return None
 
-	if root.tag not in (r'doxygenindex', r'doxygen'):
-		return
+	def parse_structured_text(node: graph.Node, elem):
+		nonlocal g
+		# top-level text in the tag
+		if elem.text:
+			text = g.get_or_create_node(type=graph.Text)
+			text.text = elem.text
+			node.connect_to(text)
+		# child <tags>
+		for child_elem in elem:
+			if child_elem.tag == r'para':
+				para = g.get_or_create_node(type=graph.Paragraph)
+				parse_structured_text(para, child_elem)
+				node.connect_to(para)
+			elif child_elem.tag == r'ref':
+				ref = g.get_or_create_node(type=graph.Text)
+				ref.text = child_elem.text
+				ref.reference_id = child_elem.get(r'refid')
+				node.connect_to(ref)
+			else:
+				raise Error(rf'Unknown <{elem.tag}> child element <{child_elem.tag}>')
+			# text that came after the child <tag>
+			if child_elem.tail:
+				text = g.get_or_create_node(type=graph.Text)
+				text.text = child_elem.tail
+				node.connect_to(text)
+
+	def parse_text_subnode(node: graph.Node, subnode_type, elem, subelem_tag: str):
+		assert node is not None
+		assert elem is not None
+		assert subelem_tag is not None
+		assert subnode_type is not None
+		if subnode_type in node:
+			return
+		subelem = elem.find(subelem_tag)
+		if subelem is None:
+			return
+		nonlocal g
+		subnode = g.get_or_create_node(type=subnode_type)
+		node.connect_to(subnode)
+		parse_structured_text(subnode, subelem)
+
+	def parse_brief(node, elem):
+		parse_text_subnode(node, graph.BriefDescription, elem, r'briefdescription')
+
+	def parse_detail(node, elem):
+		parse_text_subnode(node, graph.DetailedDescription, elem, r'detaileddescription')
+
+	def parse_initializer(node, elem):
+		parse_text_subnode(node, graph.Initializer, elem, r'initializer')
 
 	# <compound>
 	# (these are doxygen's version of 'forward declarations')
 	for compound in root.findall(r'compound'):
-		node = g.get_or_create_node(compound.get(r'refid'))
-		node.node_type = _to_node_type(compound.get(r'kind'))
+		node = g.get_or_create_node(id=compound.get(r'refid'), type=_to_node_type(compound.get(r'kind')))
 		node.qualified_name = extract_qualified_name(compound)
 
 		# <member>
@@ -322,8 +371,7 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 			member_kind = member_elem.get(r'kind')
 			if member_kind == r'enumvalue':
 				continue
-			member = g.get_or_create_node(member_elem.get(r'refid'))
-			member.node_type = _to_node_type(member_kind)
+			member = g.get_or_create_node(id=member_elem.get(r'refid'), type=_to_node_type(member_kind))
 			node.connect_to(member)
 			# manually rebuild the fully-qualified name
 			name = extract_subelement_text(member_elem, r'name')
@@ -338,8 +386,7 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 
 	# <compounddef>
 	for compounddef in root.findall(r'compounddef'):
-		node = g.get_or_create_node(compounddef.get(r'id'))
-		node.node_type = _to_node_type(compounddef.get(r'kind'))
+		node = g.get_or_create_node(id=compounddef.get(r'id'), type=_to_node_type(compounddef.get(r'kind')))
 		node.qualified_name = extract_qualified_name(compounddef)
 		node.access_level = compounddef.get(r'prot')
 
@@ -369,25 +416,27 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 
 		# enums
 		for enum_elem in get_all_type_memberdefs(r'enum'):
-			enum = g.get_or_create_node(enum_elem.get(r'id'))
-			enum.node_type = graph.Enum
+			enum = g.get_or_create_node(id=enum_elem.get(r'id'), type=graph.Enum)
 			enum.access_level = enum_elem.get(r'prot')
 			enum.strong = enum_elem.get(r'strong')
 			enum.static = enum_elem.get(r'static')
 			enum.local_name = extract_subelement_text(enum_elem, r'name')
 			enum.qualified_name = extract_qualified_name(enum_elem)
+			parse_brief(enum, enum_elem)
+			parse_detail(enum, enum_elem)
 			node.connect_to(enum)
 			for value_elem in enum_elem.findall(r'enumvalue'):
-				value = g.get_or_create_node(value_elem.get(r'id'))
-				value.node_type = graph.EnumValue
+				value = g.get_or_create_node(id=value_elem.get(r'id'), type=graph.EnumValue)
 				value.access_level = value_elem.get(r'prot')
 				value.local_name = extract_subelement_text(value_elem, r'name')
+				parse_brief(value, value_elem)
+				parse_detail(value, value_elem)
+				parse_initializer(value, value_elem)
 				enum.connect_to(value)
 
 		# vars
 		for var_elem in get_all_attrib_memberdefs(r'variable'):
-			var = g.get_or_create_node(var_elem.get(r'id'))
-			var.node_type = graph.Variable
+			var = g.get_or_create_node(id=var_elem.get(r'id'), type=graph.Variable)
 			var.access_level = var_elem.get(r'prot')
 			var.static = var_elem.get(r'static')
 			var.constexpr = var_elem.get(r'constexpr')
@@ -397,12 +446,15 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 			var.definition = extract_subelement_text(var_elem, r'definition')
 			var.local_name = extract_subelement_text(var_elem, r'name')
 			var.qualified_name = extract_qualified_name(var_elem)
+			parse_brief(var, var_elem)
+			parse_detail(var, var_elem)
+			parse_initializer(var, var_elem)
 			node.connect_to(var)
 
 		# <inner(namespace|class|concept|file|dir)>
 		for inner_suffix in (r'namespace', r'class', r'concept', r'dir', r'file'):
 			for inner_elem in compounddef.findall(rf'inner{inner_suffix}'):
-				inner = g.get_or_create_node(inner_elem.get(r'refid'))
+				inner = g.get_or_create_node(id=inner_elem.get(r'refid'))
 				if inner_suffix == r'class':
 					if inner.id.startswith(r'class'):
 						inner.node_type = graph.Class
@@ -416,7 +468,7 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 				node.connect_to(inner)
 
 	# deduce any missing qualified_names
-	# for _, node in g(graph.Namespace, graph.Class, graph.Struct, graph.Union):
+	# for node in g(graph.Namespace, graph.Class, graph.Struct, graph.Union):
 
 
 
@@ -453,8 +505,69 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 	global NODE_TYPES_TO_KINDS
 	global VERSION
 
+	def make_text_subnode(elem, subelem_tag: str, node: graph.Node, subnode_type):
+		assert node is not None
+		assert elem is not None
+		assert subelem_tag is not None
+		assert subnode_type is not None
+		subelem = etree.SubElement(elem, subelem_tag)
+		subelem.text = r''
+		if subnode_type not in node:
+			return
+		text = [n for n in node(subnode_type)]  # list of BriefDescription
+		text = [[i for i in n(graph.Paragraph, graph.Text)] for n in text]  # list of lists of Text/Paragraph
+		text = list(itertools.chain.from_iterable(text))  # list of Text/Paragraph
+		if not text:
+			return
+		# all the ones at the start that are just plain text get
+		# concatenated and set as the main text of the root subelement
+		while text and text[0].node_type is graph.Text and not text[0].reference_id:
+			subelem.text = subelem.text + text[0].text
+			text.pop(0)
+		# otherwise we need to loop through and make paragraphs/references
+		prev = None
+		while text:
+			if text[0].node_type is graph.Paragraph:
+				para = etree.SubElement(subelem, rf'para')
+				para.text = text[0].text
+				para_children = [n for n in text[0](graph.Text)]
+				text.pop(0)
+				prev = para
+				while para_children and not para_children[0].reference_id:
+					para.text = para.text + para_children[0].text
+					para_children.pop(0)
+				para_prev = None
+				while para_children:
+					if para_children[0].reference_id:
+						para_prev = etree.SubElement(subelem, rf'ref', attrib={r'refid': para_children[0].reference_id})
+						para_prev.text = para_children[0].text
+						para_children.pop(0)
+					else:
+						assert para_prev is not None
+						while para_children and not para_children[0].reference_id:
+							para_prev.tail = para_prev.tail + para_children[0].text
+							para_children.pop(0)
+			elif text[0].reference_id:
+				prev = etree.SubElement(subelem, rf'ref', attrib={r'refid': text[0].reference_id})
+				prev.text = text[0].text
+				text.pop(0)
+			else:
+				assert prev is not None
+				while text and text[0].node_type is graph.Text and not text[0].reference_id:
+					prev.tail = prev.tail + text[0].text
+					text.pop(0)
+
+	def make_brief(elem, node):
+		make_text_subnode(elem, r'briefdescription', node, graph.BriefDescription)
+
+	def make_detail(elem, node):
+		make_text_subnode(elem, r'detaileddescription', node, graph.DetailedDescription)
+
+	def make_initializer(elem, node):
+		make_text_subnode(elem, r'initializer', node, graph.Initializer)
+
 	# serialize the compound nodes
-	for _, node in g(*COMPOUND_NODE_TYPES):
+	for node in g(*COMPOUND_NODE_TYPES):
 		if not node:
 			continue
 		assert node.qualified_name
@@ -486,14 +599,14 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 
 		# <includes>
 		if node.node_type in (graph.Class, graph.Struct, graph.Union):
-			files = [f for _, f in g(graph.File) if (f and f is not node and node in f)]
+			files = [f for f in g(graph.File) if (f and f is not node and node in f)]
 			for f in files:
 				assert f.qualified_name
 				elem = etree.SubElement(compounddef, rf'includes', attrib={r'local': r'no'})
 				elem.text = f.qualified_name
 
 		# add the inners
-		for _, inner_node in node(
+		for inner_node in node(
 			graph.Namespace, graph.Class, graph.Struct, graph.Union, graph.Concept, graph.Directory, graph.File
 		):
 			if not inner_node:
@@ -528,7 +641,7 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 		sectiondefs = {k: etree.SubElement(compounddef, r'sectiondef', attrib={r'kind': k}) for k in sectiondefs}
 
 		# enums
-		for _, enum in node(graph.Enum):
+		for enum in node(graph.Enum):
 			section = r'enum'
 			if node.node_type in (graph.Class, graph.Struct, graph.Union):
 				section = rf'{Prot(enum.access_level)}-type'
@@ -546,10 +659,10 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 			etree.SubElement(enum_elem, r'type').text = enum.type
 			etree.SubElement(enum_elem, r'name').text = enum.local_name
 			etree.SubElement(enum_elem, r'qualified_name').text = enum.qualified_name
-			etree.SubElement(enum_elem, r'briefdescription')
-			etree.SubElement(enum_elem, r'detaileddescription')
-			etree.SubElement(enum_elem, r'inbodydescription')
-			for _, value in enum(graph.EnumValue):
+			make_brief(enum_elem, enum)
+			make_detail(enum_elem, enum)
+			etree.SubElement(enum_elem, r'inbodydescription').text = r''  # todo
+			for value in enum(graph.EnumValue):
 				value_elem = etree.SubElement(
 					enum_elem, rf'enumvalue', attrib={
 					r'id': value.id,
@@ -557,11 +670,12 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 					}
 				)
 				etree.SubElement(value_elem, r'name').text = value.local_name
-				etree.SubElement(value_elem, r'briefdescription')
-				etree.SubElement(value_elem, r'detaileddescription')
+				make_brief(value_elem, value)
+				make_detail(value_elem, value)
+				make_initializer(value_elem, value)
 
 		# variables
-		for _, var in node(graph.Variable):
+		for var in node(graph.Variable):
 			section = r'var'
 			if node.node_type in (graph.Class, graph.Struct, graph.Union):
 				section = rf'{Prot(var.access_level)}-{"static-" if var.static else ""}attrib'
@@ -580,10 +694,14 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 			)
 			etree.SubElement(var_elem, r'type').text = var.type
 			etree.SubElement(var_elem, r'definition').text = var.definition
+			etree.SubElement(var_elem, r'argsstring')
 			etree.SubElement(var_elem, r'name').text = var.local_name
 			etree.SubElement(var_elem, r'qualified_name').text = var.qualified_name
-			etree.SubElement(var_elem, r'briefdescription')
-			etree.SubElement(var_elem, r'detaileddescription')
+			make_brief(var_elem, var)
+			make_detail(var_elem, var)
+			make_initializer(var_elem, var)
+			etree.SubElement(var_elem, r'inbodydescription').text = r''  # todo
+			etree.SubElement(var_elem, r'location')
 
 		# <listofallmembers>
 		if node.node_type in (graph.Class, graph.Struct, graph.Union):

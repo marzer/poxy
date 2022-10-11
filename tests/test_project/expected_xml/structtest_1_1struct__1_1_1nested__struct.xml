@@ -9,7 +9,7 @@
     <detaileddescription>
 <para>More info. </para>
     </detaileddescription>
-    <location file="src/code.h" line="35" column="1" bodyfile="src/code.h" bodystart="36" bodyend="36"/>
+    <location file="src/code.h" line="39" column="1" bodyfile="src/code.h" bodystart="40" bodyend="40"/>
     <listofallmembers>
     </listofallmembers>
   </compounddef>

@@ -2,6 +2,10 @@
 /// \brief Code, yo.
 /// \details More info.
 
+/// \brief A macro.
+/// \details More info.
+#define KEK 1
+
 #include <concepts>
 
 /// \brief A namespace.

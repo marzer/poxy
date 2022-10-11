@@ -9,7 +9,6 @@
         <definition>constexpr bool test::class_1::public_static_variable</definition>
         <argsstring/>
         <name>public_static_variable</name>
-        <qualifiedname>test::class_1::public_static_variable</qualifiedname>
         <initializer>= false</initializer>
         <briefdescription>
 <para>A public static variable. </para>
@@ -19,7 +18,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="57" column="23" bodyfile="src/code.h" bodystart="57" bodyend="-1"/>
+        <location file="src/code.h" line="61" column="23" bodyfile="src/code.h" bodystart="61" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="public-attrib">
@@ -28,7 +27,6 @@
         <definition>bool test::class_1::public_variable</definition>
         <argsstring/>
         <name>public_variable</name>
-        <qualifiedname>test::class_1::public_variable</qualifiedname>
         <briefdescription>
 <para>A public variable. </para>
         </briefdescription>
@@ -37,7 +35,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="61" column="6" bodyfile="src/code.h" bodystart="61" bodyend="-1"/>
+        <location file="src/code.h" line="65" column="6" bodyfile="src/code.h" bodystart="65" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="protected-static-attrib">
@@ -46,7 +44,6 @@
         <definition>constexpr bool test::class_1::protected_static_variable</definition>
         <argsstring/>
         <name>protected_static_variable</name>
-        <qualifiedname>test::class_1::protected_static_variable</qualifiedname>
         <initializer>= false</initializer>
         <briefdescription>
 <para>A protected static variable. </para>
@@ -56,7 +53,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="66" column="23" bodyfile="src/code.h" bodystart="66" bodyend="-1"/>
+        <location file="src/code.h" line="70" column="23" bodyfile="src/code.h" bodystart="70" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="protected-attrib">
@@ -65,7 +62,6 @@
         <definition>bool test::class_1::protected_variable</definition>
         <argsstring/>
         <name>protected_variable</name>
-        <qualifiedname>test::class_1::protected_variable</qualifiedname>
         <briefdescription>
 <para>A protected variable. </para>
         </briefdescription>
@@ -74,7 +70,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="70" column="6" bodyfile="src/code.h" bodystart="70" bodyend="-1"/>
+        <location file="src/code.h" line="74" column="6" bodyfile="src/code.h" bodystart="74" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="private-static-attrib">
@@ -83,7 +79,6 @@
         <definition>constexpr bool test::class_1::private_static_variable</definition>
         <argsstring/>
         <name>private_static_variable</name>
-        <qualifiedname>test::class_1::private_static_variable</qualifiedname>
         <initializer>= false</initializer>
         <briefdescription>
 <para>A private static variable. </para>
@@ -93,7 +88,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="75" column="23" bodyfile="src/code.h" bodystart="75" bodyend="-1"/>
+        <location file="src/code.h" line="79" column="23" bodyfile="src/code.h" bodystart="79" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="private-attrib">
@@ -102,7 +97,6 @@
         <definition>bool test::class_1::private_variable</definition>
         <argsstring/>
         <name>private_variable</name>
-        <qualifiedname>test::class_1::private_variable</qualifiedname>
         <briefdescription>
 <para>A private variable. </para>
         </briefdescription>
@@ -111,7 +105,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="79" column="6" bodyfile="src/code.h" bodystart="79" bodyend="-1"/>
+        <location file="src/code.h" line="83" column="6" bodyfile="src/code.h" bodystart="83" bodyend="-1"/>
       </memberdef>
       </sectiondef>
     <briefdescription>
@@ -120,7 +114,7 @@
     <detaileddescription>
 <para>More info. </para>
     </detaileddescription>
-    <location file="src/code.h" line="52" column="1" bodyfile="src/code.h" bodystart="53" bodyend="80"/>
+    <location file="src/code.h" line="56" column="1" bodyfile="src/code.h" bodystart="57" bodyend="84"/>
     <listofallmembers>
       <member refid="classtest_1_1class__1_1a2c7531e04784d4531785b2daac34a28c" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>private_static_variable</name></member>
       <member refid="classtest_1_1class__1_1a75103e4c3f5e4bc442416e302be44c57" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>private_variable</name></member>

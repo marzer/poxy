@@ -8,7 +8,6 @@
       <memberdef kind="enum" id="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0c" prot="public" static="no" strong="yes">
         <type/>
         <name>nested_enum</name>
-        <qualifiedname>test::struct_1::nested_enum</qualifiedname>
         <enumvalue id="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0ca209e4404bac5df6700a512df9e988ba3" prot="public">
           <name>val_0</name>
           <briefdescription>
@@ -43,7 +42,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="40" column="1" bodyfile="src/code.h" bodystart="41" bodyend="47"/>
+        <location file="src/code.h" line="44" column="1" bodyfile="src/code.h" bodystart="45" bodyend="51"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="public-static-attrib">
@@ -52,7 +51,6 @@
         <definition>constexpr bool test::struct_1::static_variable</definition>
         <argsstring/>
         <name>static_variable</name>
-        <qualifiedname>test::struct_1::static_variable</qualifiedname>
         <initializer>= false</initializer>
         <briefdescription>
 <para>A static variable. </para>
@@ -62,7 +60,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="31" column="23" bodyfile="src/code.h" bodystart="31" bodyend="-1"/>
+        <location file="src/code.h" line="35" column="23" bodyfile="src/code.h" bodystart="35" bodyend="-1"/>
       </memberdef>
       </sectiondef>
     <briefdescription>
@@ -71,7 +69,7 @@
     <detaileddescription>
 <para>More info. </para>
     </detaileddescription>
-    <location file="src/code.h" line="27" column="1" bodyfile="src/code.h" bodystart="28" bodyend="48"/>
+    <location file="src/code.h" line="31" column="1" bodyfile="src/code.h" bodystart="32" bodyend="52"/>
     <listofallmembers>
       <member refid="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0c" prot="public" virt="non-virtual"><scope>test::struct_1</scope><name>nested_enum</name></member>
       <member refid="structtest_1_1struct__1_1a93dfbf581e6e3abb295161832143dc75" prot="public" virt="non-virtual"><scope>test::struct_1</scope><name>static_variable</name></member>

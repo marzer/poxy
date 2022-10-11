@@ -39,6 +39,7 @@
   <compound refid="namespacetest_1_1nested" kind="namespace"><name>test::nested</name>
   </compound>
   <compound refid="code_8h" kind="file"><name>code.h</name>
+    <member refid="code_8h_1a867e1e9e6c924393462cf7c1a78c6c3e" kind="define"><name>KEK</name></member>
     <member refid="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065" kind="enum"><name>unscoped_enum</name></member>
     <member refid="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065a3b6f77dbd09e17c5e8a30dcd3474012f" kind="enumvalue"><name>LEGACY_ENUM_VAL_0</name></member>
     <member refid="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065af18ad5a3bf0d316003544836a8734fd4" kind="enumvalue"><name>LEGACY_ENUM_VAL_1</name></member>

@@ -29,6 +29,6 @@ concept <ref refid="concepttest_1_1concept__1" kindref="compound">test::concept_
 </parameterlist>
 </para>
     </detaileddescription>
-    <location file="src/code.h" line="93" column="1"/>
+    <location file="src/code.h" line="97" column="1"/>
   </compounddef>
 </doxygen>
