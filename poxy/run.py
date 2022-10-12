@@ -18,6 +18,7 @@ from .project import Context
 from . import doxygen
 from . import soup
 from . import fixers
+from . import graph
 from .svg import SVG
 from distutils.dir_util import copy_tree
 
@@ -134,6 +135,7 @@ _doxygen_overrides = (
 	(r'SORT_MEMBERS_CTORS_1ST', True),
 	(r'SOURCE_BROWSER', False),
 	(r'STRICT_PROTO_MATCHING', False),
+	(r'STRIP_FROM_INC_PATH', None),  # we handle this
 	(r'SUBGROUPING', True),
 	(r'TAB_SIZE', 4),
 	(r'TOC_INCLUDE_HEADINGS', 3),
@@ -142,6 +144,7 @@ _doxygen_overrides = (
 	(r'USE_HTAGS', False),
 	(r'USE_MDFILE_AS_MAINPAGE', None),
 	(r'VERBATIM_HEADERS', False),
+	(r'WARN_AS_ERROR', False),  # we handle this
 	(r'WARN_IF_DOC_ERROR', True),
 	(r'WARN_IF_INCOMPLETE_DOC', True),
 	(r'WARN_LOGFILE', None),
@@ -213,7 +216,6 @@ def preprocess_doxyfile(context: Context):
 		df.append(r'# context.warnings', end='\n\n')  # ---------------------------------------------------
 
 		df.set_value(r'WARNINGS', context.warnings.enabled)
-		df.set_value(r'WARN_AS_ERROR', False)  # we do this ourself
 		df.set_value(r'WARN_IF_UNDOCUMENTED', context.warnings.undocumented)
 
 		df.append()
@@ -572,10 +574,15 @@ def postprocess_xml(context: Context):
 							members = [
 								m for m in section.findall(r'memberdef') if m.get(r'kind') in (r'friend', r'function')
 							]
-							attribute_keywords = ((r'constexpr', r'constexpr',
-								r'yes'), (r'consteval', r'consteval', r'yes'), (r'explicit', r'explicit', r'yes'),
-								(r'static', r'static', r'yes'), (r'friend', None, None), (r'inline', r'inline',
-								r'yes'), (r'virtual', r'virt', r'virtual'))
+							attribute_keywords = (
+								(r'constexpr', r'constexpr', r'yes'),  #
+								(r'consteval', r'consteval', r'yes'),
+								(r'explicit', r'explicit', r'yes'),
+								(r'static', r'static', r'yes'),
+								(r'friend', None, None),
+								(r'inline', r'inline', r'yes'),
+								(r'virtual', r'virt', r'virtual')
+							)
 							for member in members:
 								type = member.find(r'type')
 								if type is None or type.text is None:
@@ -864,7 +871,22 @@ def postprocess_xml_v2(context: Context):
 	log_func = lambda m: context.verbose(m)
 
 	g = doxygen.read_graph_from_xml(context.temp_xml_dir, log_func=log_func)
-	delete_directory(context.temp_xml_dir, logger=log_func)
+
+	# delete 'file' nodes for markdown and dox files
+	g.remove(filter=lambda n: n.type is graph.File and re.search(r'[.](?:md|dox)$', n.local_name, flags=re.I))
+
+	# delete empty 'dir' nodes
+	g.remove(filter=lambda n: n.type is graph.Directory and not len(list(n(graph.File, graph.Directory))))
+
+	# todo:
+	# - extract namespaces, types and enum values for syntax highlighting
+	# - enumerate all compound pages and their types for later (e.g. HTML post-process)
+	# - merge user-defined sections with the same name
+	# - sort user-defined sections based on their name
+	# - implementation headers
+
+	for f in enumerate_files(context.temp_xml_dir, any=r'*.xml'):
+		delete_file(f, logger=log_func)
 	doxygen.write_graph_to_xml(g, context.temp_xml_dir, log_func=log_func)
 
 

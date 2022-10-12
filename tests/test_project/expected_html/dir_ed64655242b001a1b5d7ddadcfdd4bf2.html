@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head>
   <meta charset="utf-8"/>
-  <title>Test! A C++ Project</title>
+  <title>src/subfolder/ directory | Test! A C++ Project</title>
   <link href="favicon-dark.png" rel="icon" type="image/png"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <meta content="#22272e" name="theme-color"/>
@@ -19,7 +19,7 @@
   <meta content="Poxy v0.0.0" name="generator"/>
   <meta content="strict-origin-when-cross-origin" name="referrer"/>
 </head>
-<body>
+<body class="poxy-has-toc">
 <header><nav id="navigation">
   <div class="m-container">
     <div class="m-row">
@@ -34,7 +34,7 @@
       <div class="m-col-t-12 m-show-m m-col-m-none m-right-m" id="m-navbar-collapse">
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
-            <li><a href="files.html" id="m-navbar-current">Files</a></li>
+            <li><a href="files.html">Files</a></li>
             <li><a href="namespaces.html">Namespaces</a></li>
             <li><a href="annotated.html">Classes</a></li>
           </ol>
@@ -54,37 +54,28 @@
   <div class="m-container m-container-inflatable">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <h1>Files</h1>
-        <ul class="m-doc">
-          <li class="m-doc-collapsible">
-            <a href="#" onclick="return toggle(this)">dir</a> <a class="m-doc" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a> <span class="m-doc">A folder.</span>
-            <ul class="m-doc">
-              <li class="m-doc-collapsible">
-                <a href="#" onclick="return toggle(this)">dir</a> <a class="m-doc" href="dir_ed64655242b001a1b5d7ddadcfdd4bf2.html">subfolder</a> <span class="m-doc">A subfolder.</span>
-                <ul class="m-doc">
-                  <li>file <a class="m-doc" href="subfolder_2code_8h.html">code.h</a> <span class="m-doc">More code, yo.</span></li>
-                </ul>
-              </li>
-              <li>file <a class="m-doc" href="code_8h.html">code.h</a> <span class="m-doc">Code, yo.</span></li>
-            </ul>
-          </li>
-        </ul>
-        <script>
-        function toggle(e) {
-            e.parentElement.className = e.parentElement.className == 'm-doc-collapsible' ?
-                'm-doc-expansible' : 'm-doc-collapsible';
-            return false;
-        }
-        /* Collapse all nodes marked as such. Doing it via JS instead of
-           directly in markup so disabling it doesn't harm usability. The list
-           is somehow regenerated on every iteration and shrinks as I change
-           the classes. It's not documented anywhere and I'm not sure if this
-           is the same across browsers, so I am going backwards in that list to
-           be sure. */
-        var collapsed = document.getElementsByClassName("collapsed");
-        for(var i = collapsed.length - 1; i >= 0; --i)
-            collapsed[i].className = 'm-doc-expansible';
-        </script>
+        <h1>
+          <span class="m-breadcrumb"><a href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a>/</span>subfolder<span class="m-breadcrumb">/</span> <span class="m-thin">directory</span>
+        </h1>
+        <p>A subfolder.</p>
+        <nav class="m-block m-default poxy-toc" id="poxy-toc">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#files">Files</a></li>
+              </ul>
+            </li>
+          </ul>
+        </nav>
+        <section id="files">
+          <h2><a href="#files">Files</a></h2>
+          <dl class="m-doc">
+            <dt>file <a class="m-doc" href="subfolder_2code_8h.html">code.h</a></dt>
+            <dd>More code, yo.</dd>
+          </dl>
+        </section>
       </div>
     </div>
   </div>

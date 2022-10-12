@@ -235,6 +235,16 @@ class Prot(object):
 
 
 
+class Virt(object):
+
+	def __init__(self, value: bool):
+		self.__value = bool(value)
+
+	def __str__(self) -> str:
+		return r'virtual' if self.__value else r'non-virtual'
+
+
+
 #=======================================================================================================================
 # XML <=> Graph
 #=======================================================================================================================
@@ -256,7 +266,7 @@ KINDS_TO_NODE_TYPES = {
 	r'variable': graph.Variable,
 	r'function': graph.Function,
 	r'define': graph.Define,
-	r'page': graph.Article
+	r'page': graph.Page
 }
 NODE_TYPES_TO_KINDS = {t: k for k, t in KINDS_TO_NODE_TYPES.items()}
 COMPOUND_NODE_TYPES = {KINDS_TO_NODE_TYPES[c] for c in COMPOUNDS}
@@ -264,21 +274,13 @@ VERSION = r'1.9.5'
 
 
 
-def _to_kind(node_type) -> str:
-	if node_type is None:
-		return None
-	global NODE_TYPES_TO_KINDS
-	assert node_type in NODE_TYPES_TO_KINDS
-	return NODE_TYPES_TO_KINDS[node_type]
-
-
-
-def _to_node_type(kind: str):
-	if kind is None:
-		return None
-	global KINDS_TO_NODE_TYPES
-	assert kind in KINDS_TO_NODE_TYPES
-	return KINDS_TO_NODE_TYPES[kind]
+def _ordered(*types) -> list:
+	assert types is not None
+	assert types
+	types = [*types]
+	types.sort(key=lambda t: t.__name__)
+	types = tuple(types)
+	return types
 
 
 
@@ -316,25 +318,36 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 		if elem.text:
 			text = g.get_or_create_node(type=graph.Text)
 			text.text = elem.text
-			node.connect_to(text)
+			node.add(text)
 		# child <tags>
 		for child_elem in elem:
 			if child_elem.tag == r'para':
 				para = g.get_or_create_node(type=graph.Paragraph)
 				parse_structured_text(para, child_elem)
-				node.connect_to(para)
+				node.add(para)
 			elif child_elem.tag == r'ref':
-				ref = g.get_or_create_node(type=graph.Text)
+				ref = g.get_or_create_node(type=graph.Reference)
 				ref.text = child_elem.text
-				ref.reference_id = child_elem.get(r'refid')
-				node.connect_to(ref)
+				ref.kind = child_elem.get(r'kindref')
+				resource = g.get_or_create_node(id=child_elem.get(r'refid'))
+				if child_elem.get(r'external'):
+					resource.type = graph.ExternalResource
+					resource.file = child_elem.get(r'external')
+				ref.add(resource)
+				node.add(ref)
 			else:
-				raise Error(rf'Unknown <{elem.tag}> child element <{child_elem.tag}>')
+				markup = g.get_or_create_node(type=graph.ExpositionMarkup)
+				markup.tag = child_elem.tag
+				attrs = [(k, v) for k, v in child_elem.attrib.items()]
+				attrs.sort(key=lambda kvp: kvp[0])
+				markup.extra_attributes = tuple(attrs)
+				parse_structured_text(markup, child_elem)
+				node.add(markup)
 			# text that came after the child <tag>
 			if child_elem.tail:
 				text = g.get_or_create_node(type=graph.Text)
 				text.text = child_elem.tail
-				node.connect_to(text)
+				node.add(text)
 
 	def parse_text_subnode(node: graph.Node, subnode_type, elem, subelem_tag: str):
 		assert node is not None
@@ -348,127 +361,222 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 			return
 		nonlocal g
 		subnode = g.get_or_create_node(type=subnode_type)
-		node.connect_to(subnode)
+		node.add(subnode)
 		parse_structured_text(subnode, subelem)
 
-	def parse_brief(node, elem):
+	def parse_brief(node: graph.Node, elem):
 		parse_text_subnode(node, graph.BriefDescription, elem, r'briefdescription')
 
-	def parse_detail(node, elem):
+	def parse_detail(node: graph.Node, elem):
 		parse_text_subnode(node, graph.DetailedDescription, elem, r'detaileddescription')
 
-	def parse_initializer(node, elem):
+	def parse_initializer(node: graph.Node, elem):
 		parse_text_subnode(node, graph.Initializer, elem, r'initializer')
 
+	def parse_type(node: graph.Node, elem, resolve_auto_as=None):
+		assert node is not None
+		assert elem is not None
+		if graph.Type in node:
+			return
+		type_elem = elem.find(r'type')
+		if type_elem is None:
+			return
+		# extract constexpr, constinit, static, mutable etc out of the type of doxygen has leaked it
+		while type_elem.text:
+			text = rf' {type_elem.text} '
+			match = re.search(r'\s(?:(?:const(?:expr|init|eval)|static|mutable|explicit|virtual|inline)\s)+', text)
+			if match is None:
+				break
+			type_elem.text = (text[:match.start()] + r' ' + text[match.end():]).strip()
+			if match[0].find(r'constexpr') != -1:
+				node.constexpr = True
+			if match[0].find(r'constinit') != -1:
+				node.constinit = True
+			if match[0].find(r'consteval') != -1:
+				node.consteval = True
+			if match[0].find(r'static') != -1:
+				node.static = True
+			if match[0].find(r'mutable') != -1:
+				node.mutable = True
+			if match[0].find(r'explicit') != -1:
+				node.explicit = True
+			if match[0].find(r'virtual') != -1:
+				node.virtual = True
+			if match[0].find(r'inline') != -1:
+				node.inline = True
+		if type_elem.text == r'auto' and resolve_auto_as is not None:
+			type_elem.text = resolve_auto_as
+		parse_text_subnode(node, graph.Type, elem, r'type')
+
+	def parse_location(node: graph.Node, elem):
+		location = elem.find(r'location')
+		if location is None:
+			return
+		node.file = location.get(r'file')
+		try:
+			node.line = location.get(r'line')
+		except:
+			pass
+		node.column = location.get(r'column')
+		attrs = []
+		for k, v in location.attrib.items():
+			if k not in (r'file', r'line', r'column'):
+				attrs.append((k, v))
+		attrs.sort(key=lambda kvp: kvp[0])
+		node.extra_attributes = tuple(attrs)
+
 	# <compound>
-	# (these are doxygen's version of 'forward declarations')
+	# (these are doxygen's version of 'forward declarations', typically found in index.xml)
 	for compound in root.findall(r'compound'):
-		node = g.get_or_create_node(id=compound.get(r'refid'), type=_to_node_type(compound.get(r'kind')))
-		node.qualified_name = extract_qualified_name(compound)
+		node = g.get_or_create_node(id=compound.get(r'refid'), type=KINDS_TO_NODE_TYPES[compound.get(r'kind')])
+
+		if node.type is graph.File:  # files use their local name?? doxygen is so fucking weird
+			node.local_name = tail(
+				extract_subelement_text(compound, r'name').strip().replace('\\', r'/').rstrip(r'/'),  #
+				r'/'
+			)
+		else:
+			node.qualified_name = extract_subelement_text(compound, r'name')
 
 		# <member>
 		for member_elem in compound.findall(rf'member'):
 			member_kind = member_elem.get(r'kind')
 			if member_kind == r'enumvalue':
 				continue
-			member = g.get_or_create_node(id=member_elem.get(r'refid'), type=_to_node_type(member_kind))
-			node.connect_to(member)
-			# manually rebuild the fully-qualified name
+			member = g.get_or_create_node(id=member_elem.get(r'refid'), type=KINDS_TO_NODE_TYPES[member_kind])
+			node.add(member)
 			name = extract_subelement_text(member_elem, r'name')
 			if name:
-				if node.node_type is graph.Directory and member.node_type in (graph.Directory, graph.File):
-					member.qualified_name = rf'{node.qualified_name}/{name}'
-				elif (
-					node.node_type not in (graph.Directory, graph.File)  #
-					and member.node_type not in (graph.Directory, graph.File)
-				):
-					member.qualified_name = rf'{node.qualified_name}::{name}'
+				if member.type is graph.Define:
+					member.local_name = name
+					member.qualified_name = name
+				elif node.type not in (graph.Directory, graph.File):
+					member.local_name = name
+					if node.qualified_name:
+						member.qualified_name = rf'{node.qualified_name}::{name}'
 
 	# <compounddef>
 	for compounddef in root.findall(r'compounddef'):
-		node = g.get_or_create_node(id=compounddef.get(r'id'), type=_to_node_type(compounddef.get(r'kind')))
-		node.qualified_name = extract_qualified_name(compounddef)
+		node = g.get_or_create_node(id=compounddef.get(r'id'), type=KINDS_TO_NODE_TYPES[compounddef.get(r'kind')])
 		node.access_level = compounddef.get(r'prot')
+		parse_brief(node, compounddef)
+		parse_detail(node, compounddef)
+		parse_initializer(node, compounddef)
+		parse_location(node, compounddef)
+		parse_type(node, compounddef)
 
-		def get_all_memberdefs(kind: str, *sectiondef_kinds):
-			nonlocal compounddef
-			memberdefs = [
-				s for s in compounddef.findall(r'sectiondef') if (s.get(r'kind') in {kind, *sectiondef_kinds})
-			]
-			memberdefs = [s.findall(r'memberdef') for s in memberdefs]  # list of lists of memberdefs
-			memberdefs = list(itertools.chain.from_iterable(memberdefs))  # list of memberdefs
-			return [m for m in memberdefs if m.get(r'kind') == kind]  # matching memberdefs
+		# qualified name
+		qualified_name = extract_subelement_text(compounddef, r'qualifiedname')
+		qualified_name = qualified_name.strip() if qualified_name is not None else r''
+		if not qualified_name and node.type in (graph.Directory, graph.File):
+			qualified_name = compounddef.find(r'location')
+			qualified_name = qualified_name.get(r'file') if qualified_name is not None else r''
+			qualified_name = qualified_name.rstrip(r'/')
+		if not qualified_name:
+			qualified_name = extract_qualified_name(compounddef)
+		node.qualified_name = qualified_name
 
-		def get_all_type_memberdefs(kind: str):
-			return get_all_memberdefs(kind, r'public-type', r'protected-type', r'private-type')
+		# get all memberdefs in one flat list
+		memberdefs = [compounddef]
+		memberdefs += [s for s in compounddef.findall(r'sectiondef')]
+		memberdefs = [s.findall(r'memberdef') for s in memberdefs]  # list of lists of memberdefs
+		memberdefs = list(itertools.chain.from_iterable(memberdefs))  # list of memberdefs
 
-		def get_all_attrib_memberdefs(kind: str):
-			return get_all_memberdefs(
-				kind,  #
-				r'var',
-				r'public-static-attrib',
-				r'protected-static-attrib',
-				r'private-static-attrib',
-				r'public-attrib',
-				r'protected-attrib',
-				r'private-attrib'
-			)
+		def get_memberdefs(kind: str):
+			nonlocal memberdefs
+			return [m for m in memberdefs if m.get(r'kind') == kind]
+
+		# all <memberdefs>
+		for elem in memberdefs:
+			member = g.get_or_create_node(id=elem.get(r'id'))
+			parse_brief(member, elem)
+			parse_detail(member, elem)
+			parse_initializer(member, elem)
+			parse_location(member, elem)
+			member.access_level = elem.get(r'prot')
+			member.static = elem.get(r'static')
+			member.const = elem.get(r'const')
+			member.constexpr = elem.get(r'constexpr')
+			member.consteval = elem.get(r'consteval')
+			member.inline = elem.get(r'inline')
+			member.explicit = elem.get(r'explicit')
+			member.virtual = True if elem.get(r'virtual') == r'virtual' else None
+			member.strong = elem.get(r'strong')
+			member.definition = extract_subelement_text(elem, r'definition')
+			node.add(member)
+
+			# fix trailing return types in some situations (https://github.com/mosra/m.css/issues/94)
+			trailing_return_type = None
+			if elem.get(r'kind') == r'function':
+				type_elem = elem.find(r'type')
+				args_elem = elem.find(r'argsstring')
+				if type_elem is not None and type_elem.text and args_elem is not None and args_elem.text:
+					match = re.search(r'^(.*?)\s*->\s*([a-zA-Z][a-zA-Z0-9_::*& <>]+)\s*$', args_elem.text)
+					if match:
+						args_elem.text = str(match[1])
+						trailing_return_type = str(match[2]).strip()
+
+			parse_type(member, elem, resolve_auto_as=trailing_return_type)
 
 		# enums
-		for enum_elem in get_all_type_memberdefs(r'enum'):
-			enum = g.get_or_create_node(id=enum_elem.get(r'id'), type=graph.Enum)
-			enum.access_level = enum_elem.get(r'prot')
-			enum.strong = enum_elem.get(r'strong')
-			enum.static = enum_elem.get(r'static')
-			enum.local_name = extract_subelement_text(enum_elem, r'name')
-			enum.qualified_name = extract_qualified_name(enum_elem)
-			parse_brief(enum, enum_elem)
-			parse_detail(enum, enum_elem)
-			node.connect_to(enum)
-			for value_elem in enum_elem.findall(r'enumvalue'):
+		for elem in get_memberdefs(r'enum'):
+			member = g.get_or_create_node(id=elem.get(r'id'), type=graph.Enum)
+			member.local_name = extract_subelement_text(elem, r'name')
+			member.qualified_name = extract_qualified_name(elem)
+			node.add(member)
+			for value_elem in elem.findall(r'enumvalue'):
 				value = g.get_or_create_node(id=value_elem.get(r'id'), type=graph.EnumValue)
 				value.access_level = value_elem.get(r'prot')
 				value.local_name = extract_subelement_text(value_elem, r'name')
 				parse_brief(value, value_elem)
 				parse_detail(value, value_elem)
 				parse_initializer(value, value_elem)
-				enum.connect_to(value)
+				parse_location(value, value_elem)
+				member.add(value)
+
+		# typedefs
+		for elem in get_memberdefs(r'typedef'):
+			member = g.get_or_create_node(id=elem.get(r'id'), type=graph.Typedef)
+			member.local_name = extract_subelement_text(elem, r'name')
+			member.qualified_name = extract_qualified_name(elem)
+			node.add(member)
 
 		# vars
-		for var_elem in get_all_attrib_memberdefs(r'variable'):
-			var = g.get_or_create_node(id=var_elem.get(r'id'), type=graph.Variable)
-			var.access_level = var_elem.get(r'prot')
-			var.static = var_elem.get(r'static')
-			var.constexpr = var_elem.get(r'constexpr')
-			var.constinit = var_elem.get(r'constinit')
-			var.mutable = var_elem.get(r'mutable')
-			var.type = extract_subelement_text(var_elem, r'type')
-			var.definition = extract_subelement_text(var_elem, r'definition')
-			var.local_name = extract_subelement_text(var_elem, r'name')
-			var.qualified_name = extract_qualified_name(var_elem)
-			parse_brief(var, var_elem)
-			parse_detail(var, var_elem)
-			parse_initializer(var, var_elem)
-			node.connect_to(var)
+		for elem in get_memberdefs(r'variable'):
+			member = g.get_or_create_node(id=elem.get(r'id'), type=graph.Variable)
+			member.local_name = extract_subelement_text(elem, r'name')
+			member.qualified_name = extract_qualified_name(elem)
+			node.add(member)
 
-		# <inner(namespace|class|concept|file|dir)>
-		for inner_suffix in (r'namespace', r'class', r'concept', r'dir', r'file'):
+		# functions
+		for elem in get_memberdefs(r'function'):
+			member = g.get_or_create_node(id=elem.get(r'id'), type=graph.Function)
+			node.add(member)
+
+		# <inner(dir|file|class|namespace|page|group|concept)>
+		for inner_suffix in (r'dir', r'file', r'class', r'namespace', r'page', r'group', r'concept'):
 			for inner_elem in compounddef.findall(rf'inner{inner_suffix}'):
 				inner = g.get_or_create_node(id=inner_elem.get(r'refid'))
 				if inner_suffix == r'class':
 					if inner.id.startswith(r'class'):
-						inner.node_type = graph.Class
+						inner.type = graph.Class
 					elif inner.id.startswith(r'struct'):
-						inner.node_type = graph.Struct
+						inner.type = graph.Struct
 					elif inner.id.startswith(r'union'):
-						inner.node_type = graph.Union
+						inner.type = graph.Union
+				elif node.type in (graph.Class, graph.Struct, graph.Union) and inner_suffix == r'group':
+					inner.type = graph.MemberGroup
 				else:
-					inner.node_type = _to_node_type(inner_suffix)
-				inner.qualified_name = inner_elem.text
-				node.connect_to(inner)
-
-	# deduce any missing qualified_names
-	# for node in g(graph.Namespace, graph.Class, graph.Struct, graph.Union):
+					inner.type = KINDS_TO_NODE_TYPES[inner_suffix]
+				if node.type is graph.Directory:
+					if inner.type is graph.Directory:
+						inner.qualified_name = inner_elem.text
+					else:
+						assert inner.type is graph.File
+						inner.qualified_name = rf'{node.qualified_name}/{inner_elem.text}'
+				elif node.type in graph.CPP_TYPES and inner.type in graph.CPP_TYPES:
+					inner.qualified_name = inner_elem.text
+				node.add(inner)
 
 
 
@@ -483,8 +591,106 @@ def read_graph_from_xml(folder, log_func=None) -> graph.Graph:
 		encoding=r'utf-8'
 	)
 	g = graph.Graph()
+
+	# parse files
 	for path in get_all_files(folder, all=r"*.xml"):
-		_parse_xml_file(g=g, path=path, parser=parser, log_func=log_func)
+		try:
+			_parse_xml_file(g=g, path=path, parser=parser, log_func=log_func)
+		except KeyError:
+			raise
+		except Exception as ex:
+			raise Error(rf'Parsing {path.name} failed: {ex}')
+
+	# deduce any missing qualified_names for C++ constructs
+	again = True
+	while again:
+		again = False
+		for namespace in g(graph.Namespace, graph.Class, graph.Struct, graph.Union, graph.Enum):
+			if not namespace.qualified_name:
+				continue
+			for member in namespace(
+				graph.Namespace, graph.Class, graph.Struct, graph.Union, graph.Variable, graph.Concept, graph.Enum,
+				graph.EnumValue, graph.Function, graph.Typedef
+			):
+				if member.local_name and not member.qualified_name:
+					member.qualified_name = rf'{namespace.qualified_name}::{member.local_name}'
+					again = True
+
+	# deduce any missing qualified_names for files and folders
+	again = True
+	while again:
+		again = False
+		for dir in g(graph.Directory):
+			if not dir.qualified_name:
+				continue
+			for member in dir(graph.Directory, graph.File):
+				if member.local_name and not member.qualified_name:
+					member.qualified_name = rf'{dir.qualified_name}/{member.local_name}'
+					again = True
+
+	# add missing dir nodes + link file hierarchy
+	for node in list(g(graph.Directory, graph.File)):
+		sep = node.qualified_name.rstrip(r'/').rfind(r'/')
+		if sep == -1:
+			continue
+		parent_path = node.qualified_name[:sep]
+		if not parent_path:
+			continue
+		parent = None
+		for dir in g(graph.Directory):
+			if dir.qualified_name == parent_path:
+				parent = dir
+				break
+		if parent is None:
+			parent = g.get_or_create_node(type=graph.Directory)
+		parent.qualified_name = parent_path
+		parent.add(node)
+
+	# resolve file links
+	for node in g:
+		if not node or node.type in (graph.Directory, graph.File, graph.ExternalResource) or not node.file:
+			continue
+		for file in g(graph.File):
+			if file.qualified_name == node.file:
+				file.add(node)
+
+	g.validate()
+
+	# replace doxygen's stupid nondeterministic IDs with something more robust
+	id_remap = dict()
+
+	def fix_ids(node: graph.Node) -> str:
+		nonlocal id_remap
+		assert node is not None
+		assert node.type is not None
+
+		# enum values are special - their ids always begin with the ID of their owning enum
+		if node.type is graph.EnumValue:
+			assert node.has_parent(graph.Enum)
+			assert node.local_name
+			parent = list(node(graph.Enum, parents=True))[0]
+			id = re.sub(r'[/+!@#$%&*()+=.,{}<>;:?\[\]\^\-\\]+', r'_', node.local_name).rstrip(r'_')
+			id = rf'{fix_ids(parent)}_{id}'
+			id_remap[node.id] = id
+			return id
+
+		# if we don't have a qualified name then there's no meaningful transformation to do
+		# we also don't transform functions because overloading makes them ambiguous (todo: handle functions)
+		if not node.qualified_name or node.type is graph.Function:
+			id_remap[node.id] = node.id
+			return node.id
+
+		id = re.sub(r'[/+!@#$%&*()+=.,{}<>;:?\[\]\^\-\\]+', r'_', node.qualified_name).rstrip(r'_')
+		if len(id) > 128:
+			id = sha1(id)
+		id = rf'{node.type_name.lower()}_{id}'
+		id_remap[node.id] = id
+		return id
+
+	g = g.copy(id_transform=fix_ids)
+
+	g.validate()
+
 	return g
 
 
@@ -499,72 +705,100 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 		ns_clean=True
 	)
 
-	global COMPOUNDS
-	global COMPOUND_NODE_TYPES
-	global KINDS_TO_NODE_TYPES
-	global NODE_TYPES_TO_KINDS
-	global VERSION
+	def make_structured_text(elem, nodes):
+		assert elem is not None
+		assert nodes is not None
+
+		# all the ones at the start that are just plain text get
+		# concatenated and set as the main text of the root subelement
+		if elem.text is None:
+			elem.text = r''
+		while nodes and nodes[0].type is graph.Text:
+			elem.text = elem.text + nodes[0].text
+			nodes.pop(0)
+
+		# paragraphs/references/other exposition markup
+		prev = None
+		while nodes:
+			if nodes[0].type is graph.Paragraph:
+				para = etree.SubElement(elem, rf'para')
+				para.text = nodes[0].text
+				make_structured_text(para, [n for n in nodes[0]])
+				prev = para
+			elif nodes[0].type is graph.ExpositionMarkup:
+				assert nodes[0].tag
+				markup = etree.SubElement(elem, nodes[0].tag)
+				for k, v in nodes[0].extra_attributes:
+					markup.set(k, v)
+				markup.text = nodes[0].text
+				make_structured_text(markup, [n for n in nodes[0]])
+				prev = markup
+			elif nodes[0].type is graph.Reference and nodes[0].is_parent:
+				ref = etree.SubElement(elem, rf'ref', attrib={r'refid': nodes[0][0].id})
+				ref.text = nodes[0].text
+				if nodes[0].kind:
+					ref.set(r'kindref', nodes[0].kind)
+				if nodes[0][0].type is graph.ExternalResource:
+					ref.set(r'external', nodes[0][0].file)
+				prev = ref
+			else:
+				assert nodes[0].type in (graph.Text, graph.Reference)
+				assert prev is not None
+				if prev.tail is None:
+					prev.tail = r''
+				prev.tail = prev.tail + nodes[0].text
+			nodes.pop(0)
 
 	def make_text_subnode(elem, subelem_tag: str, node: graph.Node, subnode_type):
-		assert node is not None
 		assert elem is not None
 		assert subelem_tag is not None
+		assert node is not None
 		assert subnode_type is not None
 		subelem = etree.SubElement(elem, subelem_tag)
 		subelem.text = r''
 		if subnode_type not in node:
 			return
 		text = [n for n in node(subnode_type)]  # list of BriefDescription
-		text = [[i for i in n(graph.Paragraph, graph.Text)] for n in text]  # list of lists of Text/Paragraph
-		text = list(itertools.chain.from_iterable(text))  # list of Text/Paragraph
+		text = [[i for i in n(graph.Paragraph, graph.Text, graph.Reference, graph.ExpositionMarkup)]
+			for n in text]  # list of lists
+		text = list(itertools.chain.from_iterable(text))  # flattened list of Text/Paragraph/Reference
 		if not text:
 			return
-		# all the ones at the start that are just plain text get
-		# concatenated and set as the main text of the root subelement
-		while text and text[0].node_type is graph.Text and not text[0].reference_id:
-			subelem.text = subelem.text + text[0].text
-			text.pop(0)
-		# otherwise we need to loop through and make paragraphs/references
-		prev = None
-		while text:
-			if text[0].node_type is graph.Paragraph:
-				para = etree.SubElement(subelem, rf'para')
-				para.text = text[0].text
-				para_children = [n for n in text[0](graph.Text)]
-				text.pop(0)
-				prev = para
-				while para_children and not para_children[0].reference_id:
-					para.text = para.text + para_children[0].text
-					para_children.pop(0)
-				para_prev = None
-				while para_children:
-					if para_children[0].reference_id:
-						para_prev = etree.SubElement(subelem, rf'ref', attrib={r'refid': para_children[0].reference_id})
-						para_prev.text = para_children[0].text
-						para_children.pop(0)
-					else:
-						assert para_prev is not None
-						while para_children and not para_children[0].reference_id:
-							para_prev.tail = para_prev.tail + para_children[0].text
-							para_children.pop(0)
-			elif text[0].reference_id:
-				prev = etree.SubElement(subelem, rf'ref', attrib={r'refid': text[0].reference_id})
-				prev.text = text[0].text
-				text.pop(0)
-			else:
-				assert prev is not None
-				while text and text[0].node_type is graph.Text and not text[0].reference_id:
-					prev.tail = prev.tail + text[0].text
-					text.pop(0)
+		make_structured_text(subelem, text)
 
-	def make_brief(elem, node):
+	def make_brief(elem, node: graph.Node):
 		make_text_subnode(elem, r'briefdescription', node, graph.BriefDescription)
 
-	def make_detail(elem, node):
+	def make_detail(elem, node: graph.Node):
 		make_text_subnode(elem, r'detaileddescription', node, graph.DetailedDescription)
 
-	def make_initializer(elem, node):
+	def make_initializer(elem, node: graph.Node):
 		make_text_subnode(elem, r'initializer', node, graph.Initializer)
+
+	def make_type(elem, node: graph.Node):
+		make_text_subnode(elem, r'type', node, graph.Type)
+
+	def make_location(elem, node: graph.Node):
+		subelem = None
+		if node.type is graph.Directory:
+			subelem = etree.SubElement(elem, rf'location', attrib={r'file': rf'{node.qualified_name}/'})
+		elif node.type is graph.File:
+			subelem = etree.SubElement(elem, rf'location', attrib={r'file': rf'{node.qualified_name}'})
+		else:
+			subelem = etree.SubElement(
+				elem, rf'location', attrib={
+				r'line': rf'{node.line}',
+				r'column': rf'{node.column}'
+				}
+			)
+			if node.file:
+				subelem.set(r'file', node.file)
+			else:
+				files = [f for f in node(graph.File, parents=True)]
+				if files and files[0].qualified_name:
+					subelem.set(r'file', files[0].qualified_name)
+		for k, v in node.extra_attributes:
+			subelem.set(k, v)
 
 	# serialize the compound nodes
 	for node in g(*COMPOUND_NODE_TYPES):
@@ -572,7 +806,7 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 			continue
 		assert node.qualified_name
 
-		kind = _to_kind(node.node_type)
+		kind = NODE_TYPES_TO_KINDS[node.type]
 		assert kind in COMPOUNDS
 
 		path = Path(folder, rf'{node.id}.xml')
@@ -585,7 +819,7 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 						xml:lang="en-US">
 					<!-- This file was created by Poxy - https://github.com/marzer/poxy -->
 					<compounddef id="{node.id}" kind="{kind}" language="C++">
-						<compoundname>{node.qualified_name}</compoundname>
+						<compoundname>{node.local_name if node.type is graph.File else node.qualified_name}</compoundname>
 					</compounddef>
 				</doxygen>''',
 			parser=parser
@@ -594,123 +828,239 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 
 		# create the root <compounddef>
 		compounddef = xml.getroot().find(r'compounddef')
-		if node.node_type not in (graph.Namespace, graph.Directory, graph.File):
+		if node.type not in (graph.Namespace, graph.Directory, graph.File, graph.Concept):
 			compounddef.set(r'prot', str(Prot(node.access_level)))
 
 		# <includes>
-		if node.node_type in (graph.Class, graph.Struct, graph.Union):
+		if node.type in (graph.Class, graph.Struct, graph.Union, graph.Concept):
 			files = [f for f in g(graph.File) if (f and f is not node and node in f)]
 			for f in files:
-				assert f.qualified_name
-				elem = etree.SubElement(compounddef, rf'includes', attrib={r'local': r'no'})
-				elem.text = f.qualified_name
-
-		# add the inners
-		for inner_node in node(
-			graph.Namespace, graph.Class, graph.Struct, graph.Union, graph.Concept, graph.Directory, graph.File
-		):
-			if not inner_node:
-				continue
-			assert inner_node.qualified_name
-
-			kind = NODE_TYPES_TO_KINDS[inner_node.node_type]
-			if inner_node.node_type in (graph.Struct, graph.Union):
-				kind = r'class'
-			inner_elem = etree.SubElement(compounddef, rf'inner{kind}', attrib={r'refid': inner_node.id})
-			if node.node_type not in (graph.Namespace, graph.Directory, graph.File):
-				inner_elem.set(r'prot', str(Prot(inner_node.access_level)))
-			inner_elem.text = inner_node.qualified_name
+				assert f.local_name
+				etree.SubElement(compounddef, rf'includes', attrib={r'local': r'no'}).text = f.local_name
 
 		# create all the <sectiondefs>
 		# (empty ones will be deleted at the end)
 		sectiondefs = (
 			# namespace/file sections:
 			r'enum',
+			r'typedef',
 			r'var',
+			r'func',
 			# class/struct/union sections:
 			r'public-type',
 			r'protected-type',
 			r'private-type',
+			r'public-static-func',
+			r'protected-static-func',
+			r'private-static-func',
+			r'public-func',
+			r'protected-func',
+			r'private-func',
 			r'public-static-attrib',
 			r'protected-static-attrib',
 			r'private-static-attrib',
 			r'public-attrib',
 			r'protected-attrib',
-			r'private-attrib'
+			r'private-attrib',
+			r'friend'
 		)
 		sectiondefs = {k: etree.SubElement(compounddef, r'sectiondef', attrib={r'kind': k}) for k in sectiondefs}
 
 		# enums
-		for enum in node(graph.Enum):
+		enums = list(node(graph.Enum))
+		enums.sort(key=lambda n: n.qualified_name)
+		for member in enums:
 			section = r'enum'
-			if node.node_type in (graph.Class, graph.Struct, graph.Union):
-				section = rf'{Prot(enum.access_level)}-type'
-			enum_elem = etree.SubElement(
+			if node.type in (graph.Class, graph.Struct, graph.Union):
+				section = rf'{Prot(member.access_level)}-type'
+			elem = etree.SubElement(
 				sectiondefs[section],
 				rf'memberdef',
 				attrib={
-				r'id': enum.id,
+				r'id': member.id,
 				r'kind': r'enum',
-				r'static': str(Bool(enum.static)),
-				r'strong': str(Bool(enum.strong)),
-				r'prot': str(Prot(enum.access_level))
+				r'static': str(Bool(member.static)),
+				r'strong': str(Bool(member.strong)),
+				r'prot': str(Prot(member.access_level))
 				}
 			)
-			etree.SubElement(enum_elem, r'type').text = enum.type
-			etree.SubElement(enum_elem, r'name').text = enum.local_name
-			etree.SubElement(enum_elem, r'qualified_name').text = enum.qualified_name
-			make_brief(enum_elem, enum)
-			make_detail(enum_elem, enum)
-			etree.SubElement(enum_elem, r'inbodydescription').text = r''  # todo
-			for value in enum(graph.EnumValue):
+			make_type(elem, member)
+			etree.SubElement(elem, r'name').text = member.local_name
+			etree.SubElement(elem, r'qualifiedname').text = member.qualified_name
+			for value in member(graph.EnumValue):
 				value_elem = etree.SubElement(
-					enum_elem, rf'enumvalue', attrib={
+					elem, rf'enumvalue', attrib={
 					r'id': value.id,
 					r'prot': str(Prot(value.access_level))
 					}
 				)
 				etree.SubElement(value_elem, r'name').text = value.local_name
+				if graph.Initializer in value:
+					make_initializer(value_elem, value)
 				make_brief(value_elem, value)
 				make_detail(value_elem, value)
-				make_initializer(value_elem, value)
+			make_brief(elem, member)
+			make_detail(elem, member)
+			etree.SubElement(elem, r'inbodydescription').text = r''  # todo
+			make_location(elem, member)
 
-		# variables
-		for var in node(graph.Variable):
-			section = r'var'
-			if node.node_type in (graph.Class, graph.Struct, graph.Union):
-				section = rf'{Prot(var.access_level)}-{"static-" if var.static else ""}attrib'
-			var_elem = etree.SubElement(
+		# typedefs
+		typedefs = list(node(graph.Typedef))
+		typedefs.sort(key=lambda n: n.qualified_name)
+		for member in typedefs:
+			section = r'typedef'
+			if node.type in (graph.Class, graph.Struct, graph.Union):
+				section = rf'{Prot(member.access_level)}-type'
+			elem = etree.SubElement(
 				sectiondefs[section],
 				rf'memberdef',
 				attrib={
-				r'id': var.id,
-				r'kind': r'variable',
-				r'prot': str(Prot(var.access_level)),
-				r'static': str(Bool(var.static)),
-				r'constexpr': str(Bool(var.constexpr)),
-				r'constinit': str(Bool(var.constinit)),
-				r'mutable': str(Bool(var.strong)),
+				r'id': member.id,
+				r'kind': r'typedef',
+				r'static': str(Bool(member.static)),
+				r'prot': str(Prot(member.access_level))
 				}
 			)
-			etree.SubElement(var_elem, r'type').text = var.type
-			etree.SubElement(var_elem, r'definition').text = var.definition
-			etree.SubElement(var_elem, r'argsstring')
-			etree.SubElement(var_elem, r'name').text = var.local_name
-			etree.SubElement(var_elem, r'qualified_name').text = var.qualified_name
-			make_brief(var_elem, var)
-			make_detail(var_elem, var)
-			make_initializer(var_elem, var)
-			etree.SubElement(var_elem, r'inbodydescription').text = r''  # todo
-			etree.SubElement(var_elem, r'location')
+			make_type(elem, member)
+			etree.SubElement(elem, r'definition').text = member.definition
+			etree.SubElement(elem, r'argsstring')
+			etree.SubElement(elem, r'name').text = member.local_name
+			etree.SubElement(elem, r'qualifiedname').text = member.qualified_name
+			make_brief(elem, member)
+			make_detail(elem, member)
+			etree.SubElement(elem, r'inbodydescription').text = r''  # todo
+			make_location(elem, member)
+
+		# variables
+		variables = list(node(graph.Variable))
+		if node.type in (graph.Class, graph.Struct, graph.Union):
+			static_vars = [v for v in variables if v.static]
+			static_vars.sort(key=lambda n: n.qualified_name)
+			variables = static_vars + [v for v in variables if not v.static]
+		else:
+			variables.sort(key=lambda n: n.qualified_name)
+		for member in variables:
+			section = r'var'
+			if node.type in (graph.Class, graph.Struct, graph.Union):
+				section = rf'{Prot(member.access_level)}-{"static-" if member.static else ""}attrib'
+			elem = etree.SubElement(
+				sectiondefs[section],
+				rf'memberdef',
+				attrib={
+				r'id': member.id,
+				r'kind': r'variable',
+				r'prot': str(Prot(member.access_level)),
+				r'static': str(Bool(member.static)),
+				r'constexpr': str(Bool(member.constexpr)),
+				r'constinit': str(Bool(member.constinit)),
+				r'mutable': str(Bool(member.strong)),
+				}
+			)
+			make_type(elem, member)
+			etree.SubElement(elem, r'definition').text = member.definition
+			etree.SubElement(elem, r'argsstring')
+			etree.SubElement(elem, r'name').text = member.local_name
+			etree.SubElement(elem, r'qualifiedname').text = member.qualified_name
+			make_brief(elem, member)
+			make_detail(elem, member)
+			make_initializer(elem, member)
+			etree.SubElement(elem, r'inbodydescription').text = r''  # todo
+			make_location(elem, member)
+
+		# functions
+		functions = list(node(graph.Function))
+		functions.sort(key=lambda n: n.qualified_name)
+		for member in functions:
+			section = r'func'
+			if node.type in (graph.Class, graph.Struct, graph.Union):
+				section = rf'{Prot(member.access_level)}-{"static-" if member.static else ""}func'
+			elem = etree.SubElement(
+				sectiondefs[section],
+				rf'memberdef',
+				attrib={
+				r'id': member.id,
+				r'kind': r'function',
+				r'prot': str(Prot(member.access_level)),
+				r'static': str(Bool(member.static)),
+				r'const': str(Bool(member.const)),
+				r'constexpr': str(Bool(member.constexpr)),
+				r'consteval': str(Bool(member.consteval)),
+				r'explicit': str(Bool(member.explicit)),
+				r'inline': str(Bool(member.inline)),
+				r'noexcept': str(Bool(member.noexcept)),
+				r'virtual': str(Virt(member.virtual)),
+				}
+			)
+			make_type(elem, member)
+			etree.SubElement(elem, r'name').text = member.local_name
+			etree.SubElement(elem, r'qualifiedname').text = member.qualified_name
+			make_brief(elem, member)
+			make_detail(elem, member)
+			etree.SubElement(elem, r'inbodydescription').text = r''  # todo
+			make_location(elem, member)
+
+		# <initializer> for concepts
+		if node.type is graph.Concept:
+			make_initializer(compounddef, node)
+
+		# <briefdescription>, <detaileddescription>, <location>
+		make_brief(compounddef, node)
+		make_detail(compounddef, node)
+		make_location(compounddef, node)
 
 		# <listofallmembers>
-		if node.node_type in (graph.Class, graph.Struct, graph.Union):
+		if node.type in (graph.Class, graph.Struct, graph.Union):
 			listofallmembers = etree.SubElement(compounddef, rf'listofallmembers')
+			listofallmembers.text = r''
+			for member_type in _ordered(graph.Function, graph.Variable):
+				for member in node(member_type):
+					member_elem = etree.SubElement(
+						listofallmembers,
+						rf'member',
+						attrib={
+						r'refid': member.id,
+						r'prot': str(Prot(member.access_level)),
+						r'virtual': str(Virt(member.virtual)),
+						}
+					)
+					etree.SubElement(member_elem, r'scope').text = node.qualified_name
+					etree.SubElement(member_elem, r'name').text = member.local_name
 
-		# prune empty <sectiondefs>
-		for _, elem in sectiondefs.items():
-			if not len(elem):
-				elem.getparent().remove(elem)
+		# add the inners
+		for inner_type in _ordered(
+			graph.Directory,  #
+			graph.File,
+			graph.Namespace,
+			graph.Class,
+			graph.Struct,
+			graph.Union,
+			graph.Concept,
+			graph.Page,
+			graph.Group,
+			graph.MemberGroup
+		):
+			for inner_node in node(inner_type):
+				if not inner_node:
+					continue
+				assert inner_node.qualified_name
+
+				kind = None
+				if inner_node.type in (graph.Class, graph.Struct, graph.Union):
+					kind = r'class'
+				elif inner_node.type is graph.MemberGroup:
+					kind = r'group'
+				else:
+					kind = NODE_TYPES_TO_KINDS[inner_node.type]
+				inner_elem = etree.SubElement(compounddef, rf'inner{kind}', attrib={r'refid': inner_node.id})
+				if node.type not in (graph.Namespace, graph.Directory, graph.File, graph.Group, graph.Page):
+					inner_elem.set(r'prot', str(Prot(inner_node.access_level)))
+				inner_elem.text = inner_node.qualified_name
+
+		# prune empty <sectiondefs> etc
+		for tag_name in (r'sectiondef', ):
+			for elem in list(compounddef.findall(tag_name)):
+				if not len(elem):
+					elem.getparent().remove(elem)
 
 		if log_func:
 			log_func(rf'Writing {path}')
@@ -718,6 +1068,75 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 			str(path),  #
 			encoding=r'utf-8',
 			pretty_print=True,
-			xml_declaration=True,
-			standalone=False
+			xml_declaration=True
+		)
+
+	# serialize index.xml
+	if 1:
+		path = Path(folder, rf'index.xml')
+		xml = etree.ElementTree(
+			etree.XML(
+			rf'''<doxygenindex
+						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+						xsi:noNamespaceSchemaLocation="index.xsd"
+						version="{VERSION}"
+						xml:lang="en-US">
+					<!-- This file was created by Poxy - https://github.com/marzer/poxy -->
+				</xmlns>''',
+			parser=parser
+			)
+		)
+		root = xml.getroot()
+		for node_type in _ordered(*COMPOUND_NODE_TYPES):
+			for node in g(node_type):
+				compound = etree.SubElement(
+					root,
+					r'compound',
+					attrib={
+					r'refid': node.id,  #
+					r'kind': NODE_TYPES_TO_KINDS[node.type],
+					}
+				)
+				etree.SubElement(compound, r'name').text = node.qualified_name
+				if node.type is graph.Directory:
+					continue
+				for child_type in _ordered(graph.Define, graph.Function, graph.Variable, graph.Enum):
+					children = list(node(child_type))
+					if child_type is graph.Variable and node.type in (graph.Class, graph.Struct, graph.Union):
+						static_vars = [c for c in children if c.static]
+						static_vars.sort(key=lambda n: n.qualified_name)
+						children = static_vars + [c for c in children if not c.static]
+					else:
+						children.sort(key=lambda n: n.qualified_name)
+					for child in children:
+						assert child.local_name
+						member = etree.SubElement(
+							compound,
+							r'member',
+							attrib={
+							r'refid': child.id,  #
+							r'kind': NODE_TYPES_TO_KINDS[child.type],
+							}
+						)
+						etree.SubElement(member, r'name').text = child.local_name
+						if child_type is graph.Enum:
+							for enumvalue in child(graph.EnumValue):
+								assert enumvalue.local_name
+								elem = etree.SubElement(
+									compound,
+									r'member',
+									attrib={
+									r'refid': enumvalue.id,  #
+									r'kind': NODE_TYPES_TO_KINDS[enumvalue.type],
+									}
+								)
+								etree.SubElement(elem, r'name').text = enumvalue.local_name
+
+		if log_func:
+			log_func(rf'Writing {path}')
+		xml.write(
+			str(path),  #
+			encoding=r'utf-8',
+			pretty_print=True,
+			xml_declaration=True
 		)

@@ -107,6 +107,17 @@ def download_binary(uri: str, timeout=10) -> bytes:
 
 
 
+def tail(s: str, split: str) -> str:
+	assert s is not None
+	assert split is not None
+	assert split
+	idx = s.rfind(split)
+	if idx == -1:
+		return s
+	return s[idx + len(split):]
+
+
+
 #=======================================================================================================================
 # REGEX REPLACER
 #=======================================================================================================================

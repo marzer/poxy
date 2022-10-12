@@ -77,8 +77,12 @@ def regenerate_expected_outputs():
 
 		# delete garbage
 		garbage = (
-			r'*.xslt', r'*.xsd', r'favicon*', r'search-v2.js', r'Doxyfile*',
-			*(coerce_collection([r'garbage']) if r'garbage' in config else [])
+			r'*.xslt',
+			r'*.xsd',
+			r'favicon*',
+			r'search-v2.js',
+			r'Doxyfile*',
+			*(coerce_collection([r'garbage']) if r'garbage' in config else []),
 		)
 		garbage = (
 			*(enumerate_files(html_dir, any=garbage) if output_html else []),

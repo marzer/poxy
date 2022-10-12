@@ -8,6 +8,7 @@
       <memberdef kind="enum" id="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0c" prot="public" static="no" strong="yes">
         <type/>
         <name>nested_enum</name>
+        <qualifiedname>test::struct_1::nested_enum</qualifiedname>
         <enumvalue id="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0ca209e4404bac5df6700a512df9e988ba3" prot="public">
           <name>val_0</name>
           <briefdescription>
@@ -51,6 +52,7 @@
         <definition>constexpr bool test::struct_1::static_variable</definition>
         <argsstring/>
         <name>static_variable</name>
+        <qualifiedname>test::struct_1::static_variable</qualifiedname>
         <initializer>= false</initializer>
         <briefdescription>
 <para>A static variable. </para>

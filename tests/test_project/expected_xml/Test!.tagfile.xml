@@ -19,6 +19,27 @@
       <anchor>a867e1e9e6c924393462cf7c1a78c6c3e</anchor>
       <arglist></arglist>
     </member>
+    <member kind="typedef">
+      <type>int</type>
+      <name>a_shit_typedef</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a51ed0e00636746f407a20697efc8518e</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="typedef">
+      <type>int</type>
+      <name>a_typedef</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a011ffb640026d2f49f9c73fe09d88cfb</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="typedef">
+      <type>T</type>
+      <name>a_typedef_template</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>ab80f438f7d1d6d6e3b184b7ce32df687</anchor>
+      <arglist></arglist>
+    </member>
     <member kind="enumeration">
       <type></type>
       <name>unscoped_enum</name>
@@ -48,11 +69,32 @@
       <type></type>
       <name>scoped_enum</name>
       <anchorfile>namespacetest.html</anchorfile>
-      <anchor>a3a2b94881b2cd4942667975879b992b9</anchor>
+      <anchor>a393facd551443a4aaea74c533c2bce6f</anchor>
       <arglist></arglist>
-      <enumvalue file="namespacetest.html" anchor="a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3">val_0</enumvalue>
-      <enumvalue file="namespacetest.html" anchor="a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641">val_1</enumvalue>
-      <enumvalue file="namespacetest.html" anchor="a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c">val_2</enumvalue>
+      <enumvalue file="namespacetest.html" anchor="a393facd551443a4aaea74c533c2bce6fa209e4404bac5df6700a512df9e988ba3">val_0</enumvalue>
+      <enumvalue file="namespacetest.html" anchor="a393facd551443a4aaea74c533c2bce6fad69dff41cc115965adfeaa0f58fed641">val_1</enumvalue>
+      <enumvalue file="namespacetest.html" anchor="a393facd551443a4aaea74c533c2bce6fa3745be12e7d2d79a55682a6b1ef5863c">val_2</enumvalue>
+    </member>
+    <member kind="function">
+      <type>std::uint8_t</type>
+      <name>do_the_thing</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a011c6f27e90f228cd68be9def15bc076</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>constexpr T</type>
+      <name>do_the_other_thing</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>ae66b7e2e94f84934cff5de3e512ce0ee</anchor>
+      <arglist>(U u) noexcept</arglist>
+    </member>
+    <member kind="function">
+      <type>auto</type>
+      <name>do_the_thing_automatically</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>af2e6008ff8ee50f6cda80da681d44348</anchor>
+      <arglist>() -&gt; int</arglist>
     </member>
     <member kind="variable">
       <type>constexpr bool</type>
@@ -62,9 +104,34 @@
       <arglist></arglist>
     </member>
   </compound>
+  <compound kind="file">
+    <name>code.h</name>
+    <filename>subfolder_2code_8h.html</filename>
+  </compound>
   <compound kind="class">
     <name>test::class_1</name>
     <filename>classtest_1_1class__1.html</filename>
+    <member kind="typedef">
+      <type>int</type>
+      <name>public_typedef</name>
+      <anchorfile>classtest_1_1class__1.html</anchorfile>
+      <anchor>a52150fb93a5946c0d2fca381f99f426f</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>public_function</name>
+      <anchorfile>classtest_1_1class__1.html</anchorfile>
+      <anchor>a6b372d2af2e8e874869f0ddf50a306fb</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static constexpr struct_1</type>
+      <name>public_static_function</name>
+      <anchorfile>classtest_1_1class__1.html</anchorfile>
+      <anchor>af2caa02646ff203339faf41a0efc4b20</anchor>
+      <arglist>()</arglist>
+    </member>
     <member kind="variable">
       <type>bool</type>
       <name>public_variable</name>
@@ -73,11 +140,32 @@
       <arglist></arglist>
     </member>
     <member kind="variable" static="yes">
-      <type>static constexpr bool</type>
+      <type>static constexpr std::byte</type>
       <name>public_static_variable</name>
       <anchorfile>classtest_1_1class__1.html</anchorfile>
-      <anchor>a27966148032ee64e169e8e24ad6c7449</anchor>
+      <anchor>ae05cfedbf34e9f128e87410c09ad3780</anchor>
       <arglist></arglist>
+    </member>
+    <member kind="typedef" protection="protected">
+      <type>int</type>
+      <name>protected_typedef</name>
+      <anchorfile>classtest_1_1class__1.html</anchorfile>
+      <anchor>aa57cecf6a75b7d9a7343b06706f3863c</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>bool</type>
+      <name>protected_function</name>
+      <anchorfile>classtest_1_1class__1.html</anchorfile>
+      <anchor>ab61d354f51a90bb49d38d22e7a7d7f48</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function" protection="protected" static="yes">
+      <type>static constexpr bool</type>
+      <name>protected_static_function</name>
+      <anchorfile>classtest_1_1class__1.html</anchorfile>
+      <anchor>ac4b22b5c1e50ba1a06f0319566252bb8</anchor>
+      <arglist>()</arglist>
     </member>
     <member kind="variable" protection="protected">
       <type>bool</type>
@@ -142,6 +230,27 @@
     <class kind="struct">test::struct_1</class>
     <class kind="class">test::template_class_1</class>
     <concept>test::concept_1</concept>
+    <member kind="typedef">
+      <type>int</type>
+      <name>a_shit_typedef</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a51ed0e00636746f407a20697efc8518e</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="typedef">
+      <type>int</type>
+      <name>a_typedef</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a011ffb640026d2f49f9c73fe09d88cfb</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="typedef">
+      <type>T</type>
+      <name>a_typedef_template</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>ab80f438f7d1d6d6e3b184b7ce32df687</anchor>
+      <arglist></arglist>
+    </member>
     <member kind="enumeration">
       <type></type>
       <name>unscoped_enum</name>
@@ -171,11 +280,32 @@
       <type></type>
       <name>scoped_enum</name>
       <anchorfile>namespacetest.html</anchorfile>
-      <anchor>a3a2b94881b2cd4942667975879b992b9</anchor>
+      <anchor>a393facd551443a4aaea74c533c2bce6f</anchor>
       <arglist></arglist>
-      <enumvalue file="namespacetest.html" anchor="a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3">val_0</enumvalue>
-      <enumvalue file="namespacetest.html" anchor="a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641">val_1</enumvalue>
-      <enumvalue file="namespacetest.html" anchor="a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c">val_2</enumvalue>
+      <enumvalue file="namespacetest.html" anchor="a393facd551443a4aaea74c533c2bce6fa209e4404bac5df6700a512df9e988ba3">val_0</enumvalue>
+      <enumvalue file="namespacetest.html" anchor="a393facd551443a4aaea74c533c2bce6fad69dff41cc115965adfeaa0f58fed641">val_1</enumvalue>
+      <enumvalue file="namespacetest.html" anchor="a393facd551443a4aaea74c533c2bce6fa3745be12e7d2d79a55682a6b1ef5863c">val_2</enumvalue>
+    </member>
+    <member kind="function">
+      <type>std::uint8_t</type>
+      <name>do_the_thing</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a011c6f27e90f228cd68be9def15bc076</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>constexpr T</type>
+      <name>do_the_other_thing</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>ae66b7e2e94f84934cff5de3e512ce0ee</anchor>
+      <arglist>(U u) noexcept</arglist>
+    </member>
+    <member kind="function">
+      <type>auto</type>
+      <name>do_the_thing_automatically</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>af2e6008ff8ee50f6cda80da681d44348</anchor>
+      <arglist>() -&gt; int</arglist>
     </member>
     <member kind="variable">
       <type>constexpr bool</type>

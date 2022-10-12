@@ -23,7 +23,7 @@
 </parameterlist>
 </para>
     </detaileddescription>
-    <location file="src/code.h" line="90" column="1" bodyfile="src/code.h" bodystart="91" bodyend="91"/>
+    <location file="src/code.h" line="126" column="1" bodyfile="src/code.h" bodystart="127" bodyend="127"/>
     <listofallmembers>
     </listofallmembers>
   </compounddef>

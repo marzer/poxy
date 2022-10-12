@@ -65,8 +65,14 @@
             <li>
               Reference
               <ul>
+                <li><a href="#pub-types">Public types</a></li>
                 <li><a href="#pub-static-attribs">Public static variables</a></li>
+                <li><a href="#pub-static-methods">Public static functions</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
                 <li><a href="#pub-attribs">Public variables</a></li>
+                <li><a href="#pro-types">Protected types</a></li>
+                <li><a href="#pro-static-methods">Protected static functions</a></li>
+                <li><a href="#pro-methods">Protected functions</a></li>
                 <li><a href="#pro-static-attribs">Protected static variables</a></li>
                 <li><a href="#pro-attribs">Protected variables</a></li>
               </ul>
@@ -74,13 +80,40 @@
           </ul>
         </nav>
 <p>More info.</p>
+        <section id="pub-types">
+          <h2><a href="#pub-types">Public types</a></h2>
+          <dl class="m-doc">
+            <dt>
+              using <a class="m-doc" href="#a52150fb93a5946c0d2fca381f99f426f">public_typedef</a> = int
+            </dt>
+            <dd>A public typedef.</dd>
+          </dl>
+        </section>
         <section id="pub-static-attribs">
           <h2><a href="#pub-static-attribs">Public static variables</a></h2>
           <dl class="m-doc">
             <dt>
-              static bool <a class="m-doc" href="#a27966148032ee64e169e8e24ad6c7449">public_static_variable</a> <span class="m-label m-flat m-primary">constexpr</span>
+              static <a class="m-doc-external poxy-external" href="http://en.cppreference.com/w/cpp/types/byte.html" target="_blank">std::<wbr/>byte</a> <a class="m-doc" href="#ae05cfedbf34e9f128e87410c09ad3780">public_static_variable</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd>A public static variable.</dd>
+          </dl>
+        </section>
+        <section id="pub-static-methods">
+          <h2><a href="#pub-static-methods">Public static functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">static auto <a class="m-doc" href="#af2caa02646ff203339faf41a0efc4b20">public_static_function</a>(</span><span class="m-doc-wrap">) -&gt; <a class="m-doc" href="structtest_1_1struct__1.html">struct_<wbr/>1</a> <span class="m-label m-flat m-primary">constexpr</span></span>
+            </dt>
+            <dd>A public static function.</dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="#a6b372d2af2e8e874869f0ddf50a306fb">public_function</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
+            </dt>
+            <dd>A public function.</dd>
           </dl>
         </section>
         <section id="pub-attribs">
@@ -90,6 +123,33 @@
               bool <a class="m-doc" href="#a1942e4b40fc0cc1b939b24d1c5f4e54c">public_variable</a>
             </dt>
             <dd>A public variable.</dd>
+          </dl>
+        </section>
+        <section id="pro-types">
+          <h2><a href="#pro-types">Protected types</a></h2>
+          <dl class="m-doc">
+            <dt>
+              using <a class="m-doc" href="#aa57cecf6a75b7d9a7343b06706f3863c">protected_typedef</a> = int
+            </dt>
+            <dd>A protected typedef.</dd>
+          </dl>
+        </section>
+        <section id="pro-static-methods">
+          <h2><a href="#pro-static-methods">Protected static functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">static auto <a class="m-doc" href="#ac4b22b5c1e50ba1a06f0319566252bb8">protected_static_function</a>(</span><span class="m-doc-wrap">) -&gt; bool <span class="m-label m-flat m-primary">constexpr</span></span>
+            </dt>
+            <dd>A protected static function.</dd>
+          </dl>
+        </section>
+        <section id="pro-methods">
+          <h2><a href="#pro-methods">Protected functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="#ab61d354f51a90bb49d38d22e7a7d7f48">protected_function</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
+            </dt>
+            <dd>A protected function.</dd>
           </dl>
         </section>
         <section id="pro-static-attribs">
@@ -111,10 +171,58 @@
           </dl>
         </section>
         <section>
-          <h2>Variable documentation</h2>
-          <section class="m-doc-details" id="a27966148032ee64e169e8e24ad6c7449"><div>
+          <h2>Typedef documentation</h2>
+          <section class="m-doc-details" id="a52150fb93a5946c0d2fca381f99f426f"><div>
             <h3>
-              static bool test::<wbr/>class_1::<wbr/><a class="m-doc-self" href="#a27966148032ee64e169e8e24ad6c7449">public_static_variable</a> <span class="m-label m-primary">constexpr</span>
+              using test::<wbr/>class_1::<wbr/><a class="m-doc-self" href="#a52150fb93a5946c0d2fca381f99f426f">public_typedef</a> = int
+            </h3>
+            <p>A public typedef.</p>
+<p>More info.</p>
+          </div></section>
+          <section class="m-doc-details" id="aa57cecf6a75b7d9a7343b06706f3863c"><div>
+            <h3>
+              using test::<wbr/>class_1::<wbr/><a class="m-doc-self" href="#aa57cecf6a75b7d9a7343b06706f3863c">protected_typedef</a> = int <span class="m-label m-warning">protected</span>
+            </h3>
+            <p>A protected typedef.</p>
+<p>More info.</p>
+          </div></section>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="af2caa02646ff203339faf41a0efc4b20"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static <a class="m-doc" href="structtest_1_1struct__1.html">struct_<wbr/>1</a> test::<wbr/>class_1::<wbr/></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a class="m-doc-self" href="#af2caa02646ff203339faf41a0efc4b20">public_static_function</a>(</span><span class="m-doc-wrap">) <span class="m-label m-primary">constexpr</span></span></span>
+            </h3>
+            <p>A public static function.</p>
+<p>More info.</p>
+          </div></section>
+          <section class="m-doc-details" id="a6b372d2af2e8e874869f0ddf50a306fb"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">bool test::<wbr/>class_1::<wbr/></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a class="m-doc-self" href="#a6b372d2af2e8e874869f0ddf50a306fb">public_function</a>(</span><span class="m-doc-wrap">)</span></span>
+            </h3>
+            <p>A public function.</p>
+<p>More info.</p>
+          </div></section>
+          <section class="m-doc-details" id="ac4b22b5c1e50ba1a06f0319566252bb8"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static bool test::<wbr/>class_1::<wbr/></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a class="m-doc-self" href="#ac4b22b5c1e50ba1a06f0319566252bb8">protected_static_function</a>(</span><span class="m-doc-wrap">) <span class="m-label m-warning">protected</span> <span class="m-label m-primary">constexpr</span></span></span>
+            </h3>
+            <p>A protected static function.</p>
+<p>More info.</p>
+          </div></section>
+          <section class="m-doc-details" id="ab61d354f51a90bb49d38d22e7a7d7f48"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">bool test::<wbr/>class_1::<wbr/></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a class="m-doc-self" href="#ab61d354f51a90bb49d38d22e7a7d7f48">protected_function</a>(</span><span class="m-doc-wrap">) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+            <p>A protected function.</p>
+<p>More info.</p>
+          </div></section>
+        </section>
+        <section>
+          <h2>Variable documentation</h2>
+          <section class="m-doc-details" id="ae05cfedbf34e9f128e87410c09ad3780"><div>
+            <h3>
+              static <a class="m-doc-external poxy-external" href="http://en.cppreference.com/w/cpp/types/byte.html" target="_blank">std::<wbr/>byte</a> test::<wbr/>class_1::<wbr/><a class="m-doc-self" href="#ae05cfedbf34e9f128e87410c09ad3780">public_static_variable</a> <span class="m-label m-primary">constexpr</span>
             </h3>
             <p>A public static variable.</p>
 <p>More info.</p>

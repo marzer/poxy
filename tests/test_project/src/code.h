@@ -58,11 +58,23 @@ namespace test
 	  public:
 		/// \brief A public static variable.
 		/// \details More info.
-		static constexpr bool public_static_variable = false;
+		static constexpr std::byte public_static_variable = {};
 
 		/// \brief A public variable.
 		/// \details More info.
 		bool public_variable;
+
+		/// \brief A public static function.
+		/// \details More info.
+		static constexpr struct_1 public_static_function();
+
+		/// \brief A public function.
+		/// \details More info.
+		bool public_function();
+
+		/// \brief A public typedef.
+		/// \details More info.
+		using public_typedef = int;
 
 	  protected:
 		/// \brief A protected static variable.
@@ -73,6 +85,18 @@ namespace test
 		/// \details More info.
 		bool protected_variable;
 
+		/// \brief A protected static function.
+		/// \details More info.
+		static constexpr bool protected_static_function();
+
+		/// \brief A protected function.
+		/// \details More info.
+		bool protected_function();
+
+		/// \brief A protected typedef.
+		/// \details More info.
+		using protected_typedef = int;
+
 	  private:
 		/// \brief A private static variable.
 		/// \details More info.
@@ -81,6 +105,18 @@ namespace test
 		/// \brief A private variable.
 		/// \details More info.
 		bool private_variable;
+
+		/// \brief A private static function.
+		/// \details More info.
+		static constexpr bool private_static_function();
+
+		/// \brief A private function.
+		/// \details More info.
+		bool private_function();
+
+		/// \brief A private  typedef.
+		/// \details More info.
+		using private_typedef = int;
 	};
 
 	/// \brief A template class.
@@ -133,7 +169,7 @@ namespace test
 
 	/// \brief A C++11 scoped enum.
 	/// \details More info.
-	enum class scoped_enum
+	enum class scoped_enum : unsigned
 	{
 		val_0,	   ///< Value zero.
 		val_1 = 1, ///< Value one.
@@ -141,4 +177,37 @@ namespace test
 		/// \brief Value two.
 		val_2 = 2
 	};
+
+	/// \brief A function.
+	/// \details More info.
+	std::uint8_t do_the_thing();
+
+	/// \brief A function template.
+	/// \details More info.
+	/// \tparam T A type.
+	/// \tparam U Another type.
+	/// \param u An argument.
+	/// \returns A T.
+	template <typename T, typename U>
+	constexpr T do_the_other_thing(U u) noexcept
+	{
+		return T{};
+	}
+
+	/// \brief A function with a trailing return type
+	/// \details More info.
+	auto do_the_thing_automatically() -> int;
+
+	/// \brief An old-school typedef.
+	/// \details More info.
+	typedef int a_shit_typedef;
+
+	/// \brief A C++11 'using' typedef.
+	/// \details More info.
+	using a_typedef = int;
+
+	/// \brief A C++11 'using' typedef template.
+	/// \details More info.
+	template <typename T>
+	using a_typedef_template = T;
 }

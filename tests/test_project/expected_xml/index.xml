@@ -1,12 +1,21 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="0.0.0" xml:lang="en-US">
   <compound refid="classtest_1_1class__1" kind="class"><name>test::class_1</name>
-    <member refid="classtest_1_1class__1_1a27966148032ee64e169e8e24ad6c7449" kind="variable"><name>public_static_variable</name></member>
+    <member refid="classtest_1_1class__1_1a52150fb93a5946c0d2fca381f99f426f" kind="typedef"><name>public_typedef</name></member>
+    <member refid="classtest_1_1class__1_1aa57cecf6a75b7d9a7343b06706f3863c" kind="typedef"><name>protected_typedef</name></member>
+    <member refid="classtest_1_1class__1_1ae8b4b78fc4748c7f1a370ee8413574be" kind="typedef"><name>private_typedef</name></member>
+    <member refid="classtest_1_1class__1_1ae05cfedbf34e9f128e87410c09ad3780" kind="variable"><name>public_static_variable</name></member>
     <member refid="classtest_1_1class__1_1a1942e4b40fc0cc1b939b24d1c5f4e54c" kind="variable"><name>public_variable</name></member>
     <member refid="classtest_1_1class__1_1a330993e9b2ae74c6db1a28553759fe96" kind="variable"><name>protected_static_variable</name></member>
     <member refid="classtest_1_1class__1_1ae4d8ef41c2f2be17d38d9eac40e53699" kind="variable"><name>protected_variable</name></member>
     <member refid="classtest_1_1class__1_1a2c7531e04784d4531785b2daac34a28c" kind="variable"><name>private_static_variable</name></member>
     <member refid="classtest_1_1class__1_1a75103e4c3f5e4bc442416e302be44c57" kind="variable"><name>private_variable</name></member>
+    <member refid="classtest_1_1class__1_1af2caa02646ff203339faf41a0efc4b20" kind="function"><name>public_static_function</name></member>
+    <member refid="classtest_1_1class__1_1a6b372d2af2e8e874869f0ddf50a306fb" kind="function"><name>public_function</name></member>
+    <member refid="classtest_1_1class__1_1ac4b22b5c1e50ba1a06f0319566252bb8" kind="function"><name>protected_static_function</name></member>
+    <member refid="classtest_1_1class__1_1ab61d354f51a90bb49d38d22e7a7d7f48" kind="function"><name>protected_function</name></member>
+    <member refid="classtest_1_1class__1_1ad5ac71cb8a2b1b68eb98c1b33f1d2c2d" kind="function"><name>private_static_function</name></member>
+    <member refid="classtest_1_1class__1_1ae5256ba42036bd3717458a986dc8428a" kind="function"><name>private_function</name></member>
   </compound>
   <compound refid="structtest_1_1struct__1_1_1nested__struct" kind="struct"><name>test::struct_1::nested_struct</name>
   </compound>
@@ -28,11 +37,17 @@
     <member refid="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065a3b6f77dbd09e17c5e8a30dcd3474012f" kind="enumvalue"><name>LEGACY_ENUM_VAL_0</name></member>
     <member refid="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065af18ad5a3bf0d316003544836a8734fd4" kind="enumvalue"><name>LEGACY_ENUM_VAL_1</name></member>
     <member refid="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065a731c49ced9fc7748acfebc0a4910494d" kind="enumvalue"><name>LEGACY_ENUM_VAL_2</name></member>
-    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9" kind="enum"><name>scoped_enum</name></member>
-    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3" kind="enumvalue"><name>val_0</name></member>
-    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641" kind="enumvalue"><name>val_1</name></member>
-    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c" kind="enumvalue"><name>val_2</name></member>
+    <member refid="namespacetest_1a393facd551443a4aaea74c533c2bce6f" kind="enum"><name>scoped_enum</name></member>
+    <member refid="namespacetest_1a393facd551443a4aaea74c533c2bce6fa209e4404bac5df6700a512df9e988ba3" kind="enumvalue"><name>val_0</name></member>
+    <member refid="namespacetest_1a393facd551443a4aaea74c533c2bce6fad69dff41cc115965adfeaa0f58fed641" kind="enumvalue"><name>val_1</name></member>
+    <member refid="namespacetest_1a393facd551443a4aaea74c533c2bce6fa3745be12e7d2d79a55682a6b1ef5863c" kind="enumvalue"><name>val_2</name></member>
+    <member refid="namespacetest_1a51ed0e00636746f407a20697efc8518e" kind="typedef"><name>a_shit_typedef</name></member>
+    <member refid="namespacetest_1a011ffb640026d2f49f9c73fe09d88cfb" kind="typedef"><name>a_typedef</name></member>
+    <member refid="namespacetest_1ab80f438f7d1d6d6e3b184b7ce32df687" kind="typedef"><name>a_typedef_template</name></member>
     <member refid="namespacetest_1af2f5b0612e98ea3ef9de39eb10981879" kind="variable"><name>inline_variable</name></member>
+    <member refid="namespacetest_1a011c6f27e90f228cd68be9def15bc076" kind="function"><name>do_the_thing</name></member>
+    <member refid="namespacetest_1ae66b7e2e94f84934cff5de3e512ce0ee" kind="function"><name>do_the_other_thing</name></member>
+    <member refid="namespacetest_1af2e6008ff8ee50f6cda80da681d44348" kind="function"><name>do_the_thing_automatically</name></member>
   </compound>
   <compound refid="namespacetest_1_1empty" kind="namespace"><name>test::empty</name>
   </compound>
@@ -44,12 +59,22 @@
     <member refid="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065a3b6f77dbd09e17c5e8a30dcd3474012f" kind="enumvalue"><name>LEGACY_ENUM_VAL_0</name></member>
     <member refid="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065af18ad5a3bf0d316003544836a8734fd4" kind="enumvalue"><name>LEGACY_ENUM_VAL_1</name></member>
     <member refid="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065a731c49ced9fc7748acfebc0a4910494d" kind="enumvalue"><name>LEGACY_ENUM_VAL_2</name></member>
-    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9" kind="enum"><name>scoped_enum</name></member>
-    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3" kind="enumvalue"><name>val_0</name></member>
-    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641" kind="enumvalue"><name>val_1</name></member>
-    <member refid="namespacetest_1a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c" kind="enumvalue"><name>val_2</name></member>
+    <member refid="namespacetest_1a393facd551443a4aaea74c533c2bce6f" kind="enum"><name>scoped_enum</name></member>
+    <member refid="namespacetest_1a393facd551443a4aaea74c533c2bce6fa209e4404bac5df6700a512df9e988ba3" kind="enumvalue"><name>val_0</name></member>
+    <member refid="namespacetest_1a393facd551443a4aaea74c533c2bce6fad69dff41cc115965adfeaa0f58fed641" kind="enumvalue"><name>val_1</name></member>
+    <member refid="namespacetest_1a393facd551443a4aaea74c533c2bce6fa3745be12e7d2d79a55682a6b1ef5863c" kind="enumvalue"><name>val_2</name></member>
+    <member refid="namespacetest_1a51ed0e00636746f407a20697efc8518e" kind="typedef"><name>a_shit_typedef</name></member>
+    <member refid="namespacetest_1a011ffb640026d2f49f9c73fe09d88cfb" kind="typedef"><name>a_typedef</name></member>
+    <member refid="namespacetest_1ab80f438f7d1d6d6e3b184b7ce32df687" kind="typedef"><name>a_typedef_template</name></member>
     <member refid="namespacetest_1af2f5b0612e98ea3ef9de39eb10981879" kind="variable"><name>inline_variable</name></member>
+    <member refid="namespacetest_1a011c6f27e90f228cd68be9def15bc076" kind="function"><name>do_the_thing</name></member>
+    <member refid="namespacetest_1ae66b7e2e94f84934cff5de3e512ce0ee" kind="function"><name>do_the_other_thing</name></member>
+    <member refid="namespacetest_1af2e6008ff8ee50f6cda80da681d44348" kind="function"><name>do_the_thing_automatically</name></member>
+  </compound>
+  <compound refid="subfolder_2code_8h" kind="file"><name>code.h</name>
   </compound>
   <compound refid="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir"><name>src</name>
   </compound>
-  </doxygenindex>
+  <compound refid="dir_ed64655242b001a1b5d7ddadcfdd4bf2" kind="dir"><name>src/subfolder</name>
+  </compound>
+</doxygenindex>

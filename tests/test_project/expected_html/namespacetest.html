@@ -68,6 +68,8 @@
                 <li><a href="#nested-classes">Classes</a></li>
                 <li><a href="#nested-concepts">Concepts</a></li>
                 <li><a href="#enum-members">Enums</a></li>
+                <li><a href="#typedef-members">Typedefs</a></li>
+                <li><a href="#func-members">Functions</a></li>
                 <li><a href="#var-members">Variables</a></li>
               </ul>
             </li>
@@ -123,9 +125,9 @@
           <h2><a href="#enum-members">Enums</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">enum class <a class="m-doc" href="#a3a2b94881b2cd4942667975879b992b9">scoped_enum</a> { </span><span class="m-doc-wrap"><a class="m-doc" href="#a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3">val_0</a>,
-              <a class="m-doc" href="#a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641">val_1</a> = 1,
-              <a class="m-doc" href="#a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c">val_2</a> = 2 }</span>
+              <span class="m-doc-wrap-bumper">enum class <a class="m-doc" href="#a393facd551443a4aaea74c533c2bce6f">scoped_enum</a>: unsigned { </span><span class="m-doc-wrap"><a class="m-doc" href="#a393facd551443a4aaea74c533c2bce6fa209e4404bac5df6700a512df9e988ba3">val_0</a>,
+              <a class="m-doc" href="#a393facd551443a4aaea74c533c2bce6fad69dff41cc115965adfeaa0f58fed641">val_1</a> = 1,
+              <a class="m-doc" href="#a393facd551443a4aaea74c533c2bce6fa3745be12e7d2d79a55682a6b1ef5863c">val_2</a> = 2 }</span>
             </dt>
             <dd>A C++11 scoped enum.</dd>
             <dt>
@@ -134,6 +136,42 @@
               <a class="m-doc" href="#ac1a212ff6fd8b8aa63bd0d5536ae7065a731c49ced9fc7748acfebc0a4910494d">LEGACY_ENUM_VAL_2</a> = 2 }</span>
             </dt>
             <dd>A pre-C++11 unscoped enum.</dd>
+          </dl>
+        </section>
+        <section id="typedef-members">
+          <h2><a href="#typedef-members">Typedefs</a></h2>
+          <dl class="m-doc">
+            <dt>
+              using <a class="m-doc" href="#a51ed0e00636746f407a20697efc8518e">a_shit_typedef</a> = int
+            </dt>
+            <dd>An old-school typedef.</dd>
+            <dt>
+              using <a class="m-doc" href="#a011ffb640026d2f49f9c73fe09d88cfb">a_typedef</a> = int
+            </dt>
+            <dd>A C++11 'using' typedef.</dd>
+            <dt>
+              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              using <a class="m-doc" href="#ab80f438f7d1d6d6e3b184b7ce32df687">a_typedef_template</a> = T
+            </dt>
+            <dd>A C++11 'using' typedef template.</dd>
+          </dl>
+        </section>
+        <section id="func-members">
+          <h2><a href="#func-members">Functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <div class="m-doc-template">template&lt;typename T, typename U&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="#ae66b7e2e94f84934cff5de3e512ce0ee">do_the_other_thing</a>(</span><span class="m-doc-wrap">U u) -&gt; T <span class="m-label m-flat m-primary">constexpr</span> <span class="m-label m-flat m-success">noexcept</span></span>
+            </dt>
+            <dd>A function template.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="#a011c6f27e90f228cd68be9def15bc076">do_the_thing</a>(</span><span class="m-doc-wrap">) -&gt; <a class="m-doc-external poxy-external" href="http://en.cppreference.com/w/cpp/types/integer.html" target="_blank">std::<wbr/>uint8_t</a></span>
+            </dt>
+            <dd>A function.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="#af2e6008ff8ee50f6cda80da681d44348">do_the_thing_automatically</a>(</span><span class="m-doc-wrap">) -&gt; int -&gt; auto</span>
+            </dt>
+            <dd>A function with a trailing return type.</dd>
           </dl>
         </section>
         <section id="var-members">
@@ -147,9 +185,9 @@
         </section>
         <section>
           <h2>Enum documentation</h2>
-          <section class="m-doc-details" id="a3a2b94881b2cd4942667975879b992b9"><div>
+          <section class="m-doc-details" id="a393facd551443a4aaea74c533c2bce6f"><div>
             <h3>
-              enum class test::<wbr/><a class="m-doc-self" href="#a3a2b94881b2cd4942667975879b992b9">scoped_enum</a>
+              enum class test::<wbr/><a class="m-doc-self" href="#a393facd551443a4aaea74c533c2bce6f">scoped_enum</a>: unsigned
               <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="code_8h.html">&lt;src/code.h&gt;</a></div>
             </h3>
             <p>A C++11 scoped enum.</p>
@@ -158,19 +196,19 @@
               <thead><tr><th style="width: 1%">Enumerators</th><th></th></tr></thead>
               <tbody>
                 <tr>
-                  <td><a class="m-doc-self" href="#a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3" id="a3a2b94881b2cd4942667975879b992b9a209e4404bac5df6700a512df9e988ba3">val_0</a></td>
+                  <td><a class="m-doc-self" href="#a393facd551443a4aaea74c533c2bce6fa209e4404bac5df6700a512df9e988ba3" id="a393facd551443a4aaea74c533c2bce6fa209e4404bac5df6700a512df9e988ba3">val_0</a></td>
                   <td>
                   <p>Value zero.</p>
                   </td>
                 </tr>
                 <tr>
-                  <td><a class="m-doc-self" href="#a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641" id="a3a2b94881b2cd4942667975879b992b9ad69dff41cc115965adfeaa0f58fed641">val_1</a></td>
+                  <td><a class="m-doc-self" href="#a393facd551443a4aaea74c533c2bce6fad69dff41cc115965adfeaa0f58fed641" id="a393facd551443a4aaea74c533c2bce6fad69dff41cc115965adfeaa0f58fed641">val_1</a></td>
                   <td>
                   <p>Value one.</p>
                   </td>
                 </tr>
                 <tr>
-                  <td><a class="m-doc-self" href="#a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c" id="a3a2b94881b2cd4942667975879b992b9a3745be12e7d2d79a55682a6b1ef5863c">val_2</a></td>
+                  <td><a class="m-doc-self" href="#a393facd551443a4aaea74c533c2bce6fa3745be12e7d2d79a55682a6b1ef5863c" id="a393facd551443a4aaea74c533c2bce6fa3745be12e7d2d79a55682a6b1ef5863c">val_2</a></td>
                   <td>
                   <p>Value two.</p>
                   </td>
@@ -208,6 +246,96 @@
                 </tr>
               </tbody>
             </table>
+          </div></section>
+        </section>
+        <section>
+          <h2>Typedef documentation</h2>
+          <section class="m-doc-details" id="a51ed0e00636746f407a20697efc8518e"><div>
+            <h3>
+              typedef int test::<wbr/><a class="m-doc-self" href="#a51ed0e00636746f407a20697efc8518e">a_shit_typedef</a>
+              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="code_8h.html">&lt;src/code.h&gt;</a></div>
+            </h3>
+            <p>An old-school typedef.</p>
+<p>More info.</p>
+          </div></section>
+          <section class="m-doc-details" id="a011ffb640026d2f49f9c73fe09d88cfb"><div>
+            <h3>
+              using test::<wbr/><a class="m-doc-self" href="#a011ffb640026d2f49f9c73fe09d88cfb">a_typedef</a> = int
+              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="code_8h.html">&lt;src/code.h&gt;</a></div>
+            </h3>
+            <p>A C++11 'using' typedef.</p>
+<p>More info.</p>
+          </div></section>
+          <section class="m-doc-details" id="ab80f438f7d1d6d6e3b184b7ce32df687"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="code_8h.html">&lt;src/code.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;typename T&gt;
+              </div>
+              using test::<wbr/><a class="m-doc-self" href="#ab80f438f7d1d6d6e3b184b7ce32df687">a_typedef_template</a> = T
+            </h3>
+            <p>A C++11 'using' typedef template.</p>
+<p>More info.</p>
+          </div></section>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="ae66b7e2e94f84934cff5de3e512ce0ee"><div>
+            <h3>
+              <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="code_8h.html">&lt;src/code.h&gt;</a></div>
+              <div class="m-doc-template">
+                template&lt;typename T, typename U&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">T test::<wbr/></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a class="m-doc-self" href="#ae66b7e2e94f84934cff5de3e512ce0ee">do_the_other_thing</a>(</span><span class="m-doc-wrap">U u) <span class="m-label m-primary">constexpr</span> <span class="m-label m-success">noexcept</span></span></span>
+            </h3>
+            <p>A function template.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Template parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">T</td>
+                  <td>A type.</td>
+                </tr>
+                <tr>
+                  <td>U</td>
+                  <td>Another type.</td>
+                </tr>
+              </tbody>
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>u</td>
+                  <td>An argument.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>A T.</td>
+                </tr>
+              </tfoot>
+            </table>
+<p>More info.</p>
+          </div></section>
+          <section class="m-doc-details" id="a011c6f27e90f228cd68be9def15bc076"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a class="m-doc-external poxy-external" href="http://en.cppreference.com/w/cpp/types/integer.html" target="_blank">std::<wbr/>uint8_t</a> test::<wbr/></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a class="m-doc-self" href="#a011c6f27e90f228cd68be9def15bc076">do_the_thing</a>(</span><span class="m-doc-wrap">)</span></span>
+              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="code_8h.html">&lt;src/code.h&gt;</a></div>
+            </h3>
+            <p>A function.</p>
+<p>More info.</p>
+          </div></section>
+          <section class="m-doc-details" id="af2e6008ff8ee50f6cda80da681d44348"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto test::<wbr/></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a class="m-doc-self" href="#af2e6008ff8ee50f6cda80da681d44348">do_the_thing_automatically</a>(</span><span class="m-doc-wrap">) -&gt; int</span></span>
+              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="code_8h.html">&lt;src/code.h&gt;</a></div>
+            </h3>
+            <p>A function with a trailing return type.</p>
+<p>More info.</p>
           </div></section>
         </section>
         <section>

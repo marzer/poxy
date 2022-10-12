@@ -8,6 +8,7 @@ Functions and types for working with C++ project graphs.
 """
 
 import enum as _enum
+from platform import node
 from .utils import *
 
 #=======================================================================================================================
@@ -48,6 +49,12 @@ class Concept(object):
 
 class Function(object):
 	'''Functions.'''
+	pass
+
+
+
+class Type(object):
+	'''The type of a variable/enum/function return.'''
 	pass
 
 
@@ -94,12 +101,6 @@ class MemberGroup(object):
 
 
 
-class Article(object):
-	'''A documentation article (e.g. Doxygen's `@page`).'''
-	pass
-
-
-
 class Directory(object):
 	'''A directory in the filesystem.'''
 	pass
@@ -108,6 +109,12 @@ class Directory(object):
 
 class File(object):
 	'''A file.'''
+	pass
+
+
+
+class Page(object):
+	'''A documentation page (e.g. Doxygen's `@page`).'''
 	pass
 
 
@@ -137,42 +144,68 @@ class Paragraph(object):
 
 
 class Text(object):
-	'''Plain text, optionally with reference semantics.'''
+	'''Plain text.'''
 	pass
 
 
 
-DESCRIPTION_NODE_TYPES = {BriefDescription, DetailedDescription}
+class Reference(object):
+	'''A reference to another node.'''
+	pass
+
+
+
+class ExternalResource(object):
+	'''A reference to some resource outside the project (e.g. something in a tagfile).'''
+	pass
+
+
+
+class ExpositionMarkup(object):
+	'''A 'leftover' node for representing miscellaneous markup in expository contexts.'''
+	pass
+
+
+
 NODE_TYPES = {
 	Namespace, Class, Struct, Union, Concept, Function, Variable, Enum, EnumValue, Typedef, Define, Group, MemberGroup,
-	Article, Directory, File, *DESCRIPTION_NODE_TYPES, Initializer, Paragraph, Text
+	Directory, File, BriefDescription, DetailedDescription, Page, Initializer, Paragraph, Text, Reference,
+	ExternalResource, Type, ExpositionMarkup
 }
-Namespace.CAN_CONNECT_TO = {
+DESCRIPTION_NODE_TYPES = {BriefDescription, DetailedDescription}
+EXPOSITION_NODE_TYPES = {
+	*DESCRIPTION_NODE_TYPES, Page, Initializer, Paragraph, Text, Reference, ExternalResource, Type, ExpositionMarkup
+}
+CPP_TYPES = {Namespace, Class, Struct, Union, Concept, Function, Variable, Enum, EnumValue, Typedef, Define}
+Namespace.CAN_CONTAIN = {
 	Function, Class, Struct, Union, Variable, Typedef, Namespace, Concept, Enum, *DESCRIPTION_NODE_TYPES
 }
-Class.CAN_CONNECT_TO = {Class, Struct, Union, Function, Variable, Typedef, Enum, MemberGroup, *DESCRIPTION_NODE_TYPES}
-Struct.CAN_CONNECT_TO = Class.CAN_CONNECT_TO
-Union.CAN_CONNECT_TO = Class.CAN_CONNECT_TO
-Concept.CAN_CONNECT_TO = {Initializer, *DESCRIPTION_NODE_TYPES}
-Function.CAN_CONNECT_TO = DESCRIPTION_NODE_TYPES
-Variable.CAN_CONNECT_TO = {Initializer, *DESCRIPTION_NODE_TYPES}
-Enum.CAN_CONNECT_TO = {EnumValue, *DESCRIPTION_NODE_TYPES}
-EnumValue.CAN_CONNECT_TO = {Initializer, *DESCRIPTION_NODE_TYPES}
-Typedef.CAN_CONNECT_TO = DESCRIPTION_NODE_TYPES
-Define.CAN_CONNECT_TO = {Initializer, *DESCRIPTION_NODE_TYPES}
-Group.CAN_CONNECT_TO = {t for t in NODE_TYPES if t not in (Article, )}
-MemberGroup.CAN_CONNECT_TO = {t for t in Class.CAN_CONNECT_TO if t not in (MemberGroup, )}
-Article.CAN_CONNECT_TO = DESCRIPTION_NODE_TYPES
-File.CAN_CONNECT_TO = {
-	Namespace, Class, Struct, Union, Concept, Function, Variable, Enum, Typedef, Define, Article,
-	*DESCRIPTION_NODE_TYPES
+Class.CAN_CONTAIN = {Class, Struct, Union, Function, Variable, Typedef, Enum, MemberGroup, *DESCRIPTION_NODE_TYPES}
+Struct.CAN_CONTAIN = Class.CAN_CONTAIN
+Union.CAN_CONTAIN = Class.CAN_CONTAIN
+Concept.CAN_CONTAIN = {Initializer, *DESCRIPTION_NODE_TYPES}
+Function.CAN_CONTAIN = {Type, *DESCRIPTION_NODE_TYPES}
+Variable.CAN_CONTAIN = {Type, Initializer, *DESCRIPTION_NODE_TYPES}
+Enum.CAN_CONTAIN = {Type, EnumValue, *DESCRIPTION_NODE_TYPES}
+EnumValue.CAN_CONTAIN = {Initializer, *DESCRIPTION_NODE_TYPES}
+Typedef.CAN_CONTAIN = {Type, *DESCRIPTION_NODE_TYPES}
+Define.CAN_CONTAIN = {Initializer, *DESCRIPTION_NODE_TYPES}
+Group.CAN_CONTAIN = {t for t in NODE_TYPES if t not in (Page, )}
+MemberGroup.CAN_CONTAIN = {t for t in Class.CAN_CONTAIN if t not in (MemberGroup, )}
+Directory.CAN_CONTAIN = {Directory, File, *DESCRIPTION_NODE_TYPES}
+File.CAN_CONTAIN = {
+	Namespace, Class, Struct, Union, Concept, Function, Variable, Enum, Typedef, Define, Page, *DESCRIPTION_NODE_TYPES
 }
-Directory.CAN_CONNECT_TO = {Directory, File, *DESCRIPTION_NODE_TYPES}
-BriefDescription.CAN_CONNECT_TO = {Paragraph, Text}
-DetailedDescription.CAN_CONNECT_TO = {Paragraph, Text}
-Initializer.CAN_CONNECT_TO = {Text}
-Paragraph.CAN_CONNECT_TO = {Text}
-Text.CAN_CONNECT_TO = set()
+Page.CAN_CONTAIN = {Paragraph, Text, Reference, *DESCRIPTION_NODE_TYPES, ExpositionMarkup}
+BriefDescription.CAN_CONTAIN = {Paragraph, Text, Reference, ExpositionMarkup}
+DetailedDescription.CAN_CONTAIN = {Paragraph, Text, Reference, ExpositionMarkup}
+Initializer.CAN_CONTAIN = {Text, Reference, ExpositionMarkup}
+Paragraph.CAN_CONTAIN = {Text, Reference, ExpositionMarkup}
+Text.CAN_CONTAIN = set()
+ExpositionMarkup.CAN_CONTAIN = {Paragraph, Text, Reference, ExpositionMarkup}
+Type.CAN_CONTAIN = {Text, Reference}
+Reference.CAN_CONTAIN = {*CPP_TYPES, Page, Group, MemberGroup, Directory, File, ExternalResource}
+ExternalResource.CAN_CONTAIN = set()
 
 
 
@@ -190,17 +223,67 @@ class AccessLevel(_enum.Enum):
 
 
 
+def _make_node_iterator(nodes, *types):
+	assert types is not None
+
+	def permissive_generator():
+		nonlocal nodes
+		for node in nodes:
+			yield node
+
+	if not types:
+		return permissive_generator()
+
+	for t in types:
+		assert t is None or isinstance(t, bool) or t in NODE_TYPES
+
+	def selective_generator():
+		nonlocal nodes
+		nonlocal types
+		yield_with_no_type = False in types or None in types
+		yield_with_any_type = True in types
+		for node in nodes:
+			if ((node.type is None and yield_with_no_type)
+				or (node.type is not None and (yield_with_any_type or node.type in types))):
+				yield node
+
+	return selective_generator()
+
+
+
+class _NullNodeIterator(object):
+
+	def __iter__(self):
+		return self
+
+	def __next__(self):
+		raise StopIteration
+
+
+
+class NodePropertyChanged(Error):
+	"""Raised when an an attempt is made to change an already-set property in a graph node."""
+	pass
+
+
+
 class Node(object):
+	"""A single node in a C++ project graph."""
 
 	class _Props(object):
 		pass
 
+	def __make_hierarchy_containers(self):
+		if hasattr(self, r'_Node__children'):
+			return
+		self.__parents = []
+		self.__parents_by_id = dict()
+		self.__children = []
+		self.__children_by_id = dict()
+
 	def __init__(self, id: str):
 		assert id is not None
 		self.__id = id
-		self.__connections = []
-		self.__connections_by_id = dict()
-		self.__props = Node._Props()
 
 	#==============
 	# getters
@@ -208,7 +291,9 @@ class Node(object):
 
 	def __property_get(self, name: str, out_type=None, default=None):
 		assert name is not None
-		value = getattr(self.__props, str(name), None)
+		value = None
+		if hasattr(self, r'_Node__props'):
+			value = getattr(self.__props, str(name), None)
 		if value is None:
 			value = default
 		if value is not None and out_type is not None and not isinstance(value, out_type):
@@ -220,16 +305,12 @@ class Node(object):
 		return self.__id
 
 	@property
-	def node_type(self):
-		return self.__property_get(r'node_type')
+	def type(self):
+		return self.__property_get(r'type')
 
 	@property
-	def has_node_type(self) -> bool:
-		return self.node_type is not None
-
-	@property
-	def node_type_name(self) -> str:
-		t = self.node_type
+	def type_name(self) -> str:
+		t = self.type
 		if t is None:
 			return ''
 		return t.__name__
@@ -241,10 +322,6 @@ class Node(object):
 	@property
 	def local_name(self) -> str:
 		return self.__property_get(r'local_name', str, r'')
-
-	@property
-	def type(self) -> str:
-		return self.__property_get(r'type', str, r'')
 
 	@property
 	def definition(self) -> str:
@@ -301,7 +378,7 @@ class Node(object):
 	@property
 	def access_level(self) -> AccessLevel:
 		return self.__property_get(
-			r'access_level', AccessLevel, AccessLevel.PRIVATE if self.node_type is Class else AccessLevel.PUBLIC
+			r'access_level', AccessLevel, AccessLevel.PRIVATE if self.type is Class else AccessLevel.PUBLIC
 		)
 
 	@property
@@ -309,23 +386,39 @@ class Node(object):
 		return self.__property_get(r'text', str, r'')
 
 	@property
-	def reference_id(self) -> str:
-		return self.__property_get(r'reference_id', str, r'')
-
-	@property
 	def is_paragraph(self) -> bool:
 		return self.__property_get(r'is_paragraph', bool, False)
 
+	@property
+	def file(self) -> str:
+		return self.__property_get(r'file', str, r'')
+
+	@property
+	def line(self) -> int:
+		return self.__property_get(r'line', int, 0)
+
+	@property
+	def column(self) -> int:
+		return self.__property_get(r'column', int, 0)
+
+	@property
+	def kind(self) -> str:
+		return self.__property_get(r'kind', str, r'')
+
+	@property
+	def tag(self) -> str:
+		return self.__property_get(r'tag', str, r'')
+
+	@property
+	def extra_attributes(self) -> typing.Sequence[typing.Tuple[str, str]]:
+		return self.__property_get(r'extra_attributes', None, tuple())
+
 	def __bool__(self) -> bool:
-		return self.has_node_type and bool(self.id)
+		return self.type is not None and bool(self.id)
 
 	#==============
 	# setters
 	#==============
-
-	def __property_is_set(self, name: str) -> bool:
-		assert name is not None
-		return hasattr(self.__props, str(name))
 
 	def __property_set(self, name: str, out_type, value, strip_strings=False):
 		assert name is not None
@@ -340,7 +433,7 @@ class Node(object):
 				elif value.lower() in (r'yes', r'true', r'enabled'):
 					value = True
 				else:
-					raise Error(rf"C++ node '{self.id}' property '{name}' could not parse a boolean from '{value}'")
+					raise Error(rf"Node '{self.id}' property '{name}' could not parse a boolean from '{value}'")
 			elif out_type is AccessLevel:
 				if value.lower() in (r'pub', r'public'):
 					value = AccessLevel.PUBLIC
@@ -349,7 +442,7 @@ class Node(object):
 				elif value.lower() in (r'priv', r'private'):
 					value = AccessLevel.PRIVATE
 				else:
-					raise Error(rf"C++ node '{self.id}' property '{name}' could not parse access level from '{value}'")
+					raise Error(rf"Node '{self.id}' property '{name}' could not parse access level from '{value}'")
 				assert isinstance(value, AccessLevel)
 		# None == keep whatever the current value is (no-op)
 		# (None is never a valid value for a real graph attribute)
@@ -359,82 +452,63 @@ class Node(object):
 			value = out_type(value)
 		if strip_strings and isinstance(value, str):
 			value = value.strip()
-		current = getattr(self.__props, str(name), None)
+		current = None
+		has_props = hasattr(self, r'_Node__props')
+		if has_props:
+			current = getattr(self.__props, str(name), None)
 		# it's OK if there's already a value as long as it's identical to the new one,
 		# otherwise we throw so that we can detect when the source data is bad or the adapter is faulty
 		# (since if a property _can_ be defined in multiple places it should be identical in all of them)
 		if current is not None:
 			if type(current) != type(value):
-				raise Error(
-					rf"C++ node '{self.id}' property '{name}' first seen with type {type(current)}, now seen with type {type(value)}"
+				raise NodePropertyChanged(
+					rf"Node '{self.id}' property '{name}' first seen with type {type(current)}, now seen with type {type(value)}"
 				)
 			if current != value:
-				raise Error(
-					rf"C++ node '{self.id}' property '{name}' first seen with value {current}, now seen with value {value}"
+				raise NodePropertyChanged(
+					rf"Node '{self.id}' property '{name}' first seen with value '{current}', now seen with value '{value}'"
 				)
 			return
+		if not has_props:
+			self.__props = Node._Props()
 		setattr(self.__props, str(name), value)
 
-	@node_type.setter
-	def node_type(self, value):
-		global NODE_TYPES
+	@type.setter
+	def type(self, value):
 		if value is None:
 			return
 		if value not in NODE_TYPES:
 			raise Error(rf"Unknown C++ node type '{value}'")
-		had_node_type = self.has_node_type
-		self.__property_set(r'node_type', None, value)
-		if had_node_type != self.has_node_type:
+		had_type = self.type is not None
+		self.__property_set(r'type', None, value)
+		if had_type != (self.type is not None):
 			self.__deduce_local_name()
-			for node in self.__connections:
-				Node._check_connection(self, node)
+			if hasattr(self, r'_Node__children'):
+				for child in self.__children:
+					Node._check_connection(self, child)
 
 	def __deduce_local_name(self):
-		if not self.qualified_name or self.local_name or not self.has_node_type:
+		if not self.qualified_name or self.local_name or self.type is None:
 			return
-		if self.node_type in (Namespace, Class, Struct, Union, Concept, Function, Variable, Enum, Typedef):
-			ln = self.qualified_name
-			if ln.find(r'<') != -1:  # templates might have template args with '::' so ignore them
+		if self.type in (Namespace, Class, Struct, Union, Concept, Function, Variable, Enum, EnumValue, Typedef):
+			if self.qualified_name.find(r'<') != -1:  # templates might have template args with '::' so ignore them
 				return
-			pos = ln.rfind(r'::')
-			if pos != -1:
-				ln = ln[pos + 2:]
-			self.local_name = ln
-		elif self.node_type in (Directory, File):
-			ln = self.qualified_name
-			pos = ln.rfind(r'/')
-			if pos != -1:
-				ln = ln[pos + 1:]
-			self.local_name = ln
+			self.local_name = tail(self.qualified_name, r'::')
+		elif self.type in (Directory, File):
+			self.local_name = tail(self.qualified_name, r'/')
+		elif self.type is Define:
+			self.local_name = self.qualified_name
 
 	@qualified_name.setter
 	def qualified_name(self, value: str):
+		if value is not None and self.type in (Directory, File):
+			value = str(value).strip().replace('\\', r'/').rstrip(r'/')
 		self.__property_set(r'qualified_name', str, value, strip_strings=True)
 		self.__deduce_local_name()
 
 	@local_name.setter
 	def local_name(self, value: str):
 		self.__property_set(r'local_name', str, value, strip_strings=True)
-
-	@type.setter
-	def type(self, value: str):
-		if value is not None:
-			value = str(value).strip()
-			# extract constexpr, constinit, static, mutable etc out of the type if possible
-			attrs = re.fullmatch(r'^((?:(?:const(?:expr|init|eval)|static|mutable)\s)+).*?$', value)
-			if attrs:
-				value = value[len(attrs[1]):].strip()
-				if attrs[1].find(r'constexpr') != -1:
-					self.constexpr = True
-				if attrs[1].find(r'constinit') != -1:
-					self.constinit = True
-				if attrs[1].find(r'consteval') != -1:
-					self.consteval = True
-				if attrs[1].find(r'static') != -1:
-					self.static = True
-				if attrs[1].find(r'mutable') != -1:
-					self.mutable = True
-		self.__property_set(r'type', str, value, strip_strings=True)
 
 	@definition.setter
 	def definition(self, value: str):
@@ -496,35 +570,90 @@ class Node(object):
 	def text(self, value: str):
 		self.__property_set(r'text', str, value)
 
-	@reference_id.setter
-	def reference_id(self, value: str):
-		self.__property_set(r'reference_id', str, value, strip_strings=True)
-
 	@is_paragraph.setter
 	def is_paragraph(self, value: bool):
 		self.__property_set(r'is_paragraph', bool, value)
 
+	@file.setter
+	def file(self, value: str):
+		if value is not None:
+			value = str(value).strip().replace('\\', r'/').rstrip(r'/')
+		self.__property_set(r'file', str, value)
+
+	@line.setter
+	def line(self, value: int):
+		self.__property_set(r'line', int, value)
+
+	@column.setter
+	def column(self, value: int):
+		self.__property_set(r'column', int, value)
+
+	@kind.setter
+	def kind(self, value: str):
+		self.__property_set(r'kind', str, value, strip_strings=True)
+
+	@tag.setter
+	def tag(self, value: str):
+		self.__property_set(r'tag', str, value, strip_strings=True)
+
+	@extra_attributes.setter
+	def extra_attributes(self, value: typing.Sequence[typing.Tuple[str, str]]):
+		self.__property_set(r'extra_attributes', None, value)
+
 	#==============
-	# connections
+	# children
 	#==============
 
 	@property
-	def is_leaf(self) -> bool:
-		return not bool(self.__connections)
+	def is_child(self) -> bool:
+		return hasattr(self, r'_Node__children') and bool(self.__parents)
+
+	@property
+	def is_parent(self) -> bool:
+		return hasattr(self, r'_Node__children') and bool(self.__children)
 
 	def __contains__(self, node_or_id) -> bool:
-		global NODE_TYPES
 		assert node_or_id is not None
 		assert isinstance(node_or_id, (str, Node)) or node_or_id in NODE_TYPES
+		if not hasattr(self, r'_Node__children'):
+			return False
+		if isinstance(node_or_id, Node):
+			node_or_id = node_or_id.id
 		if isinstance(node_or_id, str):
-			return node_or_id in self.__connections_by_id
-		elif isinstance(node_or_id, Node):
-			return node_or_id in self.__connections
+			return node_or_id in self.__children_by_id
 		else:
-			for c in self.__connections:
-				if c.node_type is node_or_id:
+			for c in self.__children:
+				if c.type is node_or_id:
 					return True
 			return False
+
+	def has_parent(self, node_or_id) -> bool:
+		assert node_or_id is not None
+		assert isinstance(node_or_id, (str, Node)) or node_or_id in NODE_TYPES
+		if not hasattr(self, r'_Node__parents'):
+			return False
+		if isinstance(node_or_id, Node):
+			node_or_id = node_or_id.id
+		if isinstance(node_or_id, str):
+			return node_or_id in self.__parents_by_id
+		else:
+			for c in self.__parents:
+				if c.type is node_or_id:
+					return True
+			return False
+
+	def __getitem__(self, id_or_index: typing.Union[str, int]):
+		assert id_or_index is not None
+		if not hasattr(self, r'_Node__children'):
+			return None
+		if isinstance(id_or_index, str):
+			try:
+				return self.__children_by_id[id_or_index]
+			except:
+				return None
+		else:
+			assert isinstance(id_or_index, int)
+			return self.__children[id_or_index]
 
 	@classmethod
 	def _check_connection(cls, source, dest):
@@ -533,60 +662,110 @@ class Node(object):
 		assert dest is not None
 		assert isinstance(dest, Node)
 
-		# self-connection is always illegal, regardless of node_type information
+		# self-connection is always illegal, regardless of type information
 		if id(source) == id(dest):
 			raise Error(rf"C++ node '{source.id}' may not connect to itself")
 
-		# otherwise if we don't have node_type information the connection is 'OK'
+		# otherwise if we don't have type information the connection is 'OK'
 		# (really this just means we defer the check until later)
-		if not source.has_node_type or not dest.has_node_type:
+		if source.type is None or dest.type is None:
 			return
 
-		if dest.node_type not in source.node_type.CAN_CONNECT_TO:
+		# check basic connection rules
+		if dest.type not in source.type.CAN_CONTAIN:
 			raise Error(
-				rf"C++ node '{source.id}' with type {source.node_type_name} is not allowed to connect to nodes of type {dest.node_type_name}"
+				rf"{source.type_name} node '{source.id}' is not allowed to connect to nodes of type {dest.type_name}"
 			)
 
-	def connect_to(self, dest):
-		assert dest is not None
-		assert isinstance(dest, Node)
+		# check situations where a node must only belong to one parent of a particular set of classes
+		def check_single_parentage(source_types, dest_types):
+			nonlocal source
+			nonlocal dest
+			source_types = coerce_collection(source_types)
+			dest_types = coerce_collection(dest_types)
+			if source.type not in source_types or dest.type not in dest_types:
+				return
+			sum = 0
+			for parent in dest(*source_types, parents=True):
+				sum += 1
+			if dest not in source:
+				sum += 1
+			if sum > 1:
+				raise Error(rf"{dest.type_name} node '{dest.id}' is not allowed to be a member of more than one parent")
 
-		Node._check_connection(self, dest)
+		check_single_parentage(Enum, EnumValue)
+		check_single_parentage((Variable, Function, Enum, Typedef), Type)
+
+		# check some specific cases
+		if source.type is Reference and source.is_parent:
+			raise Error(rf"{source.type_name} node '{source.id}' is not allowed to reference more than one node")
+
+	def add(self, child):
+		assert child is not None
+		assert isinstance(child, Node)
 
 		# connecting to the same node twice is fine (no-op)
-		if dest.id in self.__connections_by_id:
-			existing_dest = self.__connections_by_id[dest.id]
+		if child in self:
+			existing_child = self.__children_by_id[child.id]
 			# check that identity is unique
-			if id(dest) != id(existing_dest):
-				raise Error(rf"Two different C++ nodes seen with the same ID ('{dest.id}')")
+			if id(child) != id(existing_child):
+				raise Error(rf"Two different nodes seen with the same ID ('{child.id}')")
 			return
 
-		self.__connections.append(dest)
-		self.__connections_by_id[dest.id] = dest
+		Node._check_connection(self, child)
+
+		self.__make_hierarchy_containers()
+		self.__children.append(child)
+		self.__children_by_id[child.id] = child
+
+		child.__make_hierarchy_containers()
+		child.__parents.append(self)
+		child.__parents_by_id[self.id] = self
 
 	def __iter__(self):
-		for node in self.__connections:
-			yield node
+		if not hasattr(self, r'_Node__children'):
+			return _NullNodeIterator()
+		return _make_node_iterator(self.__children)
 
-	def __call__(self, *node_types):
-		assert node_types is not None
-		if not node_types:
-			return self.__iter__()
+	def __call__(self, *types, parents=False):
+		if not hasattr(self, r'_Node__children'):
+			return _NullNodeIterator()
+		return _make_node_iterator(self.__parents if parents else self.__children, *types)
 
-		global NODE_TYPES
-		for t in node_types:
-			assert t is None or isinstance(t, bool) or t in NODE_TYPES
+	def remove(self, child):
+		assert child is not None
+		assert isinstance(child, Node)
 
-		def make_generator(nodes):
-			nonlocal node_types
-			yield_with_no_node_type = False in node_types or None in node_types
-			yield_with_any_node_type = True in node_types
-			for node in nodes:
-				if ((node.node_type is None and yield_with_no_node_type)
-					or (node.node_type is not None and (yield_with_any_node_type or node.node_type in node_types))):
-					yield node
+		if not hasattr(self, r'_Node__children') or child not in self or child is self:
+			return
 
-		return make_generator(self.__connections)
+		self.__children.remove(child)
+		del self.__children_by_id[child.id]
+
+		child.__parents.remove(self)
+		del child.__parents_by_id[self.id]
+
+	def clear(self):
+		if not hasattr(self, r'_Node__children'):
+			return
+
+		for child in self.__children:
+			child.__parents.remove(self)
+			del child.__parents_by_id[self.id]
+
+		self.__children.clear()
+		self.__children_by_id.clear()
+
+	def copy(self, id=None, transform=None):
+		node = Node(self.id if id is None else id)
+		if transform is not None:
+			transform(self, node)
+		if hasattr(self, r'_Node__props'):
+			node.__props = Node._Props()
+			for key, val in self.__props.__dict__.items():
+				if not hasattr(node.__props, key):
+					setattr(node.__props, key, val)
+		return node
 
 
 
@@ -597,16 +776,21 @@ class Node(object):
 
 
 class Graph(object):
+	"""A C++ project graph."""
 
 	def __init__(self):
 		self.__nodes: typing.Dict[str, Node]
 		self.__nodes = dict()
 		self.__next_unique_id = 0
 
+	def __get_unique_id(self) -> str:
+		id = rf'__graph_unique_id_{self.__next_unique_id}'
+		self.__next_unique_id += 1
+		return id
+
 	def get_or_create_node(self, id: str = None, type=None) -> Node:
 		if id is None:
-			id = rf'__graph_unique_id_{self.__next_unique_id}'
-			self.__next_unique_id += 1
+			id = self.__get_unique_id()
 		assert id
 		node = None
 		if id not in self.__nodes:
@@ -614,29 +798,119 @@ class Graph(object):
 			self.__nodes[id] = node
 		else:
 			node = self.__nodes[id]
-		node.node_type = type
+		node.type = type
 		return node
 
 	def __iter__(self):
-		for id, node in self.__nodes.items():
-			yield (id, node)
+		return _make_node_iterator(self.__nodes.values())
 
-	def __call__(self, *node_types):
-		assert node_types is not None
-		if not node_types:
-			return self.__iter__()
+	def __call__(self, *types):
+		return _make_node_iterator(self.__nodes.values(), *types)
 
-		global NODE_TYPES
-		for t in node_types:
-			assert t is None or isinstance(t, bool) or t in NODE_TYPES
+	def __contains__(self, node_or_id) -> bool:
+		assert node_or_id is not None
+		assert isinstance(node_or_id, (str, Node)) or node_or_id in NODE_TYPES
+		if isinstance(node_or_id, Node):
+			node_or_id = node_or_id.id
+		if isinstance(node_or_id, str):
+			return node_or_id in self.__nodes
+		else:
+			for _, n in self.__nodes:
+				if n.type is node_or_id:
+					return True
+			return False
 
-		def make_generator(nodes):
-			nonlocal node_types
-			yield_with_no_node_type = False in node_types or None in node_types
-			yield_with_any_node_type = True in node_types
-			for _, node in nodes:
-				if ((node.node_type is None and yield_with_no_node_type)
-					or (node.node_type is not None and (yield_with_any_node_type or node.node_type in node_types))):
-					yield node
+	def __getitem__(self, id: str) -> Node:
+		assert id is not None
+		assert isinstance(id, str)
+		try:
+			return self.__nodes[id]
+		except:
+			return None
 
-		return make_generator(self.__nodes.items())
+	def remove(self, *nodes: typing.Sequence[Node], filter=None):
+		if filter is not None and not nodes:
+			nodes = self.__nodes.values()
+		prune = []
+		for node in nodes:
+			if node is None or node not in self:
+				continue
+			if filter is not None and not filter(node):
+				continue
+			for _, other in self.__nodes.items():
+				if node is not other:
+					other.remove(node)
+			node.clear()
+			prune.append(node)
+		for node in prune:
+			del self.__nodes[node.id]
+
+	def validate(self):
+		for node in self:
+			if node.type is None:
+				raise Error(rf"Node '{node.id}' is untyped")
+			if node.type not in EXPOSITION_NODE_TYPES:
+				if not node.qualified_name:
+					raise Error(rf"{node.type_name} node '{node.id}' missing attribute 'qualified_name'")
+				if not node.local_name:
+					raise Error(rf"{node.type_name} node '{node.id}' missing attribute 'local_name'")
+
+			if node.file.find('\\') != -1:
+				raise Error(rf"{node.type_name} node '{node.id}' attribute 'file' contains back-slashes")
+			if node.file.endswith(r'/'):
+				raise Error(rf"{node.type_name} node '{node.id}' attribute 'file' ends with a forward-slash")
+			if node.line < 0:
+				raise Error(rf"{node.type_name} node '{node.id}' attribute 'line' is negative")
+			if node.column < 0:
+				raise Error(rf"{node.type_name} node '{node.id}' attribute 'column' is negative")
+
+			if node.type in (Directory, File):
+				if node.qualified_name.find('\\') != -1:
+					raise Error(rf"{node.type_name} node '{node.id}' attribute 'qualified_name' contains back-slashes")
+				if node.qualified_name.endswith(r'/'):
+					raise Error(
+						rf"{node.type_name} node '{node.id}' attribute 'qualified_name' ends with a forward-slash"
+					)
+			if node.type in CPP_TYPES:
+				if node.qualified_name.startswith(r'::'):
+					raise Error(rf"{node.type_name} node '{node.id}' attribute 'qualified_name' starts with ::")
+				if node.qualified_name.endswith(r'::'):
+					raise Error(rf"{node.type_name} node '{node.id}' attribute 'qualified_name' ends with ::")
+				if node.type is not EnumValue and not node.file:
+					raise Error(rf"{node.type_name} node '{node.id}' missing attribute 'file'")
+
+			if node.type in (EnumValue, Type):
+				if not node.is_child:
+					raise Error(rf"{node.type_name} node '{node.id}' is an orphan")
+
+			if node.type in (Function, Variable, Typedef):
+				if Type not in node:
+					raise Error(rf"{node.type_name} node '{node.id}' is missing a Type")
+
+	def copy(self, filter=None, id_transform=None, transform=None):
+		g = Graph()
+		id_remap = dict()
+		# first pass to copy
+		for src in self:
+			if filter is not None and not filter(src):
+				continue
+			id = src.id
+			if id_transform is not None:
+				id = id_transform(src)
+			if id is None:
+				id = g.__get_unique_id()
+			else:
+				id = str(id)
+			if id in g:
+				raise Error(rf"A node with id '{id}' already exists in the destination graph")
+			id_remap[src.id] = id
+			g.__nodes[id] = src.copy(id=id, transform=transform)
+		# second pass to link hierarchy
+		for src in self:
+			if src.id not in id_remap:
+				continue
+			for child in src:
+				if child.id not in id_remap:
+					continue
+				g[id_remap[src.id]].add(g[id_remap[child.id]])
+		return g
