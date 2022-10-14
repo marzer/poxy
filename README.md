@@ -50,8 +50,8 @@ The homepage + documentation for [toml++] is built using poxy:
 
 ### Prerequisites:
 
--   Python 3.5+
--   Doxygen 1.8.20+
+-   Python 3.7+
+-   Doxygen 1.8.20+ (must be visible on system path)
 
 ### Then:
 
@@ -66,9 +66,9 @@ pip install poxy
 Poxy is a command-line application.
 
 ```
-usage: poxy [-h] [-v] [--doxygen <path>] [--html | --no-html] [--ppinclude <regex>]
-            [--ppexclude <regex>] [--theme {light,dark,custom}] [--threads N] [--version]
-            [--xml | --no-xml] [--werror | --no-werror]
+usage: poxy [-h] [-v] [--html | --no-html] [--ppinclude <regex>] [--ppexclude <regex>]
+            [--theme {light,dark,custom}] [--threads N] [--version] [--xml | --no-xml]
+            [--werror | --no-werror]
             [config]
 
 Generate fancy C++ documentation.
@@ -79,7 +79,6 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   -v, --verbose         enable very noisy diagnostic output
-  --doxygen <path>      specify the Doxygen executable to use (default: find on system path)
   --html, --no-html     specify whether HTML output is required (default: True)
   --ppinclude <regex>   pattern matching HTML file names to post-process (default: all)
   --ppexclude <regex>   pattern matching HTML file names to exclude from post-processing (default: none)

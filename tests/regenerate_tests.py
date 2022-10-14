@@ -6,6 +6,7 @@
 
 import re
 import sys
+from subprocess import CalledProcessError
 from utils import *
 from pathlib import Path
 try:
@@ -125,4 +126,8 @@ def regenerate_expected_outputs():
 
 if __name__ == r'__main__':
 	with ScopeTimer(r'Regenerating test outputs'):
-		regenerate_expected_outputs()
+		try:
+			regenerate_expected_outputs()
+		except CalledProcessError as err:
+			print(rf'Error: {err}', file=sys.stderr)
+			sys.exit(1)

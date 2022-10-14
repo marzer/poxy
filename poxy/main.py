@@ -9,6 +9,7 @@ The various entry-point methods used when poxy is invoked from the command line.
 
 import argparse
 import datetime
+from subprocess import CalledProcessError
 from schema import SchemaError
 from .utils import *
 from .run import run
@@ -16,6 +17,7 @@ from . import dirs
 from . import css
 from . import emoji
 from . import mcss
+from . import graph
 
 
 
@@ -25,15 +27,18 @@ def _invoker(func, **kwargs):
 	except WarningTreatedAsError as err:
 		print(rf'Error: {err} (warning treated as error)', file=sys.stderr)
 		sys.exit(1)
+	except graph.GraphError as err:
+		print_exception(err, include_type=True, include_traceback=True, skip_frames=1)
+		sys.exit(1)
 	except SchemaError as err:
 		print(err, file=sys.stderr)
 		sys.exit(1)
-	except Error as err:
+	except (Error, CalledProcessError) as err:
 		print(rf'Error: {err}', file=sys.stderr)
 		sys.exit(1)
 	except Exception as err:
 		print_exception(err, include_type=True, include_traceback=True, skip_frames=1)
-		sys.exit(-1)
+		sys.exit(1)
 	sys.exit(0)
 
 
@@ -64,13 +69,6 @@ def main(invoker=True):
 		r'--verbose',
 		action=r'store_true',
 		help=r"enable very noisy diagnostic output"
-	)
-	args.add_argument(
-		r'--doxygen',  #
-		type=Path,
-		default=None,
-		metavar=r'<path>',
-		help=r"specify the Doxygen executable to use (default: find on system path)"
 	)
 	args.add_argument(
 		r'--html',  #
@@ -234,7 +232,6 @@ def main(invoker=True):
 			threads=args.threads,
 			cleanup=not args.nocleanup,
 			verbose=args.verbose,
-			doxygen_path=args.doxygen,
 			logger=True,  # stderr + stdout
 			html_include=args.ppinclude,
 			html_exclude=args.ppexclude,

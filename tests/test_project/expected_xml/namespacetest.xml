@@ -41,7 +41,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="172" column="1" bodyfile="src/code.h" bodystart="173" bodyend="179"/>
+        <location file="src/code.h" line="185" column="1" bodyfile="src/code.h" bodystart="186" bodyend="192"/>
       </memberdef>
       <memberdef kind="enum" id="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065" prot="public" static="no" strong="no">
         <type/>
@@ -81,7 +81,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="161" column="1" bodyfile="src/code.h" bodystart="162" bodyend="168"/>
+        <location file="src/code.h" line="174" column="1" bodyfile="src/code.h" bodystart="175" bodyend="181"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="typedef">
@@ -99,7 +99,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="203" column="13" bodyfile="src/code.h" bodystart="203" bodyend="-1"/>
+        <location file="src/code.h" line="216" column="13" bodyfile="src/code.h" bodystart="216" bodyend="-1"/>
       </memberdef>
       <memberdef kind="typedef" id="namespacetest_1a011ffb640026d2f49f9c73fe09d88cfb" prot="public" static="no">
         <type>int</type>
@@ -115,7 +115,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="207" column="1" bodyfile="src/code.h" bodystart="207" bodyend="-1"/>
+        <location file="src/code.h" line="220" column="1" bodyfile="src/code.h" bodystart="220" bodyend="-1"/>
       </memberdef>
       <memberdef kind="typedef" id="namespacetest_1ab80f438f7d1d6d6e3b184b7ce32df687" prot="public" static="no">
         <templateparamlist>
@@ -136,7 +136,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="212" column="1" bodyfile="src/code.h" bodystart="212" bodyend="-1"/>
+        <location file="src/code.h" line="225" column="1" bodyfile="src/code.h" bodystart="225" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="var">
@@ -155,10 +155,26 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="27" column="23" bodyfile="src/code.h" bodystart="27" bodyend="-1"/>
+        <location file="src/code.h" line="32" column="23" bodyfile="src/code.h" bodystart="32" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="func">
+      <memberdef kind="function" id="namespacetest_1a14eee7dd5169cc088aad164c5fcb1800" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void test::a_friend_function</definition>
+        <argsstring>()</argsstring>
+        <name>a_friend_function</name>
+        <qualifiedname>test::a_friend_function</qualifiedname>
+        <briefdescription>
+<para>A function that appears as a friend to a <ref refid="classtest_1_1class__1" kindref="compound">test::class_1</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>More info. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/code.h" line="28" column="6" declfile="src/code.h" declline="28" declcolumn="6"/>
+      </memberdef>
       <memberdef kind="function" id="namespacetest_1ae66b7e2e94f84934cff5de3e512ce0ee" prot="public" static="no" constexpr="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
         <templateparamlist>
           <param>
@@ -213,7 +229,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="192" column="13" bodyfile="src/code.h" bodystart="192" bodyend="195"/>
+        <location file="src/code.h" line="205" column="13" bodyfile="src/code.h" bodystart="205" bodyend="208"/>
       </memberdef>
       <memberdef kind="function" id="namespacetest_1a011c6f27e90f228cd68be9def15bc076" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="cpp/types/integer" kindref="compound" external="D:/Repositories/poxy/poxy/data/cppreference-doxygen-web.tag.xml">std::uint8_t</ref></type>
@@ -229,12 +245,12 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="183" column="14" declfile="src/code.h" declline="183" declcolumn="14"/>
+        <location file="src/code.h" line="196" column="14" declfile="src/code.h" declline="196" declcolumn="14"/>
       </memberdef>
       <memberdef kind="function" id="namespacetest_1af2e6008ff8ee50f6cda80da681d44348" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>auto</type>
+        <type>int</type>
         <definition>auto test::do_the_thing_automatically</definition>
-        <argsstring>() -&gt; int</argsstring>
+        <argsstring>()</argsstring>
         <name>do_the_thing_automatically</name>
         <qualifiedname>test::do_the_thing_automatically</qualifiedname>
         <briefdescription>
@@ -245,7 +261,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="199" column="6" declfile="src/code.h" declline="199" declcolumn="6"/>
+        <location file="src/code.h" line="212" column="6" declfile="src/code.h" declline="212" declcolumn="6"/>
       </memberdef>
       </sectiondef>
     <briefdescription>
@@ -263,7 +279,7 @@
 <codeline><highlight class="normal">}</highlight></codeline>
 </programlisting> </para>
     </detaileddescription>
-    <location file="src/code.h" line="23" column="1"/>
+    <location file="src/code.h" line="24" column="1"/>
   <innerclass refid="classtest_1_1class__1" prot="public">test::class_1</innerclass>
     <innernamespace refid="namespacetest_1_1empty">test::empty</innernamespace>
     <innernamespace refid="namespacetest_1_1nested">test::nested</innernamespace>

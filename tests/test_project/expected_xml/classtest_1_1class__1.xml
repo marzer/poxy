@@ -18,7 +18,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="77" column="1" bodyfile="src/code.h" bodystart="77" bodyend="-1"/>
+        <location file="src/code.h" line="85" column="1" bodyfile="src/code.h" bodystart="85" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="protected-type">
@@ -36,7 +36,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="98" column="1" bodyfile="src/code.h" bodystart="98" bodyend="-1"/>
+        <location file="src/code.h" line="111" column="1" bodyfile="src/code.h" bodystart="111" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="private-type">
@@ -54,7 +54,58 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="119" column="1" bodyfile="src/code.h" bodystart="119" bodyend="-1"/>
+        <location file="src/code.h" line="132" column="1" bodyfile="src/code.h" bodystart="132" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="friend">
+      <memberdef kind="friend" id="classtest_1_1class__1_1acca95119536ae9a653b949e083e88bd7" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void a_friend_function</definition>
+        <argsstring>()</argsstring>
+        <name>a_friend_function</name>
+        <qualifiedname>test::class_1::a_friend_function</qualifiedname>
+        <briefdescription>
+<para>A function that appears as a friend to a <ref refid="classtest_1_1class__1" kindref="compound">test::class_1</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>More info. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/code.h" line="64" column="13"/>
+      </memberdef>
+      <memberdef kind="friend" id="classtest_1_1class__1_1aa74543381abc687ab6e8d46d78e26bf1" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void another_friend_function</definition>
+        <argsstring>()</argsstring>
+        <name>another_friend_function</name>
+        <qualifiedname>test::class_1::another_friend_function</qualifiedname>
+        <briefdescription>
+<para>A friend function defined entirely in a class. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>More info. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/code.h" line="89" column="13" bodyfile="src/code.h" bodystart="89" bodyend="90"/>
+      </memberdef>
+      <memberdef kind="friend" id="classtest_1_1class__1_1aafb901f5cd0e0fdb9a028c54468989c4" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>struct</type>
+        <definition>friend struct struct_1</definition>
+        <argsstring/>
+        <name>struct_1</name>
+        <qualifiedname>test::class_1::struct_1</qualifiedname>
+        <param>
+          <type><ref refid="structtest_1_1struct__1" kindref="compound">struct_1</ref></type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/code.h" line="63" column="15" bodyfile="src/code.h" bodystart="63" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="public-static-attrib">
@@ -73,7 +124,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="61" column="28" bodyfile="src/code.h" bodystart="61" bodyend="-1"/>
+        <location file="src/code.h" line="69" column="28" bodyfile="src/code.h" bodystart="69" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="public-attrib">
@@ -91,7 +142,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="65" column="6" bodyfile="src/code.h" bodystart="65" bodyend="-1"/>
+        <location file="src/code.h" line="73" column="6" bodyfile="src/code.h" bodystart="73" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="protected-static-attrib">
@@ -110,7 +161,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="82" column="23" bodyfile="src/code.h" bodystart="82" bodyend="-1"/>
+        <location file="src/code.h" line="95" column="23" bodyfile="src/code.h" bodystart="95" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="protected-attrib">
@@ -128,7 +179,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="86" column="6" bodyfile="src/code.h" bodystart="86" bodyend="-1"/>
+        <location file="src/code.h" line="99" column="6" bodyfile="src/code.h" bodystart="99" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="private-static-attrib">
@@ -147,7 +198,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="103" column="23" bodyfile="src/code.h" bodystart="103" bodyend="-1"/>
+        <location file="src/code.h" line="116" column="23" bodyfile="src/code.h" bodystart="116" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="private-attrib">
@@ -165,7 +216,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="107" column="6" bodyfile="src/code.h" bodystart="107" bodyend="-1"/>
+        <location file="src/code.h" line="120" column="6" bodyfile="src/code.h" bodystart="120" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="public-static-func">
@@ -183,7 +234,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="69" column="27"/>
+        <location file="src/code.h" line="77" column="27"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="public-func">
@@ -201,7 +252,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="73" column="6"/>
+        <location file="src/code.h" line="81" column="6"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="protected-static-func">
@@ -219,7 +270,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="90" column="23"/>
+        <location file="src/code.h" line="103" column="23"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="protected-func">
@@ -237,7 +288,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="94" column="6"/>
+        <location file="src/code.h" line="107" column="6"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="private-static-func">
@@ -255,7 +306,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="111" column="23"/>
+        <location file="src/code.h" line="124" column="23"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="private-func">
@@ -273,7 +324,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/code.h" line="115" column="6"/>
+        <location file="src/code.h" line="128" column="6"/>
       </memberdef>
       </sectiondef>
     <briefdescription>
@@ -295,8 +346,10 @@
         </childnode>
       </node>
     </collaborationgraph>
-    <location file="src/code.h" line="56" column="1" bodyfile="src/code.h" bodystart="57" bodyend="120"/>
+    <location file="src/code.h" line="61" column="1" bodyfile="src/code.h" bodystart="62" bodyend="133"/>
     <listofallmembers>
+      <member refid="classtest_1_1class__1_1acca95119536ae9a653b949e083e88bd7" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>a_friend_function</name></member>
+      <member refid="classtest_1_1class__1_1aa74543381abc687ab6e8d46d78e26bf1" prot="public" virt="non-virtual"><scope>test::class_1</scope><name>another_friend_function</name></member>
       <member refid="classtest_1_1class__1_1ae5256ba42036bd3717458a986dc8428a" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>private_function</name></member>
       <member refid="classtest_1_1class__1_1ad5ac71cb8a2b1b68eb98c1b33f1d2c2d" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>private_static_function</name></member>
       <member refid="classtest_1_1class__1_1a2c7531e04784d4531785b2daac34a28c" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>private_static_variable</name></member>
@@ -312,6 +365,7 @@
       <member refid="classtest_1_1class__1_1ae05cfedbf34e9f128e87410c09ad3780" prot="public" virt="non-virtual"><scope>test::class_1</scope><name>public_static_variable</name></member>
       <member refid="classtest_1_1class__1_1a52150fb93a5946c0d2fca381f99f426f" prot="public" virt="non-virtual"><scope>test::class_1</scope><name>public_typedef</name></member>
       <member refid="classtest_1_1class__1_1a1942e4b40fc0cc1b939b24d1c5f4e54c" prot="public" virt="non-virtual"><scope>test::class_1</scope><name>public_variable</name></member>
+      <member refid="classtest_1_1class__1_1aafb901f5cd0e0fdb9a028c54468989c4" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>struct_1</name></member>
     </listofallmembers>
   </compounddef>
 </doxygen>

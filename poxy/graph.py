@@ -167,10 +167,16 @@ class ExpositionMarkup(object):
 
 
 
+class Friend(object):
+	'''A friend relationship.'''
+	pass
+
+
+
 NODE_TYPES = {
 	Namespace, Class, Struct, Union, Concept, Function, Variable, Enum, EnumValue, Typedef, Define, Group, MemberGroup,
 	Directory, File, BriefDescription, DetailedDescription, Page, Initializer, Paragraph, Text, Reference,
-	ExternalResource, Type, ExpositionMarkup
+	ExternalResource, Type, ExpositionMarkup, Friend
 }
 DESCRIPTION_NODE_TYPES = {BriefDescription, DetailedDescription}
 EXPOSITION_NODE_TYPES = {
@@ -180,7 +186,9 @@ CPP_TYPES = {Namespace, Class, Struct, Union, Concept, Function, Variable, Enum,
 Namespace.CAN_CONTAIN = {
 	Function, Class, Struct, Union, Variable, Typedef, Namespace, Concept, Enum, *DESCRIPTION_NODE_TYPES
 }
-Class.CAN_CONTAIN = {Class, Struct, Union, Function, Variable, Typedef, Enum, MemberGroup, *DESCRIPTION_NODE_TYPES}
+Class.CAN_CONTAIN = {
+	Class, Struct, Union, Function, Variable, Typedef, Enum, MemberGroup, Friend, *DESCRIPTION_NODE_TYPES
+}
 Struct.CAN_CONTAIN = Class.CAN_CONTAIN
 Union.CAN_CONTAIN = Class.CAN_CONTAIN
 Concept.CAN_CONTAIN = {Initializer, *DESCRIPTION_NODE_TYPES}
@@ -206,6 +214,7 @@ ExpositionMarkup.CAN_CONTAIN = {Paragraph, Text, Reference, ExpositionMarkup}
 Type.CAN_CONTAIN = {Text, Reference}
 Reference.CAN_CONTAIN = {*CPP_TYPES, Page, Group, MemberGroup, Directory, File, ExternalResource}
 ExternalResource.CAN_CONTAIN = set()
+Friend.CAN_CONTAIN = {Function, Class, Struct, Union, *DESCRIPTION_NODE_TYPES}
 
 
 
@@ -261,8 +270,14 @@ class _NullNodeIterator(object):
 
 
 
-class NodePropertyChanged(Error):
-	"""Raised when an an attempt is made to change an already-set property in a graph node."""
+class GraphError(Error):
+	"""Raised when a C++ graph error occurs."""
+	pass
+
+
+
+class GraphNodePropertyChanged(GraphError):
+	"""Raised when an attempt is made to change an already-set property in a graph node."""
 	pass
 
 
@@ -433,7 +448,7 @@ class Node(object):
 				elif value.lower() in (r'yes', r'true', r'enabled'):
 					value = True
 				else:
-					raise Error(rf"Node '{self.id}' property '{name}' could not parse a boolean from '{value}'")
+					raise GraphError(rf"Node '{self.id}' property '{name}' could not parse a boolean from '{value}'")
 			elif out_type is AccessLevel:
 				if value.lower() in (r'pub', r'public'):
 					value = AccessLevel.PUBLIC
@@ -442,7 +457,7 @@ class Node(object):
 				elif value.lower() in (r'priv', r'private'):
 					value = AccessLevel.PRIVATE
 				else:
-					raise Error(rf"Node '{self.id}' property '{name}' could not parse access level from '{value}'")
+					raise GraphError(rf"Node '{self.id}' property '{name}' could not parse access level from '{value}'")
 				assert isinstance(value, AccessLevel)
 		# None == keep whatever the current value is (no-op)
 		# (None is never a valid value for a real graph attribute)
@@ -461,11 +476,11 @@ class Node(object):
 		# (since if a property _can_ be defined in multiple places it should be identical in all of them)
 		if current is not None:
 			if type(current) != type(value):
-				raise NodePropertyChanged(
+				raise GraphNodePropertyChanged(
 					rf"Node '{self.id}' property '{name}' first seen with type {type(current)}, now seen with type {type(value)}"
 				)
 			if current != value:
-				raise NodePropertyChanged(
+				raise GraphNodePropertyChanged(
 					rf"Node '{self.id}' property '{name}' first seen with value '{current}', now seen with value '{value}'"
 				)
 			return
@@ -478,7 +493,7 @@ class Node(object):
 		if value is None:
 			return
 		if value not in NODE_TYPES:
-			raise Error(rf"Unknown C++ node type '{value}'")
+			raise GraphError(rf"Unknown C++ node type '{value}'")
 		had_type = self.type is not None
 		self.__property_set(r'type', None, value)
 		if had_type != (self.type is not None):
@@ -627,23 +642,25 @@ class Node(object):
 					return True
 			return False
 
-	def has_parent(self, node_or_id) -> bool:
-		assert node_or_id is not None
-		assert isinstance(node_or_id, (str, Node)) or node_or_id in NODE_TYPES
+	def has_parent(self, *node_or_id_or_types) -> bool:
+		assert node_or_id_or_types is not None
 		if not hasattr(self, r'_Node__parents'):
 			return False
-		if isinstance(node_or_id, Node):
-			node_or_id = node_or_id.id
-		if isinstance(node_or_id, str):
-			return node_or_id in self.__parents_by_id
-		else:
-			for c in self.__parents:
-				if c.type is node_or_id:
-					return True
-			return False
+		for target in node_or_id_or_types:
+			if isinstance(target, Node):
+				target = target.id
+			if isinstance(target, str):
+				return target in self.__parents_by_id
+			else:
+				assert target in NODE_TYPES
+				for c in self.__parents:
+					if c.type is target:
+						return True
+		return False
 
 	def __getitem__(self, id_or_index: typing.Union[str, int]):
 		assert id_or_index is not None
+		assert isinstance(id_or_index, (str, int)) or id_or_index in NODE_TYPES
 		if not hasattr(self, r'_Node__children'):
 			return None
 		if isinstance(id_or_index, str):
@@ -651,9 +668,12 @@ class Node(object):
 				return self.__children_by_id[id_or_index]
 			except:
 				return None
-		else:
-			assert isinstance(id_or_index, int)
+		elif isinstance(id_or_index, int):
 			return self.__children[id_or_index]
+		else:
+			for c in self(id_or_index):
+				return c
+			raise KeyError(id_or_index.__name__)
 
 	@classmethod
 	def _check_connection(cls, source, dest):
@@ -664,7 +684,7 @@ class Node(object):
 
 		# self-connection is always illegal, regardless of type information
 		if id(source) == id(dest):
-			raise Error(rf"C++ node '{source.id}' may not connect to itself")
+			raise GraphError(rf"Node '{source.id}' may not connect to itself")
 
 		# otherwise if we don't have type information the connection is 'OK'
 		# (really this just means we defer the check until later)
@@ -673,12 +693,12 @@ class Node(object):
 
 		# check basic connection rules
 		if dest.type not in source.type.CAN_CONTAIN:
-			raise Error(
-				rf"{source.type_name} node '{source.id}' is not allowed to connect to nodes of type {dest.type_name}"
+			raise GraphError(
+				rf"{source.type_name} node '{source.id}' is not allowed to connect to {dest.type_name} nodes"
 			)
 
-		# check situations where a node must only belong to one parent of a particular set of classes
-		def check_single_parentage(source_types, dest_types):
+		# check situations where a node must only belong to one parent of a particular set of types
+		def check_single_parent(dest_types, source_types):
 			nonlocal source
 			nonlocal dest
 			source_types = coerce_collection(source_types)
@@ -691,14 +711,37 @@ class Node(object):
 			if dest not in source:
 				sum += 1
 			if sum > 1:
-				raise Error(rf"{dest.type_name} node '{dest.id}' is not allowed to be a member of more than one parent")
+				raise GraphError(
+					rf"{dest.type_name} node '{dest.id}' is not allowed to be a member of more than one "
+					+ rf"{{ {', '.join([t.__name__ for t in source_types])} }}"
+				)
 
-		check_single_parentage(Enum, EnumValue)
-		check_single_parentage((Variable, Function, Enum, Typedef), Type)
+		check_single_parent(EnumValue, Enum)
+		check_single_parent(Type, (Variable, Function, Enum, Typedef))
+		check_single_parent(Friend, (Class, Struct, Union))
+		check_single_parent(Reference, NODE_TYPES)
 
-		# check some specific cases
-		if source.type is Reference and source.is_parent:
-			raise Error(rf"{source.type_name} node '{source.id}' is not allowed to reference more than one node")
+		# same again but in the other direction
+		def check_single_child(source_types, dest_types):
+			nonlocal source
+			nonlocal dest
+			source_types = coerce_collection(source_types)
+			dest_types = coerce_collection(dest_types)
+			if source.type not in source_types or dest.type not in dest_types:
+				return
+			sum = 0
+			for child in source(*dest_types):
+				sum += 1
+			if dest not in source:
+				sum += 1
+			if sum > 1:
+				raise GraphError(
+					rf"{source.type_name} node '{source.id}' is not allowed to be connected to more than one "
+					+ rf"{{ {', '.join([t.__name__ for t in dest_types])} }}"
+				)
+
+		check_single_child(Friend, (Class, Struct, Union, Function))
+		check_single_child(Reference, NODE_TYPES)
 
 	def add(self, child):
 		assert child is not None
@@ -709,7 +752,7 @@ class Node(object):
 			existing_child = self.__children_by_id[child.id]
 			# check that identity is unique
 			if id(child) != id(existing_child):
-				raise Error(rf"Two different nodes seen with the same ID ('{child.id}')")
+				raise GraphError(rf"Two different nodes seen with the same ID ('{child.id}')")
 			return
 
 		Node._check_connection(self, child)
@@ -756,6 +799,50 @@ class Node(object):
 		self.__children.clear()
 		self.__children_by_id.clear()
 
+	#==============
+	# relationship queries
+	#==============
+
+	@property
+	def is_class_member(self) -> bool:
+		return self.has_parent(Class, Struct, Union)
+
+	@property
+	def is_class_member_variable(self) -> bool:
+		return self.type is Variable and self.is_class_member
+
+	@property
+	def is_class_member_variable(self) -> bool:
+		return self.type is Function and self.is_class_member
+
+	@property
+	def is_free_function(self) -> bool:
+		return self.type is Function and not self.is_class_member
+
+	@property
+	def is_static_function(self) -> bool:
+		return self.type is Function and self.static
+
+	@property
+	def is_friend(self) -> bool:
+		return self.has_parent(Friend)
+
+	@property
+	def is_friend_function(self) -> bool:
+		return self.type is Function and self.is_friend
+
+	@property
+	def is_friend_class(self) -> bool:
+		return self.type in (Class, Struct, Union) and self.is_friend
+
+	@property
+	def has_friends(self) -> bool:
+		return Friend in self
+
+	#==============
+	# misc
+	#==============
+
 	def copy(self, id=None, transform=None):
 		node = Node(self.id if id is None else id)
 		if transform is not None:
@@ -788,7 +875,7 @@ class Graph(object):
 		self.__next_unique_id += 1
 		return id
 
-	def get_or_create_node(self, id: str = None, type=None) -> Node:
+	def get_or_create_node(self, id: str = None, type=None, parent=None) -> Node:
 		if id is None:
 			id = self.__get_unique_id()
 		assert id
@@ -799,6 +886,8 @@ class Graph(object):
 		else:
 			node = self.__nodes[id]
 		node.type = type
+		if parent is not None:
+			parent.add(node)
 		return node
 
 	def __iter__(self):
@@ -848,44 +937,46 @@ class Graph(object):
 	def validate(self):
 		for node in self:
 			if node.type is None:
-				raise Error(rf"Node '{node.id}' is untyped")
+				raise GraphError(rf"Node '{node.id}' is untyped")
 			if node.type not in EXPOSITION_NODE_TYPES:
 				if not node.qualified_name:
-					raise Error(rf"{node.type_name} node '{node.id}' missing attribute 'qualified_name'")
+					raise GraphError(rf"{node.type_name} node '{node.id}' missing attribute 'qualified_name'")
 				if not node.local_name:
-					raise Error(rf"{node.type_name} node '{node.id}' missing attribute 'local_name'")
+					raise GraphError(rf"{node.type_name} node '{node.id}' missing attribute 'local_name'")
 
 			if node.file.find('\\') != -1:
-				raise Error(rf"{node.type_name} node '{node.id}' attribute 'file' contains back-slashes")
+				raise GraphError(rf"{node.type_name} node '{node.id}' attribute 'file' contains back-slashes")
 			if node.file.endswith(r'/'):
-				raise Error(rf"{node.type_name} node '{node.id}' attribute 'file' ends with a forward-slash")
+				raise GraphError(rf"{node.type_name} node '{node.id}' attribute 'file' ends with a forward-slash")
 			if node.line < 0:
-				raise Error(rf"{node.type_name} node '{node.id}' attribute 'line' is negative")
+				raise GraphError(rf"{node.type_name} node '{node.id}' attribute 'line' is negative")
 			if node.column < 0:
-				raise Error(rf"{node.type_name} node '{node.id}' attribute 'column' is negative")
+				raise GraphError(rf"{node.type_name} node '{node.id}' attribute 'column' is negative")
 
 			if node.type in (Directory, File):
 				if node.qualified_name.find('\\') != -1:
-					raise Error(rf"{node.type_name} node '{node.id}' attribute 'qualified_name' contains back-slashes")
+					raise GraphError(
+						rf"{node.type_name} node '{node.id}' attribute 'qualified_name' contains back-slashes"
+					)
 				if node.qualified_name.endswith(r'/'):
-					raise Error(
+					raise GraphError(
 						rf"{node.type_name} node '{node.id}' attribute 'qualified_name' ends with a forward-slash"
 					)
 			if node.type in CPP_TYPES:
 				if node.qualified_name.startswith(r'::'):
-					raise Error(rf"{node.type_name} node '{node.id}' attribute 'qualified_name' starts with ::")
+					raise GraphError(rf"{node.type_name} node '{node.id}' attribute 'qualified_name' starts with ::")
 				if node.qualified_name.endswith(r'::'):
-					raise Error(rf"{node.type_name} node '{node.id}' attribute 'qualified_name' ends with ::")
+					raise GraphError(rf"{node.type_name} node '{node.id}' attribute 'qualified_name' ends with ::")
 				if node.type is not EnumValue and not node.file:
-					raise Error(rf"{node.type_name} node '{node.id}' missing attribute 'file'")
+					raise GraphError(rf"{node.type_name} node '{node.id}' missing attribute 'file'")
 
-			if node.type in (EnumValue, Type):
+			if node.type in (EnumValue, Type, Friend):
 				if not node.is_child:
-					raise Error(rf"{node.type_name} node '{node.id}' is an orphan")
+					raise GraphError(rf"{node.type_name} node '{node.id}' is an orphan")
 
 			if node.type in (Function, Variable, Typedef):
 				if Type not in node:
-					raise Error(rf"{node.type_name} node '{node.id}' is missing a Type")
+					raise GraphError(rf"{node.type_name} node '{node.id}' is missing a Type")
 
 	def copy(self, filter=None, id_transform=None, transform=None):
 		g = Graph()
@@ -902,7 +993,7 @@ class Graph(object):
 			else:
 				id = str(id)
 			if id in g:
-				raise Error(rf"A node with id '{id}' already exists in the destination graph")
+				raise GraphError(rf"A node with id '{id}' already exists in the destination graph")
 			id_remap[src.id] = id
 			g.__nodes[id] = src.copy(id=id, transform=transform)
 		# second pass to link hierarchy

@@ -76,6 +76,13 @@
       <enumvalue file="namespacetest.html" anchor="a393facd551443a4aaea74c533c2bce6fa3745be12e7d2d79a55682a6b1ef5863c">val_2</enumvalue>
     </member>
     <member kind="function">
+      <type>void</type>
+      <name>a_friend_function</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a14eee7dd5169cc088aad164c5fcb1800</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
       <type>std::uint8_t</type>
       <name>do_the_thing</name>
       <anchorfile>namespacetest.html</anchorfile>
@@ -181,6 +188,20 @@
       <anchor>a330993e9b2ae74c6db1a28553759fe96</anchor>
       <arglist></arglist>
     </member>
+    <member kind="friend" protection="private">
+      <type>friend void</type>
+      <name>a_friend_function</name>
+      <anchorfile>classtest_1_1class__1.html</anchorfile>
+      <anchor>acca95119536ae9a653b949e083e88bd7</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="friend">
+      <type>friend void</type>
+      <name>another_friend_function</name>
+      <anchorfile>classtest_1_1class__1.html</anchorfile>
+      <anchor>aa74543381abc687ab6e8d46d78e26bf1</anchor>
+      <arglist>()</arglist>
+    </member>
   </compound>
   <compound kind="struct">
     <name>test::struct_1::nested_struct</name>
@@ -285,6 +306,13 @@
       <enumvalue file="namespacetest.html" anchor="a393facd551443a4aaea74c533c2bce6fa209e4404bac5df6700a512df9e988ba3">val_0</enumvalue>
       <enumvalue file="namespacetest.html" anchor="a393facd551443a4aaea74c533c2bce6fad69dff41cc115965adfeaa0f58fed641">val_1</enumvalue>
       <enumvalue file="namespacetest.html" anchor="a393facd551443a4aaea74c533c2bce6fa3745be12e7d2d79a55682a6b1ef5863c">val_2</enumvalue>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>a_friend_function</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a14eee7dd5169cc088aad164c5fcb1800</anchor>
+      <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>std::uint8_t</type>

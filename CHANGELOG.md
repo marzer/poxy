@@ -1,10 +1,12 @@
 # Changelog
 
-## Unreleased
+## v0.10.0 - 2022-10-14
 
 -   fixed `static` keyword sometimes appearing twice on variables
 -   fixed `constexpr` keyword sometimes leaking into variable type
 -   fixed newer versions of pygments adding unnecessary markup to whitespace
+-   fixed malformed trailing return types in some circumstances
+-   fixed changelog page sometimes not having a table-of-contents
 -   added support for C++20's `constinit`
 -   added fallback to `tomllib` or `tomli` if `pytomlpp` is not available
 -   added command-line options `--html`, `--no-html`
@@ -12,6 +14,7 @@
 -   added command-line option `--no-werror`
 -   added `CHANGES` to the set of candidate changelog filenames
 -   deprecated command-line option `--xmlonly`
+-   removed command-line option `--doxygen`
 
 ## v0.9.1 - 2022-10-04
 
@@ -23,7 +26,7 @@
 -   added `concepts` to the default set of links in `navbar`
 -   added `navbar` values `all` and `default`
 -   reduced I/O churn during HTML post-processing
--   removed command-line option `dry`
+-   removed command-line option `--dry`
 
 ## v0.9.0 - 2022-10-03
 

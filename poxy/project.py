@@ -17,13 +17,13 @@ except:
 	except:
 		import tomli as toml
 import datetime
-import shutil
 import itertools
 from schema import Schema, Or, And, Optional
 from .utils import *
 from . import dirs
 from . import repos
 from . import emoji
+from . import doxygen
 
 #=======================================================================================================================
 # schemas
@@ -813,8 +813,6 @@ class Defaults(object):
 		r'std::(?:literals::)?(?:chrono|complex|string|string_view)_literals', r'std::literals', r'std::numbers',
 		r'std::ranges', r'std::this_thread'
 	}
-	cb_numeric_literals = set()
-	cb_string_literals = {r'sv?'}
 	cb_types = {
 		#------ built-in types
 		r'__(?:float|fp)[0-9]{1,3}',
@@ -925,8 +923,8 @@ class CodeBlocks(object):
 	schema = {
 		Optional(r'types'): ValueOrArray(str, name=r'types'),
 		Optional(r'macros'): ValueOrArray(str, name=r'macros'),
-		Optional(r'string_literals'): ValueOrArray(str, name=r'string_literals'),
-		Optional(r'numeric_literals'): ValueOrArray(str, name=r'numeric_literals'),
+		Optional(r'string_literals'): ValueOrArray(str, name=r'string_literals'),  # deprecated
+		Optional(r'numeric_literals'): ValueOrArray(str, name=r'numeric_literals'),  # deprecated
 		Optional(r'enums'): ValueOrArray(str, name=r'enums'),
 		Optional(r'namespaces'): ValueOrArray(str, name=r'namespaces'),
 	}
@@ -934,8 +932,6 @@ class CodeBlocks(object):
 	def __init__(self, config, macros):
 		self.types = copy.deepcopy(Defaults.cb_types)
 		self.macros = copy.deepcopy(Defaults.cb_macros)
-		self.string_literals = copy.deepcopy(Defaults.cb_string_literals)
-		self.numeric_literals = copy.deepcopy(Defaults.cb_numeric_literals)
 		self.enums = copy.deepcopy(Defaults.cb_enums)
 		self.namespaces = copy.deepcopy(Defaults.cb_namespaces)
 
@@ -953,18 +949,6 @@ class CodeBlocks(object):
 					macro = m.strip()
 					if macro:
 						self.macros.add(macro)
-
-			if 'string_literals' in config:
-				for lit in coerce_collection(config['string_literals']):
-					literal = lit.strip()
-					if literal:
-						self.string_literals.add(literal)
-
-			if 'numeric_literals' in config:
-				for lit in coerce_collection(config['numeric_literals']):
-					literal = lit.strip()
-					if literal:
-						self.numeric_literals.add(literal)
 
 			if 'enums' in config:
 				for e in coerce_collection(config['enums']):
@@ -1279,7 +1263,6 @@ class Context(object):
 		threads: int,
 		cleanup: bool,
 		verbose: bool,
-		doxygen_path: Path,
 		logger,
 		html_include: str,
 		html_exclude: str,
@@ -1343,6 +1326,7 @@ class Context(object):
 		self.verbose_value(r'dirs.GENERATED', dirs.GENERATED)
 		self.verbose_value(r'dirs.FONTS', dirs.FONTS)
 		self.verbose_value(r'dirs.TEMP', dirs.TEMP)
+		self.verbose_value(r'doxygen.path()', doxygen.path())
 
 		# resolve paths
 		if 1:
@@ -1422,40 +1406,6 @@ class Context(object):
 			delete_directory(self.html_dir, logger=self.verbose_logger)
 			self.temp_dir.mkdir(exist_ok=True, parents=True)
 			self.temp_pages_dir.mkdir(exist_ok=True, parents=True)
-
-			# doxygen
-			if doxygen_path is not None:
-				doxygen_path = coerce_path(doxygen_path).resolve()
-				if not doxygen_path.exists() and Path(str(doxygen_path) + r'.exe').exists():
-					doxygen_path = Path(str(doxygen_path) + r'.exe')
-			else:
-				doxygen_path = shutil.which(r'doxygen')
-				if doxygen_path is not None:
-					doxygen_path = coerce_path(doxygen_path)
-				if doxygen_path is None or not doxygen_path.exists():
-					try:
-						doxygen_path = Path(
-							'C:\\Program Files\\doxygen\\bin\\doxygen.exe'
-						)  # todo: get 'program files' path programatically
-					except:  # path will be invalid on non-windows
-						pass
-				if doxygen_path is None or not doxygen_path.exists():
-					raise Error(rf'Could not find Doxygen on system path')
-			assert doxygen_path is not None
-			doxygen_path = coerce_path(doxygen_path).resolve()
-			if doxygen_path.is_dir():
-				p = Path(doxygen_path, r'doxygen.exe')
-				if not p.exists() or not p.is_file() or not os.access(str(p), os.X_OK):
-					p = Path(doxygen_path, r'doxygen')
-				if not p.exists() or not p.is_file() or not os.access(str(p), os.X_OK):
-					raise Error(rf'Could not find Doxygen executable in {doxygen_path}')
-				doxygen_path = p
-			assert_existing_file(doxygen_path)
-			if not os.access(str(doxygen_path), os.X_OK):
-				raise Error(rf'{doxygen_path} was not an executable file')
-			self.doxygen_path = doxygen_path
-			self.verbose_value(r'Context.doxygen_path', self.doxygen_path)
-			assert self.doxygen_path.is_absolute()
 
 			# temp doxyfile path
 			self.doxyfile_path = Path(self.temp_dir, rf'Doxyfile')

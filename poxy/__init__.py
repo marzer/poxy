@@ -6,7 +6,8 @@
 
 from .run import run
 from .utils import lib_version, Error, WarningTreatedAsError
+from .graph import GraphError, GraphNodePropertyChanged
 
-__all__ = [r'run', r'lib_version', r'Error', r'WarningTreatedAsError']
+__all__ = [r'run', r'lib_version', r'Error', r'WarningTreatedAsError', r'GraphError', r'GraphNodePropertyChanged']
 
 __version__ = r'.'.join([str(v) for v in lib_version()])

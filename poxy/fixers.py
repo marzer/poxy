@@ -541,22 +541,6 @@ class CodeBlocks(HTMLFixer):
 					if self.__colourize_compound_def(tags, context):
 						changed_this_block = True
 
-				# string and numeric literals
-				spans = code_block('span', class_='n', string=True)
-				for span in spans:
-					prev = span.previous_sibling
-					if (prev is None or isinstance(prev, NavigableString) or 'class' not in prev.attrs):
-						continue
-					if ('s' in prev['class'] and context.code_blocks.string_literals.fullmatch(span.get_text())):
-						soup.set_class(span, 'sa')
-						changed_this_block = True
-					elif (
-						prev['class'][0] in ('mf', 'mi', 'mb', 'mh')
-						and context.code_blocks.numeric_literals.fullmatch(span.get_text())
-					):
-						soup.set_class(span, prev['class'][0])
-						changed_this_block = True
-
 				# preprocessor macros
 				spans = code_block('span', class_=('n', 'nl', 'kt', 'nc', 'nf'), string=True)
 				for span in spans:

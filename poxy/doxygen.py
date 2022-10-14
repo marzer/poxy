@@ -9,6 +9,8 @@ Functions and classes for working with Doxygen.
 
 import subprocess
 import itertools
+import shutil
+import os
 from lxml import etree
 from .utils import *
 from . import graph
@@ -73,6 +75,55 @@ def format_for_doxyfile(val):
 
 
 
+def path() -> Path:
+	if not hasattr(path, "val"):
+
+		def test_path(p):
+			if not p:
+				return None
+			p = Path(p)
+			if not p.exists() or not p.is_file() or not os.access(str(p), os.X_OK):
+				return None
+			return p.resolve()
+
+		doxygen = None
+		for name in (r'doxygen.exe', r'doxygen'):
+			doxygen = test_path(shutil.which(name))
+			if doxygen is not None:
+				break
+
+		if doxygen is None:
+			for p in (
+				'C:\\Program Files\\doxygen\\bin\\doxygen.exe',  #
+				'C:\\Program Files (x86)\\doxygen\\bin\\doxygen.exe',
+				r'/usr/local/bin/doxygen'
+			):
+				try:
+					doxygen = test_path(p)
+					if doxygen is not None:
+						break
+				except:
+					pass
+
+		if doxygen is None:
+			raise Error(rf'Could not find Doxygen on system path')
+
+		path.val = doxygen
+	return path.val
+
+
+
+def version() -> str:
+	if not hasattr(version, "val"):
+		proc = subprocess.run([str(path()), r'--version'], capture_output=True, encoding=r'utf-8', check=True)
+		ret = proc.stdout.strip() if proc.stdout is not None else ''
+		if not ret and proc.stderr.strip():
+			raise Error(rf'doxygen exited with error: {proc.stderr.strip()}')
+		version.val = ret
+	return version.val
+
+
+
 #=======================================================================================================================
 # Doxyfile
 #=======================================================================================================================
@@ -81,16 +132,13 @@ def format_for_doxyfile(val):
 
 class Doxyfile(object):
 
-	def __init__(self, input_path=None, output_path=None, cwd=None, logger=None, doxygen_path=None, flush_at_exit=True):
+	def __init__(self, input_path=None, output_path=None, cwd=None, logger=None, flush_at_exit=True):
 		self.__logger = logger
 		self.__dirty = True
 		self.__text = ''
 		self.__autoflush = bool(flush_at_exit)
-
-		# doxygen
 		self.__cwd = Path.cwd() if cwd is None else coerce_path(cwd).resolve()
 		assert_existing_directory(self.__cwd)
-		self.__doxygen = r'doxygen' if doxygen_path is None else coerce_path(doxygen_path)
 
 		# the input + output
 		self.__input_path = input_path
@@ -109,7 +157,7 @@ class Doxyfile(object):
 
 		# ...or generate one
 		else:
-			result = subprocess.run([str(self.__doxygen), r'-s', r'-g', r'-'],
+			result = subprocess.run([str(path()), r'-s', r'-g', r'-'],
 				check=True,
 				capture_output=True,
 				cwd=self.__cwd,
@@ -124,7 +172,7 @@ class Doxyfile(object):
 			return
 		if 1:
 			log(self.__logger, rf'Invoking doxygen to clean doxyfile')
-			result = subprocess.run([str(self.__doxygen), r'-s', r'-u', r'-'],
+			result = subprocess.run([str(path()), r'-s', r'-u', r'-'],
 				check=True,
 				capture_output=True,
 				cwd=self.__cwd,
@@ -266,7 +314,8 @@ KINDS_TO_NODE_TYPES = {
 	r'variable': graph.Variable,
 	r'function': graph.Function,
 	r'define': graph.Define,
-	r'page': graph.Page
+	r'page': graph.Page,
+	r'friend': graph.Friend
 }
 NODE_TYPES_TO_KINDS = {t: k for k, t in KINDS_TO_NODE_TYPES.items()}
 COMPOUND_NODE_TYPES = {KINDS_TO_NODE_TYPES[c] for c in COMPOUNDS}
@@ -316,38 +365,32 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 		nonlocal g
 		# top-level text in the tag
 		if elem.text:
-			text = g.get_or_create_node(type=graph.Text)
+			text = g.get_or_create_node(type=graph.Text, parent=node)
 			text.text = elem.text
-			node.add(text)
 		# child <tags>
 		for child_elem in elem:
 			if child_elem.tag == r'para':
-				para = g.get_or_create_node(type=graph.Paragraph)
+				para = g.get_or_create_node(type=graph.Paragraph, parent=node)
 				parse_structured_text(para, child_elem)
-				node.add(para)
 			elif child_elem.tag == r'ref':
-				ref = g.get_or_create_node(type=graph.Reference)
+				ref = g.get_or_create_node(type=graph.Reference, parent=node)
 				ref.text = child_elem.text
 				ref.kind = child_elem.get(r'kindref')
-				resource = g.get_or_create_node(id=child_elem.get(r'refid'))
+				resource = g.get_or_create_node(id=child_elem.get(r'refid'), parent=ref)
 				if child_elem.get(r'external'):
 					resource.type = graph.ExternalResource
 					resource.file = child_elem.get(r'external')
-				ref.add(resource)
-				node.add(ref)
 			else:
-				markup = g.get_or_create_node(type=graph.ExpositionMarkup)
+				markup = g.get_or_create_node(type=graph.ExpositionMarkup, parent=node)
 				markup.tag = child_elem.tag
 				attrs = [(k, v) for k, v in child_elem.attrib.items()]
 				attrs.sort(key=lambda kvp: kvp[0])
 				markup.extra_attributes = tuple(attrs)
 				parse_structured_text(markup, child_elem)
-				node.add(markup)
 			# text that came after the child <tag>
 			if child_elem.tail:
-				text = g.get_or_create_node(type=graph.Text)
+				text = g.get_or_create_node(type=graph.Text, parent=node)
 				text.text = child_elem.tail
-				node.add(text)
 
 	def parse_text_subnode(node: graph.Node, subnode_type, elem, subelem_tag: str):
 		assert node is not None
@@ -360,8 +403,7 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 		if subelem is None:
 			return
 		nonlocal g
-		subnode = g.get_or_create_node(type=subnode_type)
-		node.add(subnode)
+		subnode = g.get_or_create_node(type=subnode_type, parent=node)
 		parse_structured_text(subnode, subelem)
 
 	def parse_brief(node: graph.Node, elem):
@@ -381,10 +423,12 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 		type_elem = elem.find(r'type')
 		if type_elem is None:
 			return
-		# extract constexpr, constinit, static, mutable etc out of the type of doxygen has leaked it
+		# extract constexpr, constinit, static, mutable etc out of the type if doxygen has leaked it
 		while type_elem.text:
 			text = rf' {type_elem.text} '
-			match = re.search(r'\s(?:(?:const(?:expr|init|eval)|static|mutable|explicit|virtual|inline)\s)+', text)
+			match = re.search(
+				r'\s(?:(?:const(?:expr|init|eval)|static|mutable|explicit|virtual|inline|friend)\s)+', text
+			)
 			if match is None:
 				break
 			type_elem.text = (text[:match.start()] + r' ' + text[match.end():]).strip()
@@ -428,6 +472,11 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 	# <compound>
 	# (these are doxygen's version of 'forward declarations', typically found in index.xml)
 	for compound in root.findall(r'compound'):
+		if not compound.get(r'kind'):
+			raise Error(rf"Malformed XML: <compound> tag missing attribute 'kind'")
+		if compound.get(r'kind') == r'friend':
+			raise Error(rf"Malformed XML: <compound> tag attribute 'kind' had unexpected value 'friend'")
+
 		node = g.get_or_create_node(id=compound.get(r'refid'), type=KINDS_TO_NODE_TYPES[compound.get(r'kind')])
 
 		if node.type is graph.File:  # files use their local name?? doxygen is so fucking weird
@@ -443,8 +492,9 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 			member_kind = member_elem.get(r'kind')
 			if member_kind == r'enumvalue':
 				continue
-			member = g.get_or_create_node(id=member_elem.get(r'refid'), type=KINDS_TO_NODE_TYPES[member_kind])
-			node.add(member)
+			member = g.get_or_create_node(
+				id=member_elem.get(r'refid'), type=KINDS_TO_NODE_TYPES[member_kind], parent=node
+			)
 			name = extract_subelement_text(member_elem, r'name')
 			if name:
 				if member.type is graph.Define:
@@ -457,6 +507,11 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 
 	# <compounddef>
 	for compounddef in root.findall(r'compounddef'):
+		if not compounddef.get(r'kind'):
+			raise Error(rf"Malformed XML: <compounddef> tag missing attribute 'kind'")
+		if compounddef.get(r'kind') == r'friend':
+			raise Error(rf"Malformed XML: <compounddef> tag attribute 'kind' had unexpected value 'friend'")
+
 		node = g.get_or_create_node(id=compounddef.get(r'id'), type=KINDS_TO_NODE_TYPES[compounddef.get(r'kind')])
 		node.access_level = compounddef.get(r'prot')
 		parse_brief(node, compounddef)
@@ -488,11 +543,14 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 
 		# all <memberdefs>
 		for elem in memberdefs:
-			member = g.get_or_create_node(id=elem.get(r'id'))
+			kind = elem.get(r'kind')
+			member = g.get_or_create_node(id=elem.get(r'id'), type=KINDS_TO_NODE_TYPES[kind], parent=node)
 			parse_brief(member, elem)
 			parse_detail(member, elem)
 			parse_initializer(member, elem)
 			parse_location(member, elem)
+			member.local_name = extract_subelement_text(elem, r'name')
+			member.qualified_name = extract_qualified_name(elem)
 			member.access_level = elem.get(r'prot')
 			member.static = elem.get(r'static')
 			member.const = elem.get(r'const')
@@ -503,60 +561,54 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 			member.virtual = True if elem.get(r'virtual') == r'virtual' else None
 			member.strong = elem.get(r'strong')
 			member.definition = extract_subelement_text(elem, r'definition')
-			node.add(member)
 
 			# fix trailing return types in some situations (https://github.com/mosra/m.css/issues/94)
 			trailing_return_type = None
-			if elem.get(r'kind') == r'function':
+			if kind == r'function':
 				type_elem = elem.find(r'type')
 				args_elem = elem.find(r'argsstring')
-				if type_elem is not None and type_elem.text and args_elem is not None and args_elem.text:
-					match = re.search(r'^(.*?)\s*->\s*([a-zA-Z][a-zA-Z0-9_::*& <>]+)\s*$', args_elem.text)
+				if ((type_elem is not None and type_elem.text)  #
+					and (args_elem is not None and args_elem.text and args_elem.text.find(r'decltype') == -1)):
+					match = re.search(r'^(.*?)\s*->\s*([a-zA-Z][a-zA-Z0-9_::*&<>\s]+?)\s*$', args_elem.text)
 					if match:
 						args_elem.text = str(match[1])
 						trailing_return_type = str(match[2]).strip()
+						trailing_return_type = re.sub(r'\s+', r' ', trailing_return_type)
+						trailing_return_type = re.sub(r'(::|[<>*&])\s+', r'\1', trailing_return_type)
+						trailing_return_type = re.sub(r'\s+(::|[<>*&])', r'\1', trailing_return_type)
 
 			parse_type(member, elem, resolve_auto_as=trailing_return_type)
 
 		# enums
 		for elem in get_memberdefs(r'enum'):
-			member = g.get_or_create_node(id=elem.get(r'id'), type=graph.Enum)
-			member.local_name = extract_subelement_text(elem, r'name')
-			member.qualified_name = extract_qualified_name(elem)
-			node.add(member)
+			member = g.get_or_create_node(id=elem.get(r'id'), type=graph.Enum, parent=node)
 			for value_elem in elem.findall(r'enumvalue'):
-				value = g.get_or_create_node(id=value_elem.get(r'id'), type=graph.EnumValue)
+				value = g.get_or_create_node(id=value_elem.get(r'id'), type=graph.EnumValue, parent=member)
 				value.access_level = value_elem.get(r'prot')
 				value.local_name = extract_subelement_text(value_elem, r'name')
 				parse_brief(value, value_elem)
 				parse_detail(value, value_elem)
 				parse_initializer(value, value_elem)
 				parse_location(value, value_elem)
-				member.add(value)
 
 		# typedefs
 		for elem in get_memberdefs(r'typedef'):
-			member = g.get_or_create_node(id=elem.get(r'id'), type=graph.Typedef)
-			member.local_name = extract_subelement_text(elem, r'name')
-			member.qualified_name = extract_qualified_name(elem)
-			node.add(member)
+			member = g.get_or_create_node(id=elem.get(r'id'), type=graph.Typedef, parent=node)
 
 		# vars
 		for elem in get_memberdefs(r'variable'):
-			member = g.get_or_create_node(id=elem.get(r'id'), type=graph.Variable)
-			member.local_name = extract_subelement_text(elem, r'name')
-			member.qualified_name = extract_qualified_name(elem)
-			node.add(member)
+			member = g.get_or_create_node(id=elem.get(r'id'), type=graph.Variable, parent=node)
 
 		# functions
 		for elem in get_memberdefs(r'function'):
-			member = g.get_or_create_node(id=elem.get(r'id'), type=graph.Function)
-			node.add(member)
+			member = g.get_or_create_node(id=elem.get(r'id'), type=graph.Function, parent=node)
+
+		#
 
 		# <inner(dir|file|class|namespace|page|group|concept)>
 		for inner_suffix in (r'dir', r'file', r'class', r'namespace', r'page', r'group', r'concept'):
 			for inner_elem in compounddef.findall(rf'inner{inner_suffix}'):
-				inner = g.get_or_create_node(id=inner_elem.get(r'refid'))
+				inner = g.get_or_create_node(id=inner_elem.get(r'refid'), parent=node)
 				if inner_suffix == r'class':
 					if inner.id.startswith(r'class'):
 						inner.type = graph.Class
@@ -576,7 +628,6 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 						inner.qualified_name = rf'{node.qualified_name}/{inner_elem.text}'
 				elif node.type in graph.CPP_TYPES and inner.type in graph.CPP_TYPES:
 					inner.qualified_name = inner_elem.text
-				node.add(inner)
 
 
 
@@ -598,6 +649,8 @@ def read_graph_from_xml(folder, log_func=None) -> graph.Graph:
 			_parse_xml_file(g=g, path=path, parser=parser, log_func=log_func)
 		except KeyError:
 			raise
+		except graph.GraphError as ex:
+			raise graph.GraphError(rf'Parsing {path.name} failed: {ex}')
 		except Exception as ex:
 			raise Error(rf'Parsing {path.name} failed: {ex}')
 
@@ -687,9 +740,8 @@ def read_graph_from_xml(folder, log_func=None) -> graph.Graph:
 		id_remap[node.id] = id
 		return id
 
-	g = g.copy(id_transform=fix_ids)
-
-	g.validate()
+	#g = g.copy(id_transform=fix_ids)
+	#g.validate()
 
 	return g
 
@@ -723,7 +775,9 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 			if nodes[0].type is graph.Paragraph:
 				para = etree.SubElement(elem, rf'para')
 				para.text = nodes[0].text
-				make_structured_text(para, [n for n in nodes[0]])
+				make_structured_text(
+					para, [n for n in nodes[0](graph.Paragraph, graph.Text, graph.Reference, graph.ExpositionMarkup)]
+				)
 				prev = para
 			elif nodes[0].type is graph.ExpositionMarkup:
 				assert nodes[0].tag
@@ -731,7 +785,9 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 				for k, v in nodes[0].extra_attributes:
 					markup.set(k, v)
 				markup.text = nodes[0].text
-				make_structured_text(markup, [n for n in nodes[0]])
+				make_structured_text(
+					markup, [n for n in nodes[0](graph.Paragraph, graph.Text, graph.Reference, graph.ExpositionMarkup)]
+				)
 				prev = markup
 			elif nodes[0].type is graph.Reference and nodes[0].is_parent:
 				ref = etree.SubElement(elem, rf'ref', attrib={r'refid': nodes[0][0].id})

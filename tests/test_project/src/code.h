@@ -7,6 +7,7 @@
 #define KEK 1
 
 #include <concepts>
+#include <vector>
 
 /// \brief A namespace.
 /// \details More info. Here's some C++: \code{cpp}
@@ -22,6 +23,10 @@
 /// \endcode
 namespace test
 {
+	/// \brief A function that appears as a friend to a #test::class_1.
+	/// \details More info.
+	void a_friend_function();
+
 	/// \brief An inline variable.
 	/// \details More info.
 	inline constexpr bool inline_variable = false;
@@ -55,6 +60,9 @@ namespace test
 	/// \details More info.
 	class class_1
 	{
+		friend struct struct_1;
+		friend void a_friend_function();
+
 	  public:
 		/// \brief A public static variable.
 		/// \details More info.
@@ -75,6 +83,11 @@ namespace test
 		/// \brief A public typedef.
 		/// \details More info.
 		using public_typedef = int;
+
+		/// \brief A friend function defined entirely in a class.
+		/// \details More info.
+		friend void another_friend_function()
+		{}
 
 	  protected:
 		/// \brief A protected static variable.

@@ -37,7 +37,7 @@ def make_temp_file():
 # PRE/POST PROCESSORS
 #=======================================================================================================================
 
-_doxygen_overrides = (
+DOXYGEN_DEFAULTS = (
 	(r'ALLEXTERNALS', False),
 	(r'ALLOW_UNICODE_NAMES', False),
 	(r'ALWAYS_DETAILED_SEC', False),
@@ -159,11 +159,7 @@ def preprocess_doxyfile(context: Context):
 	assert isinstance(context, Context)
 
 	with doxygen.Doxyfile(
-		input_path=None,
-		output_path=context.doxyfile_path,
-		cwd=context.input_dir,
-		logger=context.verbose_logger,
-		doxygen_path=context.doxygen_path
+		input_path=None, output_path=context.doxyfile_path, cwd=context.input_dir, logger=context.verbose_logger
 	) as df:
 
 		df.append()
@@ -171,10 +167,9 @@ def preprocess_doxyfile(context: Context):
 		df.append(r'# marzer/poxy')
 		df.append(r'#---------------------------------------------------------------------------', end='\n\n')
 
-		df.append(r'# doxygen default overrides', end='\n\n')  # ----------------------------------------
+		df.append(r'# doxygen defaults', end='\n\n')  # ----------------------------------------
 
-		global _doxygen_overrides
-		for k, v in _doxygen_overrides:
+		for k, v in DOXYGEN_DEFAULTS:
 			df.set_value(k, v)
 
 		df.append()
@@ -191,6 +186,8 @@ def preprocess_doxyfile(context: Context):
 			r'ENABLED_SECTIONS', (r'private', r'internal') if context.internal_docs else (r'public', r'external')
 		)
 		df.add_value(r'ENABLED_SECTIONS', r'poxy_supports_concepts')
+		if context.xml_v2:
+			df.set_value(r'INLINE_INHERITED_MEMB', False)
 
 		if context.generate_tagfile:
 			df.set_value(r'GENERATE_TAGFILE', context.tagfile_path)
@@ -280,11 +277,10 @@ def preprocess_changelog(context: Context):
 	text = text.replace(r'&amp;', r'__poxy_thiswasan_amp')
 	text = text.replace(r'&#xFE0F;', r'__poxy_thiswasan_fe0f')
 	text = text.replace(r'@', r'__poxy_thiswasan_at')
-	if text.find(r'@tableofcontents') == -1 and text.find('\\tableofcontents') == -1 and text.find(r'[TOC]') == -1:
-		#text = f'[TOC]\n\n{text}'
-		nlnl = text.find(r'\n\n')
-		if nlnl != -1:
-			text = f'{text[:nlnl]}\n\n\\tableofcontents\n\n{text[nlnl:]}'
+	text = f'\n{text}\n'
+	text = re.sub('\n#[^#].+?\n', '\n', text)
+	text = f'@page poxy_changelog Changelog\n\n@tableofcontents\n\n{text}'
+	text = text.rstrip()
 	text += '\n\n'
 	context.verbose(rf'Writing {context.changelog}')
 	with open(context.changelog, r'w', encoding=r'utf-8', newline='\n') as f:
@@ -569,11 +565,34 @@ def postprocess_xml(context: Context):
 									changed = True
 									break
 
-						# fix functions where keywords like 'friend' have been erroneously included in the return type
+						# fixes for functions:
+						# - goofy parsing of trailing return types
+						# - keywords like 'friend' erroneously included in the return type
 						if 1:
+
 							members = [
 								m for m in section.findall(r'memberdef') if m.get(r'kind') in (r'friend', r'function')
 							]
+
+							# trailing return type bug (https://github.com/mosra/m.css/issues/94)
+							for member in members:
+								type_elem = member.find(r'type')
+								if type_elem is None or type_elem.text != r'auto':
+									continue
+								args_elem = member.find(r'argsstring')
+								if args_elem is None or not args_elem.text or args_elem.text.find(r'decltype') != -1:
+									continue
+								match = re.search(r'^(.*?)\s*->\s*([a-zA-Z][a-zA-Z0-9_::*&<>\s]+?)\s*$', args_elem.text)
+								if match:
+									args_elem.text = str(match[1])
+									trailing_return_type = str(match[2]).strip()
+									trailing_return_type = re.sub(r'\s+', r' ', trailing_return_type)
+									trailing_return_type = re.sub(r'(::|[<>*&])\s+', r'\1', trailing_return_type)
+									trailing_return_type = re.sub(r'\s+(::|[<>*&])', r'\1', trailing_return_type)
+									type_elem.text = trailing_return_type
+									changed = True
+
+							# leaked keywords
 							attribute_keywords = (
 								(r'constexpr', r'constexpr', r'yes'),  #
 								(r'consteval', r'consteval', r'yes'),
@@ -900,8 +919,6 @@ def compile_syntax_highlighter_regexes(context: Context):
 	)
 	context.code_blocks.types = regex_or(context.code_blocks.types, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
 	context.code_blocks.enums = regex_or(context.code_blocks.enums, pattern_prefix='(?:::)?')
-	context.code_blocks.string_literals = regex_or(context.code_blocks.string_literals)
-	context.code_blocks.numeric_literals = regex_or(context.code_blocks.numeric_literals)
 	context.code_blocks.macros = regex_or(context.code_blocks.macros)
 	context.autolinks = tuple([(re.compile('(?<![a-zA-Z_])' + expr + '(?![a-zA-Z_])'), uri)
 		for expr, uri in context.autolinks])
@@ -1312,7 +1329,7 @@ def run_doxygen(context: Context):
 	assert isinstance(context, Context)
 	with make_temp_file() as stdout, make_temp_file() as stderr:
 		try:
-			subprocess.run([str(context.doxygen_path), str(context.doxyfile_path)],
+			subprocess.run([str(doxygen.path()), str(context.doxyfile_path)],
 				check=True,
 				stdout=stdout,
 				stderr=stderr,
@@ -1378,7 +1395,6 @@ def run(
 	threads: int = -1,
 	cleanup: bool = True,
 	verbose: bool = False,
-	doxygen_path: Path = None,
 	logger=None,
 	html_include: str = None,
 	html_exclude: str = None,
@@ -1398,7 +1414,6 @@ def run(
 		threads=threads,
 		cleanup=cleanup,
 		verbose=verbose,
-		doxygen_path=doxygen_path,
 		logger=logger,
 		html_include=html_include,
 		html_exclude=html_exclude,
@@ -1417,7 +1432,7 @@ def run(
 
 		# generate + postprocess XML in temp_xml_dir
 		# (we always do this even when output_xml is false because it is required by the html)
-		with timer(r'Generating XML files with Doxygen') as t:
+		with timer(rf'Generating XML files with Doxygen {doxygen.version()}') as t:
 			run_doxygen(context)
 		with timer(r'Post-processing XML files') as t:
 			if context.xml_v2:
