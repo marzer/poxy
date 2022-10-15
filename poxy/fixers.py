@@ -337,14 +337,24 @@ class Banner(HTMLFixer):
 		soup.add_class(doc.body, r'poxy-has-main-banner')
 
 		if context.badges:
-			parent = doc.new_tag('div', id='poxy-badges', after=banner)
-			for (alt, src, href) in context.badges:
-				if alt is None and src is None and href is None:
-					doc.new_tag('br', parent=parent)
-				else:
-					anchor = doc.new_tag('a', parent=parent, href=href, target='_blank')
-					doc.new_tag('img', parent=anchor, src=src, alt=alt)
 			soup.add_class(doc.body, r'poxy-has-badges')
+			span_size = 0
+			span_size = 2 if not span_size and (len(context.badges) % 2) == 0 else span_size
+			span_size = 3 if not span_size and (len(context.badges) % 3) == 0 else span_size
+			span_size = 2 if not span_size else span_size
+			idx = 0
+			span = None
+			parent = doc.new_tag(r'div', id=r'poxy-badges', after=banner)
+			for (alt, src, href) in context.badges:
+				if span is None or (idx % span_size) == 0:
+					span = doc.new_tag(r'span', parent=parent)
+				img_parent = span
+				if href:
+					img_parent = doc.new_tag(r'a', parent=span, href=href, target=r'_blank')
+				img = doc.new_tag(r'img', parent=img_parent, src=src)
+				if alt:
+					img[r'alt'] = alt
+				idx += 1
 		return True
 
 

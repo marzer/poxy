@@ -26,14 +26,14 @@
 *.ico               binary
 *.jpeg              binary
 *.jpg               binary
+*.otf               binary
 *.png               binary
 *.psd               binary
 *.rc                binary
-*.xlsx              binary
+*.ttf               binary
 *.woff              binary
 *.woff2             binary
-*.otf               binary
-*.ttf               binary
+*.xlsx              binary
 
 */generated/**      linguist-generated
 */m.css/**          linguist-vendored

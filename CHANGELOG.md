@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.10.1 - 2022-10-15
+
+-   minor style fixes
+
 ## v0.10.0 - 2022-10-14
 
 -   fixed `static` keyword sometimes appearing twice on variables

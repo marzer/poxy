@@ -153,36 +153,25 @@ body > header > nav a:hover
 /* index page badges */
 #poxy-badges
 {
-	padding-bottom: 0.25rem;
-	margin-left: -0.9rem;
-	margin-right: -0.9rem;
+	--extra-width: 2rem;
+
+	text-align: center;
+	line-height: 1.75rem;
+	padding-bottom: 1.25rem;
+	margin-left: calc(var(--extra-width) * -0.5);
+	margin-right: calc(var(--extra-width) * -0.5);
 	margin-top: -0.5rem;
 }
-@media screen and (min-width: 992px)
+#poxy-badges > span
 {
-	#poxy-badges
-	{
-		display: flex;
-		justify-content: space-between;
-	}
-	#poxy-badges br
-	{
-		display: none;
-	}
+	display: inline-block;
 }
-@media screen and (max-width: 992px)
+#poxy-badges > span > a,
+#poxy-badges > span > svg,
+#poxy-badges > span > img
 {
-	#poxy-badges
-	{
-		text-align: center;
-		line-height: 1.75rem;
-	}
-	#poxy-badges a
-	{
-		margin-left: 0.2rem;
-		margin-right: 0.2rem;
-		margin-bottom: 0.4rem;
-	}
+	margin-left: 0.2rem;
+	margin-right: 0.2rem;
 }
 
 /* page category subheading ("module" etc) */
@@ -198,6 +187,20 @@ h1 span.m-thin
 	margin-right: -1rem !important;
 	margin-top: -1.75rem !important;
 	max-width: calc(100% + 2rem) !important;
+}
+@media (min-width: 992px)
+{
+  svg#poxy-main-banner.poxy-injected-svg
+  {
+    padding: 2rem;
+	}
+}
+@media (min-width: 300px) and (max-width: 992px)
+{
+  svg#poxy-main-banner.poxy-injected-svg
+  {
+    padding: 1rem;
+	}
 }
 
 /* include <blah.h> */
@@ -398,7 +401,7 @@ article section:target section.m-doc-details > div > h3:first-child
 /* 'filled' labels */
 .m-label:not(.m-flat)
 {
-  color: var(--background-color) !important;	
+  color: var(--background-color) !important;
 }
 
 /* figures with captions */
@@ -420,7 +423,7 @@ figure.m-figure > figcaption
 .m-success:not(.m-note, .m-button) a:active
 {
 	color: var(--success-link-active-color);
-} 
+}
 
 /* links in transparent 'warning' blocks */
 .m-warning:not(.m-note, .m-button) a
@@ -432,7 +435,7 @@ figure.m-figure > figcaption
 .m-warning:not(.m-note, .m-button) a:active
 {
 	color: var(--warning-link-active-color);
-} 
+}
 
 /* links in transparent 'danger' blocks */
 .m-danger:not(.m-note, .m-button) a
@@ -444,7 +447,7 @@ figure.m-figure > figcaption
 .m-danger:not(.m-note, .m-button) a:active
 {
 	color: var(--danger-link-active-color);
-} 
+}
 
 /* links in transparent 'info' blocks */
 .m-info:not(.m-note, .m-button) a
@@ -456,4 +459,4 @@ figure.m-figure > figcaption
 .m-info:not(.m-note, .m-button) a:active
 {
 	color: var(--info-link-active-color);
-} 
+}

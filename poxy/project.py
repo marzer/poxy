@@ -1135,7 +1135,7 @@ class Context(object):
 		str: str
 			},
 		Optional(r'badges'): {
-		str: FixedArrayOf(str, 2, name=r'badges')
+		str: ValueOrArray(str, name=r'badges', length=2)
 			},
 		Optional(r'changelog'): Or(str, bool),
 		Optional(r'code_blocks'): CodeBlocks.schema,
@@ -1908,9 +1908,10 @@ class Context(object):
 			if 'badges' in config:
 				for k, v in config['badges'].items():
 					text = k.strip()
+					v = coerce_collection(v)
 					image_uri = v[0].strip()
-					anchor_uri = v[1].strip()
-					if text and image_uri and anchor_uri:
+					anchor_uri = v[1].strip() if len(v) > 1 else r''
+					if text and image_uri:
 						user_badges.append((text, image_uri, anchor_uri))
 			user_badges.sort(key=lambda b: b[0])
 			self.badges = tuple(badges + user_badges)
