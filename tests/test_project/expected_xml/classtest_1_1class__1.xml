@@ -1,371 +1,408 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
-  <compounddef id="classtest_1_1class__1" kind="class" language="C++" prot="public">
-    <compoundname>test::class_1</compoundname>
-    <includes local="no">code.h</includes>
-      <sectiondef kind="public-type">
-      <memberdef kind="typedef" id="classtest_1_1class__1_1a52150fb93a5946c0d2fca381f99f426f" prot="public" static="no">
-        <type>int</type>
-        <definition>using test::class_1::public_typedef =  int</definition>
-        <argsstring/>
-        <name>public_typedef</name>
-        <qualifiedname>test::class_1::public_typedef</qualifiedname>
-        <briefdescription>
-<para>A public typedef. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="85" column="1" bodyfile="src/code.h" bodystart="85" bodyend="-1"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="protected-type">
-      <memberdef kind="typedef" id="classtest_1_1class__1_1aa57cecf6a75b7d9a7343b06706f3863c" prot="protected" static="no">
-        <type>int</type>
-        <definition>using test::class_1::protected_typedef =  int</definition>
-        <argsstring/>
-        <name>protected_typedef</name>
-        <qualifiedname>test::class_1::protected_typedef</qualifiedname>
-        <briefdescription>
-<para>A protected typedef. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="111" column="1" bodyfile="src/code.h" bodystart="111" bodyend="-1"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="private-type">
-      <memberdef kind="typedef" id="classtest_1_1class__1_1ae8b4b78fc4748c7f1a370ee8413574be" prot="private" static="no">
-        <type>int</type>
-        <definition>using test::class_1::private_typedef =  int</definition>
-        <argsstring/>
-        <name>private_typedef</name>
-        <qualifiedname>test::class_1::private_typedef</qualifiedname>
-        <briefdescription>
-<para>A private typedef. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="132" column="1" bodyfile="src/code.h" bodystart="132" bodyend="-1"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="friend">
-      <memberdef kind="friend" id="classtest_1_1class__1_1acca95119536ae9a653b949e083e88bd7" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>void</type>
-        <definition>void a_friend_function</definition>
-        <argsstring>()</argsstring>
-        <name>a_friend_function</name>
-        <qualifiedname>test::class_1::a_friend_function</qualifiedname>
-        <briefdescription>
-<para>A function that appears as a friend to a <ref refid="classtest_1_1class__1" kindref="compound">test::class_1</ref>. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="64" column="13"/>
-      </memberdef>
-      <memberdef kind="friend" id="classtest_1_1class__1_1aa74543381abc687ab6e8d46d78e26bf1" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
-        <type>void</type>
-        <definition>void another_friend_function</definition>
-        <argsstring>()</argsstring>
-        <name>another_friend_function</name>
-        <qualifiedname>test::class_1::another_friend_function</qualifiedname>
-        <briefdescription>
-<para>A friend function defined entirely in a class. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="89" column="13" bodyfile="src/code.h" bodystart="89" bodyend="90"/>
-      </memberdef>
-      <memberdef kind="friend" id="classtest_1_1class__1_1aafb901f5cd0e0fdb9a028c54468989c4" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>struct</type>
-        <definition>friend struct struct_1</definition>
-        <argsstring/>
-        <name>struct_1</name>
-        <qualifiedname>test::class_1::struct_1</qualifiedname>
-        <param>
-          <type><ref refid="structtest_1_1struct__1" kindref="compound">struct_1</ref></type>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="63" column="15" bodyfile="src/code.h" bodystart="63" bodyend="-1"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="public-static-attrib">
-      <memberdef kind="variable" id="classtest_1_1class__1_1ae05cfedbf34e9f128e87410c09ad3780" prot="public" static="yes" constexpr="yes" mutable="no">
-        <type>constexpr <ref refid="cpp/types/byte" kindref="compound" external="D:/Repositories/poxy/poxy/data/cppreference-doxygen-web.tag.xml">std::byte</ref></type>
-        <definition>constexpr std::byte test::class_1::public_static_variable</definition>
-        <argsstring/>
-        <name>public_static_variable</name>
-        <qualifiedname>test::class_1::public_static_variable</qualifiedname>
-        <initializer>= {}</initializer>
-        <briefdescription>
-<para>A public static variable. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="69" column="28" bodyfile="src/code.h" bodystart="69" bodyend="-1"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="public-attrib">
-      <memberdef kind="variable" id="classtest_1_1class__1_1a1942e4b40fc0cc1b939b24d1c5f4e54c" prot="public" static="no" mutable="no">
-        <type>bool</type>
-        <definition>bool test::class_1::public_variable</definition>
-        <argsstring/>
-        <name>public_variable</name>
-        <qualifiedname>test::class_1::public_variable</qualifiedname>
-        <briefdescription>
-<para>A public variable. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="73" column="6" bodyfile="src/code.h" bodystart="73" bodyend="-1"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="protected-static-attrib">
-      <memberdef kind="variable" id="classtest_1_1class__1_1a330993e9b2ae74c6db1a28553759fe96" prot="protected" static="yes" constexpr="yes" mutable="no">
-        <type>constexpr bool</type>
-        <definition>constexpr bool test::class_1::protected_static_variable</definition>
-        <argsstring/>
-        <name>protected_static_variable</name>
-        <qualifiedname>test::class_1::protected_static_variable</qualifiedname>
-        <initializer>= false</initializer>
-        <briefdescription>
-<para>A protected static variable. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="95" column="23" bodyfile="src/code.h" bodystart="95" bodyend="-1"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="protected-attrib">
-      <memberdef kind="variable" id="classtest_1_1class__1_1ae4d8ef41c2f2be17d38d9eac40e53699" prot="protected" static="no" mutable="no">
-        <type>bool</type>
-        <definition>bool test::class_1::protected_variable</definition>
-        <argsstring/>
-        <name>protected_variable</name>
-        <qualifiedname>test::class_1::protected_variable</qualifiedname>
-        <briefdescription>
-<para>A protected variable. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="99" column="6" bodyfile="src/code.h" bodystart="99" bodyend="-1"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="private-static-attrib">
-      <memberdef kind="variable" id="classtest_1_1class__1_1a2c7531e04784d4531785b2daac34a28c" prot="private" static="yes" constexpr="yes" mutable="no">
-        <type>constexpr bool</type>
-        <definition>constexpr bool test::class_1::private_static_variable</definition>
-        <argsstring/>
-        <name>private_static_variable</name>
-        <qualifiedname>test::class_1::private_static_variable</qualifiedname>
-        <initializer>= false</initializer>
-        <briefdescription>
-<para>A private static variable. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="116" column="23" bodyfile="src/code.h" bodystart="116" bodyend="-1"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="private-attrib">
-      <memberdef kind="variable" id="classtest_1_1class__1_1a75103e4c3f5e4bc442416e302be44c57" prot="private" static="no" mutable="no">
-        <type>bool</type>
-        <definition>bool test::class_1::private_variable</definition>
-        <argsstring/>
-        <name>private_variable</name>
-        <qualifiedname>test::class_1::private_variable</qualifiedname>
-        <briefdescription>
-<para>A private variable. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="120" column="6" bodyfile="src/code.h" bodystart="120" bodyend="-1"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="public-static-func">
-      <memberdef kind="function" id="classtest_1_1class__1_1af2caa02646ff203339faf41a0efc4b20" prot="public" static="yes" constexpr="yes" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="structtest_1_1struct__1" kindref="compound">struct_1</ref></type>
-        <definition>static constexpr struct_1 test::class_1::public_static_function</definition>
-        <argsstring>()</argsstring>
-        <name>public_static_function</name>
-        <qualifiedname>test::class_1::public_static_function</qualifiedname>
-        <briefdescription>
-<para>A public static function. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="77" column="27"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="public-func">
-      <memberdef kind="function" id="classtest_1_1class__1_1a6b372d2af2e8e874869f0ddf50a306fb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>bool</type>
-        <definition>bool test::class_1::public_function</definition>
-        <argsstring>()</argsstring>
-        <name>public_function</name>
-        <qualifiedname>test::class_1::public_function</qualifiedname>
-        <briefdescription>
-<para>A public function. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="81" column="6"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="protected-static-func">
-      <memberdef kind="function" id="classtest_1_1class__1_1ac4b22b5c1e50ba1a06f0319566252bb8" prot="protected" static="yes" constexpr="yes" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>bool</type>
-        <definition>static constexpr bool test::class_1::protected_static_function</definition>
-        <argsstring>()</argsstring>
-        <name>protected_static_function</name>
-        <qualifiedname>test::class_1::protected_static_function</qualifiedname>
-        <briefdescription>
-<para>A protected static function. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="103" column="23"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="protected-func">
-      <memberdef kind="function" id="classtest_1_1class__1_1ab61d354f51a90bb49d38d22e7a7d7f48" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>bool</type>
-        <definition>bool test::class_1::protected_function</definition>
-        <argsstring>()</argsstring>
-        <name>protected_function</name>
-        <qualifiedname>test::class_1::protected_function</qualifiedname>
-        <briefdescription>
-<para>A protected function. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="107" column="6"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="private-static-func">
-      <memberdef kind="function" id="classtest_1_1class__1_1ad5ac71cb8a2b1b68eb98c1b33f1d2c2d" prot="private" static="yes" constexpr="yes" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>bool</type>
-        <definition>static constexpr bool test::class_1::private_static_function</definition>
-        <argsstring>()</argsstring>
-        <name>private_static_function</name>
-        <qualifiedname>test::class_1::private_static_function</qualifiedname>
-        <briefdescription>
-<para>A private static function. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="124" column="23"/>
-      </memberdef>
-      </sectiondef>
-      <sectiondef kind="private-func">
-      <memberdef kind="function" id="classtest_1_1class__1_1ae5256ba42036bd3717458a986dc8428a" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>bool</type>
-        <definition>bool test::class_1::private_function</definition>
-        <argsstring>()</argsstring>
-        <name>private_function</name>
-        <qualifiedname>test::class_1::private_function</qualifiedname>
-        <briefdescription>
-<para>A private function. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>More info. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="src/code.h" line="128" column="6"/>
-      </memberdef>
-      </sectiondef>
-    <briefdescription>
-<para>A class. </para>
-    </briefdescription>
-    <detaileddescription>
-<para>More info. </para>
-    </detaileddescription>
-    <collaborationgraph>
-      <node id="2">
-        <label>std::byte</label>
-        <link refid="cpp/types/byte" external="D:/Repositories/poxy/poxy/data/cppreference-doxygen-web.tag.xml"/>
-      </node>
-      <node id="1">
-        <label>test::class_1</label>
-        <link refid="classtest_1_1class__1"/>
-        <childnode refid="2" relation="usage">
-          <edgelabel>public_static_variable</edgelabel>
-        </childnode>
-      </node>
-    </collaborationgraph>
-    <location file="src/code.h" line="61" column="1" bodyfile="src/code.h" bodystart="62" bodyend="133"/>
-    <listofallmembers>
-      <member refid="classtest_1_1class__1_1acca95119536ae9a653b949e083e88bd7" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>a_friend_function</name></member>
-      <member refid="classtest_1_1class__1_1aa74543381abc687ab6e8d46d78e26bf1" prot="public" virt="non-virtual"><scope>test::class_1</scope><name>another_friend_function</name></member>
-      <member refid="classtest_1_1class__1_1ae5256ba42036bd3717458a986dc8428a" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>private_function</name></member>
-      <member refid="classtest_1_1class__1_1ad5ac71cb8a2b1b68eb98c1b33f1d2c2d" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>private_static_function</name></member>
-      <member refid="classtest_1_1class__1_1a2c7531e04784d4531785b2daac34a28c" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>private_static_variable</name></member>
-      <member refid="classtest_1_1class__1_1ae8b4b78fc4748c7f1a370ee8413574be" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>private_typedef</name></member>
-      <member refid="classtest_1_1class__1_1a75103e4c3f5e4bc442416e302be44c57" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>private_variable</name></member>
-      <member refid="classtest_1_1class__1_1ab61d354f51a90bb49d38d22e7a7d7f48" prot="protected" virt="non-virtual"><scope>test::class_1</scope><name>protected_function</name></member>
-      <member refid="classtest_1_1class__1_1ac4b22b5c1e50ba1a06f0319566252bb8" prot="protected" virt="non-virtual"><scope>test::class_1</scope><name>protected_static_function</name></member>
-      <member refid="classtest_1_1class__1_1a330993e9b2ae74c6db1a28553759fe96" prot="protected" virt="non-virtual"><scope>test::class_1</scope><name>protected_static_variable</name></member>
-      <member refid="classtest_1_1class__1_1aa57cecf6a75b7d9a7343b06706f3863c" prot="protected" virt="non-virtual"><scope>test::class_1</scope><name>protected_typedef</name></member>
-      <member refid="classtest_1_1class__1_1ae4d8ef41c2f2be17d38d9eac40e53699" prot="protected" virt="non-virtual"><scope>test::class_1</scope><name>protected_variable</name></member>
-      <member refid="classtest_1_1class__1_1a6b372d2af2e8e874869f0ddf50a306fb" prot="public" virt="non-virtual"><scope>test::class_1</scope><name>public_function</name></member>
-      <member refid="classtest_1_1class__1_1af2caa02646ff203339faf41a0efc4b20" prot="public" virt="non-virtual"><scope>test::class_1</scope><name>public_static_function</name></member>
-      <member refid="classtest_1_1class__1_1ae05cfedbf34e9f128e87410c09ad3780" prot="public" virt="non-virtual"><scope>test::class_1</scope><name>public_static_variable</name></member>
-      <member refid="classtest_1_1class__1_1a52150fb93a5946c0d2fca381f99f426f" prot="public" virt="non-virtual"><scope>test::class_1</scope><name>public_typedef</name></member>
-      <member refid="classtest_1_1class__1_1a1942e4b40fc0cc1b939b24d1c5f4e54c" prot="public" virt="non-virtual"><scope>test::class_1</scope><name>public_variable</name></member>
-      <member refid="classtest_1_1class__1_1aafb901f5cd0e0fdb9a028c54468989c4" prot="private" virt="non-virtual"><scope>test::class_1</scope><name>struct_1</name></member>
-    </listofallmembers>
-  </compounddef>
+	<compounddef id="classtest_1_1class__1" kind="class" language="C++" prot="public">
+		<compoundname>test::class_1</compoundname>
+		<includes local="no">code.h</includes>
+		<sectiondef kind="public-type">
+			<memberdef kind="typedef" id="classtest_1_1class__1_1a52150fb93a5946c0d2fca381f99f426f" prot="public" static="no">
+				<type>int</type>
+				<definition>using test::class_1::public_typedef =  int</definition>
+				<argsstring/>
+				<name>public_typedef</name>
+				<qualifiedname>test::class_1::public_typedef</qualifiedname>
+				<briefdescription>
+					<para>A public typedef. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="96" column="1" bodyfile="src/code.h" bodystart="96" bodyend="-1"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="protected-type">
+			<memberdef kind="typedef" id="classtest_1_1class__1_1aa57cecf6a75b7d9a7343b06706f3863c" prot="protected" static="no">
+				<type>int</type>
+				<definition>using test::class_1::protected_typedef =  int</definition>
+				<argsstring/>
+				<name>protected_typedef</name>
+				<qualifiedname>test::class_1::protected_typedef</qualifiedname>
+				<briefdescription>
+					<para>A protected typedef. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="122" column="1" bodyfile="src/code.h" bodystart="122" bodyend="-1"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="private-type">
+			<memberdef kind="typedef" id="classtest_1_1class__1_1ae8b4b78fc4748c7f1a370ee8413574be" prot="private" static="no">
+				<type>int</type>
+				<definition>using test::class_1::private_typedef =  int</definition>
+				<argsstring/>
+				<name>private_typedef</name>
+				<qualifiedname>test::class_1::private_typedef</qualifiedname>
+				<briefdescription>
+					<para>A private typedef. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="143" column="1" bodyfile="src/code.h" bodystart="143" bodyend="-1"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="friend">
+			<memberdef kind="friend" id="classtest_1_1class__1_1acca95119536ae9a653b949e083e88bd7" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>void</type>
+				<definition>void a_friend_function</definition>
+				<argsstring>()</argsstring>
+				<name>a_friend_function</name>
+				<qualifiedname>test::class_1::a_friend_function</qualifiedname>
+				<briefdescription>
+					<para>A function that appears as a friend to a <ref refid="classtest_1_1class__1" kindref="compound">test::class_1</ref>. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="75" column="13"/>
+			</memberdef>
+			<memberdef kind="friend" id="classtest_1_1class__1_1aa74543381abc687ab6e8d46d78e26bf1" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+				<type>void</type>
+				<definition>void another_friend_function</definition>
+				<argsstring>()</argsstring>
+				<name>another_friend_function</name>
+				<qualifiedname>test::class_1::another_friend_function</qualifiedname>
+				<briefdescription>
+					<para>A friend function defined entirely in a class. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="100" column="13" bodyfile="src/code.h" bodystart="100" bodyend="101"/>
+			</memberdef>
+			<memberdef kind="friend" id="classtest_1_1class__1_1aafb901f5cd0e0fdb9a028c54468989c4" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>struct</type>
+				<definition>friend struct struct_1</definition>
+				<argsstring/>
+				<name>struct_1</name>
+				<qualifiedname>test::class_1::struct_1</qualifiedname>
+				<param>
+					<type>
+						<ref refid="structtest_1_1struct__1" kindref="compound">struct_1</ref>
+					</type>
+				</param>
+				<briefdescription></briefdescription>
+				<detaileddescription></detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="74" column="15" bodyfile="src/code.h" bodystart="74" bodyend="-1"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="public-static-attrib">
+			<memberdef kind="variable" id="classtest_1_1class__1_1ae05cfedbf34e9f128e87410c09ad3780" prot="public" static="yes" constexpr="yes" mutable="no">
+				<type>
+					<ref refid="cpp/types/byte" kindref="compound" external="D:/Repositories/poxy/poxy/data/cppreference-doxygen-web.tag.xml">std::byte</ref>
+				</type>
+				<definition>constexpr std::byte test::class_1::public_static_variable</definition>
+				<argsstring/>
+				<name>public_static_variable</name>
+				<qualifiedname>test::class_1::public_static_variable</qualifiedname>
+				<initializer>= {}</initializer><briefdescription>
+					<para>A public static variable. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="80" column="28" bodyfile="src/code.h" bodystart="80" bodyend="-1"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="public-attrib">
+			<memberdef kind="variable" id="classtest_1_1class__1_1a1942e4b40fc0cc1b939b24d1c5f4e54c" prot="public" static="no" mutable="no">
+				<type>bool</type>
+				<definition>bool test::class_1::public_variable</definition>
+				<argsstring/>
+				<name>public_variable</name>
+				<qualifiedname>test::class_1::public_variable</qualifiedname>
+				<briefdescription>
+					<para>A public variable. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="84" column="6" bodyfile="src/code.h" bodystart="84" bodyend="-1"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="protected-static-attrib">
+			<memberdef kind="variable" id="classtest_1_1class__1_1a330993e9b2ae74c6db1a28553759fe96" prot="protected" static="yes" constexpr="yes" mutable="no">
+				<type>bool</type>
+				<definition>constexpr bool test::class_1::protected_static_variable</definition>
+				<argsstring/>
+				<name>protected_static_variable</name>
+				<qualifiedname>test::class_1::protected_static_variable</qualifiedname>
+				<initializer>= false</initializer><briefdescription>
+					<para>A protected static variable. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="106" column="23" bodyfile="src/code.h" bodystart="106" bodyend="-1"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="protected-attrib">
+			<memberdef kind="variable" id="classtest_1_1class__1_1ae4d8ef41c2f2be17d38d9eac40e53699" prot="protected" static="no" mutable="no">
+				<type>bool</type>
+				<definition>bool test::class_1::protected_variable</definition>
+				<argsstring/>
+				<name>protected_variable</name>
+				<qualifiedname>test::class_1::protected_variable</qualifiedname>
+				<briefdescription>
+					<para>A protected variable. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="110" column="6" bodyfile="src/code.h" bodystart="110" bodyend="-1"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="private-static-attrib">
+			<memberdef kind="variable" id="classtest_1_1class__1_1a2c7531e04784d4531785b2daac34a28c" prot="private" static="yes" constexpr="yes" mutable="no">
+				<type>bool</type>
+				<definition>constexpr bool test::class_1::private_static_variable</definition>
+				<argsstring/>
+				<name>private_static_variable</name>
+				<qualifiedname>test::class_1::private_static_variable</qualifiedname>
+				<initializer>= false</initializer><briefdescription>
+					<para>A private static variable. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="127" column="23" bodyfile="src/code.h" bodystart="127" bodyend="-1"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="private-attrib">
+			<memberdef kind="variable" id="classtest_1_1class__1_1a75103e4c3f5e4bc442416e302be44c57" prot="private" static="no" mutable="no">
+				<type>bool</type>
+				<definition>bool test::class_1::private_variable</definition>
+				<argsstring/>
+				<name>private_variable</name>
+				<qualifiedname>test::class_1::private_variable</qualifiedname>
+				<briefdescription>
+					<para>A private variable. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="131" column="6" bodyfile="src/code.h" bodystart="131" bodyend="-1"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="public-static-func">
+			<memberdef kind="function" id="classtest_1_1class__1_1af2caa02646ff203339faf41a0efc4b20" prot="public" static="yes" constexpr="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>
+					<ref refid="structtest_1_1struct__1" kindref="compound">struct_1</ref>
+				</type>
+				<definition>static constexpr struct_1 test::class_1::public_static_function</definition>
+				<argsstring>()</argsstring>
+				<name>public_static_function</name>
+				<qualifiedname>test::class_1::public_static_function</qualifiedname>
+				<briefdescription>
+					<para>A public static function. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="88" column="27"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="public-func">
+			<memberdef kind="function" id="classtest_1_1class__1_1a6b372d2af2e8e874869f0ddf50a306fb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>bool</type>
+				<definition>bool test::class_1::public_function</definition>
+				<argsstring>()</argsstring>
+				<name>public_function</name>
+				<qualifiedname>test::class_1::public_function</qualifiedname>
+				<briefdescription>
+					<para>A public function. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="92" column="6"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="protected-static-func">
+			<memberdef kind="function" id="classtest_1_1class__1_1ac4b22b5c1e50ba1a06f0319566252bb8" prot="protected" static="yes" constexpr="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>bool</type>
+				<definition>static constexpr bool test::class_1::protected_static_function</definition>
+				<argsstring>()</argsstring>
+				<name>protected_static_function</name>
+				<qualifiedname>test::class_1::protected_static_function</qualifiedname>
+				<briefdescription>
+					<para>A protected static function. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="114" column="23"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="protected-func">
+			<memberdef kind="function" id="classtest_1_1class__1_1ab61d354f51a90bb49d38d22e7a7d7f48" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>bool</type>
+				<definition>bool test::class_1::protected_function</definition>
+				<argsstring>()</argsstring>
+				<name>protected_function</name>
+				<qualifiedname>test::class_1::protected_function</qualifiedname>
+				<briefdescription>
+					<para>A protected function. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="118" column="6"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="private-static-func">
+			<memberdef kind="function" id="classtest_1_1class__1_1ad5ac71cb8a2b1b68eb98c1b33f1d2c2d" prot="private" static="yes" constexpr="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>bool</type>
+				<definition>static constexpr bool test::class_1::private_static_function</definition>
+				<argsstring>()</argsstring>
+				<name>private_static_function</name>
+				<qualifiedname>test::class_1::private_static_function</qualifiedname>
+				<briefdescription>
+					<para>A private static function. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="135" column="23"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="private-func">
+			<memberdef kind="function" id="classtest_1_1class__1_1ae5256ba42036bd3717458a986dc8428a" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>bool</type>
+				<definition>bool test::class_1::private_function</definition>
+				<argsstring>()</argsstring>
+				<name>private_function</name>
+				<qualifiedname>test::class_1::private_function</qualifiedname>
+				<briefdescription>
+					<para>A private function. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="139" column="6"/>
+			</memberdef>
+		</sectiondef>
+		<briefdescription>
+			<para>A class. </para>
+		</briefdescription>
+		<detaileddescription>
+			<para>More info. </para>
+		</detaileddescription>
+		<collaborationgraph>
+			<node id="2">
+				<label>std::byte</label>
+				<link refid="cpp/types/byte" external="D:/Repositories/poxy/poxy/data/cppreference-doxygen-web.tag.xml"/>
+			</node>
+			<node id="1">
+				<label>test::class_1</label>
+				<link refid="classtest_1_1class__1"/>
+				<childnode refid="2" relation="usage">
+					<edgelabel>public_static_variable</edgelabel>
+				</childnode>
+			</node>
+		</collaborationgraph>
+		<location file="src/code.h" line="72" column="1" bodyfile="src/code.h" bodystart="73" bodyend="144"/>
+		<listofallmembers>
+			<member refid="classtest_1_1class__1_1acca95119536ae9a653b949e083e88bd7" prot="private" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>a_friend_function</name>
+			</member>
+			<member refid="classtest_1_1class__1_1aa74543381abc687ab6e8d46d78e26bf1" prot="public" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>another_friend_function</name>
+			</member>
+			<member refid="classtest_1_1class__1_1ae5256ba42036bd3717458a986dc8428a" prot="private" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>private_function</name>
+			</member>
+			<member refid="classtest_1_1class__1_1ad5ac71cb8a2b1b68eb98c1b33f1d2c2d" prot="private" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>private_static_function</name>
+			</member>
+			<member refid="classtest_1_1class__1_1a2c7531e04784d4531785b2daac34a28c" prot="private" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>private_static_variable</name>
+			</member>
+			<member refid="classtest_1_1class__1_1ae8b4b78fc4748c7f1a370ee8413574be" prot="private" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>private_typedef</name>
+			</member>
+			<member refid="classtest_1_1class__1_1a75103e4c3f5e4bc442416e302be44c57" prot="private" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>private_variable</name>
+			</member>
+			<member refid="classtest_1_1class__1_1ab61d354f51a90bb49d38d22e7a7d7f48" prot="protected" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>protected_function</name>
+			</member>
+			<member refid="classtest_1_1class__1_1ac4b22b5c1e50ba1a06f0319566252bb8" prot="protected" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>protected_static_function</name>
+			</member>
+			<member refid="classtest_1_1class__1_1a330993e9b2ae74c6db1a28553759fe96" prot="protected" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>protected_static_variable</name>
+			</member>
+			<member refid="classtest_1_1class__1_1aa57cecf6a75b7d9a7343b06706f3863c" prot="protected" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>protected_typedef</name>
+			</member>
+			<member refid="classtest_1_1class__1_1ae4d8ef41c2f2be17d38d9eac40e53699" prot="protected" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>protected_variable</name>
+			</member>
+			<member refid="classtest_1_1class__1_1a6b372d2af2e8e874869f0ddf50a306fb" prot="public" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>public_function</name>
+			</member>
+			<member refid="classtest_1_1class__1_1af2caa02646ff203339faf41a0efc4b20" prot="public" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>public_static_function</name>
+			</member>
+			<member refid="classtest_1_1class__1_1ae05cfedbf34e9f128e87410c09ad3780" prot="public" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>public_static_variable</name>
+			</member>
+			<member refid="classtest_1_1class__1_1a52150fb93a5946c0d2fca381f99f426f" prot="public" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>public_typedef</name>
+			</member>
+			<member refid="classtest_1_1class__1_1a1942e4b40fc0cc1b939b24d1c5f4e54c" prot="public" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>public_variable</name>
+			</member>
+			<member refid="classtest_1_1class__1_1aafb901f5cd0e0fdb9a028c54468989c4" prot="private" virt="non-virtual">
+				<scope>test::class_1</scope>
+				<name>struct_1</name>
+			</member>
+		</listofallmembers>
+	</compounddef>
 </doxygen>

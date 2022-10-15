@@ -1,13 +1,13 @@
-<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<?xml version='1.0' encoding='UTF-8'?>
 <doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
-  <compounddef id="subfolder_2code_8h" kind="file" language="C++">
-    <compoundname>code.h</compoundname>
-    <briefdescription>
-<para>More code, yo. </para>
-    </briefdescription>
-    <detaileddescription>
-<para>This file has the same name as another one at a different level of the file hierarchy. Let&apos;s see how Doxygen handles this. I suspect poorly. </para>
-    </detaileddescription>
-    <location file="src/subfolder/code.h"/>
-  </compounddef>
+	<compounddef id="subfolder_2code_8h" kind="file" language="C++">
+		<compoundname>code.h</compoundname>
+		<briefdescription>
+			<para>More code, yo. </para>
+		</briefdescription>
+		<detaileddescription>
+			<para>This file has the same name as another one at a different level of the file hierarchy. Let's see how Doxygen handles this. I suspect poorly. </para>
+		</detaileddescription>
+		<location file="src/subfolder/code.h"/>
+	</compounddef>
 </doxygen>

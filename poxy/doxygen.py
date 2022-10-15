@@ -14,6 +14,7 @@ import os
 from lxml import etree
 from .utils import *
 from . import graph
+from . import xmlu
 
 #=======================================================================================================================
 # functions
@@ -333,12 +334,11 @@ def _ordered(*types) -> list:
 
 
 
-def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_func=None):
+def _parse_xml_file(g: graph.Graph, path: Path, log_func=None):
 	assert g is not None
 	assert path is not None
-	assert parser is not None
 
-	root = etree.fromstring(read_all_text_from_file(path, logger=log_func).encode(r'utf-8'), parser=parser)
+	root = xmlu.read(path, logger=log_func)
 
 	if root.tag not in (r'doxygenindex', r'doxygen'):
 		return
@@ -634,19 +634,12 @@ def _parse_xml_file(g: graph.Graph, path: Path, parser: etree.XMLParser, log_fun
 def read_graph_from_xml(folder, log_func=None) -> graph.Graph:
 	assert folder is not None
 	folder = coerce_path(folder).resolve()
-	parser = etree.XMLParser(
-		remove_blank_text=True,  #
-		recover=True,
-		remove_comments=True,
-		ns_clean=True,
-		encoding=r'utf-8'
-	)
 	g = graph.Graph()
 
 	# parse files
 	for path in get_all_files(folder, all=r"*.xml"):
 		try:
-			_parse_xml_file(g=g, path=path, parser=parser, log_func=log_func)
+			_parse_xml_file(g=g, path=path, log_func=log_func)
 		except KeyError:
 			raise
 		except graph.GraphError as ex:
@@ -750,12 +743,6 @@ def read_graph_from_xml(folder, log_func=None) -> graph.Graph:
 def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 	assert folder is not None
 	folder.mkdir(exist_ok=True, parents=True)
-	parser = etree.XMLParser(
-		remove_blank_text=True,  #
-		recover=True,
-		remove_comments=False,
-		ns_clean=True
-	)
 
 	def make_structured_text(elem, nodes):
 		assert elem is not None
@@ -773,7 +760,7 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 		prev = None
 		while nodes:
 			if nodes[0].type is graph.Paragraph:
-				para = etree.SubElement(elem, rf'para')
+				para = xmlu.make_child(elem, rf'para')
 				para.text = nodes[0].text
 				make_structured_text(
 					para, [n for n in nodes[0](graph.Paragraph, graph.Text, graph.Reference, graph.ExpositionMarkup)]
@@ -781,7 +768,7 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 				prev = para
 			elif nodes[0].type is graph.ExpositionMarkup:
 				assert nodes[0].tag
-				markup = etree.SubElement(elem, nodes[0].tag)
+				markup = xmlu.make_child(elem, nodes[0].tag)
 				for k, v in nodes[0].extra_attributes:
 					markup.set(k, v)
 				markup.text = nodes[0].text
@@ -790,7 +777,7 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 				)
 				prev = markup
 			elif nodes[0].type is graph.Reference and nodes[0].is_parent:
-				ref = etree.SubElement(elem, rf'ref', attrib={r'refid': nodes[0][0].id})
+				ref = xmlu.make_child(elem, rf'ref', refid=nodes[0][0].id)
 				ref.text = nodes[0].text
 				if nodes[0].kind:
 					ref.set(r'kindref', nodes[0].kind)
@@ -810,7 +797,7 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 		assert subelem_tag is not None
 		assert node is not None
 		assert subnode_type is not None
-		subelem = etree.SubElement(elem, subelem_tag)
+		subelem = xmlu.make_child(elem, subelem_tag)
 		subelem.text = r''
 		if subnode_type not in node:
 			return
@@ -837,16 +824,11 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 	def make_location(elem, node: graph.Node):
 		subelem = None
 		if node.type is graph.Directory:
-			subelem = etree.SubElement(elem, rf'location', attrib={r'file': rf'{node.qualified_name}/'})
+			subelem = xmlu.make_child(elem, rf'location', file=rf'{node.qualified_name}/')
 		elif node.type is graph.File:
-			subelem = etree.SubElement(elem, rf'location', attrib={r'file': rf'{node.qualified_name}'})
+			subelem = xmlu.make_child(elem, rf'location', file=rf'{node.qualified_name}')
 		else:
-			subelem = etree.SubElement(
-				elem, rf'location', attrib={
-				r'line': rf'{node.line}',
-				r'column': rf'{node.column}'
-				}
-			)
+			subelem = xmlu.make_child(elem, rf'location', line=str(node.line), column=str(node.column))
 			if node.file:
 				subelem.set(r'file', node.file)
 			else:
@@ -866,8 +848,7 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 		assert kind in COMPOUNDS
 
 		path = Path(folder, rf'{node.id}.xml')
-		xml = etree.ElementTree(
-			etree.XML(
+		root = etree.XML(
 			rf'''<doxygen
 						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 						xsi:noNamespaceSchemaLocation="compound.xsd"
@@ -877,13 +858,11 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 					<compounddef id="{node.id}" kind="{kind}" language="C++">
 						<compoundname>{node.local_name if node.type is graph.File else node.qualified_name}</compoundname>
 					</compounddef>
-				</doxygen>''',
-			parser=parser
-			)
+				</doxygen>''', xmlu.DEFAULT_PARSER
 		)
 
 		# create the root <compounddef>
-		compounddef = xml.getroot().find(r'compounddef')
+		compounddef = root.find(r'compounddef')
 		if node.type not in (graph.Namespace, graph.Directory, graph.File, graph.Concept):
 			compounddef.set(r'prot', str(Prot(node.access_level)))
 
@@ -892,7 +871,7 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 			files = [f for f in g(graph.File) if (f and f is not node and node in f)]
 			for f in files:
 				assert f.local_name
-				etree.SubElement(compounddef, rf'includes', attrib={r'local': r'no'}).text = f.local_name
+				xmlu.make_child(compounddef, rf'includes', local=r'no').text = f.local_name
 
 		# create all the <sectiondefs>
 		# (empty ones will be deleted at the end)
@@ -920,7 +899,7 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 			r'private-attrib',
 			r'friend'
 		)
-		sectiondefs = {k: etree.SubElement(compounddef, r'sectiondef', attrib={r'kind': k}) for k in sectiondefs}
+		sectiondefs = {k: xmlu.make_child(compounddef, r'sectiondef', kind=k) for k in sectiondefs}
 
 		# enums
 		enums = list(node(graph.Enum))
@@ -929,35 +908,28 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 			section = r'enum'
 			if node.type in (graph.Class, graph.Struct, graph.Union):
 				section = rf'{Prot(member.access_level)}-type'
-			elem = etree.SubElement(
+			elem = xmlu.make_child(
 				sectiondefs[section],
 				rf'memberdef',
-				attrib={
-				r'id': member.id,
-				r'kind': r'enum',
-				r'static': str(Bool(member.static)),
-				r'strong': str(Bool(member.strong)),
-				r'prot': str(Prot(member.access_level))
-				}
+				id=member.id,
+				kind=r'enum',
+				static=str(Bool(member.static)),
+				strong=str(Bool(member.strong)),
+				prot=str(Prot(member.access_level))
 			)
 			make_type(elem, member)
-			etree.SubElement(elem, r'name').text = member.local_name
-			etree.SubElement(elem, r'qualifiedname').text = member.qualified_name
+			xmlu.make_child(elem, r'name').text = member.local_name
+			xmlu.make_child(elem, r'qualifiedname').text = member.qualified_name
 			for value in member(graph.EnumValue):
-				value_elem = etree.SubElement(
-					elem, rf'enumvalue', attrib={
-					r'id': value.id,
-					r'prot': str(Prot(value.access_level))
-					}
-				)
-				etree.SubElement(value_elem, r'name').text = value.local_name
+				value_elem = xmlu.make_child(elem, rf'enumvalue', id=value.id, prot=str(Prot(value.access_level)))
+				xmlu.make_child(value_elem, r'name').text = value.local_name
 				if graph.Initializer in value:
 					make_initializer(value_elem, value)
 				make_brief(value_elem, value)
 				make_detail(value_elem, value)
 			make_brief(elem, member)
 			make_detail(elem, member)
-			etree.SubElement(elem, r'inbodydescription').text = r''  # todo
+			xmlu.make_child(elem, r'inbodydescription').text = r''  # todo
 			make_location(elem, member)
 
 		# typedefs
@@ -967,24 +939,22 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 			section = r'typedef'
 			if node.type in (graph.Class, graph.Struct, graph.Union):
 				section = rf'{Prot(member.access_level)}-type'
-			elem = etree.SubElement(
+			elem = xmlu.make_child(
 				sectiondefs[section],
 				rf'memberdef',
-				attrib={
-				r'id': member.id,
-				r'kind': r'typedef',
-				r'static': str(Bool(member.static)),
-				r'prot': str(Prot(member.access_level))
-				}
+				id=member.id,
+				kind=r'typedef',
+				static=str(Bool(member.static)),
+				prot=str(Prot(member.access_level))
 			)
 			make_type(elem, member)
-			etree.SubElement(elem, r'definition').text = member.definition
-			etree.SubElement(elem, r'argsstring')
-			etree.SubElement(elem, r'name').text = member.local_name
-			etree.SubElement(elem, r'qualifiedname').text = member.qualified_name
+			xmlu.make_child(elem, r'definition').text = member.definition
+			xmlu.make_child(elem, r'argsstring')
+			xmlu.make_child(elem, r'name').text = member.local_name
+			xmlu.make_child(elem, r'qualifiedname').text = member.qualified_name
 			make_brief(elem, member)
 			make_detail(elem, member)
-			etree.SubElement(elem, r'inbodydescription').text = r''  # todo
+			xmlu.make_child(elem, r'inbodydescription').text = r''  # todo
 			make_location(elem, member)
 
 		# variables
@@ -999,28 +969,26 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 			section = r'var'
 			if node.type in (graph.Class, graph.Struct, graph.Union):
 				section = rf'{Prot(member.access_level)}-{"static-" if member.static else ""}attrib'
-			elem = etree.SubElement(
+			elem = xmlu.make_child(
 				sectiondefs[section],
 				rf'memberdef',
-				attrib={
-				r'id': member.id,
-				r'kind': r'variable',
-				r'prot': str(Prot(member.access_level)),
-				r'static': str(Bool(member.static)),
-				r'constexpr': str(Bool(member.constexpr)),
-				r'constinit': str(Bool(member.constinit)),
-				r'mutable': str(Bool(member.strong)),
-				}
+				id=member.id,
+				kind=r'variable',
+				prot=str(Prot(member.access_level)),
+				static=str(Bool(member.static)),
+				constexpr=str(Bool(member.constexpr)),
+				constinit=str(Bool(member.constinit)),
+				mutable=str(Bool(member.strong)),
 			)
 			make_type(elem, member)
-			etree.SubElement(elem, r'definition').text = member.definition
-			etree.SubElement(elem, r'argsstring')
-			etree.SubElement(elem, r'name').text = member.local_name
-			etree.SubElement(elem, r'qualifiedname').text = member.qualified_name
+			xmlu.make_child(elem, r'definition').text = member.definition
+			xmlu.make_child(elem, r'argsstring')
+			xmlu.make_child(elem, r'name').text = member.local_name
+			xmlu.make_child(elem, r'qualifiedname').text = member.qualified_name
 			make_brief(elem, member)
 			make_detail(elem, member)
 			make_initializer(elem, member)
-			etree.SubElement(elem, r'inbodydescription').text = r''  # todo
+			xmlu.make_child(elem, r'inbodydescription').text = r''  # todo
 			make_location(elem, member)
 
 		# functions
@@ -1030,29 +998,27 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 			section = r'func'
 			if node.type in (graph.Class, graph.Struct, graph.Union):
 				section = rf'{Prot(member.access_level)}-{"static-" if member.static else ""}func'
-			elem = etree.SubElement(
+			elem = xmlu.make_child(
 				sectiondefs[section],
 				rf'memberdef',
-				attrib={
-				r'id': member.id,
-				r'kind': r'function',
-				r'prot': str(Prot(member.access_level)),
-				r'static': str(Bool(member.static)),
-				r'const': str(Bool(member.const)),
-				r'constexpr': str(Bool(member.constexpr)),
-				r'consteval': str(Bool(member.consteval)),
-				r'explicit': str(Bool(member.explicit)),
-				r'inline': str(Bool(member.inline)),
-				r'noexcept': str(Bool(member.noexcept)),
-				r'virtual': str(Virt(member.virtual)),
-				}
+				id=member.id,
+				kind=r'function',
+				prot=str(Prot(member.access_level)),
+				static=str(Bool(member.static)),
+				const=str(Bool(member.const)),
+				constexpr=str(Bool(member.constexpr)),
+				consteval=str(Bool(member.consteval)),
+				explicit=str(Bool(member.explicit)),
+				inline=str(Bool(member.inline)),
+				noexcept=str(Bool(member.noexcept)),
+				virtual=str(Virt(member.virtual)),
 			)
 			make_type(elem, member)
-			etree.SubElement(elem, r'name').text = member.local_name
-			etree.SubElement(elem, r'qualifiedname').text = member.qualified_name
+			xmlu.make_child(elem, r'name').text = member.local_name
+			xmlu.make_child(elem, r'qualifiedname').text = member.qualified_name
 			make_brief(elem, member)
 			make_detail(elem, member)
-			etree.SubElement(elem, r'inbodydescription').text = r''  # todo
+			xmlu.make_child(elem, r'inbodydescription').text = r''  # todo
 			make_location(elem, member)
 
 		# <initializer> for concepts
@@ -1066,21 +1032,19 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 
 		# <listofallmembers>
 		if node.type in (graph.Class, graph.Struct, graph.Union):
-			listofallmembers = etree.SubElement(compounddef, rf'listofallmembers')
+			listofallmembers = xmlu.make_child(compounddef, rf'listofallmembers')
 			listofallmembers.text = r''
 			for member_type in _ordered(graph.Function, graph.Variable):
 				for member in node(member_type):
-					member_elem = etree.SubElement(
+					member_elem = xmlu.make_child(
 						listofallmembers,
 						rf'member',
-						attrib={
-						r'refid': member.id,
-						r'prot': str(Prot(member.access_level)),
-						r'virtual': str(Virt(member.virtual)),
-						}
+						refid=member.id,
+						prot=str(Prot(member.access_level)),
+						virtual=str(Virt(member.virtual)),
 					)
-					etree.SubElement(member_elem, r'scope').text = node.qualified_name
-					etree.SubElement(member_elem, r'name').text = member.local_name
+					xmlu.make_child(member_elem, r'scope').text = node.qualified_name
+					xmlu.make_child(member_elem, r'name').text = member.local_name
 
 		# add the inners
 		for inner_type in _ordered(
@@ -1107,7 +1071,7 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 					kind = r'group'
 				else:
 					kind = NODE_TYPES_TO_KINDS[inner_node.type]
-				inner_elem = etree.SubElement(compounddef, rf'inner{kind}', attrib={r'refid': inner_node.id})
+				inner_elem = xmlu.make_child(compounddef, rf'inner{kind}', refid=inner_node.id)
 				if node.type not in (graph.Namespace, graph.Directory, graph.File, graph.Group, graph.Page):
 					inner_elem.set(r'prot', str(Prot(inner_node.access_level)))
 				inner_elem.text = inner_node.qualified_name
@@ -1120,18 +1084,12 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 
 		if log_func:
 			log_func(rf'Writing {path}')
-		xml.write(
-			str(path),  #
-			encoding=r'utf-8',
-			pretty_print=True,
-			xml_declaration=True
-		)
+		xmlu.write(root, path)
 
 	# serialize index.xml
 	if 1:
 		path = Path(folder, rf'index.xml')
-		xml = etree.ElementTree(
-			etree.XML(
+		root = etree.XML(
 			rf'''<doxygenindex
 						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 						xsi:noNamespaceSchemaLocation="index.xsd"
@@ -1139,21 +1097,17 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 						xml:lang="en-US">
 					<!-- This file was created by Poxy - https://github.com/marzer/poxy -->
 				</xmlns>''',
-			parser=parser
-			)
+			parser=xmlu.DEFAULT_PARSER
 		)
-		root = xml.getroot()
 		for node_type in _ordered(*COMPOUND_NODE_TYPES):
 			for node in g(node_type):
-				compound = etree.SubElement(
+				compound = xmlu.make_child(
 					root,
 					r'compound',
-					attrib={
-					r'refid': node.id,  #
-					r'kind': NODE_TYPES_TO_KINDS[node.type],
-					}
+					refid=node.id,  #
+					kind=NODE_TYPES_TO_KINDS[node.type],
 				)
-				etree.SubElement(compound, r'name').text = node.qualified_name
+				xmlu.make_child(compound, r'name').text = node.qualified_name
 				if node.type is graph.Directory:
 					continue
 				for child_type in _ordered(graph.Define, graph.Function, graph.Variable, graph.Enum):
@@ -1166,33 +1120,24 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
 						children.sort(key=lambda n: n.qualified_name)
 					for child in children:
 						assert child.local_name
-						member = etree.SubElement(
+						member = xmlu.make_child(
 							compound,
 							r'member',
-							attrib={
-							r'refid': child.id,  #
-							r'kind': NODE_TYPES_TO_KINDS[child.type],
-							}
+							refid=child.id,  #
+							kind=NODE_TYPES_TO_KINDS[child.type],
 						)
-						etree.SubElement(member, r'name').text = child.local_name
+						xmlu.make_child(member, r'name').text = child.local_name
 						if child_type is graph.Enum:
 							for enumvalue in child(graph.EnumValue):
 								assert enumvalue.local_name
-								elem = etree.SubElement(
+								elem = xmlu.make_child(
 									compound,
 									r'member',
-									attrib={
-									r'refid': enumvalue.id,  #
-									r'kind': NODE_TYPES_TO_KINDS[enumvalue.type],
-									}
+									refid=enumvalue.id,  #
+									kind=NODE_TYPES_TO_KINDS[enumvalue.type],
 								)
-								etree.SubElement(elem, r'name').text = enumvalue.local_name
+								xmlu.make_child(elem, r'name').text = enumvalue.local_name
 
 		if log_func:
 			log_func(rf'Writing {path}')
-		xml.write(
-			str(path),  #
-			encoding=r'utf-8',
-			pretty_print=True,
-			xml_declaration=True
-		)
+		xmlu.write(root, path)

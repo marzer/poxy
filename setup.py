@@ -8,7 +8,7 @@
 # windows:
 # py setup.py sdist bdist_wheel && twine upload dist/* && rmdir /S /Q dist
 
-import sys
+import re
 from setuptools import setup, find_packages
 from pathlib import Path
 
@@ -38,7 +38,8 @@ with open(r'README.md', encoding='utf-8') as file:
 
 CHANGELOG = ''
 with open(r'CHANGELOG.md', encoding='utf-8') as file:
-	CHANGELOG = file.read().strip()
+	CHANGELOG = f'\n\n{file.read()}\n\n'
+CHANGELOG = re.sub(r'\n#+\s*Changelog\s*?\n', '\n## Changelog\n', CHANGELOG, flags=re.I).strip()
 
 VERSION = ''
 with open(Path(data_dir, 'version.txt'), encoding='utf-8') as file:
@@ -58,7 +59,7 @@ SETUP_ARGS = {
 	'url': r'https://github.com/marzer/poxy',
 	'download_url': r'https://pypi.org/project/poxy/',
 	'classifiers': [
-	r'Development Status :: 3 - Alpha',  #
+	r'Development Status :: 4 - Beta',  #
 	r'License :: OSI Approved :: MIT License',
 	r'Programming Language :: C++',
 	r'Topic :: Documentation',

@@ -11,10 +11,10 @@ import os
 import copy
 try:
 	import pytomlpp as toml  # fast; based on toml++ (C++)
-except:
+except ImportError:
 	try:
 		import tomllib as toml  # PEP 680
-	except:
+	except ImportError:
 		import tomli as toml
 import datetime
 import itertools
@@ -361,8 +361,23 @@ class Defaults(object):
 			r'https://gcc.gnu.org/onlinedocs/gcc/Floating-Types.html',
 		r'(?:wchar|char(?:8|16|32))_ts?':
 			r'https://en.cppreference.com/w/cpp/language/types#Character_types',
-		r'(?:__cplusplus|__(?:FILE|LINE|DATE|TIME|STDC_HOSTED|STDCPP_DEFAULT_NEW_ALIGNMENT)__)':
+		regex_trie(
+		r'__cplusplus',  #
+		r'__FILE__',
+		r'__LINE__',
+		r'__DATE__',
+		r'__TIME__',
+		r'__STDC__',
+		r'__STDC_HOSTED__',
+		r'__STDC_VERSION__',
+		r'__STDC_ISO_10646__',
+		r'__STDC_MB_MIGHT_NEQ_WC__',
+		r'__STDCPP_THREADS__',
+		r'__STDCPP_DEFAULT_NEW_ALIGNMENT__',
+		r'__STDCPP_STRICT_POINTER_SAFETY__'
+		):
 			r'https://en.cppreference.com/w/cpp/preprocessor/replace',
+
 		# standard library
 		r'std::assume_aligned(?:\(\))?':
 			r'https://en.cppreference.com/w/cpp/memory/assume_aligned',
@@ -799,19 +814,101 @@ class Defaults(object):
 		r'offsetof',
 		# poxy:
 		r'POXY_[a-zA-Z_]+',
+		# compiler builtins:
+		regex_trie(
+		# standard:
+		r'__FILE__',
+		r'__LINE__',
+		r'__DATE__',
+		r'__TIME__',
+		r'__STDC__',
+		r'__STDC_HOSTED__',
+		r'__STDC_VERSION__',
+		r'__STDC_ISO_10646__',
+		r'__STDC_MB_MIGHT_NEQ_WC__',
+		r'__STDCPP_THREADS__',
+		r'__STDCPP_DEFAULT_NEW_ALIGNMENT__',
+		r'__STDCPP_STRICT_POINTER_SAFETY__',
 		# msvc:
-		r'__(?:' + r'FILE|LINE|DATE|TIME|COUNTER'
-		+ r'|STDC(?:_HOSTED|_NO_ATOMICS|_NO_COMPLEX|_NO_THREADS|_NO_VLA|_VERSION|_THREADS)?'
-		+ r'|STDCPP_DEFAULT_NEW_ALIGNMENT|INTELLISENSE|ATOM'
-		+ r'|AVX(?:2|512(?:BW|CD|DQ|F|VL)?)?|FUNC(?:TION|DNAME|SIG)' + r')__',
-		r'_M_(?:AMD64|ARM(?:_ARMV7VE|_FP|64)?|X64|CEE(?:_PURE|_SAFE)?|FP_(?:EXCEPT|FAST|PRECISE|STRICT)|IX86(?:_FP)?)',
-		r'__CLR_VER|_CHAR_UNSIGNED|_CONTROL_FLOW_GUARD|_CPP(?:RTTI|UNWIND)|_DEBUG|_INTEGRAL_MAX_BITS|_ISO_VOLATILE',
-		r'_KERNEL_MODE|_MANAGED|_MSC_(?:BUILD|EXTENSIONS|(?:FULL_)?VER)|NDEBUG|_MSC(?:_FULL)_VER|_MSVC_LANG|_WIN(?:32|64)'
+		r'_ATL_VER',  #
+		r'_CHAR_UNSIGNED',
+		r'_CONTROL_FLOW_GUARD',
+		r'_CPPRTTI',
+		r'_CPPUNWIND',
+		r'_DEBUG',
+		r'_DLL',
+		r'_INTEGRAL_MAX_BITS',
+		r'_ISO_VOLATILE',
+		r'_KERNEL_MODE',
+		r'_MANAGED',
+		r'_MFC_VER',
+		r'_MSC_BUILD',
+		r'_MSC_EXTENSIONS',
+		r'_MSC_FULL_VER',
+		r'_MSC_VER',
+		r'_MSVC_LANG',
+		r'_MSVC_TRADITIONAL',
+		r'_MT',
+		r'_M_AMD64',
+		r'_M_ARM',
+		r'_M_ARM64',
+		r'_M_ARM64EC',
+		r'_M_ARM_ARMV7VE',
+		r'_M_ARM_FP',
+		r'_M_CEE',
+		r'_M_CEE_PURE',
+		r'_M_CEE_SAFE',
+		r'_M_FP_CONTRACT',
+		r'_M_FP_EXCEPT',
+		r'_M_FP_FAST',
+		r'_M_FP_PRECISE',
+		r'_M_FP_STRICT',
+		r'_M_IX86',
+		r'_M_IX86_FP',
+		r'_M_X64',
+		r'_NATIVE_WCHAR_T_DEFINED',
+		r'_OPENMP',
+		r'_PREFAST_',
+		r'_VC_NODEFAULTLIB',
+		r'_WCHAR_T_DEFINED',
+		r'_WIN32',
+		r'_WIN64',
+		r'_WINRT_DLL',
+		r'__ATOM__',
+		r'__AVX2__',
+		r'__AVX512BW__',
+		r'__AVX512CD__',
+		r'__AVX512DQ__',
+		r'__AVX512F__',
+		r'__AVX512VL__',
+		r'__AVX__',
+		r'__CLR_VER',
+		r'__COUNTER__',
+		r'__FUNCDNAME__',
+		r'__FUNCSIG__',
+		r'__FUNCTION__',
+		r'__INTELLISENSE__',
+		r'__MSVC_RUNTIME_CHECKS',
+		r'__SANITIZE_ADDRESS__',
+		r'__STDC_NO_ATOMICS__',
+		r'__STDC_NO_COMPLEX__',
+		r'__STDC_NO_THREADS__',
+		r'__STDC_NO_VLA__',
+		r'__TIMESTAMP__',
+		r'__cplusplus_cli',
+		r'__cplusplus_winrt',
+		r'NDEBUG',
+		r'_DEBUG'
+		)
 	}
 	cb_namespaces = {
-		r'std', r'std::chrono', r'std::execution', r'std::filesystem',
-		r'std::(?:literals::)?(?:chrono|complex|string|string_view)_literals', r'std::literals', r'std::numbers',
-		r'std::ranges', r'std::this_thread'
+		regex_trie(
+		r'std', r'std::chrono', r'std::execution', r'std::filesystem', r'std::experimental', r'std::numbers',
+		r'std::literals', r'std::literals::chrono_literals', r'std::literals::complex_literals',
+		r'std::literals::string_literals', r'std::literals::string_view_literals', r'std::chrono_literals',
+		r'std::complex_literals', r'std::string_literals', r'std::string_view_literals', r'std::ranges',
+		r'std::this_thread'
+		)
 	}
 	cb_types = {
 		#------ built-in types
@@ -819,15 +916,7 @@ class Defaults(object):
 		r'__m[0-9]{1,3}[di]?',
 		r'_Float[0-9]{1,3}',
 		r'[a-zA-Z_][a-zA-Z_0-9]*_t(?:ype(?:def)?|raits)?',
-		r'bool',
-		r'char',
-		r'double',
-		r'float',
-		r'int',
-		r'long',
-		r'short',
-		r'signed',
-		r'unsigned',
+		regex_trie(r'bool', r'char', r'double', r'float', r'int', r'long', r'short', r'signed', r'unsigned'),
 		#------ documentation-only types
 		r'[S-Z][0-9]?',
 		r'Foo',

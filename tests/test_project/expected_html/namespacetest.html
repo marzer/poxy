@@ -80,10 +80,18 @@
     <span class="k">return</span> <span class="mi">42_a_numeric_udl</span><span class="p">;</span>
 <span class="p">}</span>
 
+        <span class="c1">// code block formatting should be preserved;</span>
+            <span class="c1">// this line should be indented by three tabs, the above by two.</span>
+
 <span class="k">const</span> <span class="k">char</span><span class="o">*</span> <span class="nf">bar</span><span class="p">()</span> <span class="k">noexcept</span>
 <span class="p">{</span>
     <span class="k">return</span> <span class="s">""_a_string_udl</span><span class="p">;</span>
-<span class="p">}</span></pre>
+<span class="p">}</span></pre><pre class="m-console"><span class="go">this should be a .sh block.</span>
+<span class="go">    each line should be indended by one more tab than the last.</span>
+<span class="go">        i have put the block openers and closers right next to each other</span>
+<span class="go">            without a blank line in between because this breaks parsing in m.css</span>
+<span class="go">                but poxy has a fix for it.</span>
+<span class="go">                    additionally it should appear 'glued' to the above C++ block, because magic.</span></pre>
         <section id="namespaces">
           <h2><a href="#namespaces">Namespaces</a></h2>
           <dl class="m-doc">

@@ -190,16 +190,16 @@ h1 span.m-thin
 }
 @media (min-width: 992px)
 {
-  svg#poxy-main-banner.poxy-injected-svg
-  {
-    padding: 2rem;
+	svg#poxy-main-banner.poxy-injected-svg
+	{
+		padding: 1.5rem;
 	}
 }
 @media (min-width: 300px) and (max-width: 992px)
 {
-  svg#poxy-main-banner.poxy-injected-svg
-  {
-    padding: 1rem;
+	svg#poxy-main-banner.poxy-injected-svg
+	{
+		padding: 1rem;
 	}
 }
 

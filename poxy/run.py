@@ -11,16 +11,18 @@ import os
 import subprocess
 import concurrent.futures as futures
 import tempfile
+from io import StringIO
 from lxml import etree
-from io import BytesIO, StringIO
 from .utils import *
-from .project import Context
 from . import doxygen
 from . import soup
 from . import fixers
 from . import graph
+from . import xmlu
+from .project import Context
 from .svg import SVG
 from distutils.dir_util import copy_tree
+from trieregex import TrieRegEx
 
 #=======================================================================================================================
 # HELPERS
@@ -313,15 +315,7 @@ def postprocess_xml(context: Context):
 	if not xml_files:
 		return
 
-	context.info(rf'Post-processing {len(xml_files) + len(context.tagfiles)} XML files...')
-
-	pretty_print_xml = False
-	xml_parser = etree.XMLParser(
-		encoding='utf-8', remove_blank_text=pretty_print_xml, recover=True, remove_comments=True, ns_clean=True
-	)
-	write_xml_to_file = lambda xml, f: xml.write(
-		str(f), encoding='utf-8', xml_declaration=True, pretty_print=pretty_print_xml
-	)
+	context.verbose(rf'Post-processing {len(xml_files) + len(context.tagfiles)} XML files...')
 
 	inline_namespace_ids = None
 	if context.inline_namespaces:
@@ -373,8 +367,8 @@ def postprocess_xml(context: Context):
 			while deleted:
 				deleted = False
 				for xml_file in get_all_files(context.temp_xml_dir, all=(r'dir*.xml')):
-					xml = etree.parse(str(xml_file), parser=xml_parser)
-					compounddef = xml.getroot().find(r'compounddef')
+					root = xmlu.read(xml_file)
+					compounddef = root.find(r'compounddef')
 					if compounddef is None or compounddef.get(r'kind') != r'dir':
 						continue
 					existing_inners = 0
@@ -388,12 +382,7 @@ def postprocess_xml(context: Context):
 						deleted = True
 
 		extracted_implementation = False
-		tentative_macros = regex_or(context.code_blocks.macros)
-		macros = set()
-		cpp_tree = CppTree()
 		xml_files = get_all_files(context.temp_xml_dir, any=(r'*.xml'))
-		tagfiles = [f for _, (f, _) in context.tagfiles.items()]
-		xml_files = xml_files + tagfiles
 		all_inners_by_type = {r'namespace': set(), r'class': set(), r'concept': set()}
 		for xml_file in xml_files:
 
@@ -401,8 +390,7 @@ def postprocess_xml(context: Context):
 			if xml_file.name == r'Doxyfile.xml':
 				continue
 
-			xml = etree.parse(str(xml_file), parser=xml_parser)
-			root = xml.getroot()
+			root = xmlu.read(xml_file)
 			changed = False
 
 			# the doxygen index
@@ -416,40 +404,6 @@ def postprocess_xml(context: Context):
 					if not ref_file.exists():
 						root.remove(compound)
 						changed = True
-
-				# extract namespaces, types and enum values for syntax highlighting
-				scopes = [
-					tag for tag in root.findall(r'compound')
-					if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union')
-				]
-				for scope in scopes:
-					scope_name = scope.find(r'name').text
-
-					# skip template members because they'll break the regex matchers
-					if scope_name.find(r'<') != -1:
-						continue
-
-					# regular types and namespaces
-					if scope.get(r'kind') in (r'class', r'struct', r'union'):
-						cpp_tree.add_type(scope_name)
-					elif scope.get(r'kind') == r'namespace':
-						cpp_tree.add_namespace(scope_name)
-
-					# nested enums
-					enum_tags = [tag for tag in scope.findall(r'member') if tag.get(r'kind') in (r'enum', r'enumvalue')]
-					enum_name = ''
-					for tag in enum_tags:
-						if tag.get(r'kind') == r'enum':
-							enum_name = rf'{scope_name}::{tag.find("name").text}'
-							cpp_tree.add_type(enum_name)
-						else:
-							assert enum_name
-							cpp_tree.add_enum_value(rf'{enum_name}::{tag.find("name").text}')
-
-					# nested typedefs
-					typedefs = [tag for tag in scope.findall(r'member') if tag.get(r'kind') == r'typedef']
-					for typedef in typedefs:
-						cpp_tree.add_type(rf'{scope_name}::{typedef.find("name").text}')
 
 				# enumerate all compound pages and their types for later (e.g. HTML post-process)
 				for tag in root.findall(r'compound'):
@@ -466,38 +420,6 @@ def postprocess_xml(context: Context):
 					context.compound_kinds.add(tag.get(r'kind'))
 				context.verbose_value(r'Context.compound_pages', context.compound_pages)
 				context.verbose_value(r'Context.compound_kinds', context.compound_kinds)
-
-			# a tag file
-			elif root.tag == r'tagfile':
-				for compound in [
-					tag for tag in root.findall(r'compound')
-					if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union', r'concept')
-				]:
-
-					compound_name = compound.find(r'name').text
-					if compound_name.find(r'<') != -1:
-						continue
-
-					compound_type = compound.get(r'kind')
-					if compound_type in (r'class', r'struct', r'union', r'concept'):
-						cpp_tree.add_type(compound_name)
-					else:
-						cpp_tree.add_namespace(compound_name)
-
-					for member in [
-						tag for tag in compound.findall(r'member')
-						if tag.get(r'kind') in (r'namespace', r'class', r'struct', r'union', r'concept')
-					]:
-
-						member_name = member.find(r'name').text
-						if member_name.find(r'<') != -1:
-							continue
-
-						member_type = member.get(r'kind')
-						if member_type in (r'class', r'struct', r'union', r'concept'):
-							cpp_tree.add_type(compound_name)
-						else:
-							cpp_tree.add_namespace(compound_name)
 
 			# some other compound definition
 			else:
@@ -565,40 +487,23 @@ def postprocess_xml(context: Context):
 									changed = True
 									break
 
-						# fixes for functions:
-						# - goofy parsing of trailing return types
-						# - keywords like 'friend' erroneously included in the return type
+						# fix keywords like 'friend' erroneously included in the type
 						if 1:
 
 							members = [
-								m for m in section.findall(r'memberdef') if m.get(r'kind') in (r'friend', r'function')
+								m for m in section.findall(r'memberdef')
+								if m.get(r'kind') in (r'friend', r'function', r'variable')
 							]
-
-							# trailing return type bug (https://github.com/mosra/m.css/issues/94)
-							for member in members:
-								type_elem = member.find(r'type')
-								if type_elem is None or type_elem.text != r'auto':
-									continue
-								args_elem = member.find(r'argsstring')
-								if args_elem is None or not args_elem.text or args_elem.text.find(r'decltype') != -1:
-									continue
-								match = re.search(r'^(.*?)\s*->\s*([a-zA-Z][a-zA-Z0-9_::*&<>\s]+?)\s*$', args_elem.text)
-								if match:
-									args_elem.text = str(match[1])
-									trailing_return_type = str(match[2]).strip()
-									trailing_return_type = re.sub(r'\s+', r' ', trailing_return_type)
-									trailing_return_type = re.sub(r'(::|[<>*&])\s+', r'\1', trailing_return_type)
-									trailing_return_type = re.sub(r'\s+(::|[<>*&])', r'\1', trailing_return_type)
-									type_elem.text = trailing_return_type
-									changed = True
 
 							# leaked keywords
 							attribute_keywords = (
 								(r'constexpr', r'constexpr', r'yes'),  #
+								(r'constinit', r'constinit', r'yes'),
 								(r'consteval', r'consteval', r'yes'),
 								(r'explicit', r'explicit', r'yes'),
 								(r'static', r'static', r'yes'),
 								(r'friend', None, None),
+								(r'extern', None, None),
 								(r'inline', r'inline', r'yes'),
 								(r'virtual', r'virt', r'virtual')
 							)
@@ -624,6 +529,31 @@ def postprocess_xml(context: Context):
 											member.set(attr, attr_value)
 										elif kw == r'friend':
 											member.set(r'kind', r'friend')
+
+						# fix goofy parsing of trailing return types
+						if 1:
+
+							members = [
+								m for m in section.findall(r'memberdef') if m.get(r'kind') in (r'friend', r'function')
+							]
+
+							# trailing return type bug (https://github.com/mosra/m.css/issues/94)
+							for member in members:
+								type_elem = member.find(r'type')
+								if type_elem is None or type_elem.text != r'auto':
+									continue
+								args_elem = member.find(r'argsstring')
+								if args_elem is None or not args_elem.text or args_elem.text.find(r'decltype') != -1:
+									continue
+								match = re.search(r'^(.*?)\s*->\s*([a-zA-Z][a-zA-Z0-9_::*&<>\s]+?)\s*$', args_elem.text)
+								if match:
+									args_elem.text = str(match[1])
+									trailing_return_type = str(match[2]).strip()
+									trailing_return_type = re.sub(r'\s+', r' ', trailing_return_type)
+									trailing_return_type = re.sub(r'(::|[<>*&])\s+', r'\1', trailing_return_type)
+									trailing_return_type = re.sub(r'\s+(::|[<>*&])', r'\1', trailing_return_type)
+									type_elem.text = trailing_return_type
+									changed = True
 
 						# re-sort members to override Doxygen's weird and stupid sorting 'rules'
 						if 1:
@@ -690,17 +620,6 @@ def postprocess_xml(context: Context):
 							compounddef.remove(t)
 							changed = True
 
-					# get any macros for the syntax highlighter
-					for sectiondef in [
-						tag for tag in compounddef.findall(r'sectiondef') if tag.get(r'kind') == r'define'
-					]:
-						for memberdef in [
-							tag for tag in sectiondef.findall(r'memberdef') if tag.get(r'kind') == r'define'
-						]:
-							macro = memberdef.find(r'name').text
-							if not tentative_macros.fullmatch(macro):
-								macros.add(macro)
-
 					# rip the good bits out of implementation headers
 					if context.implementation_headers:
 						iid = compound_id
@@ -747,16 +666,8 @@ def postprocess_xml(context: Context):
 							(compound_id, compound_name)
 						)
 
-			if changed and xml_file not in tagfiles:  # tagfiles are read-only - ensure we don't modify them
-				write_xml_to_file(xml, xml_file)
-
-		# add to syntax highlighter
-		context.code_blocks.namespaces.add(cpp_tree.matcher(CppTree.NAMESPACES))
-		context.code_blocks.types.add(cpp_tree.matcher(CppTree.TYPES))
-		context.code_blocks.enums.add(cpp_tree.matcher(CppTree.ENUM_VALUES))
-		for macro in macros:
-			context.code_blocks.macros.add(macro)
-		context.verbose_object(r'Context.code_blocks', context.code_blocks)
+			if changed:
+				xmlu.write(root, xml_file)
 
 		# fix up namespaces/classes that are missing <innerXXXX> nodes
 		if 1:
@@ -777,8 +688,8 @@ def postprocess_xml(context: Context):
 						break
 				if not xml_file:
 					continue
-				xml = etree.parse(str(xml_file), parser=xml_parser)
-				compounddef = xml.getroot().find(r'compounddef')
+				root = xmlu.read(xml_file)
+				compounddef = root.find(r'compounddef')
 				if compounddef is None:
 					continue
 				changed = False
@@ -790,22 +701,22 @@ def postprocess_xml(context: Context):
 							existing_inner_ids.add(str(id))
 				for (inner_type, id, name) in vals:
 					if id not in existing_inner_ids:
-						elem = etree.SubElement(compounddef, rf'inner{inner_type}')
+						elem = xmlu.make_child(compounddef, rf'inner{inner_type}')
 						elem.text = name
 						elem.set(r'refid', id)
 						elem.set(r'prot', r'public')  # todo: this isn't necessarily correct
 						existing_inner_ids.add(id)
 						changed = True
 				if changed:
-					write_xml_to_file(xml, xml_file)
+					xmlu.write(root, xml_file)
 
 		# merge extracted implementations
 		if extracted_implementation:
 			for (hp, hfn, hid, impl) in implementation_header_data:
 				xml_file = Path(context.temp_xml_dir, rf'{hid}.xml')
 				context.verbose(rf'Merging implementation nodes into {xml_file}')
-				xml = etree.parse(str(xml_file), parser=xml_parser)
-				compounddef = xml.getroot().find(r'compounddef')
+				root = xmlu.read(xml_file)
+				compounddef = root.find(r'compounddef')
 				changed = False
 
 				innernamespaces = compounddef.findall(r'innernamespace')
@@ -850,7 +761,7 @@ def postprocess_xml(context: Context):
 
 				if changed:
 					implementation_header_unused_keys.remove(hp)
-					write_xml_to_file(xml, xml_file)
+					xmlu.write(root, xml_file)
 
 		# sanity-check implementation header state
 		if implementation_header_unused_keys:
@@ -877,9 +788,7 @@ def postprocess_xml(context: Context):
 					#xml_text = xml_text.replace(f'refid="{iid}"',f'refid="{hid}"')
 					xml_text = xml_text.replace(rf'compoundref="{iid}"', f'compoundref="{hid}"')
 					xml_text = xml_text.replace(ip, hp)
-			with BytesIO(bytes(xml_text, 'utf-8')) as b:
-				xml = etree.parse(b, parser=xml_parser)
-				write_xml_to_file(xml, xml_file)
+			xmlu.write(xml_text, xml_file)
 
 
 
@@ -910,17 +819,208 @@ def postprocess_xml_v2(context: Context):
 
 
 
-def compile_syntax_highlighter_regexes(context: Context):
+def parse_xml(context: Context):
+	assert context is not None
+	assert isinstance(context, Context)
+
+	xml_files = get_all_files(context.temp_xml_dir, any=(r'*.xml'))
+	xml_files += [coerce_path(f) for _, (f, _) in context.tagfiles.items()]
+	if not xml_files:
+		return
+
+	class Trie(object):
+
+		def __init__(self):
+			self.__trie = TrieRegEx()
+			self.__count = 0
+
+		def add(self, s: str):
+			if not s:
+				return
+			self.__trie.add(s)
+			self.__count += 1
+
+		def __bool__(self) -> bool:
+			return self.__count > 0
+
+		def __str__(self) -> str:
+			return self.__trie.regex()
+
+	class Tries(object):
+
+		def __init__(self):
+			self.namespaces = Trie()
+			self.types = Trie()
+			self.enum_values = Trie()
+			self.macros = Trie()
+
+	tries = Tries()
+
+	def str_ok(s: str) -> bool:
+		return s is not None and s and not re.search(r'[<>()|.+]', s)
+
+	def extract_all_members_from_compound_node(compound):
+		nonlocal tries
+		compound_name = compound.find(r'name')
+		if compound_name is None or not str_ok(compound_name.text):
+			return
+		compound_kind = compound.get(r'kind')
+		if compound_kind is None or compound_kind not in (
+			r'namespace', r'class', r'struct', r'union', r'concept', r'group', r'file'
+		):
+			return
+		# for files and groups we can only extract #defines because they need the full::namespace::context
+		# otherwise we get all the C++ types
+		member_kinds = (r'namespace', r'class', r'struct', r'union', r'concept', r'typedef', r'enum', r'enumvalue')
+		if compound_kind in (r'group', r'file'):
+			member_kinds = (r'define', )
+		members = [(m, m.find(r'name')) for m in compound.findall(r'member') if m.get(r'kind') in member_kinds]
+		members = [(m, n) for m, n in members if n is not None and str_ok(n.text)]
+		# first we do everything _except_ enumvalues because they require special handling
+		enums = dict()
+		for member, member_name in members:
+			member_kind = member.get(r'kind')
+			if member_kind == r'namespace':
+				tries.namespaces.add(rf'{compound_name.text}::{member_name.text}')
+			elif member_kind == r'define':
+				tries.macros.add(compound_name.text)
+			elif member_kind != r'enumvalue':
+				member_qualified_name = rf'{compound_name.text}::{member_name.text}'
+				tries.types.add(member_qualified_name)
+				if member_kind == r'enum':
+					refid = member.get(r'refid')
+					if refid:
+						enums[refid] = member_qualified_name
+		# then we do enumvaleus
+		for member, member_name in members:
+			if member.get(r'kind') != r'enumvalue':
+				continue
+			refid = member.get(r'refid')
+			if not refid:
+				continue
+			for enum_refid, enum_qualified_name in enums.items():
+				if refid.startswith(enum_refid):
+					tries.enum_values.add(rf'{enum_qualified_name}::{member_name.text}')
+
+	for xml_file in xml_files:
+		if xml_file.name == r'Doxyfile.xml' or not xml_file.exists() or not xml_file.is_file():
+			continue
+
+		root = xmlu.read(xml_file)
+		if root.tag not in (r'doxygenindex', r'tagfile'):
+			continue
+
+		context.verbose(rf'Extracting type information from {xml_file}')
+
+		# tag files
+		if root.tag == r'tagfile':
+
+			def extract_types_from_tagfile_node(node):
+				nonlocal tries
+				namespaces = [(ns, ns.find(r'name')) for ns in node.findall(r'namespace')]
+				namespaces = [(ns, n) for ns, n in namespaces if n is not None and str_ok(n.text)]
+				for namespace, n in namespaces:
+					tries.namespaces.add(n.text)
+
+				classes = [(c, c.find(r'name')) for c in node.findall(r'class')
+					if c.get(r'kind') in (r'class', r'struct', r'union')]
+				classes = [(c, n) for c, n in classes if n is not None and str_ok(n.text)]
+				for class_, n in classes:
+					tries.types.add(n.text)
+
+				compounds = [(c, c.find(r'name')) for c in node.findall(r'compound')
+					if c.get(r'kind') in (r'namespace', r'class', r'struct', r'union', r'concept')]
+				compounds = [(c, n) for c, n in compounds if n is not None and str_ok(n.text)]
+				for compound, n in compounds:
+					if compound.get(r'kind') == r'namespace':
+						tries.namespaces.add(n.text)
+					else:
+						tries.types.add(n.text)
+					extract_types_from_tagfile_node(compound)
+					extract_all_members_from_compound_node(compound)
+
+			extract_types_from_tagfile_node(root)
+
+		# the doxygen index
+		elif root.tag == r'doxygenindex':
+			compounds = [(c, c.find(r'name')) for c in root.findall(r'compound')
+				if c.get(r'kind') in (r'namespace', r'class', r'struct', r'union', r'concept')]
+			compounds = [(c, n) for c, n in compounds if n is not None and str_ok(n.text)]
+			for compound, n in compounds:
+				if compound.get(r'kind') == r'namespace':
+					tries.namespaces.add(n.text)
+				else:
+					tries.types.add(n.text)
+				extract_all_members_from_compound_node(compound)
+
+	# add to syntax highlighter
+	if tries.namespaces:
+		context.code_blocks.namespaces.add(str(tries.namespaces))
+	if tries.types:
+		context.code_blocks.types.add(str(tries.types))
+	if tries.enum_values:
+		context.code_blocks.enums.add(str(tries.enum_values))
+	if tries.macros:
+		context.code_blocks.macros.add(str(tries.macros))
+	context.verbose_object(r'Context.code_blocks', context.code_blocks)
+
+
+
+def clean_xml(context: Context):
+	assert context is not None
+	assert isinstance(context, Context)
+
+	xml_files = get_all_files(context.temp_xml_dir, any=(r'*.xml'))
+	for xml_file in xml_files:
+		root = xmlu.read(
+			xml_file,  #
+			parser=xmlu.create_parser(remove_blank_text=True),
+			logger=context.verbose_logger
+		)
+
+		# some description nodes end up with just whitespace; I guess lxml gets a bit confused here
+		for elem in root.iter(r'briefdescription', r'detaileddescription', r'inbodydescription'):
+			if len(elem) or not elem.text:
+				continue
+			if elem.text.strip() == r'':
+				elem.text = r''
+
+		# indent() will fuck up the formatting of some 'document-style' elements so we need to find and
+		# extract those elements before prettifying the overall document
+		sacred_elements = []
+		for elem in root.iter(r'programlisting', r'initializer'):
+			parent = elem.getparent()
+			sacred_elements.append((elem, parent, parent.index(elem)))
+		for elem, parent, _ in reversed(sacred_elements):
+			parent.remove(elem)
+
+		etree.indent(root, space='\t')
+
+		# re-insert the extracted elements in their original positions
+		for elem, parent, index in sacred_elements:
+			parent.insert(index, elem)
+
+		xmlu.write(
+			root,  #
+			xml_file,
+			logger=context.verbose_logger
+		)
+
+
+
+def compile_regexes(context: Context):
 	assert context is not None
 	assert isinstance(context, Context)
 
 	context.code_blocks.namespaces = regex_or(
-		context.code_blocks.namespaces, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?'
+		context.code_blocks.namespaces, pattern_prefix=r'(?:::)?', pattern_suffix=r'(?:::)?'
 	)
-	context.code_blocks.types = regex_or(context.code_blocks.types, pattern_prefix='(?:::)?', pattern_suffix='(?:::)?')
-	context.code_blocks.enums = regex_or(context.code_blocks.enums, pattern_prefix='(?:::)?')
+	context.code_blocks.types = regex_or(
+		context.code_blocks.types, pattern_prefix=r'(?:::)?', pattern_suffix=r'(?:::)?'
+	)
+	context.code_blocks.enums = regex_or(context.code_blocks.enums, pattern_prefix=r'(?:::)?')
 	context.code_blocks.macros = regex_or(context.code_blocks.macros)
-	context.autolinks = tuple([(re.compile('(?<![a-zA-Z_])' + expr + '(?![a-zA-Z_])'), uri)
+	context.autolinks = tuple([(re.compile(r'(?<![a-zA-Z_])' + expr + r'(?![a-zA-Z_])'), uri)
 		for expr, uri in context.autolinks])
 
 
@@ -1348,7 +1448,7 @@ def run_doxygen(context: Context):
 					context.warning(w)
 
 	# remove the local paths from the tagfile since they're meaningless (and a privacy breach)
-	if context.tagfile_path:
+	if context.generate_tagfile and context.tagfile_path:
 		text = read_all_text_from_file(context.tagfile_path, logger=context.verbose_logger)
 		text = re.sub(r'\n\s*?<path>.+?</path>\s*?\n', '\n', text, re.S)
 		context.verbose(rf'Writing {context.tagfile_path}')
@@ -1439,9 +1539,11 @@ def run(
 				postprocess_xml_v2(context)
 			else:
 				postprocess_xml(context)
+			parse_xml(context)
+			clean_xml(context)
 
-		# postprocess_xml extracts type information so now we can compile the highlighter regexes
-		compile_syntax_highlighter_regexes(context)
+		with timer(r'Compiling regexes') as t:
+			compile_regexes(context)
 
 		# XML (the user-requested copy)
 		if context.output_xml:
@@ -1450,7 +1552,7 @@ def run(
 				copy_tree(str(context.temp_xml_dir), str(context.xml_dir))
 
 			# copy tagfile
-			if context.generate_tagfile:
+			if context.generate_tagfile and context.tagfile_path:
 				copy_file(context.tagfile_path, context.xml_dir, logger=context.verbose_logger)
 
 		# HTML
@@ -1474,7 +1576,7 @@ def run(
 					copy_tree(str(dirs.FONTS), str(Path(context.assets_dir, r'fonts')))
 
 			# copy tagfile
-			if context.generate_tagfile:
+			if context.generate_tagfile and context.tagfile_path:
 				copy_file(context.tagfile_path, context.html_dir, logger=context.verbose_logger)
 
 			# post-process html files

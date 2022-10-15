@@ -13,6 +13,7 @@ from .utils import *
 from .svg import SVG
 from .project import Context
 from . import soup
+from trieregex import TrieRegEx
 
 #=======================================================================================================================
 # base classes
@@ -403,6 +404,7 @@ class CodeBlocks(HTMLFixer):
 
 	__ns_token_expr = re.compile(r'(?:::|[a-zA-Z_][a-zA-Z_0-9]*|::[a-zA-Z_][a-zA-Z_0-9]*|[a-zA-Z_][a-zA-Z_0-9]*::)')
 	__ns_full_expr = re.compile(r'(?:::)?[a-zA-Z_][a-zA-Z_0-9]*(::[a-zA-Z_][a-zA-Z_0-9]*)*(?:::)?')
+	__compound_classes = (r'n', r'no', r'nl', r'kt', r'ne', r'nf', r'nl', r'nx')
 
 	@classmethod
 	def __colourize_compound_def(cls, tags, context):
@@ -412,7 +414,7 @@ class CodeBlocks(HTMLFixer):
 		full_str = ''.join([tag.get_text() for tag in tags])
 
 		if context.code_blocks.enums.fullmatch(full_str):
-			soup.set_class(tags[-1], 'ne')
+			soup.set_class(tags[-1], 'mi')  # Literal.Number.Integer
 			del tags[-1]
 			while tags and tags[-1].string == '::':
 				del tags[-1]
@@ -421,7 +423,7 @@ class CodeBlocks(HTMLFixer):
 			return True
 
 		if context.code_blocks.types.fullmatch(full_str):
-			soup.set_class(tags[-1], 'nc')
+			soup.set_class(tags[-1], 'nc')  # Name.Class
 			del tags[-1]
 			while tags and tags[-1].string == '::':
 				del tags[-1]
@@ -441,8 +443,8 @@ class CodeBlocks(HTMLFixer):
 			while len(tags) > 1:
 				tags.pop().decompose()
 			tags[0].string = full_str
-			if soup.remove_class(tags[0], ('n', 'nl', 'kt')):
-				soup.add_class(tags[0], 'nn')
+			if soup.remove_class(tags[0], cls.__compound_classes):
+				soup.add_class(tags[0], 'nn')  # Name.Namespace
 			return True
 
 		return False
@@ -501,7 +503,7 @@ class CodeBlocks(HTMLFixer):
 					mlc_open = next_open
 
 				# collect all names and glom them all together as compound names
-				spans = code_block('span', class_=('n', 'nl', 'kt'), string=True)
+				spans = code_block('span', class_=self.__compound_classes, string=True)
 				compound_names = []
 				compound_name_evaluated_tags = set()
 				for i in range(0, len(spans)):
@@ -516,7 +518,7 @@ class CodeBlocks(HTMLFixer):
 						prev = current.previous_sibling
 						if (
 							prev is None or prev.string is None or isinstance(prev, NavigableString)
-							or 'class' not in prev.attrs or prev['class'][0] not in ('n', 'nl', 'kt', 'o')
+							or 'class' not in prev.attrs or prev['class'][0] not in (*self.__compound_classes, r'o')
 							or not self.__ns_token_expr.fullmatch(prev.string)
 						):
 							break
@@ -529,7 +531,7 @@ class CodeBlocks(HTMLFixer):
 						nxt = current.next_sibling
 						if (
 							nxt is None or nxt.string is None or isinstance(nxt, NavigableString)
-							or 'class' not in nxt.attrs or nxt['class'][0] not in ('n', 'nl', 'kt', 'o')
+							or 'class' not in nxt.attrs or nxt['class'][0] not in (*self.__compound_classes, r'o')
 							or not self.__ns_token_expr.fullmatch(nxt.string)
 						):
 							break
@@ -555,14 +557,14 @@ class CodeBlocks(HTMLFixer):
 				spans = code_block('span', class_=('n', 'nl', 'kt', 'nc', 'nf'), string=True)
 				for span in spans:
 					if context.code_blocks.macros.fullmatch(span.get_text()):
-						soup.set_class(span, r'm')
+						soup.set_class(span, r'fm')  # Name.Function.Magic
 						changed_this_block = True
 
 				# misidentifed keywords
 				spans = code_block('span', class_=('nf', 'nb', 'kt', 'nc', 'kr'), string=True)
 				for span in spans:
 					if (span.string in self.__keywords):
-						soup.set_class(span, r'k')
+						soup.set_class(span, r'k')  # Keyword
 						changed_this_block = True
 
 				# 'using' statements
@@ -580,7 +582,7 @@ class CodeBlocks(HTMLFixer):
 							and self.__adjacent_maybe_by_whitespace(next_identifier, next_assign)
 						):
 							continue
-						soup.set_class(next_identifier, r'nc')
+						soup.set_class(next_identifier, r'nc')  # Name.Class
 						changed_this_block = True
 
 				if changed_this_block:
@@ -879,6 +881,39 @@ class MarkdownPages(PlainTextFixer):
 
 
 
+BUILTIN_LITERALS = TrieRegEx()
+for l in (r'l', r'L'):
+	BUILTIN_LITERALS.add(l)  # long
+	for l2 in (r'l', r'L'):
+		BUILTIN_LITERALS.add(rf'{l}{l2}')  # long long
+		for u in (r'u', r'U'):
+			BUILTIN_LITERALS.add(rf'{u}{l}{l2}')  # unsigned long long
+	for u in (r'u', r'U'):
+		BUILTIN_LITERALS.add(rf'{u}{l}')  # unsigned long
+for f in (r'f', r'F'):
+	BUILTIN_LITERALS.add(f)  # float
+for q in (r'q', r'Q'):
+	BUILTIN_LITERALS.add(f)  # quad
+# std::chrono
+BUILTIN_LITERALS.add(r'd')
+BUILTIN_LITERALS.add(r'h')
+BUILTIN_LITERALS.add(r'min')
+BUILTIN_LITERALS.add(r'ms')
+BUILTIN_LITERALS.add(r'ns')
+BUILTIN_LITERALS.add(r's')
+BUILTIN_LITERALS.add(r'us')
+BUILTIN_LITERALS.add(r'y')
+# std::complex
+BUILTIN_LITERALS.add(r'i')
+BUILTIN_LITERALS.add(r'if')
+BUILTIN_LITERALS.add(r'il')
+# std::string(view)
+BUILTIN_LITERALS.add(r's')
+BUILTIN_LITERALS.add(r'sv')
+BUILTIN_LITERALS = BUILTIN_LITERALS.regex()
+
+
+
 class Pygments(PlainTextFixer):
 	'''
 	Fixes minor issues with pygments-generated markup.
@@ -888,20 +923,28 @@ class Pygments(PlainTextFixer):
 		if re.search(r'class="[^"]*?m-code[^"]*?"', text):
 
 			# at some point pygments started adding markup to whitespace,
-			# adding an awful lot of markup bloat. m.css does not style this markup
+			# causing an awful lot of markup bloat. m.css does not style this markup
 			# so we can safely strip it away.
 			text = re.sub(r'<span class="w">(\s+)</span>', r'\1', text)
 
 			# fix numeric UDLs being treated as a separate token
 			text = re.sub(
-				r'<span class="(m[bfhio])">(.*?)</span><span class="n">(_[a-zA-Z0-9_]*)</span>',
-				r'<span class="\1">\2\3</span>', text
+				rf'<span\s+class="(m[bfhio])"\s*>(.*?)</span><span class="n">((?:_[a-zA-Z0-9_]*)|{BUILTIN_LITERALS})</span>',  #
+				r'<span class="\1">\2\3</span>',
+				text
 			)
 
 			# fix string UDLs being treated as a separate token
 			text = re.sub(
-				r'<span class="s">(.*?)</span><span class="n">(_[a-zA-Z0-9_]*)</span>',  #
+				rf'<span\s+class="s"\s*>(.*?)</span><span class="n">((?:_[a-zA-Z0-9_]*)|{BUILTIN_LITERALS})</span>',  #
 				r'<span class="s">\1\2</span>',
+				text
+			)
+
+			# hack to make some basic #ifs, #defines etc. look nice
+			text = re.sub(
+				r'<span\s+class="cp"\s*>(\s*#\s*(?:(?:el)?if(?:n?def)?|define|undef)\s+)([a-zA-Z_][a-zA-Z_0-9]*?)([^a-zA-Z_0-9])',  #
+				r'<span class="cp">\1</span><span class="fm">\2</span><span class="cp">\3',
 				text
 			)
 

@@ -16,10 +16,19 @@ import typing
 from pathlib import Path
 from misk import *
 from . import dirs
+from trieregex import TrieRegEx
 
 #=======================================================================================================================
 # FUNCTIONS
 #=======================================================================================================================
+
+
+
+def regex_trie(*words) -> str:
+	assert words
+	assert len(words)
+	trie = TrieRegEx(*words)
+	return trie.regex()
 
 
 
@@ -147,94 +156,6 @@ class RegexReplacer(object):
 
 	def __getitem__(self, index):
 		return self.__out_data[index]
-
-
-
-#=======================================================================================================================
-# CppTree
-#=======================================================================================================================
-
-
-
-class CppTree(object):
-
-	NAMESPACES = 1
-	TYPES = 2
-	ENUM_VALUES = 4
-
-	class Node(object):
-
-		def __init__(self, val, parent, type_=0):
-			assert val.find(r'::') == -1
-			assert type_ in (0, CppTree.NAMESPACES, CppTree.TYPES, CppTree.ENUM_VALUES)
-			self.value = val
-			self.parent = parent
-			self.type = type_
-			self.mask = type_
-			self.children = {}
-
-		def add(self, val, type_=0):
-			assert val.find(r'::') == -1
-			assert type_ in (0, CppTree.NAMESPACES, CppTree.TYPES, CppTree.ENUM_VALUES)
-			child = None
-			if val not in self.children:
-				child = CppTree.Node(val, self, type_)
-				self.children[val] = child
-			else:
-				child = self.children[val]
-				if type_:
-					assert child.type in (0, type_)
-					child.type = type_
-					child.mask = child.mask | type_
-			self.mask = self.mask | child.mask
-			return child
-
-		def regex_matcher(self, type_):
-			assert type_ in (CppTree.NAMESPACES, CppTree.TYPES, CppTree.ENUM_VALUES)
-			if not (type_ & self.mask):
-				return None
-			if not self.children:
-				return self.value
-			matchers = [v.regex_matcher(type_) for k, v in self.children.items()]
-			matchers = [v for v in matchers if v is not None]
-			if not matchers:
-				if self.type == type_:
-					return self.value
-				return None
-
-			grouped = len(matchers) > 1
-			matchers = r'|'.join(matchers)
-			if not self.value and not self.parent:  # root
-				return matchers
-			matchers = (r'(?:' if grouped else '') + matchers + (r')' if grouped else '')
-
-			if self.type == type_:
-				return rf'{self.value}(?:::{matchers})?'
-			else:
-				return rf'{self.value}::{matchers}'
-
-	def __init__(self):
-		self.root = CppTree.Node('', None)
-
-	def add(self, val, type_):
-		assert type_ in (CppTree.NAMESPACES, CppTree.TYPES, CppTree.ENUM_VALUES)
-		val = [v for v in val.split(r'::') if len(v)]
-		parent = self.root
-		while len(val):
-			v = val.pop(0)
-			parent = parent.add(v, type_ if not len(val) else 0)
-
-	def add_type(self, val):
-		self.add(val, CppTree.TYPES)
-
-	def add_namespace(self, val):
-		self.add(val, CppTree.NAMESPACES)
-
-	def add_enum_value(self, val):
-		self.add(val, CppTree.ENUM_VALUES)
-
-	def matcher(self, type_):
-		return self.root.regex_matcher(type_)
 
 
 

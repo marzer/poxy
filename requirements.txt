@@ -7,3 +7,4 @@ lxml
 pytomlpp
 schema!=0.7.5
 requests
+trieregex

@@ -1,16 +1,16 @@
-<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<?xml version='1.0' encoding='UTF-8'?>
 <doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
-  <compounddef id="structtest_1_1struct__1_1_1nested__struct" kind="struct" language="C++" prot="public">
-    <compoundname>test::struct_1::nested_struct</compoundname>
-    <includes local="no">code.h</includes>
-    <briefdescription>
-<para>A nested struct. </para>
-    </briefdescription>
-    <detaileddescription>
-<para>More info. </para>
-    </detaileddescription>
-    <location file="src/code.h" line="44" column="1" bodyfile="src/code.h" bodystart="45" bodyend="45"/>
-    <listofallmembers>
+	<compounddef id="structtest_1_1struct__1_1_1nested__struct" kind="struct" language="C++" prot="public">
+		<compoundname>test::struct_1::nested_struct</compoundname>
+		<includes local="no">code.h</includes>
+		<briefdescription>
+			<para>A nested struct. </para>
+		</briefdescription>
+		<detaileddescription>
+			<para>More info. </para>
+		</detaileddescription>
+		<location file="src/code.h" line="55" column="1" bodyfile="src/code.h" bodystart="56" bodyend="56"/>
+		<listofallmembers>
     </listofallmembers>
-  </compounddef>
+	</compounddef>
 </doxygen>

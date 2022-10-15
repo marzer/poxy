@@ -2,7 +2,8 @@
 
 Documentation generator for C++ based on Doxygen and [mosra/m.css](https://mcss.mosra.cz/).
 
-[![Gitter](https://badges.gitter.im/marzer/poxy.svg)](https://gitter.im/marzer/poxy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Sponsor](https://img.shields.io/static/v1?label=sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86&style=flat-square)][sponsor]
+[![Gitter](https://badges.gitter.im/marzer/poxy.svg)][gitter]
 
 -   [Overview](#overview)
 -   [Example](#example)
@@ -167,3 +168,5 @@ Poxy bundles a fork of m.css, used per the [MIT/Expat license](https://github.co
 [configuration options]: https://github.com/marzer/poxy/wiki/Configuration-options
 [feature request]: https://github.com/marzer/poxy/issues/new
 [`currentcolor`]: https://gomakethings.com/currentcolor-and-svgs
+[gitter]: https://gitter.im/marzer/poxy
+[sponsor]: https://github.com/sponsors/marzer

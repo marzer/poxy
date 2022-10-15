@@ -1,30 +1,31 @@
-<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<?xml version='1.0' encoding='UTF-8'?>
 <doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
-  <compounddef id="classtest_1_1template__class__1" kind="class" language="C++" prot="public">
-    <compoundname>test::template_class_1</compoundname>
-    <includes local="no">code.h</includes>
-    <templateparamlist>
-      <param>
-        <type>typename T</type>
-      </param>
-    </templateparamlist>
-    <briefdescription>
-<para>A template class. </para>
-    </briefdescription>
-    <detaileddescription>
-<para>More info. <parameterlist kind="templateparam"><parameteritem>
-<parameternamelist>
-<parametername>T</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>A type. </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-</para>
-    </detaileddescription>
-    <location file="src/code.h" line="139" column="1" bodyfile="src/code.h" bodystart="140" bodyend="140"/>
-    <listofallmembers>
+	<compounddef id="classtest_1_1template__class__1" kind="class" language="C++" prot="public">
+		<compoundname>test::template_class_1</compoundname>
+		<includes local="no">code.h</includes>
+		<templateparamlist>
+			<param>
+				<type>typename T</type>
+			</param>
+		</templateparamlist>
+		<briefdescription>
+			<para>A template class. </para>
+		</briefdescription>
+		<detaileddescription>
+			<para>More info. <parameterlist kind="templateparam">
+					<parameteritem>
+						<parameternamelist>
+							<parametername>T</parametername>
+						</parameternamelist>
+						<parameterdescription>
+							<para>A type. </para>
+						</parameterdescription>
+					</parameteritem>
+				</parameterlist>
+			</para>
+		</detaileddescription>
+		<location file="src/code.h" line="150" column="1" bodyfile="src/code.h" bodystart="151" bodyend="151"/>
+		<listofallmembers>
     </listofallmembers>
-  </compounddef>
+	</compounddef>
 </doxygen>

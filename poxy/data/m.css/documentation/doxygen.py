@@ -348,7 +348,7 @@ def parse_type(state: State, type: ET.Element) -> str:
         if i.tail: out += html.escape(i.tail)
 
     # Remove spacing inside <> and before & and *
-    return fix_type_spacing(out)
+    return fix_type_spacing(out).strip()
 
 def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.Element = None, trim = True, add_css_class = None):
     out = Empty()

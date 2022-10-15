@@ -64,7 +64,7 @@
 .m-code .s1 { color: var(--code-color-strings); } /* Literal.String.Single */
 .m-code .ss { color: var(--code-color-strings); } /* Literal.String.Symbol */
 .m-code .bp { color: var(--code-color-identifiers); font-weight: bold } /* Name.Builtin.Pseudo */
-.m-code .fm { color: var(--code-color-identifiers); } /* Name.Function.Magic */
+.m-code .fm { color: var(--code-color-macros); } /* Name.Function.Magic */
 .m-code .vc { color: var(--code-color-identifiers); } /* Name.Variable.Class */
 .m-code .vg { color: var(--code-color-identifiers); } /* Name.Variable.Global */
 .m-code .vi { color: var(--code-color-identifiers); } /* Name.Variable.Instance */

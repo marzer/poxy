@@ -1,34 +1,34 @@
-<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<?xml version='1.0' encoding='UTF-8'?>
 <doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
-  <compounddef id="concepttest_1_1concept__1" kind="concept">
-    <compoundname>test::concept_1</compoundname>
-    <includes local="no">code.h</includes>
-    <templateparamlist>
-      <param>
-        <type>typename T</type>
-      </param>
-    </templateparamlist>
-    <initializer>template&lt;typename T&gt;
+	<compounddef id="concepttest_1_1concept__1" kind="concept">
+		<compoundname>test::concept_1</compoundname>
+		<includes local="no">code.h</includes>
+		<templateparamlist>
+			<param>
+				<type>typename T</type>
+			</param>
+		</templateparamlist>
+		<initializer>template&lt;typename T&gt;
 concept <ref refid="concepttest_1_1concept__1" kindref="compound">test::concept_1</ref> =  requires(T a) {
 							{
 								<ref refid="cpp/utility/hash" kindref="compound" external="D:/Repositories/poxy/poxy/data/cppreference-doxygen-web.tag.xml">std::hash</ref>&lt;T&gt;{}(a)
 								} -&gt; std::convertible_to&lt;<ref refid="cpp/types/size_t" kindref="compound" external="D:/Repositories/poxy/poxy/data/cppreference-doxygen-web.tag.xml">std::size_t</ref>&gt;;
-						}    </initializer>
-    <briefdescription>
-<para>A concept. </para>
-    </briefdescription>
-    <detaileddescription>
-<para>More info. <parameterlist kind="templateparam"><parameteritem>
-<parameternamelist>
-<parametername>T</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>A type. </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-</para>
-    </detaileddescription>
-    <location file="src/code.h" line="146" column="1"/>
-  </compounddef>
+						}    </initializer><briefdescription>
+			<para>A concept. </para>
+		</briefdescription>
+		<detaileddescription>
+			<para>More info. <parameterlist kind="templateparam">
+					<parameteritem>
+						<parameternamelist>
+							<parametername>T</parametername>
+						</parameternamelist>
+						<parameterdescription>
+							<para>A type. </para>
+						</parameterdescription>
+					</parameteritem>
+				</parameterlist>
+			</para>
+		</detaileddescription>
+		<location file="src/code.h" line="157" column="1"/>
+	</compounddef>
 </doxygen>

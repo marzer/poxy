@@ -1,15 +1,14 @@
-<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<?xml version='1.0' encoding='UTF-8'?>
 <doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
-  <compounddef id="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir">
-    <compoundname>src</compoundname>
-    <innerdir refid="dir_b386e2bd2941a55a3b29ef2f0d4b96ac">src/empty_subfolder</innerdir>
-    <innerdir refid="dir_ed64655242b001a1b5d7ddadcfdd4bf2">src/subfolder</innerdir>
-    <innerfile refid="code_8h">code.h</innerfile>
-    <briefdescription>
-<para>A folder. </para>
-    </briefdescription>
-    <detaileddescription>
-    </detaileddescription>
-    <location file="src/"/>
-  </compounddef>
+	<compounddef id="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir">
+		<compoundname>src</compoundname>
+		<innerdir refid="dir_b386e2bd2941a55a3b29ef2f0d4b96ac">src/empty_subfolder</innerdir>
+		<innerdir refid="dir_ed64655242b001a1b5d7ddadcfdd4bf2">src/subfolder</innerdir>
+		<innerfile refid="code_8h">code.h</innerfile>
+		<briefdescription>
+			<para>A folder. </para>
+		</briefdescription>
+		<detaileddescription></detaileddescription>
+		<location file="src/"/>
+	</compounddef>
 </doxygen>

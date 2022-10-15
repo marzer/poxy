@@ -96,7 +96,7 @@ This will regenerate the amalgamated `poxy.css` that is shipped with documentati
 -   `--update-styles` is implied by `--update-mcss` and `--update-fonts`.
 -   While iterating on styles you **⚠&#xFE0F;do not⚠&#xFE0F;** need to fully regenerate the styles + rebuild some
     documentation to see your changes! That would be monumentally annoying. Instead you should use
-    `theme_test/index.html`, which uses the original version of `poxy.css` (the one that uses `@import`),
+    `theme_sandbox/index.html`, which uses the original version of `poxy.css` (the one that uses `@import`),
     not the amalgamated one.
 
 #### Updating the emoji database

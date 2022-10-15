@@ -13,14 +13,25 @@
 /// \details More info. Here's some C++: \code{cpp}
 /// int foo()
 /// {
-///     return 42_a_numeric_udl;
+/// 	return 42_a_numeric_udl;
 /// }
+///
+///			// code block formatting should be preserved;
+///				// this line should be indented by three tabs, the above by two.
 ///
 /// const char* bar() noexcept
 /// {
-///     return ""_a_string_udl;
+/// 	return ""_a_string_udl;
 /// }
 /// \endcode
+/// \out
+///	this should be a .sh block.
+///		each line should be indended by one more tab than the last.
+///			i have put the block openers and closers right next to each other
+///				without a blank line in between because this breaks parsing in m.css
+///					but poxy has a fix for it.
+///						additionally it should appear 'glued' to the above C++ block, because magic.
+/// \endout
 namespace test
 {
 	/// \brief A function that appears as a friend to a #test::class_1.

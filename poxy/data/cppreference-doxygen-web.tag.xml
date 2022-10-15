@@ -29456,8 +29456,6 @@
     <class kind="class">std::experimental::detected_or</class>
     <class kind="class">std::experimental::detected_or_t</class>
     <class kind="class">std::experimental::disjunction</class>
-    <namespace>std::experimental::erase(std</namespace>
-    <namespace>std::experimental::erase_if(std</namespace>
     <class kind="class">std::experimental::erased_type</class>
     <member kind="variable">
       <type>T</type>

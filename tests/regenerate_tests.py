@@ -11,10 +11,10 @@ from utils import *
 from pathlib import Path
 try:
 	import pytomlpp as toml  # fast; based on toml++ (C++)
-except:
+except ImportError:
 	try:
 		import tomllib as toml  # PEP 680
-	except:
+	except ImportError:
 		import tomli as toml
 
 

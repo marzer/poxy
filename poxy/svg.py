@@ -8,6 +8,7 @@ Functions and classes for working with SVG files.
 """
 
 from lxml import etree
+from . import xmlu
 from .utils import *
 
 
@@ -41,14 +42,7 @@ class SVG(object):
 			svg = re.sub(r'''xlink:href\s*=\s*(["'])\s*#''', rf"xlink:href=\1#{id_namespace}-", svg, flags=re.I)
 
 		# parse into XML
-		parser = etree.XMLParser(
-			remove_blank_text=True,  #
-			recover=True,
-			remove_comments=True,
-			ns_clean=True,
-			encoding=r'utf-8'
-		)
-		self.__xml = etree.fromstring(svg.encode(r'utf-8'), parser=parser)
+		self.__xml = xmlu.read(svg, parser=xmlu.create_parser(remove_blank_text=True))
 		attrs = self.__xml.attrib
 
 		# set/normalize various attributes

@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.10.2 - 2022-10-16
+
+-   fixed crash when tagfile is disabled
+-   fixed a few syntax highlighting edge-cases
+-   fixed non-determinism in XML output formatting
+-   improved performance of syntax highlighting post-process
+-   minor style fixes
+
 ## v0.10.1 - 2022-10-15
 
 -   minor style fixes
