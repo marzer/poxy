@@ -884,7 +884,7 @@ class Pygments(PlainTextFixer):
 
 			# fix numeric UDLs being treated as a separate token
 			text = re.sub(
-				r'<span class="(m[bfhio])">([0-9]+)</span><span class="n">(_[a-zA-Z0-9_]*)</span>',
+				r'<span class="(m[bfhio])">(.*?)</span><span class="n">(_[a-zA-Z0-9_]*)</span>',
 				r'<span class="\1">\2\3</span>', text
 			)
 
