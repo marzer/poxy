@@ -405,6 +405,8 @@ class CodeBlocks(HTMLFixer):
 	__ns_token_expr = re.compile(r'(?:::|[a-zA-Z_][a-zA-Z_0-9]*|::[a-zA-Z_][a-zA-Z_0-9]*|[a-zA-Z_][a-zA-Z_0-9]*::)')
 	__ns_full_expr = re.compile(r'(?:::)?[a-zA-Z_][a-zA-Z_0-9]*(::[a-zA-Z_][a-zA-Z_0-9]*)*(?:::)?')
 	__compound_classes = (r'n', r'no', r'nl', r'kt', r'ne', r'nf', r'nl', r'nx')
+	__func_name = re.compile(r'^\s*[a-zA-Z_][a-zA-Z0-9_]*\s*$')
+	__func_bracket = re.compile(r'^\s*[(]')
 
 	@classmethod
 	def __colourize_compound_def(cls, tags, context):
@@ -415,6 +417,15 @@ class CodeBlocks(HTMLFixer):
 
 		if context.code_blocks.enums.fullmatch(full_str):
 			soup.set_class(tags[-1], 'mi')  # Literal.Number.Integer
+			del tags[-1]
+			while tags and tags[-1].string == '::':
+				del tags[-1]
+			if tags:
+				cls.__colourize_compound_def(tags, context)
+			return True
+
+		if context.code_blocks.functions.fullmatch(full_str):
+			soup.set_class(tags[-1], 'nf')  # Name.Function
 			del tags[-1]
 			while tags and tags[-1].string == '::':
 				del tags[-1]
@@ -448,19 +459,6 @@ class CodeBlocks(HTMLFixer):
 			return True
 
 		return False
-
-	@classmethod
-	def __adjacent_maybe_by_whitespace(cls, a, b):
-		mid = a.next_sibling
-		if mid is b:
-			return True
-		if not mid.next_sibling is b:
-			return False
-		if not isinstance(mid, NavigableString):
-			return False
-		if len(mid.string.strip()) > 0:
-			return False
-		return True
 
 	def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
 		changed = False
@@ -548,7 +546,7 @@ class CodeBlocks(HTMLFixer):
 						if tags:
 							compound_names.append(tags)
 
-				# types and namespaces
+				# types, namespaces, enums, free functions
 				for tags in compound_names:
 					if self.__colourize_compound_def(tags, context):
 						changed_this_block = True
@@ -567,22 +565,21 @@ class CodeBlocks(HTMLFixer):
 						soup.set_class(span, r'k')  # Keyword
 						changed_this_block = True
 
-				# 'using' statements
+				# functions:
 				if 1:
-					spans = code_block(r'span', class_=r'k', string=r'using')
-					for using in spans:
-						next_identifier = using.find_next_sibling(r'span', class_=r'n', string=True)
-						if next_identifier is None:
+					spans = code_block(r'span', class_=r'n', string=True)
+					for func in spans:
+						if not self.__func_name.fullmatch(func.string):
 							continue
-						next_assign = next_identifier.find_next_sibling(r'span', class_=r'o', string=r'=')
-						if next_assign is None:
-							continue
-						if not (
-							self.__adjacent_maybe_by_whitespace(using, next_identifier)
-							and self.__adjacent_maybe_by_whitespace(next_identifier, next_assign)
+						bracket = func.next_sibling
+						if (
+							bracket is None  #
+							or isinstance(bracket, NavigableString)  #
+							or r'p' not in soup.get_classes(bracket)  #
+							or not self.__func_bracket.search(bracket.string)
 						):
 							continue
-						soup.set_class(next_identifier, r'nc')  # Name.Class
+						soup.set_class(func, r'nf')
 						changed_this_block = True
 
 				if changed_this_block:

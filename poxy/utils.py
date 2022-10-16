@@ -48,7 +48,7 @@ def log(logger, msg, level=logging.INFO):
 		return
 	if isinstance(logger, bool):
 		if logger:
-			print(msg, file=sys.stderr if level >= logging.WARNING else sys.stdout)
+			print(msg, file=sys.stderr if level >= logging.WARNING else sys.stdout, flush=True)
 	elif isinstance(logger, logging.Logger):
 		logger.log(level, msg)
 	elif isinstance(logger, io.IOBase):

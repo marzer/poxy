@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+-   added syntax highlighting for functions
+
 ## v0.10.2 - 2022-10-16
 
 -   fixed crash when tagfile is disabled

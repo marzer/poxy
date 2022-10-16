@@ -825,6 +825,8 @@ def parse_xml(context: Context):
 
 	xml_files = get_all_files(context.temp_xml_dir, any=(r'*.xml'))
 	xml_files += [coerce_path(f) for _, (f, _) in context.tagfiles.items()]
+	if context.generate_tagfile and context.tagfile_path:
+		xml_files.append(context.tagfile_path)
 	if not xml_files:
 		return
 
@@ -853,16 +855,17 @@ def parse_xml(context: Context):
 			self.types = Trie()
 			self.enum_values = Trie()
 			self.macros = Trie()
+			self.functions = Trie()
 
 	tries = Tries()
 
-	def str_ok(s: str) -> bool:
-		return s is not None and s and not re.search(r'[<>()|.+]', s)
+	def name_ok(s: str) -> bool:
+		return s is not None and s and not re.search(r'[^a-zA-Z0-9_:]', s)
 
 	def extract_all_members_from_compound_node(compound):
 		nonlocal tries
 		compound_name = compound.find(r'name')
-		if compound_name is None or not str_ok(compound_name.text):
+		if compound_name is None or not name_ok(compound_name.text):
 			return
 		compound_kind = compound.get(r'kind')
 		if compound_kind is None or compound_kind not in (
@@ -871,26 +874,33 @@ def parse_xml(context: Context):
 			return
 		# for files and groups we can only extract #defines because they need the full::namespace::context
 		# otherwise we get all the C++ types
-		member_kinds = (r'namespace', r'class', r'struct', r'union', r'concept', r'typedef', r'enum', r'enumvalue')
+		member_kinds = (
+			r'namespace', r'class', r'struct', r'union', r'concept', r'typedef', r'enum', r'enumvalue', r'function'
+		)
 		if compound_kind in (r'group', r'file'):
 			member_kinds = (r'define', )
 		members = [(m, m.find(r'name')) for m in compound.findall(r'member') if m.get(r'kind') in member_kinds]
-		members = [(m, n) for m, n in members if n is not None and str_ok(n.text)]
+		members = [(m, n) for m, n in members if n is not None and name_ok(n.text)]
 		# first we do everything _except_ enumvalues because they require special handling
 		enums = dict()
 		for member, member_name in members:
 			member_kind = member.get(r'kind')
-			if member_kind == r'namespace':
-				tries.namespaces.add(rf'{compound_name.text}::{member_name.text}')
-			elif member_kind == r'define':
+			if member_kind == r'define':
 				tries.macros.add(compound_name.text)
-			elif member_kind != r'enumvalue':
+			else:
 				member_qualified_name = rf'{compound_name.text}::{member_name.text}'
-				tries.types.add(member_qualified_name)
-				if member_kind == r'enum':
-					refid = member.get(r'refid')
-					if refid:
-						enums[refid] = member_qualified_name
+				if member_kind == r'namespace':
+					tries.namespaces.add(member_qualified_name)
+				elif member_kind == r'function':
+					if member_name.text.startswith(r'operator'):
+						continue
+					tries.functions.add(member_qualified_name)
+				elif member_kind != r'enumvalue':
+					tries.types.add(member_qualified_name)
+					if member_kind == r'enum':
+						refid = member.get(r'refid')
+						if refid:
+							enums[refid] = member_qualified_name
 		# then we do enumvaleus
 		for member, member_name in members:
 			if member.get(r'kind') != r'enumvalue':
@@ -918,19 +928,19 @@ def parse_xml(context: Context):
 			def extract_types_from_tagfile_node(node):
 				nonlocal tries
 				namespaces = [(ns, ns.find(r'name')) for ns in node.findall(r'namespace')]
-				namespaces = [(ns, n) for ns, n in namespaces if n is not None and str_ok(n.text)]
+				namespaces = [(ns, n) for ns, n in namespaces if n is not None and name_ok(n.text)]
 				for namespace, n in namespaces:
 					tries.namespaces.add(n.text)
 
 				classes = [(c, c.find(r'name')) for c in node.findall(r'class')
 					if c.get(r'kind') in (r'class', r'struct', r'union')]
-				classes = [(c, n) for c, n in classes if n is not None and str_ok(n.text)]
+				classes = [(c, n) for c, n in classes if n is not None and name_ok(n.text)]
 				for class_, n in classes:
 					tries.types.add(n.text)
 
 				compounds = [(c, c.find(r'name')) for c in node.findall(r'compound')
 					if c.get(r'kind') in (r'namespace', r'class', r'struct', r'union', r'concept')]
-				compounds = [(c, n) for c, n in compounds if n is not None and str_ok(n.text)]
+				compounds = [(c, n) for c, n in compounds if n is not None and name_ok(n.text)]
 				for compound, n in compounds:
 					if compound.get(r'kind') == r'namespace':
 						tries.namespaces.add(n.text)
@@ -945,7 +955,7 @@ def parse_xml(context: Context):
 		elif root.tag == r'doxygenindex':
 			compounds = [(c, c.find(r'name')) for c in root.findall(r'compound')
 				if c.get(r'kind') in (r'namespace', r'class', r'struct', r'union', r'concept')]
-			compounds = [(c, n) for c, n in compounds if n is not None and str_ok(n.text)]
+			compounds = [(c, n) for c, n in compounds if n is not None and name_ok(n.text)]
 			for compound, n in compounds:
 				if compound.get(r'kind') == r'namespace':
 					tries.namespaces.add(n.text)
@@ -962,6 +972,8 @@ def parse_xml(context: Context):
 		context.code_blocks.enums.add(str(tries.enum_values))
 	if tries.macros:
 		context.code_blocks.macros.add(str(tries.macros))
+	if tries.functions:
+		context.code_blocks.functions.add(str(tries.functions))
 	context.verbose_object(r'Context.code_blocks', context.code_blocks)
 
 
@@ -988,9 +1000,18 @@ def clean_xml(context: Context):
 		# indent() will fuck up the formatting of some 'document-style' elements so we need to find and
 		# extract those elements before prettifying the overall document
 		sacred_elements = []
-		for elem in root.iter(r'programlisting', r'initializer'):
+		sacred_element_ids = set()
+		for elem in root.iter(r'programlisting', r'initializer', r'formula', r'computeroutput'):
+			already_processed = False
+			for parent in elem.iterancestors():
+				if id(parent) in sacred_element_ids:
+					already_processed = True
+					break
+			if already_processed:
+				continue
 			parent = elem.getparent()
 			sacred_elements.append((elem, parent, parent.index(elem)))
+			sacred_element_ids.add(id(elem))
 		for elem, parent, _ in reversed(sacred_elements):
 			parent.remove(elem)
 
@@ -1019,6 +1040,7 @@ def compile_regexes(context: Context):
 		context.code_blocks.types, pattern_prefix=r'(?:::)?', pattern_suffix=r'(?:::)?'
 	)
 	context.code_blocks.enums = regex_or(context.code_blocks.enums, pattern_prefix=r'(?:::)?')
+	context.code_blocks.functions = regex_or(context.code_blocks.functions, pattern_prefix=r'(?:::)?')
 	context.code_blocks.macros = regex_or(context.code_blocks.macros)
 	context.autolinks = tuple([(re.compile(r'(?<![a-zA-Z_])' + expr + r'(?![a-zA-Z_])'), uri)
 		for expr, uri in context.autolinks])

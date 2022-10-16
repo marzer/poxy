@@ -23,6 +23,29 @@
 /// {
 /// 	return ""_a_string_udl;
 /// }
+///
+/// using some_typedef = int; // 'some_typedef' should be coloured as a type
+///
+/// template <typename T>
+/// using templated_typedef = int; // 'T' and 'templated_typedef' should be coloured as types
+///
+/// class qux
+/// {
+///		static int func();
+///		static bool func2(int);
+///		static void func3();
+///
+///		qux()
+///		{
+/// 		func();
+///
+/// 		if (func2(7))
+///			{
+///				qux::func3();
+///			}
+///		}
+/// };
+///
 /// \endcode
 /// \out
 ///	this should be a .sh block.

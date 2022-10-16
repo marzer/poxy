@@ -17,7 +17,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="96" column="1" bodyfile="src/code.h" bodystart="96" bodyend="-1"/>
+				<location file="src/code.h" line="119" column="1" bodyfile="src/code.h" bodystart="119" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="protected-type">
@@ -34,7 +34,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="122" column="1" bodyfile="src/code.h" bodystart="122" bodyend="-1"/>
+				<location file="src/code.h" line="145" column="1" bodyfile="src/code.h" bodystart="145" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="private-type">
@@ -51,7 +51,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="143" column="1" bodyfile="src/code.h" bodystart="143" bodyend="-1"/>
+				<location file="src/code.h" line="166" column="1" bodyfile="src/code.h" bodystart="166" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="friend">
@@ -68,7 +68,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="75" column="13"/>
+				<location file="src/code.h" line="98" column="13"/>
 			</memberdef>
 			<memberdef kind="friend" id="classtest_1_1class__1_1aa74543381abc687ab6e8d46d78e26bf1" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
 				<type>void</type>
@@ -83,7 +83,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="100" column="13" bodyfile="src/code.h" bodystart="100" bodyend="101"/>
+				<location file="src/code.h" line="123" column="13" bodyfile="src/code.h" bodystart="123" bodyend="124"/>
 			</memberdef>
 			<memberdef kind="friend" id="classtest_1_1class__1_1aafb901f5cd0e0fdb9a028c54468989c4" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>struct</type>
@@ -99,7 +99,7 @@
 				<briefdescription></briefdescription>
 				<detaileddescription></detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="74" column="15" bodyfile="src/code.h" bodystart="74" bodyend="-1"/>
+				<location file="src/code.h" line="97" column="15" bodyfile="src/code.h" bodystart="97" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="public-static-attrib">
@@ -118,7 +118,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="80" column="28" bodyfile="src/code.h" bodystart="80" bodyend="-1"/>
+				<location file="src/code.h" line="103" column="28" bodyfile="src/code.h" bodystart="103" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="public-attrib">
@@ -135,7 +135,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="84" column="6" bodyfile="src/code.h" bodystart="84" bodyend="-1"/>
+				<location file="src/code.h" line="107" column="6" bodyfile="src/code.h" bodystart="107" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="protected-static-attrib">
@@ -152,7 +152,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="106" column="23" bodyfile="src/code.h" bodystart="106" bodyend="-1"/>
+				<location file="src/code.h" line="129" column="23" bodyfile="src/code.h" bodystart="129" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="protected-attrib">
@@ -169,7 +169,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="110" column="6" bodyfile="src/code.h" bodystart="110" bodyend="-1"/>
+				<location file="src/code.h" line="133" column="6" bodyfile="src/code.h" bodystart="133" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="private-static-attrib">
@@ -186,7 +186,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="127" column="23" bodyfile="src/code.h" bodystart="127" bodyend="-1"/>
+				<location file="src/code.h" line="150" column="23" bodyfile="src/code.h" bodystart="150" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="private-attrib">
@@ -203,7 +203,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="131" column="6" bodyfile="src/code.h" bodystart="131" bodyend="-1"/>
+				<location file="src/code.h" line="154" column="6" bodyfile="src/code.h" bodystart="154" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="public-static-func">
@@ -222,7 +222,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="88" column="27"/>
+				<location file="src/code.h" line="111" column="27"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="public-func">
@@ -239,7 +239,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="92" column="6"/>
+				<location file="src/code.h" line="115" column="6"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="protected-static-func">
@@ -256,7 +256,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="114" column="23"/>
+				<location file="src/code.h" line="137" column="23"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="protected-func">
@@ -273,7 +273,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="118" column="6"/>
+				<location file="src/code.h" line="141" column="6"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="private-static-func">
@@ -290,7 +290,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="135" column="23"/>
+				<location file="src/code.h" line="158" column="23"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="private-func">
@@ -307,7 +307,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="139" column="6"/>
+				<location file="src/code.h" line="162" column="6"/>
 			</memberdef>
 		</sectiondef>
 		<briefdescription>
@@ -329,7 +329,7 @@
 				</childnode>
 			</node>
 		</collaborationgraph>
-		<location file="src/code.h" line="72" column="1" bodyfile="src/code.h" bodystart="73" bodyend="144"/>
+		<location file="src/code.h" line="95" column="1" bodyfile="src/code.h" bodystart="96" bodyend="167"/>
 		<listofallmembers>
 			<member refid="classtest_1_1class__1_1acca95119536ae9a653b949e083e88bd7" prot="private" virt="non-virtual">
 				<scope>test::class_1</scope>

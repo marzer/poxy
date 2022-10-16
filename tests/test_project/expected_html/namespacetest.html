@@ -86,7 +86,29 @@
 <span class="k">const</span> <span class="k">char</span><span class="o">*</span> <span class="nf">bar</span><span class="p">()</span> <span class="k">noexcept</span>
 <span class="p">{</span>
     <span class="k">return</span> <span class="s">""_a_string_udl</span><span class="p">;</span>
-<span class="p">}</span></pre><pre class="m-console"><span class="go">this should be a .sh block.</span>
+<span class="p">}</span>
+
+<span class="k">using</span> <span class="nc">some_typedef</span> <span class="o">=</span> <span class="k">int</span><span class="p">;</span> <span class="c1">// 'some_typedef' should be coloured as a type</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="o">&gt;</span>
+<span class="k">using</span> <span class="nc">templated_typedef</span> <span class="o">=</span> <span class="k">int</span><span class="p">;</span> <span class="c1">// 'T' and 'templated_typedef' should be coloured as types</span>
+
+<span class="k">class</span> <span class="nc">qux</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">int</span> <span class="nf">func</span><span class="p">();</span>
+    <span class="k">static</span> <span class="k">bool</span> <span class="nf">func2</span><span class="p">(</span><span class="k">int</span><span class="p">);</span>
+    <span class="k">static</span> <span class="k">void</span> <span class="nf">func3</span><span class="p">();</span>
+
+    <span class="nf">qux</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="nf">func</span><span class="p">();</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nf">func2</span><span class="p">(</span><span class="mi">7</span><span class="p">))</span>
+        <span class="p">{</span>
+            <span class="n">qux</span><span class="o">::</span><span class="nf">func3</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">};</span></pre><pre class="m-console"><span class="go">this should be a .sh block.</span>
 <span class="go">    each line should be indended by one more tab than the last.</span>
 <span class="go">        i have put the block openers and closers right next to each other</span>
 <span class="go">            without a blank line in between because this breaks parsing in m.css</span>

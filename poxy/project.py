@@ -804,6 +804,9 @@ class Defaults(object):
 		r'*.h', r'*.hh', r'*.hxx', r'*.hpp', r'*.h++', r'*.ixx', r'*.inc', r'*.markdown', r'*.md', r'*.dox'
 	}
 	# code block syntax highlighting only
+	#
+	# note: we don't need to be comprehensive for the std namespace symbols;
+	# those will get added from the cppreference tagfile
 	cb_enums = {r'(?:std::)?ios(?:_base)?::(?:app|binary|in|out|trunc|ate)'}
 	cb_macros = {
 		# standard builtins:
@@ -924,6 +927,7 @@ class Defaults(object):
 		r'[Vv]ec(?:tor)?[1-4][hifd]?',
 		r'[Mm]at(?:rix)?[1-4](?:[xX][1-4])?[hifd]?'
 	}
+	cb_functions = {regex_trie(r'std::as_const', r'std::move', r'std::forward')}
 
 
 
@@ -1016,6 +1020,7 @@ class CodeBlocks(object):
 		Optional(r'numeric_literals'): ValueOrArray(str, name=r'numeric_literals'),  # deprecated
 		Optional(r'enums'): ValueOrArray(str, name=r'enums'),
 		Optional(r'namespaces'): ValueOrArray(str, name=r'namespaces'),
+		Optional(r'functions'): ValueOrArray(str, name=r'functions'),
 	}
 
 	def __init__(self, config, macros):
@@ -1023,6 +1028,7 @@ class CodeBlocks(object):
 		self.macros = copy.deepcopy(Defaults.cb_macros)
 		self.enums = copy.deepcopy(Defaults.cb_enums)
 		self.namespaces = copy.deepcopy(Defaults.cb_namespaces)
+		self.functions = copy.deepcopy(Defaults.cb_functions)
 
 		if r'code_blocks' in config:
 			config = config['code_blocks']
@@ -1050,6 +1056,12 @@ class CodeBlocks(object):
 					namespace = ns.strip()
 					if namespace:
 						self.namespaces.add(namespace)
+
+			if 'functions' in config:
+				for f in coerce_collection(config['functions']):
+					function = f.strip()
+					if function:
+						self.functions.add(function)
 
 		for k, v in macros.items():
 			define = k

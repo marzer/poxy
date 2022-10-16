@@ -360,14 +360,6 @@ pre.m-code + pre.m-console
 	background-color: var(--console-background-color);
 }
 
-/* code blocks - keywords */
-.m-code .kt,
-.m-code .k,
-.m-code .nc
-{
-	font-weight: normal;
-}
-
 /* code blocks - implementation details */
 pre.poxy-impl,
 code.poxy-impl

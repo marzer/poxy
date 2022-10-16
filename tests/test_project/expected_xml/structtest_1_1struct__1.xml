@@ -37,7 +37,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="60" column="1" bodyfile="src/code.h" bodystart="61" bodyend="67"/>
+				<location file="src/code.h" line="83" column="1" bodyfile="src/code.h" bodystart="84" bodyend="90"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="public-static-attrib">
@@ -54,7 +54,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="51" column="23" bodyfile="src/code.h" bodystart="51" bodyend="-1"/>
+				<location file="src/code.h" line="74" column="23" bodyfile="src/code.h" bodystart="74" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<briefdescription>
@@ -63,7 +63,7 @@
 		<detaileddescription>
 			<para>More info. </para>
 		</detaileddescription>
-		<location file="src/code.h" line="47" column="1" bodyfile="src/code.h" bodystart="48" bodyend="68"/>
+		<location file="src/code.h" line="70" column="1" bodyfile="src/code.h" bodystart="71" bodyend="91"/>
 		<listofallmembers>
 			<member refid="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0c" prot="public" virt="non-virtual">
 				<scope>test::struct_1</scope>
