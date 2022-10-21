@@ -97,6 +97,7 @@ def string_descendants(starting_tag, filter=None):
 
 
 def add_class(tag, classes):
+	assert tag is not None
 	appended = False
 	if 'class' not in tag.attrs:
 		tag['class'] = []
@@ -111,6 +112,7 @@ def add_class(tag, classes):
 
 
 def remove_class(tag, classes):
+	assert tag is not None
 	removed = False
 	if 'class' in tag.attrs:
 		if not is_collection(classes):
@@ -126,18 +128,32 @@ def remove_class(tag, classes):
 
 
 def set_class(tag, classes):
+	assert tag is not None
 	tag['class'] = []
 	add_class(tag, classes)
 
 
 
-def get_classes(tag):
+def get_classes(tag) -> list:
+	assert tag is not None
 	if 'class' not in tag.attrs:
 		return []
 	classes = tag['class']
 	if not is_collection(classes):
 		classes = [classes]
 	return [str(c) for c in classes]
+
+
+
+def has_any_classes(tag, *classes) -> bool:
+	assert tag is not None
+	if 'class' not in tag.attrs:
+		return False
+	has = get_classes(tag)
+	for cls in classes:
+		if cls in has:
+			return True
+	return False
 
 
 

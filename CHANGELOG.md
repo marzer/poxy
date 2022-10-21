@@ -1,8 +1,9 @@
 # Changelog
 
-## Unreleased
+## v0.11.0 - 2022-10-21
 
 -   added syntax highlighting for functions
+-   improved syntax highlighting of typenames
 
 ## v0.10.2 - 2022-10-16
 

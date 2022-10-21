@@ -404,59 +404,62 @@ class CodeBlocks(HTMLFixer):
 
 	__ns_token_expr = re.compile(r'(?:::|[a-zA-Z_][a-zA-Z_0-9]*|::[a-zA-Z_][a-zA-Z_0-9]*|[a-zA-Z_][a-zA-Z_0-9]*::)')
 	__ns_full_expr = re.compile(r'(?:::)?[a-zA-Z_][a-zA-Z_0-9]*(::[a-zA-Z_][a-zA-Z_0-9]*)*(?:::)?')
-	__compound_classes = (r'n', r'no', r'nl', r'kt', r'ne', r'nf', r'nl', r'nx')
+	__compound_starter_classes = ( # must not contain: fm, o, p, nc, mi, nf, nn
+		r'n', r'no', r'nl', r'ne', r'nx', r'kt', r'kr', r'nb'
+	)
+	__compound_classes = (*__compound_starter_classes, r'mi', r'nf', r'nc', r'nn')  # must not contain:  fm, o, p
 	__func_name = re.compile(r'^\s*[a-zA-Z_][a-zA-Z0-9_]*\s*$')
 	__func_bracket = re.compile(r'^\s*[(]')
 
 	@classmethod
-	def __colourize_compound_def(cls, tags, context):
+	def __colourize_compound_def(cls, tags, context) -> bool:
 		assert tags
 		assert tags[0].string != '::'
 		assert len(tags) == 1 or tags[-1].string != '::'
 		full_str = ''.join([tag.get_text() for tag in tags])
 
-		if context.code_blocks.enums.fullmatch(full_str):
-			soup.set_class(tags[-1], 'mi')  # Literal.Number.Integer
+		def colourize_case(c: str) -> bool:
+			nonlocal cls
+			nonlocal tags
+			changed = False
+			if soup.get_classes(tags[-1]) != [c]:
+				soup.set_class(tags[-1], c)
+				changed = True
 			del tags[-1]
-			while tags and tags[-1].string == '::':
+			while tags and tags[-1].string == r'::':
 				del tags[-1]
 			if tags:
-				cls.__colourize_compound_def(tags, context)
-			return True
+				changed = cls.__colourize_compound_def(tags, context) or changed
+			return changed
+
+		if context.code_blocks.enums.fullmatch(full_str):
+			return colourize_case(r'mi')  # Literal.Number.Integer
 
 		if context.code_blocks.functions.fullmatch(full_str):
-			soup.set_class(tags[-1], 'nf')  # Name.Function
-			del tags[-1]
-			while tags and tags[-1].string == '::':
-				del tags[-1]
-			if tags:
-				cls.__colourize_compound_def(tags, context)
-			return True
+			return colourize_case(r'nf')  # Name.Function
 
 		if context.code_blocks.types.fullmatch(full_str):
-			soup.set_class(tags[-1], 'nc')  # Name.Class
-			del tags[-1]
-			while tags and tags[-1].string == '::':
-				del tags[-1]
-			if tags:
-				cls.__colourize_compound_def(tags, context)
-			return True
+			return colourize_case(r'nc')  # Name.Class
 
 		while not context.code_blocks.namespaces.fullmatch(full_str):
 			del tags[-1]
-			while tags and tags[-1].string == '::':
+			while tags and tags[-1].string == r'::':
 				del tags[-1]
 			if not tags:
 				break
 			full_str = ''.join([tag.get_text() for tag in tags])
 
 		if tags:
+			changed = False
 			while len(tags) > 1:
-				tags.pop().decompose()
-			tags[0].string = full_str
-			if soup.remove_class(tags[0], cls.__compound_classes):
-				soup.add_class(tags[0], 'nn')  # Name.Namespace
-			return True
+				tags.pop(-1).decompose()
+				changed = True
+			changed = changed or tags[-1].string != full_str
+			tags[-1].string = full_str
+			if soup.get_classes(tags[-1]) != [r'nn']:  # Name.Namespace
+				soup.set_class(tags[-1], r'nn')
+				return True
+			return changed
 
 		return False
 
@@ -500,74 +503,68 @@ class CodeBlocks(HTMLFixer):
 
 					mlc_open = next_open
 
-				# collect all names and glom them all together as compound names
-				spans = code_block('span', class_=self.__compound_classes, string=True)
-				compound_names = []
-				compound_name_evaluated_tags = set()
-				for i in range(0, len(spans)):
-
-					current = spans[i]
-					if id(current) in compound_name_evaluated_tags:
-						continue
-
-					compound_name_evaluated_tags.add(id(current))
-					tags = [current]
-					while True:
-						prev = current.previous_sibling
-						if (
-							prev is None or prev.string is None or isinstance(prev, NavigableString)
-							or 'class' not in prev.attrs or prev['class'][0] not in (*self.__compound_classes, r'o')
-							or not self.__ns_token_expr.fullmatch(prev.string)
-						):
-							break
-						current = prev
-						tags.insert(0, current)
-						compound_name_evaluated_tags.add(id(current))
-
-					current = spans[i]
-					while True:
-						nxt = current.next_sibling
-						if (
-							nxt is None or nxt.string is None or isinstance(nxt, NavigableString)
-							or 'class' not in nxt.attrs or nxt['class'][0] not in (*self.__compound_classes, r'o')
-							or not self.__ns_token_expr.fullmatch(nxt.string)
-						):
-							break
-						current = nxt
-						tags.append(current)
-						compound_name_evaluated_tags.add(id(current))
-
-					full_str = ''.join([tag.get_text() for tag in tags])
-					if self.__ns_full_expr.fullmatch(full_str):
-						while tags and tags[0].string == '::':
-							del tags[0]
-						while tags and tags[-1].string == '::':
-							del tags[-1]
-						if tags:
-							compound_names.append(tags)
-
-				# types, namespaces, enums, free functions
-				for tags in compound_names:
-					if self.__colourize_compound_def(tags, context):
-						changed_this_block = True
-
-				# preprocessor macros
-				spans = code_block('span', class_=('n', 'nl', 'kt', 'nc', 'nf'), string=True)
+				# macros
+				spans = code_block(r'span', class_=self.__compound_classes, string=True)
 				for span in spans:
 					if context.code_blocks.macros.fullmatch(span.get_text()):
 						soup.set_class(span, r'fm')  # Name.Function.Magic
 						changed_this_block = True
 
-				# misidentifed keywords
-				spans = code_block('span', class_=('nf', 'nb', 'kt', 'nc', 'kr'), string=True)
-				for span in spans:
-					if (span.string in self.__keywords):
-						soup.set_class(span, r'k')  # Keyword
-						changed_this_block = True
+				if 1:
+					# collect all names and glom them all together as compound names
+					spans = code_block(r'span', class_=self.__compound_starter_classes, string=True)
+					compound_names = []
+					compound_name_evaluated_tags = set()
+					for i in range(0, len(spans)):
+
+						current = spans[i]
+						if id(current) in compound_name_evaluated_tags:
+							continue
+
+						compound_name_evaluated_tags.add(id(current))
+						tags = [current]
+						while True:
+							prev = current.previous_sibling
+							if (
+								prev is None or prev.string is None or isinstance(prev, NavigableString)
+								or not soup.has_any_classes(prev, *self.__compound_classes, r'o', r'p')
+								or not self.__ns_token_expr.fullmatch(prev.string)
+							):
+								break
+							current = prev
+							tags.insert(0, current)
+							compound_name_evaluated_tags.add(id(current))
+
+						current = spans[i]
+						while True:
+							nxt = current.next_sibling
+							if (
+								nxt is None or nxt.string is None or isinstance(nxt, NavigableString)
+								or not soup.has_any_classes(nxt, *self.__compound_classes, r'o', r'p')
+								or not self.__ns_token_expr.fullmatch(nxt.string)
+							):
+								break
+							current = nxt
+							tags.append(current)
+							compound_name_evaluated_tags.add(id(current))
+
+						full_str = ''.join([tag.get_text() for tag in tags])
+						if self.__ns_full_expr.fullmatch(full_str):
+							while tags and tags[0].string == '::':
+								del tags[0]
+							while tags and tags[-1].string == '::':
+								del tags[-1]
+							if tags:
+								compound_names.append(tags)
+
+					# types, namespaces, enums, free functions
+					for tags in compound_names:
+						if self.__colourize_compound_def(tags, context):
+							changed_this_block = True
 
 				# functions:
 				if 1:
-					spans = code_block(r'span', class_=r'n', string=True)
+					spans = code_block(r'span', class_=(r'n', r'nc'), string=True)
 					for func in spans:
 						if not self.__func_name.fullmatch(func.string):
 							continue
@@ -580,6 +577,13 @@ class CodeBlocks(HTMLFixer):
 						):
 							continue
 						soup.set_class(func, r'nf')
+						changed_this_block = True
+
+				# keywords
+				spans = code_block(r'span', class_=self.__compound_classes, string=True)
+				for span in spans:
+					if (span.string in self.__keywords):
+						soup.set_class(span, r'k')  # Keyword
 						changed_this_block = True
 
 				if changed_this_block:

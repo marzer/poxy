@@ -50,7 +50,7 @@ SETUP_ARGS = {
 	'version': VERSION,
 	'description': r'Documentation generator for C++.',
 	'long_description_content_type': r'text/markdown',
-	'long_description': f'{README}\n\n{CHANGELOG}'.strip(),
+	'long_description': f'{README}\n<br><br>\n{CHANGELOG}'.strip(),
 	'license': r'MIT',
 	'packages': find_packages(),
 	'author': r'Mark Gillard',

@@ -921,11 +921,8 @@ class Defaults(object):
 		r'[a-zA-Z_][a-zA-Z_0-9]*_t(?:ype(?:def)?|raits)?',
 		regex_trie(r'bool', r'char', r'double', r'float', r'int', r'long', r'short', r'signed', r'unsigned'),
 		#------ documentation-only types
-		r'[S-Z][0-9]?',
-		r'Foo',
-		r'Bar',
-		r'[Vv]ec(?:tor)?[1-4][hifd]?',
-		r'[Mm]at(?:rix)?[1-4](?:[xX][1-4])?[hifd]?'
+		r'(?:[a-zA-Z][a-zA-Z_]+::)*?(?:[a-zA-Z][a-zA-Z_]+_type|Foo|Bar|[Vv]ec(?:tor)?[1-4][hifd]?|[Mm]at(?:rix)?[1-4](?:[xX][1-4])?[hifd]?)',
+		r'[S-Z][0-9]?'
 	}
 	cb_functions = {regex_trie(r'std::as_const', r'std::move', r'std::forward')}
 
