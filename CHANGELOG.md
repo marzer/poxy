@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.1 - 2022-10-23
+
+-   fixed crash when using `<a>` tags in navbar
+
 ## v0.11.0 - 2022-10-21
 
 -   added syntax highlighting for functions

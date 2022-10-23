@@ -348,6 +348,7 @@ def postprocess_xml(context: Context):
 			for (ip, ifn, iid) in hdata[3]:
 				implementation_header_mappings[iid] = hdata
 
+	context.compounds = dict()
 	context.compound_pages = dict()
 	context.compound_kinds = set()
 
@@ -382,292 +383,331 @@ def postprocess_xml(context: Context):
 						deleted = True
 
 		extracted_implementation = False
-		xml_files = get_all_files(context.temp_xml_dir, any=(r'*.xml'))
+		xml_files = [
+			f for f in get_all_files(context.temp_xml_dir, any=(r'*.xml')) if f.name.lower() != r'doxyfile.xml'
+		]
 		all_inners_by_type = {r'namespace': set(), r'class': set(), r'concept': set()}
+
+		# do '<doxygenindex>' first
 		for xml_file in xml_files:
 
-			context.verbose(rf'Pre-processing {xml_file}')
-			if xml_file.name == r'Doxyfile.xml':
+			root = xmlu.read(xml_file)
+			if root.tag != r'doxygenindex':
 				continue
 
-			root = xmlu.read(xml_file)
+			context.verbose(rf'Pre-processing {xml_file}')
 			changed = False
 
-			# the doxygen index
-			if root.tag == r'doxygenindex':
+			# remove entries for files we might have explicitly deleted above
+			for compound in [
+				tag for tag in root.findall(r'compound') if tag.get(r'kind') in (r'file', r'dir', r'concept')
+			]:
+				ref_file = Path(context.temp_xml_dir, rf'{compound.get(r"refid")}.xml')
+				if not ref_file.exists():
+					root.remove(compound)
+					changed = True
 
-				# remove entries for files we might have explicitly deleted above
-				for compound in [
-					tag for tag in root.findall(r'compound') if tag.get(r'kind') in (r'file', r'dir', r'concept')
-				]:
-					ref_file = Path(context.temp_xml_dir, rf'{compound.get(r"refid")}.xml')
-					if not ref_file.exists():
-						root.remove(compound)
-						changed = True
-
-				# enumerate all compound pages and their types for later (e.g. HTML post-process)
-				for tag in root.findall(r'compound'):
-					refid = tag.get(r'refid')
-					filename = refid
-					if filename == r'indexpage':
-						filename = r'index'
-					filename = filename + r'.html'
-					context.compound_pages[filename] = {
-						r'kind': tag.get(r'kind'),
-						r'name': tag.find(r'name').text,
-						r'refid': refid
-					}
-					context.compound_kinds.add(tag.get(r'kind'))
-				context.verbose_value(r'Context.compound_pages', context.compound_pages)
-				context.verbose_value(r'Context.compound_kinds', context.compound_kinds)
-
-			# some other compound definition
-			else:
-				compounddef = root.find(r'compounddef')
-				if compounddef is None:
-					context.warning(rf'{xml_file} did not contain a <compounddef>!')
-					continue
-
-				compound_id = compounddef.get(r'id')
-				if compound_id is None or not compound_id:
-					context.warning(rf'{xml_file} did not have attribute "id"!')
-					continue
-
-				compound_kind = compounddef.get(r'kind')
-				if compound_kind is None or not compound_kind:
-					context.warning(rf'{xml_file} did not have attribute "kind"!')
-					continue
-
-				compound_name = compounddef.find(r'compoundname')
-				if compound_name is None or not compound_name.text:
-					context.warning(rf'{xml_file} did not contain a valid <compoundname>!')
-					continue
-				compound_name = str(compound_name.text).strip()
-
-				if compound_kind != r'page':
-
-					# merge user-defined sections with the same name
-					sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
-					sections = dict()
-					for section in sectiondefs:
-						header = section.find(r'header')
-						if header is not None and header.text:
-							if header.text not in sections:
-								sections[header.text] = []
-						sections[header.text].append(section)
-					for key, vals in sections.items():
-						if len(vals) > 1:
-							first_section = vals.pop(0)
-							for section in vals:
-								for member in section.findall(r'memberdef'):
-									section.remove(member)
-									first_section.append(member)
-								compounddef.remove(section)
-								changed = True
-
-					# sort user-defined sections based on their name
-					sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
-					sectiondefs = [s for s in sectiondefs if s.find(r'header') is not None]
-					for section in sectiondefs:
-						compounddef.remove(section)
-					sectiondefs.sort(key=lambda s: s.find(r'header').text)
-					for section in sectiondefs:
-						compounddef.append(section)
-						changed = True
-
-					# per-section stuff
-					for section in compounddef.findall(r'sectiondef'):
-
-						# remove members which are listed multiple times because doxygen is idiotic:
-						members = [tag for tag in section.findall(r'memberdef')]
-						for i in range(len(members) - 1, 0, -1):
-							for j in range(i):
-								if members[i].get(r'id') == members[j].get(r'id'):
-									section.remove(members[i])
-									changed = True
-									break
-
-						# fix keywords like 'friend' erroneously included in the type
-						if 1:
-
-							members = [
-								m for m in section.findall(r'memberdef')
-								if m.get(r'kind') in (r'friend', r'function', r'variable')
-							]
-
-							# leaked keywords
-							attribute_keywords = (
-								(r'constexpr', r'constexpr', r'yes'),  #
-								(r'constinit', r'constinit', r'yes'),
-								(r'consteval', r'consteval', r'yes'),
-								(r'explicit', r'explicit', r'yes'),
-								(r'static', r'static', r'yes'),
-								(r'friend', None, None),
-								(r'extern', None, None),
-								(r'inline', r'inline', r'yes'),
-								(r'virtual', r'virt', r'virtual')
-							)
-							for member in members:
-								type = member.find(r'type')
-								if type is None or type.text is None:
-									continue
-								matched_bad_keyword = True
-								while matched_bad_keyword:
-									matched_bad_keyword = False
-									for kw, attr, attr_value in attribute_keywords:
-										if type.text == kw:  # constructors
-											type.text = ''
-										elif type.text.startswith(kw + ' '):
-											type.text = type.text[len(kw):].strip()
-										elif type.text.endswith(' ' + kw):
-											type.text = type.text[:len(kw)].strip()
-										else:
-											continue
-										matched_bad_keyword = True
-										changed = True
-										if attr is not None:
-											member.set(attr, attr_value)
-										elif kw == r'friend':
-											member.set(r'kind', r'friend')
-
-						# fix goofy parsing of trailing return types
-						if 1:
-
-							members = [
-								m for m in section.findall(r'memberdef') if m.get(r'kind') in (r'friend', r'function')
-							]
-
-							# trailing return type bug (https://github.com/mosra/m.css/issues/94)
-							for member in members:
-								type_elem = member.find(r'type')
-								if type_elem is None or type_elem.text != r'auto':
-									continue
-								args_elem = member.find(r'argsstring')
-								if args_elem is None or not args_elem.text or args_elem.text.find(r'decltype') != -1:
-									continue
-								match = re.search(r'^(.*?)\s*->\s*([a-zA-Z][a-zA-Z0-9_::*&<>\s]+?)\s*$', args_elem.text)
-								if match:
-									args_elem.text = str(match[1])
-									trailing_return_type = str(match[2]).strip()
-									trailing_return_type = re.sub(r'\s+', r' ', trailing_return_type)
-									trailing_return_type = re.sub(r'(::|[<>*&])\s+', r'\1', trailing_return_type)
-									trailing_return_type = re.sub(r'\s+(::|[<>*&])', r'\1', trailing_return_type)
-									type_elem.text = trailing_return_type
-									changed = True
-
-						# re-sort members to override Doxygen's weird and stupid sorting 'rules'
-						if 1:
-							sort_members_by_name = lambda tag: tag.find(r'name').text
-							members = [tag for tag in section.findall(r'memberdef')]
-							for tag in members:
-								section.remove(tag)
-							# fmt: off
-							# yapf: disable
-							groups = [
-								([tag for tag in members if tag.get(r'kind') == r'define'], True),  #
-								([tag for tag in members if tag.get(r'kind') == r'typedef'], True),
-								([tag for tag in members if tag.get(r'kind') == r'concept'], True),
-								([tag for tag in members if tag.get(r'kind') == r'enum'], True),
-								([tag for tag in members if tag.get(r'kind') == r'variable' and tag.get(r'static') == r'yes'], True),
-								([tag for tag in members if tag.get(r'kind') == r'variable' and tag.get(r'static') == r'no'], compound_kind not in (r'class', r'struct', r'union')),
-								([tag for tag in members if tag.get(r'kind') == r'function' and tag.get(r'static') == r'yes'], True),
-								([tag for tag in members if tag.get(r'kind') == r'function' and tag.get(r'static') == r'no'], True),
-								([tag for tag in members if tag.get(r'kind') == r'friend'], True)
-							]
-							# yapf: enable
-							# fmt: on
-							for group, sort in groups:
-								if sort:
-									group.sort(key=sort_members_by_name)
-								for tag in group:
-									members.remove(tag)
-									section.append(tag)
-									changed = True
-							# if we've missed any groups just glob them on the end
-							if members:
-								members.sort(key=sort_members_by_name)
-								changed = True
-								for tag in members:
-									section.append(tag)
-
-				# namespaces
-				if compound_kind == r'namespace':
-
-					# set inline namespaces
-					if context.inline_namespaces:
-						for nsid in inline_namespace_ids:
-							if compound_id == nsid:
-								compounddef.set(r'inline', r'yes')
-								changed = True
-								break
-
-				# dirs
-				if compound_kind == r'dir':
-
-					# remove implementation headers
-					if context.implementation_headers:
-						for innerfile in compounddef.findall(r'innerfile'):
-							if innerfile.get(r'refid') in implementation_header_mappings:
-								compounddef.remove(innerfile)
-								changed = True
-
-				# files
-				if compound_kind == r'file':
-
-					# simplify the XML by removing unnecessary junk
-					for tag in (r'includes', r'includedby', r'incdepgraph', r'invincdepgraph'):
-						for t in compounddef.findall(tag):
-							compounddef.remove(t)
-							changed = True
-
-					# rip the good bits out of implementation headers
-					if context.implementation_headers:
-						iid = compound_id
-						if iid in implementation_header_mappings:
-							hid = implementation_header_mappings[iid][2]
-							innernamespaces = compounddef.findall(r'innernamespace')
-							if innernamespaces:
-								implementation_header_innernamespaces[
-									hid] = implementation_header_innernamespaces[hid] + innernamespaces
-								extracted_implementation = True
-								if iid in implementation_header_unused_values:
-									del implementation_header_unused_values[iid]
-								for tag in innernamespaces:
-									compounddef.remove(tag)
-									changed = True
-							sectiondefs = compounddef.findall(r'sectiondef')
-							if sectiondefs:
-								implementation_header_sectiondefs[
-									hid] = implementation_header_sectiondefs[hid] + sectiondefs
-								extracted_implementation = True
-								if iid in implementation_header_unused_values:
-									del implementation_header_unused_values[iid]
-								for tag in sectiondefs:
-									compounddef.remove(tag)
-									changed = True
-
-				# groups and namespaces
-				if compound_kind in (r'group', r'namespace'):
-
-					# fix inner(class|namespace|group|concept) sorting
-					inners = [tag for tag in compounddef.iterchildren() if tag.tag.startswith(r'inner')]
-					if inners:
-						changed = True
-						for tag in inners:
-							compounddef.remove(tag)
-						inners.sort(key=lambda tag: tag.text)
-						for tag in inners:
-							compounddef.append(tag)
-
-				# all namespace 'innerXXXXXX'
-				if compound_kind in (r'namespace', r'struct', r'class', r'union', r'concept'):
-					if compound_name.rfind(r'::') != -1:
-						all_inners_by_type[r'class' if compound_kind in (r'struct', r'union') else compound_kind].add(
-							(compound_id, compound_name)
-						)
+			# enumerate all compound pages and their types for later (e.g. HTML post-process)
+			for tag in root.findall(r'compound'):
+				refid = tag.get(r'refid').strip()
+				assert refid
+				filename = refid
+				if refid == r'indexpage':
+					filename = r'index'
+				filename = filename + r'.html'
+				context.compounds[refid] = {
+					r'refid': refid,
+					r'filename': filename,
+					r'kind': tag.get(r'kind'),
+					r'name': tag.find(r'name').text,
+					r'title': tag.find(r'title').text.strip() if tag.find(r'title') is not None else r''
+				}
+				context.compound_pages[filename] = context.compounds[refid]
+				context.compound_kinds.add(tag.get(r'kind'))
 
 			if changed:
 				xmlu.write(root, xml_file)
+
+		# now do '<doxygen>' files
+		for xml_file in xml_files:
+
+			root = xmlu.read(xml_file)
+			if root.tag != r'doxygen':
+				continue
+
+			context.verbose(rf'Pre-processing {xml_file}')
+			changed = False
+
+			compounddef = root.find(r'compounddef')
+			if compounddef is None:
+				context.warning(rf'{xml_file} did not contain a <compounddef>!')
+				continue
+
+			compound_id = compounddef.get(r'id')
+			if compound_id is None or not compound_id:
+				context.warning(rf'{xml_file} did not have attribute "id"!')
+				continue
+
+			compound_kind = compounddef.get(r'kind')
+			if compound_kind is None or not compound_kind:
+				context.warning(rf'{xml_file} did not have attribute "kind"!')
+				continue
+
+			compound_name = compounddef.find(r'compoundname')
+			if compound_name is None or not compound_name.text:
+				context.warning(rf'{xml_file} did not contain a valid <compoundname>!')
+				continue
+			compound_name = str(compound_name.text).strip()
+
+			compound_filename = rf'{compound_id}.html'
+			if compound_id == r'indexpage':
+				compound_filename = r'index.html'
+
+			compound_title = compounddef.find(r'title')
+			compound_title = compound_title.text if compound_title is not None else compound_name
+
+			# add entry to compounds etc
+			if compound_id not in context.compounds:
+				context.compounds[compound_id] = {
+					r'refid': compound_id,
+					r'filename': compound_filename,
+					r'kind': compound_kind,
+					r'name': compound_name,
+					r'title': compound_title
+				}
+				context.compound_pages[compound_filename] = context.compounds[compound_id]
+			compound_page = context.compound_pages[compound_filename]
+			if r'title' not in compound_page or not compound_page[r'title']:
+				compound_page[r'title'] = compound_title
+
+			if compound_kind != r'page':
+
+				# merge user-defined sections with the same name
+				sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
+				sections = dict()
+				for section in sectiondefs:
+					header = section.find(r'header')
+					if header is not None and header.text:
+						if header.text not in sections:
+							sections[header.text] = []
+					sections[header.text].append(section)
+				for key, vals in sections.items():
+					if len(vals) > 1:
+						first_section = vals.pop(0)
+						for section in vals:
+							for member in section.findall(r'memberdef'):
+								section.remove(member)
+								first_section.append(member)
+							compounddef.remove(section)
+							changed = True
+
+				# sort user-defined sections based on their name
+				sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
+				sectiondefs = [s for s in sectiondefs if s.find(r'header') is not None]
+				for section in sectiondefs:
+					compounddef.remove(section)
+				sectiondefs.sort(key=lambda s: s.find(r'header').text)
+				for section in sectiondefs:
+					compounddef.append(section)
+					changed = True
+
+				# per-section stuff
+				for section in compounddef.findall(r'sectiondef'):
+
+					# remove members which are listed multiple times because doxygen is idiotic:
+					members = [tag for tag in section.findall(r'memberdef')]
+					for i in range(len(members) - 1, 0, -1):
+						for j in range(i):
+							if members[i].get(r'id') == members[j].get(r'id'):
+								section.remove(members[i])
+								changed = True
+								break
+
+					# fix keywords like 'friend' erroneously included in the type
+					if 1:
+
+						members = [
+							m for m in section.findall(r'memberdef')
+							if m.get(r'kind') in (r'friend', r'function', r'variable')
+						]
+
+						# leaked keywords
+						attribute_keywords = (
+							(r'constexpr', r'constexpr', r'yes'),  #
+							(r'constinit', r'constinit', r'yes'),
+							(r'consteval', r'consteval', r'yes'),
+							(r'explicit', r'explicit', r'yes'),
+							(r'static', r'static', r'yes'),
+							(r'friend', None, None),
+							(r'extern', None, None),
+							(r'inline', r'inline', r'yes'),
+							(r'virtual', r'virt', r'virtual')
+						)
+						for member in members:
+							type = member.find(r'type')
+							if type is None or type.text is None:
+								continue
+							matched_bad_keyword = True
+							while matched_bad_keyword:
+								matched_bad_keyword = False
+								for kw, attr, attr_value in attribute_keywords:
+									if type.text == kw:  # constructors
+										type.text = ''
+									elif type.text.startswith(kw + ' '):
+										type.text = type.text[len(kw):].strip()
+									elif type.text.endswith(' ' + kw):
+										type.text = type.text[:len(kw)].strip()
+									else:
+										continue
+									matched_bad_keyword = True
+									changed = True
+									if attr is not None:
+										member.set(attr, attr_value)
+									elif kw == r'friend':
+										member.set(r'kind', r'friend')
+
+					# fix goofy parsing of trailing return types
+					if 1:
+
+						members = [
+							m for m in section.findall(r'memberdef') if m.get(r'kind') in (r'friend', r'function')
+						]
+
+						# trailing return type bug (https://github.com/mosra/m.css/issues/94)
+						for member in members:
+							type_elem = member.find(r'type')
+							if type_elem is None or type_elem.text != r'auto':
+								continue
+							args_elem = member.find(r'argsstring')
+							if args_elem is None or not args_elem.text or args_elem.text.find(r'decltype') != -1:
+								continue
+							match = re.search(r'^(.*?)\s*->\s*([a-zA-Z][a-zA-Z0-9_::*&<>\s]+?)\s*$', args_elem.text)
+							if match:
+								args_elem.text = str(match[1])
+								trailing_return_type = str(match[2]).strip()
+								trailing_return_type = re.sub(r'\s+', r' ', trailing_return_type)
+								trailing_return_type = re.sub(r'(::|[<>*&])\s+', r'\1', trailing_return_type)
+								trailing_return_type = re.sub(r'\s+(::|[<>*&])', r'\1', trailing_return_type)
+								type_elem.text = trailing_return_type
+								changed = True
+
+					# re-sort members to override Doxygen's weird and stupid sorting 'rules'
+					if 1:
+						sort_members_by_name = lambda tag: tag.find(r'name').text
+						members = [tag for tag in section.findall(r'memberdef')]
+						for tag in members:
+							section.remove(tag)
+						# fmt: off
+						# yapf: disable
+						groups = [
+							([tag for tag in members if tag.get(r'kind') == r'define'], True),  #
+							([tag for tag in members if tag.get(r'kind') == r'typedef'], True),
+							([tag for tag in members if tag.get(r'kind') == r'concept'], True),
+							([tag for tag in members if tag.get(r'kind') == r'enum'], True),
+							([tag for tag in members if tag.get(r'kind') == r'variable' and tag.get(r'static') == r'yes'], True),
+							([tag for tag in members if tag.get(r'kind') == r'variable' and tag.get(r'static') == r'no'], compound_kind not in (r'class', r'struct', r'union')),
+							([tag for tag in members if tag.get(r'kind') == r'function' and tag.get(r'static') == r'yes'], True),
+							([tag for tag in members if tag.get(r'kind') == r'function' and tag.get(r'static') == r'no'], True),
+							([tag for tag in members if tag.get(r'kind') == r'friend'], True)
+						]
+						# yapf: enable
+						# fmt: on
+						for group, sort in groups:
+							if sort:
+								group.sort(key=sort_members_by_name)
+							for tag in group:
+								members.remove(tag)
+								section.append(tag)
+								changed = True
+						# if we've missed any groups just glob them on the end
+						if members:
+							members.sort(key=sort_members_by_name)
+							changed = True
+							for tag in members:
+								section.append(tag)
+
+			# namespaces
+			if compound_kind == r'namespace':
+
+				# set inline namespaces
+				if context.inline_namespaces:
+					for nsid in inline_namespace_ids:
+						if compound_id == nsid:
+							compounddef.set(r'inline', r'yes')
+							changed = True
+							break
+
+			# dirs
+			if compound_kind == r'dir':
+
+				# remove implementation headers
+				if context.implementation_headers:
+					for innerfile in compounddef.findall(r'innerfile'):
+						if innerfile.get(r'refid') in implementation_header_mappings:
+							compounddef.remove(innerfile)
+							changed = True
+
+			# files
+			if compound_kind == r'file':
+
+				# simplify the XML by removing unnecessary junk
+				for tag in (r'includes', r'includedby', r'incdepgraph', r'invincdepgraph'):
+					for t in compounddef.findall(tag):
+						compounddef.remove(t)
+						changed = True
+
+				# rip the good bits out of implementation headers
+				if context.implementation_headers:
+					iid = compound_id
+					if iid in implementation_header_mappings:
+						hid = implementation_header_mappings[iid][2]
+						innernamespaces = compounddef.findall(r'innernamespace')
+						if innernamespaces:
+							implementation_header_innernamespaces[
+								hid] = implementation_header_innernamespaces[hid] + innernamespaces
+							extracted_implementation = True
+							if iid in implementation_header_unused_values:
+								del implementation_header_unused_values[iid]
+							for tag in innernamespaces:
+								compounddef.remove(tag)
+								changed = True
+						sectiondefs = compounddef.findall(r'sectiondef')
+						if sectiondefs:
+							implementation_header_sectiondefs[hid
+																] = implementation_header_sectiondefs[hid] + sectiondefs
+							extracted_implementation = True
+							if iid in implementation_header_unused_values:
+								del implementation_header_unused_values[iid]
+							for tag in sectiondefs:
+								compounddef.remove(tag)
+								changed = True
+
+			# groups and namespaces
+			if compound_kind in (r'group', r'namespace'):
+
+				# fix inner(class|namespace|group|concept) sorting
+				inners = [tag for tag in compounddef.iterchildren() if tag.tag.startswith(r'inner')]
+				if inners:
+					changed = True
+					for tag in inners:
+						compounddef.remove(tag)
+					inners.sort(key=lambda tag: tag.text)
+					for tag in inners:
+						compounddef.append(tag)
+
+			# all namespace 'innerXXXXXX'
+			if compound_kind in (r'namespace', r'struct', r'class', r'union', r'concept'):
+				if compound_name.rfind(r'::') != -1:
+					all_inners_by_type[r'class' if compound_kind in (r'struct', r'union') else compound_kind].add(
+						(compound_id, compound_name)
+					)
+
+			if changed:
+				xmlu.write(root, xml_file)
+
+		context.verbose_value(r'Context.compounds', context.compounds)
+		context.verbose_value(r'Context.compound_pages', context.compound_pages)
+		context.verbose_value(r'Context.compound_kinds', context.compound_kinds)
 
 		# fix up namespaces/classes that are missing <innerXXXX> nodes
 		if 1:
@@ -1167,7 +1207,11 @@ def preprocess_mcss_config(context: Context):
 			bar = [b for b in bar if b is not None]
 			# handle theme and repo links
 			for i in range(len(bar)):
-				if bar[i] == r'repo' and context.repo:
+				bar[i] = bar[i].strip()
+				if bar[i] == r'repo':
+					if not context.repo:
+						bar[i] = None
+						continue
 					icon_path = Path(dirs.DATA, context.repo.icon_filename)
 					if icon_path.exists():
 						svg = SVG(icon_path, logger=context.verbose_logger, root_id=r'poxy-repo-icon')
@@ -1189,6 +1233,18 @@ def preprocess_mcss_config(context: Context):
 						+ r'id="poxy-theme-switch" href="javascript:void(null);" role="button" '
 						+ rf'class="poxy-icon theme" onClick="toggle_theme(); return false;">{svg}</a>', []
 					)
+				elif bar[i] in context.compounds:
+					bar[i] = (
+						rf'<a href="{context.compounds[bar[i]]["filename"]}">{context.compounds[bar[i]]["title"]}</a>',
+						[]
+					)
+				elif re.search(r'^\s*<\s*[aA]\s+', bar[i]):
+					bar[i] = (bar[i], [])
+				elif re.search(r'[.]html?\s*$', bar[i], flags=re.I) and not is_uri(bar[i]):
+					if bar[i] in context.compound_pages:
+						bar[i] = (rf'<a href="{bar[i]}">{context.compound_pages[bar[i]]["title"]}</a>', [])
+					else:
+						bar[i] = (rf'<a href="{bar[i]}">{bar[i]}</a>', [])
 			bar = [b for b in bar if b is not None]
 			# automatically overflow onto the second row
 			split = min(max(int(len(bar) / 2) + len(bar) % 2, 2), len(bar))
