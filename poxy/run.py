@@ -395,7 +395,7 @@ def postprocess_xml(context: Context):
 			if root.tag != r'doxygenindex':
 				continue
 
-			context.verbose(rf'Pre-processing {xml_file}')
+			context.verbose(rf'Post-processing {xml_file}')
 			changed = False
 
 			# remove entries for files we might have explicitly deleted above
@@ -435,7 +435,7 @@ def postprocess_xml(context: Context):
 			if root.tag != r'doxygen':
 				continue
 
-			context.verbose(rf'Pre-processing {xml_file}')
+			context.verbose(rf'Post-processing {xml_file}')
 			changed = False
 
 			compounddef = root.find(r'compounddef')
@@ -482,16 +482,16 @@ def postprocess_xml(context: Context):
 
 			if compound_kind != r'page':
 
-				# merge user-defined sections with the same name
+				# merge user-defined sections with the same header name
 				sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
-				sections = dict()
+				sections_with_headers = dict()
 				for section in sectiondefs:
 					header = section.find(r'header')
 					if header is not None and header.text:
-						if header.text not in sections:
-							sections[header.text] = []
-					sections[header.text].append(section)
-				for key, vals in sections.items():
+						if header.text not in sections_with_headers:
+							sections_with_headers[header.text] = []
+						sections_with_headers[header.text].append(section)
+				for key, vals in sections_with_headers.items():
 					if len(vals) > 1:
 						first_section = vals.pop(0)
 						for section in vals:
@@ -1579,6 +1579,7 @@ def run(
 	treat_warnings_as_errors: bool = None,
 	theme: str = None,
 	copy_assets: bool = True,
+	temp_dir: Path = None,
 	**kwargs
 ):
 
@@ -1598,6 +1599,7 @@ def run(
 		treat_warnings_as_errors=treat_warnings_as_errors,
 		theme=theme,
 		copy_assets=copy_assets,
+		temp_dir=temp_dir,
 		**kwargs
 	) as context:
 

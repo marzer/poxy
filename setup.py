@@ -70,7 +70,7 @@ SETUP_ARGS = {
 	r'Source': r'https://github.com/marzer/poxy',
 	r'Tracker': r'https://github.com/marzer/poxy/issues'
 	},
-	'python_requires': r'>=3',
+	r'python_requires': r'>=3.7',
 	'package_data': {
 	r'poxy': [r'data/*', *data_subdirs]
 	},

@@ -85,6 +85,11 @@ def lib_version() -> typing.Tuple[int, int, int]:
 
 
 
+def lib_version_string() -> str:
+	return r'.'.join([str(v) for v in lib_version()])
+
+
+
 def filter_filenames(files, include, exclude):
 	if include is not None:
 		files = [f for f in files if include.search(f.name)]

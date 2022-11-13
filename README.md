@@ -69,8 +69,15 @@ Poxy is a command-line application.
 ```
 usage: poxy [-h] [-v] [--html | --no-html] [--ppinclude <regex>] [--ppexclude <regex>]
             [--theme {light,dark,custom}] [--threads N] [--version] [--xml | --no-xml]
-            [--werror | --no-werror]
+            [--werror | --no-werror] [--bug-report]
             [config]
+
+  _ __   _____  ___   _
+ | '_ \ / _ \ \/ / | | |
+ | |_) | (_) >  <| |_| |
+ | .__/ \___/_/\_\\__, |
+ | |               __/ |
+ |_|              |___/  v0.12.0 - github.com/marzer/poxy
 
 Generate fancy C++ documentation.
 
@@ -90,6 +97,7 @@ options:
   --xml, --no-xml       specify whether XML output is required (default: False)
   --werror, --no-werror
                         override the treating of warnings as errors (default: read from config)
+  --bug-report          captures all output in a zip file for easier bug reporting.
 ```
 
 The basic three-step to using Poxy is similar to Doxygen:

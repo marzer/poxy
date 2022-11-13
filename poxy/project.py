@@ -1367,6 +1367,7 @@ class Context(object):
 		treat_warnings_as_errors: bool,
 		theme: str,
 		copy_assets: bool,
+		temp_dir: Path = None,
 		**kwargs
 	):
 
@@ -1458,13 +1459,16 @@ class Context(object):
 			assert self.input_dir.is_absolute()
 
 			# root temp dir for this run
-			self.temp_dir = re.sub(r'''[!@#$%^&*()+={}<>;:'"_\\/\n\t -]+''', r'_', str(self.input_dir).strip(r'\/'))
-			if len(self.temp_dir) > 256:
-				self.temp_dir = str(self.input_dir)
-				if not self.case_sensitive_paths:
-					self.temp_dir = self.temp_dir.upper()
-				self.temp_dir = sha1(self.temp_dir)
-			self.temp_dir = Path(dirs.TEMP, self.temp_dir)
+			if temp_dir is not None:
+				self.temp_dir = Path(temp_dir).absolute()
+			else:
+				self.temp_dir = re.sub(r'''[!@#$%^&*()+={}<>;:'"_\\/\n\t -]+''', r'_', str(self.input_dir).strip(r'\/'))
+				if len(self.temp_dir) > 256:
+					self.temp_dir = str(self.input_dir)
+					if not self.case_sensitive_paths:
+						self.temp_dir = self.temp_dir.upper()
+					self.temp_dir = sha1(self.temp_dir)
+				self.temp_dir = Path(dirs.TEMP, self.temp_dir)
 			self.verbose_value(r'Context.temp_dir', self.temp_dir)
 			assert self.temp_dir.is_absolute()
 
@@ -1483,7 +1487,7 @@ class Context(object):
 			self.verbose_value(r'Context.xml_dir', self.xml_dir)
 			assert self.xml_dir.is_absolute()
 
-			# html output path (--xml)
+			# html output path (--html)
 			self.html_dir = Path(self.output_dir, r'html')
 			self.verbose_value(r'Context.html_dir', self.html_dir)
 			assert self.html_dir.is_absolute()

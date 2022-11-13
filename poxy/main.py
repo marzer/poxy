@@ -7,8 +7,12 @@
 The various entry-point methods used when poxy is invoked from the command line.
 """
 
+import os
+import sys
 import argparse
 import datetime
+import subprocess
+import zipfile
 from subprocess import CalledProcessError
 from schema import SchemaError
 from .utils import *
@@ -33,11 +37,20 @@ def _invoker(func, **kwargs):
 	except SchemaError as err:
 		print(err, file=sys.stderr)
 		sys.exit(1)
-	except (Error, CalledProcessError) as err:
+	except Error as err:
 		print(rf'Error: {err}', file=sys.stderr)
 		sys.exit(1)
 	except Exception as err:
+		print('\n*************\n', file=sys.stderr)
 		print_exception(err, include_type=True, include_traceback=True, skip_frames=1)
+		print(
+			'*************\n'
+			'\nYou appear to have triggered an internal bug!'
+			'\nPlease re-run poxy with --bug-report and file an issue at github.com/marzer/poxy/issues'
+			'\nMany thanks!'
+			'\n\n*************',
+			file=sys.stderr
+		)
 		sys.exit(1)
 	sys.exit(0)
 
@@ -51,9 +64,21 @@ def main(invoker=True):
 		_invoker(main, invoker=False)
 		return
 
+	# yapf: disable
 	args = argparse.ArgumentParser(
-		description=r'Generate fancy C++ documentation.', formatter_class=argparse.RawTextHelpFormatter
+		description=
+		r'''  _ __   _____  ___   _ ''' '\n'
+		r''' | '_ \ / _ \ \/ / | | |''' '\n'
+		r''' | |_) | (_) >  <| |_| |''' '\n'
+		r''' | .__/ \___/_/\_\\__, |''' '\n'
+		r''' | |               __/ |''' '\n'
+		r''' |_|              |___/ ''' rf' v{lib_version_string()} - github.com/marzer/poxy'
+		'\n\n'
+		r'Generate fancy C++ documentation.',
+		formatter_class=argparse.RawTextHelpFormatter
 	)
+	# yapf: enable
+
 	#--------------------------------------------------------------
 	# public user-facing arguments
 	#--------------------------------------------------------------
@@ -121,6 +146,9 @@ def main(invoker=True):
 		action=argparse.BooleanOptionalAction,
 		help=r"override the treating of warnings as errors (default: read from config)"
 	)
+	args.add_argument(
+		r'--bug-report', action=r'store_true', help=r"captures all output in a zip file for easier bug reporting."
+	)
 	#--------------------------------------------------------------
 	# hidden/developer-only/deprecated/diagnostic arguments
 	#--------------------------------------------------------------
@@ -172,6 +200,11 @@ def main(invoker=True):
 		action=r'store_true',
 		help=argparse.SUPPRESS
 	)
+	args.add_argument(
+		r'--bug-report-internal',  #
+		action=r'store_true',
+		help=argparse.SUPPRESS
+	)
 	args = args.parse_args()
 
 	#--------------------------------------------------------------
@@ -215,6 +248,66 @@ def main(invoker=True):
 		return
 
 	#--------------------------------------------------------------
+	# bug report invocation
+	#--------------------------------------------------------------
+
+	bug_report_directory = (Path.cwd() / r'poxy_bug_report').absolute()
+	bug_report_zip = (Path.cwd() / r'poxy_bug_report.zip').absolute()
+
+	if args.bug_report:
+		bug_report_args = [arg for arg in sys.argv[1:] if arg not in (r'--bug-report', r'--bug-report-internal')]
+
+		print(r'Preparing output paths')
+		delete_directory(bug_report_directory)
+		delete_file(bug_report_zip)
+		os.makedirs(str(bug_report_directory), exist_ok=True)
+
+		print(r'Invoking poxy')
+		result = subprocess.run(
+			args=[r'poxy', *bug_report_args, r'--bug-report-internal'],
+			cwd=str(Path.cwd()),
+			check=False,
+			stdout=subprocess.PIPE,
+			stderr=subprocess.STDOUT,
+			encoding='utf-8'
+		)
+
+		if result.stdout is not None:
+			print(r'Writing stdout')
+			with open(bug_report_directory / r'stdout.txt', r'w', newline='\n', encoding=r'utf-8') as f:
+				f.write(result.stdout)
+
+		if result.stderr is not None:
+			print(r'Writing stderr')
+			with open(bug_report_directory / r'stderr.txt', r'w', newline='\n', encoding=r'utf-8') as f:
+				f.write(result.stderr)
+
+		print(r'Writing metadata')
+		with open(bug_report_directory / r'metadata.txt', r'w', newline='\n', encoding=r'utf-8') as f:
+			print(rf'version: {lib_version()}', file=f)
+			print(rf'args: {bug_report_args}', file=f)
+			print(rf'returncode: {result.returncode}', file=f)
+
+		# zip file
+		print(r'Zipping files')
+		with zipfile.ZipFile(str(bug_report_zip), 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip:
+			file_prefix_len = len(str(bug_report_directory))
+			for file in get_all_files(bug_report_directory, recursive=True):
+				if file.suffix is not None and file.suffix.lower() in (r'.pyc', ):
+					continue
+				relative_file = str(file)[file_prefix_len:].replace('\\', '/').strip('/')
+				zip.write(file, arcname=rf'poxy_bug_report/{relative_file}')
+
+		print(r'Cleaning up')
+		delete_directory(bug_report_directory)
+
+		print(
+			f'Zip generated: {bug_report_zip}\n'
+			'Please attach this file when you make a report at github.com/marzer/poxy/issues, thanks!'
+		)
+		return
+
+	#--------------------------------------------------------------
 	# regular invocation
 	#--------------------------------------------------------------
 
@@ -222,11 +315,19 @@ def main(invoker=True):
 		args.html = False
 		args.xml = True
 
+	output_dir = Path.cwd()
+	temp_dir = None
+	if args.bug_report_internal:
+		output_dir = bug_report_directory / r'output'
+		temp_dir = bug_report_directory / r'temp'
+		args.verbose = True
+		args.nocleanup = True
+
 	with ScopeTimer(r'All tasks', print_start=False, print_end=True) as timer:
 		run(
 			# named args:
 			config_path=args.config,
-			output_dir=Path.cwd(),
+			output_dir=output_dir,
 			output_html=args.html,
 			output_xml=args.xml,
 			threads=args.threads,
@@ -238,6 +339,7 @@ def main(invoker=True):
 			treat_warnings_as_errors=args.werror,
 			theme=args.theme,
 			copy_assets=not args.noassets,
+			temp_dir=temp_dir,
 			# kwargs:
 			xml_v2=args.xml_v2
 		)

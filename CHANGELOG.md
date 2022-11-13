@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.12.0 - 2022-11-13
+
+-   fixed `AttributeError` during XML post-processing (#17) (@wroyca)
+-   added command-line option `--bug-report`
+-   improved diagnostic text in some areas
+
 ## v0.11.1 - 2022-10-23
 
 -   fixed crash when using `<a>` tags in navbar
