@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.12.1 - 2022-11-22
+
+-   fixed `github` and `gitlab` config options not accepting periods (`.`)
+
 ## v0.12.0 - 2022-11-13
 
 -   fixed `AttributeError` during XML post-processing (#17) (@wroyca)

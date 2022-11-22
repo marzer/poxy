@@ -9,7 +9,7 @@ Functions and classes for working with various source control repositories.
 
 from .utils import *
 
-RX_REPO_PAIR = re.compile(r"""\s*([a-zA-Z0-9_+-]+)\s*[/\\:,;|]\s*([a-zA-Z0-9_+-]+)\s*""")
+RX_REPO_PAIR = re.compile(r"""\s*([a-zA-Z0-9_+.-]+)\s*[/\\:,;|]\s*([a-zA-Z0-9_+.-]+)\s*""")
 
 
 
