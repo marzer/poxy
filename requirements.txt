@@ -4,7 +4,7 @@ jinja2
 pygments
 html5lib
 lxml
-pytomlpp
+tomli
 schema!=0.7.5
 requests
 trieregex

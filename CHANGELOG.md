@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.12.2 - 2023-02-08
+
+-   switched default TOML lib to `tomli`
+
 ## v0.12.1 - 2022-11-22
 
 -   fixed `github` and `gitlab` config options not accepting periods (`.`)
