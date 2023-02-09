@@ -39,8 +39,7 @@ jobs:
             fail-fast: false
             matrix:
                 compiler:
-                    #- "clang"
-                    - none
+                    - "clang"
                 linker:
                     - "lld"
                 python:
@@ -58,6 +57,7 @@ jobs:
                     #- "Release_1_9_2"
                     #- "Release_1_9_3"
                     - "Release_1_9_4"
+                    #- "none"
 
         runs-on: ubuntu-latest
 
@@ -73,20 +73,20 @@ jobs:
                   sudo apt -y install --no-install-recommends git python3-pip cmake flex bison libstdc++-${{ env.gcc_version }}-dev
 
             - name: Install lld
-              if: ${{ startsWith(matrix.linker, 'lld') && matrix.compiler != 'none' }}
+              if: ${{ startsWith(matrix.linker, 'lld') && matrix.doxygen_tag != 'none' }}
               run: |
                   sudo apt -y install --no-install-recommends lld-${{ env.clang_version }}
                   sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-${{ env.clang_version }} 1000
 
             - name: Install clang
-              if: ${{ startsWith(matrix.compiler, 'clang')  }}
+              if: ${{ startsWith(matrix.compiler, 'clang') && matrix.doxygen_tag != 'none' }}
               run: |
                   sudo apt -y install --no-install-recommends clang-${{ env.clang_version }}
                   sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-${{ env.clang_version }} 1000
                   sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang-${{ env.clang_version }} 1000
 
             - name: Install gcc
-              if: ${{ startsWith(matrix.compiler, 'gcc') }}
+              if: ${{ startsWith(matrix.compiler, 'gcc') && matrix.doxygen_tag != 'none' }}
               run: |
                   sudo apt -y install --no-install-recommends gcc-${{ env.gcc_version }} g++-${{ env.gcc_version }}
                   sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-${{ env.gcc_version }} 1000
@@ -109,7 +109,7 @@ jobs:
                   sudo python3 -m pip install --upgrade --requirement requirements.txt
 
             - name: Build and install doxygen
-              if: ${{ matrix.compiler != 'none' }}
+              if: ${{ matrix.doxygen_tag != 'none' }}
               run: |
                   cd "${{ github.workspace }}"
                   git clone --depth 1 --branch ${{ matrix.doxygen_tag }} https://github.com/doxygen/doxygen.git
