@@ -1,114 +1,130 @@
 name: ci
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '**.py'
-      - '**.css'
-      - '**.js'
-      - '**.json'
-      - '**.xml'
-      - '**/poxy/data/*'
-      - '**/workflows/**.yaml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - '**.py'
-      - '**.css'
-      - '**.js'
-      - '**.json'
-      - '**.xml'
-      - '**/poxy/data/*'
-      - '**/workflows/**.yaml'
-  workflow_dispatch:
+    push:
+        branches:
+            - main
+        paths:
+            - "**.py"
+            - "**.css"
+            - "**.js"
+            - "**.json"
+            - "**.xml"
+            - "**/poxy/data/*"
+            - "**/workflows/**.yaml"
+    pull_request:
+        branches:
+            - main
+        paths:
+            - "**.py"
+            - "**.css"
+            - "**.js"
+            - "**.json"
+            - "**.xml"
+            - "**/poxy/data/*"
+            - "**/workflows/**.yaml"
+    workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 env:
-  clang_version: '14'
-  gcc_version: '11'
+    clang_version: "14"
+    gcc_version: "11"
 
 jobs:
-  linux:
-    strategy:
-      fail-fast: false
-      matrix:
-        compiler:
-          - 'clang++'
-        linker:
-          - 'lld'
-        doxygen_tag:
-          - 'Release_1_8_17'
-          - 'Release_1_8_18'
-          - 'Release_1_8_19'
-          - 'Release_1_8_20'
-          - 'Release_1_9_0'
-          - 'Release_1_9_1'
-          - 'Release_1_9_2'
-          - 'Release_1_9_3'
-          - 'Release_1_9_4'
+    linux:
+        strategy:
+            fail-fast: false
+            matrix:
+                compiler:
+                    #- "clang"
+                    - none
+                linker:
+                    - "lld"
+                python:
+                    - "3.7"
+                    - "3.8"
+                    - "3.9"
+                    - "3.10"
+                doxygen_tag:
+                    #- "Release_1_8_17"
+                    #- "Release_1_8_18"
+                    #- "Release_1_8_19"
+                    #- "Release_1_8_20"
+                    #- "Release_1_9_0"
+                    #- "Release_1_9_1"
+                    #- "Release_1_9_2"
+                    #- "Release_1_9_3"
+                    - "Release_1_9_4"
 
-    runs-on: ubuntu-latest
+        runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        shell: bash
+        defaults:
+            run:
+                shell: bash
 
-    steps:
-    - name: Install base dependencies
-      run: |
-        sudo apt -y update
-        sudo apt -y install --no-install-recommends git python3 python3-pip cmake flex bison
+        steps:
+            - name: Install base dependencies
+              run: |
+                  sudo add-apt-repository ppa:deadsnakes/ppa
+                  sudo apt -y update
+                  sudo apt -y install --no-install-recommends git python3-pip cmake flex bison libstdc++-${{ env.gcc_version }}-dev
 
-    - name: Update LLVM package repository
-      if: ${{ startsWith(matrix.compiler, 'clang') || startsWith(matrix.linker, 'lld') }}
-      run: |
-        sudo apt -y install --no-install-recommends software-properties-common wget
-        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        codename=$(lsb_release -sc)
-        sudo add-apt-repository --yes --no-update "deb http://apt.llvm.org/${codename}/ llvm-toolchain-${codename}-${{ env.clang_version }} main"
-        sudo apt -y update
+            - name: Install lld
+              if: ${{ startsWith(matrix.linker, 'lld') && matrix.compiler != 'none' }}
+              run: |
+                  sudo apt -y install --no-install-recommends lld-${{ env.clang_version }}
+                  sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-${{ env.clang_version }} 1000
 
-    - name: Install clang
-      if: ${{ startsWith(matrix.compiler, 'clang')  }}
-      run: |
-        sudo apt -y install --no-install-recommends clang-${{ env.clang_version }}
-        sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-${{ env.clang_version }} 1000
+            - name: Install clang
+              if: ${{ startsWith(matrix.compiler, 'clang')  }}
+              run: |
+                  sudo apt -y install --no-install-recommends clang-${{ env.clang_version }}
+                  sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-${{ env.clang_version }} 1000
+                  sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang-${{ env.clang_version }} 1000
 
-    - name: Install g++
-      if: ${{ startsWith(matrix.compiler, 'g++') }}
-      run: |
-        sudo apt -y install --no-install-recommends g++-${{ env.gcc_version }}
-        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${{ env.gcc_version }} 1000
+            - name: Install gcc
+              if: ${{ startsWith(matrix.compiler, 'gcc') }}
+              run: |
+                  sudo apt -y install --no-install-recommends gcc-${{ env.gcc_version }} g++-${{ env.gcc_version }}
+                  sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-${{ env.gcc_version }} 1000
+                  sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-${{ env.gcc_version }} 1000
 
-    - name: Install lld
-      if: ${{ startsWith(matrix.linker, 'lld')  }}
-      run: |
-        sudo apt -y install --no-install-recommends lld-${{ env.clang_version }}
-        sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-${{ env.clang_version }} 1000
+            - name: Install python
+              run: |
+                  sudo apt install
+                  sudo apt install python${{ matrix.python }} python${{ matrix.python }}-distutils
+                  sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python${{ matrix.python }} 1000
+                  sudo python3 -m pip install pip
 
-    - uses: actions/checkout@v3
-      with:
-        path: poxy
-        submodules: true # m.css is a submodule
+            - uses: actions/checkout@v3
+              with:
+                  path: poxy
 
-    - name: Install python dependencies
-      run: |
-        cd "${{ github.workspace }}/poxy"
-        sudo -H pip3 install --upgrade --requirement requirements.txt
+            - name: Install python dependencies
+              run: |
+                  cd "${{ github.workspace }}/poxy"
+                  sudo python3 -m pip install --upgrade --requirement requirements.txt
 
-    - name: Build and install doxygen
-      run: |
-        cd "${{ github.workspace }}"
-        git clone --depth 1 --branch ${{ matrix.doxygen_tag }} https://github.com/doxygen/doxygen.git
-        cd doxygen
-        mkdir build
-        cd build
-        CXX=${{ matrix.compiler }} CXX_LD=${{ matrix.linker }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=MinSizeRel ..
-        CXX=${{ matrix.compiler }} CXX_LD=${{ matrix.linker }} make -j
-        CXX=${{ matrix.compiler }} CXX_LD=${{ matrix.linker }} sudo make install
+            - name: Build and install doxygen
+              if: ${{ matrix.compiler != 'none' }}
+              run: |
+                  cd "${{ github.workspace }}"
+                  git clone --depth 1 --branch ${{ matrix.doxygen_tag }} https://github.com/doxygen/doxygen.git
+                  cd doxygen
+                  mkdir build
+                  cd build
+                  CC=cc CC_LD=${{ matrix.linker }} CXX=c++ CXX_LD=${{ matrix.linker }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=MinSizeRel ..
+                  CC=cc CC_LD=${{ matrix.linker }} CXX=c++ CXX_LD=${{ matrix.linker }} make -j
+                  CC=cc CC_LD=${{ matrix.linker }} CXX=c++ CXX_LD=${{ matrix.linker }} sudo make install
+
+            - name: Install poxy
+              run: |
+                  cd "${{ github.workspace }}/poxy"
+                  sudo python3 -m pip install -e .
+
+            - name: Print poxy help
+              run: |
+                  poxy --help

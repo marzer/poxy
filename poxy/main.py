@@ -56,6 +56,16 @@ def _invoker(func, **kwargs):
 
 
 
+def make_boolean_optional_arg(args, name, default, help='', **kwargs):
+	if sys.version_info.minor >= 9:
+		args.add_argument(rf'--{name}', default=default, help=help, action=argparse.BooleanOptionalAction, **kwargs)
+	else:
+		args.add_argument(rf'--{name}', action=r'store_true', help=help, **kwargs)
+		args.add_argument(rf'--no-{name}', action=r'store_false', dest=name, **kwargs)
+		args.set_defaults(**{name: default})
+
+
+
 def main(invoker=True):
 	"""
 	The entry point when the library is invoked as `poxy`.
@@ -95,17 +105,12 @@ def main(invoker=True):
 		action=r'store_true',
 		help=r"enable very noisy diagnostic output"
 	)
-	args.add_argument(
-		r'--html',  #
-		action=r'store_true',
+	make_boolean_optional_arg(
+		args,  #
+		r'html',
+		default=True,
 		help=r'specify whether HTML output is required'
 	)
-	args.add_argument(
-		r'--no-html',
-		dest=r'html',
-		action=r'store_false'
-	)
-	args.set_defaults(html=True)
 	args.add_argument(
 		r'--ppinclude',  #
 		type=str,
@@ -139,30 +144,22 @@ def main(invoker=True):
 		help=r"print the version and exit",
 		dest=r'print_version'
 	)
-	args.add_argument(
-		r'--xml',  #
-		action=r'store_true',
+	make_boolean_optional_arg(
+		args,  #
+		r'xml',
+		default=False,
 		help=r'specify whether XML output is required'
 	)
-	args.add_argument(
-		r'--no-xml',
-		dest=r'xml',
-		action=r'store_false'
+	make_boolean_optional_arg(
+		args,  #
+		r'werror',
+		default=None,
+		help=r'override the treating of warnings as errors (default: read from config)'
 	)
-	args.set_defaults(xml=False)
 	args.add_argument(
-		r'--werror',  #
+		r'--bug-report',  #
 		action=r'store_true',
-		help=r"override the treating of warnings as errors (default: read from config)"
-	)
-	args.add_argument(
-		r'--no-werror',
-		dest=r'werror',
-		action=r'store_false'
-	)
-	args.set_defaults(werror=None)
-	args.add_argument(
-		r'--bug-report', action=r'store_true', help=r"captures all output in a zip file for easier bug reporting."
+		help=r"captures all output in a zip file for easier bug reporting."
 	)
 	#--------------------------------------------------------------
 	# hidden/developer-only/deprecated/diagnostic arguments

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.12.3 - 2023-02-09
+
+-   fixed backwards-incompatible use of a newer `argparse` feature on Python &lt;= 3.8 (#20) (@fwerner)
+
 ## v0.12.2 - 2023-02-08
 
 -   switched default TOML lib to `tomli`
