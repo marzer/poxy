@@ -97,10 +97,15 @@ def main(invoker=True):
 	)
 	args.add_argument(
 		r'--html',  #
-		default=True,
-		action=argparse.BooleanOptionalAction,
+		action=r'store_true',
 		help=r'specify whether HTML output is required'
 	)
+	args.add_argument(
+		r'--no-html',
+		dest=r'html',
+		action=r'store_false'
+	)
+	args.set_defaults(html=True)
 	args.add_argument(
 		r'--ppinclude',  #
 		type=str,
@@ -136,16 +141,26 @@ def main(invoker=True):
 	)
 	args.add_argument(
 		r'--xml',  #
-		default=False,
-		action=argparse.BooleanOptionalAction,
+		action=r'store_true',
 		help=r'specify whether XML output is required'
 	)
 	args.add_argument(
+		r'--no-xml',
+		dest=r'xml',
+		action=r'store_false'
+	)
+	args.set_defaults(xml=False)
+	args.add_argument(
 		r'--werror',  #
-		default=None,
-		action=argparse.BooleanOptionalAction,
+		action=r'store_true',
 		help=r"override the treating of warnings as errors (default: read from config)"
 	)
+	args.add_argument(
+		r'--no-werror',
+		dest=r'werror',
+		action=r'store_false'
+	)
+	args.set_defaults(werror=None)
 	args.add_argument(
 		r'--bug-report', action=r'store_true', help=r"captures all output in a zip file for easier bug reporting."
 	)
