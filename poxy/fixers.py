@@ -950,3 +950,18 @@ class Pygments(PlainTextFixer):
 			)
 
 		return text
+
+
+
+class InstallSearchShim(PlainTextFixer):
+	'''
+	Installs our shim around m.css' showSearch().
+	'''
+
+	def __call__(self, context: Context, text: str, path: Path) -> str:
+		return re.sub(
+			r'<\s*script\s+src="search-v2[.]js"\s*>\s*</script>',
+			r'<script src="search-v2.js"></script><script>install_mcss_search_shim();</script>',
+			text,
+			flags=re.DOTALL
+		)
