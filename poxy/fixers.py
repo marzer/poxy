@@ -748,9 +748,17 @@ class Links(HTMLFixer):
 			match = self.__local_href.fullmatch(href)
 			if match and not coerce_path(path.parent, match[1]).exists():
 				changed = True
+				# fix for some doxygen versions not emitting the 'md_' prefix:
+				if match[1].startswith(r'md_'):
+					repl_name = match[1][3:]
+					if repl_name and coerce_path(path.parent, repl_name).exists():
+						anchor[r'href'] = repl_name
+						continue
+				# non-existent hrefs that correspond to internal documentation can sometimes by fixed by the next step
 				if is_mdoc:
 					href = r'#'
-					anchor[r'href'] = r'#'  # will by fixed by the next step
+					anchor[r'href'] = r'#'
+				# otherwise this is a href to a non-existent file so we just convert it to a plain span
 				else:
 					for attr in (
 						r'download', r'href', r'hreflang', r'media', r'ping', r'referrerpolicy', r'rel', r'target',
@@ -759,6 +767,7 @@ class Links(HTMLFixer):
 						if attr in anchor.attrs:
 							del anchor[attr]
 					anchor.name = r'span'
+					soup.add_class(anchor, 'poxy-dead-link')
 					continue
 
 			# make sure internal documentation #id links actually have somewhere to go
@@ -872,7 +881,12 @@ class MarkdownPages(PlainTextFixer):
 	'''
 
 	def __call__(self, context: Context, text: str, path: Path) -> str:
-		if path.name.lower().startswith(r'md_') or path.name.lower().startswith(r'm_d__'):
+		lower_name = path.name.lower()
+		if (
+			lower_name.startswith(r'md_')  #
+			or lower_name.startswith(r'm_d__')  #
+			or (context.changelog and lower_name == r'poxy_changelog.html')
+		):
 			WBR = r'(?:<wbr[ \t]*/?>)?'
 			PREFIX = rf'_{WBR}_{WBR}poxy_{WBR}thiswasan_{WBR}'
 			text = re.sub(rf'{PREFIX}amp', r'&amp;', text)

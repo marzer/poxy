@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.12.4 - 2023-03-23
+
+-   fixed changelog not auto-linking with some versions of Doxygen
+
 ## v0.12.3 - 2023-02-09
 
 -   fixed backwards-incompatible use of a newer `argparse` feature on Python &lt;= 3.8 (#20) (@fwerner)
