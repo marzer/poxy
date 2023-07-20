@@ -1388,7 +1388,6 @@ def postprocess_html(context: Context):
 		fixers.Banner(),
 		fixers.CPPModifiers1(),
 		fixers.CPPModifiers2(),
-		fixers.CPPTemplateTemplate(),
 		fixers.StripIncludes(),
 		fixers.AutoDocLinks(),
 		fixers.Links(),

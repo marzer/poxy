@@ -263,8 +263,8 @@ def main(invoker=True):
 	# bug report invocation
 	#--------------------------------------------------------------
 
-	bug_report_directory = (Path.cwd() / r'poxy_bug_report').absolute()
-	bug_report_zip = (Path.cwd() / r'poxy_bug_report.zip').absolute()
+	bug_report_directory = (Path.cwd() / r'poxy_bug_report').resolve()
+	bug_report_zip = (Path.cwd() / r'poxy_bug_report.zip').resolve()
 
 	if args.bug_report:
 		bug_report_args = [arg for arg in sys.argv[1:] if arg not in (r'--bug-report', r'--bug-report-internal')]

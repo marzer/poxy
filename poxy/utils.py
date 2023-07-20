@@ -175,7 +175,7 @@ class Error(Exception):
 
 	def __init__(self, *message):
 		self.__message = r' '.join([str(m) for m in message])
-		super().__init__(*message)
+		super().__init__(self.__message)
 
 	def __str__(self):
 		return self.__message

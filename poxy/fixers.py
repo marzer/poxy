@@ -259,27 +259,6 @@ class CPPModifiers2(_CPPModifiersBase):
 
 
 
-class CPPTemplateTemplate(HTMLFixer):
-	'''
-	Spreads consecutive template <> declarations out over multiple lines.
-	'''
-	__expression = re.compile(r'(template&lt;.+?&gt;)\s+(template&lt;)', re.S)
-
-	@classmethod
-	def __substitute(cls, m):
-		return f'{m[1]}<br>\n{m[2]}'
-
-	def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
-		changed = False
-		for template in doc.body('div', class_='m-doc-template'):
-			replacer = RegexReplacer(self.__expression, lambda m, out: self.__substitute(m), str(template))
-			if replacer:
-				soup.replace_tag(template, str(replacer))
-				changed = True
-		return changed
-
-
-
 class StripIncludes(HTMLFixer):
 	'''
 	Strips #include <paths/to/headers.h> based on context.sources.strip_includes.

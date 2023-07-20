@@ -452,3 +452,16 @@ figure.m-figure > figcaption
 {
 	color: var(--info-link-active-color);
 }
+
+/* breaking overlong template<> definitions over multiple lines */
+h1 .m-doc-template-params.m-doc-template-long
+{
+  display: block;
+  padding-left: 1rem;
+}
+
+h1 .m-doc-template-params.m-doc-template-long .m-doc-template-param:before
+{
+  content: "";
+  display: block;
+}

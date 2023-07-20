@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.12.5 - 2023-07-20
+
+-   fixed overlong `template<>` lines in page headers (they now wrap)
+
 ## v0.12.4 - 2023-03-23
 
 -   fixed changelog not auto-linking with some versions of Doxygen

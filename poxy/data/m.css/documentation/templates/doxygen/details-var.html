@@ -7,11 +7,14 @@
               <div class="m-doc-template">
                 {% if compound.templates != None %}
                 {% set j = joiner(', ') %}
-                template&lt;{% for t in compound.templates %}{{ j() }}{{ t.type }} {% if t.name %}{{ t.name }}{% else %}_{{ loop.index }}{% endif %}{% endfor %}&gt;
+                template&lt;<span class="m-doc-template-params{% if compound.templates|length >= 3 %} m-doc-template-long{% endif %}">{% for t in compound.templates %}{{ j() }}<span class="m-doc-template-param">{{ t.type }} {% if t.name %}{{ t.name }}{% else %}_{{ loop.index }}{% endif %}</span>{% endfor %}</span>&gt;
+                {% endif %}
+                {% if compound.templates != None and var.templates != None %}
+                <br>
                 {% endif %}
                 {% if var.templates != None %}
                 {% set j = joiner(', ') %}
-                template&lt;{% for t in var.templates %}{{ j() }}{{ t.type }}{% if t.name %} {{ t.name }}{% endif %}{% if t.default %} = {{ t.default }}{% endif %}{% endfor %}&gt;
+                template&lt;<span class="m-doc-template-params{% if var.templates|length >= 3 %} m-doc-template-long{% endif %}">{% for t in var.templates %}{{ j() }}<span class="m-doc-template-param">{{ t.type }}{% if t.name %} {{ t.name }}{% endif %}{% if t.default %} = {{ t.default }}{% endif %}</span>{% endfor %}</span>&gt;
                 {% endif %}
               </div>
               {% endif %}
