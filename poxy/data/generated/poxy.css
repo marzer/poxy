@@ -2797,6 +2797,7 @@ margin-top: initial;
 .m-info:not(.m-note, .m-button) a:hover,
 .m-info:not(.m-note, .m-button) a:focus,
 .m-info:not(.m-note, .m-button) a:active { color: var(--info-link-active-color); }
-h1 .m-doc-template-params.m-doc-template-long { display: block; padding-left: 1rem; }
-h1 .m-doc-template-params.m-doc-template-long .m-doc-template-param::before { content: ""; display: block; }
+.m-doc-template-params.m-doc-template-long { display: block; padding-left: 1rem; }
+.m-doc-template-params.m-doc-template-long .m-doc-template-param::before { content: ""; display: block; }
+section.m-doc-details > div > .m-table.m-fullwidth.m-flat tbody td:first-of-type wbr { display: none; }
 

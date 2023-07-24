@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.12.6 - 2023-07-25
+
+-   fixed overlong `template<>` lines in summary views
+-   fixed function parameter names greedily wrapping in details tables
+
 ## v0.12.5 - 2023-07-20
 
 -   fixed overlong `template<>` lines in page headers (they now wrap)

@@ -454,14 +454,19 @@ figure.m-figure > figcaption
 }
 
 /* breaking overlong template<> definitions over multiple lines */
-h1 .m-doc-template-params.m-doc-template-long
+.m-doc-template-params.m-doc-template-long
 {
   display: block;
   padding-left: 1rem;
 }
-
-h1 .m-doc-template-params.m-doc-template-long .m-doc-template-param:before
+.m-doc-template-params.m-doc-template-long .m-doc-template-param:before
 {
   content: "";
   display: block;
+}
+
+/* killing <wbr> tags in function details table template lists */
+section.m-doc-details > div > .m-table.m-fullwidth.m-flat tbody td:first-of-type wbr
+{
+   display: none;
 }
