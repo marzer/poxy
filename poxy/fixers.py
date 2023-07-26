@@ -51,7 +51,7 @@ class CustomTags(HTMLFixer):
 		re.I | re.S
 	)
 	__hex_entity = re.compile(r'(?:[0#]?[xX])?([a-fA-F0-9]+)')
-	__allowed_parents = ('dd', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'aside', 'td')
+	__allowed_parents = ('dd', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'aside', 'td', 'div', 'span')
 
 	@classmethod
 	def __double_tags_substitute(cls, m, out, context):

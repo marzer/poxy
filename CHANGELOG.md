@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.12.7 - 2023-07-27
+
+-   allowed the use of square-bracket \[tags\] in more places
+
 ## v0.12.6 - 2023-07-25
 
 -   fixed overlong `template<>` lines in summary views
