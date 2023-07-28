@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.13.0 - 2023-07-28
+
+-   migrated to `pyproject.toml`
+-   fixed footer being off-center (#24) (@wroyca)
+
 ## v0.12.7 - 2023-07-27
 
 -   allowed the use of square-bracket \[tags\] in more places

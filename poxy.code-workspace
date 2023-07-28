@@ -18,6 +18,13 @@
 		"[python]": {
 			"editor.defaultFormatter": "ms-python.black-formatter"
 		},
-		"python.formatting.provider": "none"
+		"python.formatting.provider": "none",
+		"css.format.braceStyle": "expand",
+		"[css]": {
+			"editor.formatOnSave": true
+		},
+		"prettier.printWidth": 120,
+		"prettier.singleAttributePerLine": true,
+		"prettier.tabWidth": 4
 	}
 }

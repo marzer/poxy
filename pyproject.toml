@@ -85,7 +85,7 @@ where = ["src"]
 ]
 
 [tool.black]
-line-length = 128
-target-version = ['py39']
+line-length = 120
+target-version = ['py37']
 skip-string-normalization = true
 skip-magic-trailing-comma = true

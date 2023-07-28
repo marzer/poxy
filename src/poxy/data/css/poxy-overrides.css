@@ -7,25 +7,21 @@
 	Avoid specifying any colours here; they belong in theme-specific poxy-theme-****.css.
 */
 
-html
-{
+html {
 	height: 100%;
 	scroll-padding-top: 4em;
 }
 
-body
-{
+body {
 	min-height: 100%;
 }
 
-body
-{
+body {
 	display: flex;
 	flex-direction: column;
 }
 
-body > header
-{
+body > header {
 	position: sticky;
 	top: 0;
 	left: 0;
@@ -33,94 +29,77 @@ body > header
 	z-index: 5;
 }
 
-body > main
-{
+body > main {
 	flex: 1 0 auto;
 }
 
-body > footer
-{
+body > footer {
 	flex-shrink: 0;
 }
 
 body > header,
-body > header *
-{
+body > header * {
 	white-space: nowrap;
 }
 
-a
-{
+a {
 	text-decoration: none !important;
 }
-a:hover
-{
+a:hover {
 	text-decoration: underline !important;
 }
 
-article div > section
-{
+article div > section {
 	margin-top: 2rem;
 }
-article div > section > section
-{
+article div > section > section {
 	margin-bottom: 2.25rem;
 }
 
-a.poxy-external
-{
+a.poxy-external {
 	font-weight: normal;
 }
 pre.m-code a,
-pre.m-console a
-{
+pre.m-console a {
 	font-weight: inherit !important;
 	color: inherit !important;
 }
 
 /* nav bar */
-body > header > nav .m-thin
-{
+body > header > nav .m-thin {
 	margin-left: 0.5em;
 }
 body > header > nav .poxy-icon img,
-body > header > nav .poxy-icon svg
-{
+body > header > nav .poxy-icon svg {
 	width: 1.5rem !important;
 	height: 1.5rem !important;
 	vertical-align: -18.5%;
 }
-body > header > nav #m-navbar-collapse a.m-doc-search-icon svg
-{
+body > header > nav #m-navbar-collapse a.m-doc-search-icon svg {
 	width: 1.25rem !important;
 	height: 1.25rem !important;
 	vertical-align: -12.5%;
 }
 body > header > nav a#m-navbar-brand svg,
-body > header > nav #m-navbar-brand a svg
-{
+body > header > nav #m-navbar-brand a svg {
 	width: 1.75rem;
 	height: 1.75rem;
 	vertical-align: -22.5%;
 	margin-right: 0.5rem;
 }
 body > header > nav a.poxy-icon.theme:hover,
-body > header > nav #m-navbar-current:hover
-{
+body > header > nav #m-navbar-current:hover {
 	color: var(--header-link-active-color) !important;
 	border-color: var(--header-link-active-color) !important;
 	background-color: var(--header-link-active-background-color) !important;
 }
-@media screen and (max-width: 768px)
-{
+@media screen and (max-width: 768px) {
 	body > header > nav .m-thin,
-	body > header > nav .repo
-	{
+	body > header > nav .repo {
 		display: none;
 	}
 }
-body > header > nav a:hover
-{
+body > header > nav a:hover {
 	text-decoration: none !important;
 }
 
@@ -134,25 +113,21 @@ body > header > nav a:hover
 .m-doc-details div > table.m-table td > h5,
 .m-doc-details div > table.m-table td > h6,
 .m-doc-details div > table.m-table td > strong > em,
-.m-doc-details div > table.m-table td > p > strong > em
-{
+.m-doc-details div > table.m-table td > p > strong > em {
 	font-style: normal;
 	color: var(--article-heading-color);
 }
 .m-doc-details div > table.m-table td > strong > em,
-.m-doc-details div > table.m-table td > p > strong > em
-{
+.m-doc-details div > table.m-table td > p > strong > em {
 	display: block;
 }
 .m-doc-details div > table.m-table td > strong:not(:first-child) > em,
-.m-doc-details div > table.m-table td > p:not(:first-child) > strong > em
-{
-	margin-top: 1.0rem;
+.m-doc-details div > table.m-table td > p:not(:first-child) > strong > em {
+	margin-top: 1rem;
 }
 
 /* index page badges */
-#poxy-badges
-{
+#poxy-badges {
 	--extra-width: 2rem;
 
 	text-align: center;
@@ -162,92 +137,74 @@ body > header > nav a:hover
 	margin-right: calc(var(--extra-width) * -0.5);
 	margin-top: -0.5rem;
 }
-#poxy-badges > span
-{
+#poxy-badges > span {
 	display: inline-block;
 }
 #poxy-badges > span > a,
 #poxy-badges > span > svg,
-#poxy-badges > span > img
-{
+#poxy-badges > span > img {
 	margin-left: 0.2rem;
 	margin-right: 0.2rem;
 }
 
 /* page category subheading ("module" etc) */
-h1 span.m-thin
-{
+h1 span.m-thin {
 	color: var(--dim-color);
 }
 
 /* banner on index page */
-#poxy-main-banner
-{
+#poxy-main-banner {
 	margin-left: -1rem !important;
 	margin-right: -1rem !important;
 	margin-top: -1.75rem !important;
 	max-width: calc(100% + 2rem) !important;
 }
-@media (min-width: 992px)
-{
-	svg#poxy-main-banner.poxy-injected-svg
-	{
+@media (min-width: 992px) {
+	svg#poxy-main-banner.poxy-injected-svg {
 		padding: 1.5rem;
 	}
 }
-@media (min-width: 300px) and (max-width: 992px)
-{
-	svg#poxy-main-banner.poxy-injected-svg
-	{
+@media (min-width: 300px) and (max-width: 992px) {
+	svg#poxy-main-banner.poxy-injected-svg {
 		padding: 1rem;
 	}
 }
 
 /* include <blah.h> */
-.m-doc-details div h3
-{
+.m-doc-details div h3 {
 	overflow: auto;
 }
 h1 .m-doc-include,
-h3 .m-doc-include
-{
+h3 .m-doc-include {
 	float: right;
 }
 h1 .m-doc-include *,
-h3 .m-doc-include *
-{
-	opacity: 1.0 !important;
+h3 .m-doc-include * {
+	opacity: 1 !important;
 }
 h1 .m-doc-include .cp,
-h3 .m-doc-include .cp
-{
+h3 .m-doc-include .cp {
 	color: var(--dim-color);
 }
 
 /* "Try this code on Compiler Explorer" */
-.godbolt
-{
-	font-family: 'Source Sans Pro', sans-serif;
+.godbolt {
+	font-family: "Source Sans Pro", sans-serif;
 }
-p.godbolt
-{
+p.godbolt {
 	text-align: center;
-	padding: 0.0rem;
-	text-indent: 0.0rem;
+	padding: 0rem;
+	text-indent: 0rem;
 }
-a.godbolt
-{
+a.godbolt {
 	padding: 0.5rem;
 	display: inline-block;
 }
-pre > p.godbolt
-{
-  float: right;
+pre > p.godbolt {
+	float: right;
 }
-@media screen and (max-width: 768px)
-{
-	.godbolt
-	{
+@media screen and (max-width: 768px) {
+	.godbolt {
 		display: none;
 	}
 }
@@ -257,26 +214,21 @@ h2:last-child,
 h3:last-child,
 h4:last-child,
 h5:last-child,
-h6:last-child
-{
-	margin-bottom: 0.0rem;
+h6:last-child {
+	margin-bottom: 0rem;
 }
 
 /* images in detail sections */
-.m-doc-details table img.m-image
-{
+.m-doc-details table img.m-image {
 	margin-left: inherit;
 }
 
 /* wide screens with room for a floating TOC */
-@media screen and (min-width: 1300px) and (min-height: 775px)
-{
-	:root
-	{
+@media screen and (min-width: 1300px) and (min-height: 775px) {
+	:root {
 		--wide-page-left-offset: -160px;
 	}
-	#poxy-toc
-	{
+	#poxy-toc {
 		position: fixed;
 		top: 5rem;
 		left: calc(50% + 470px + var(--wide-page-left-offset));
@@ -285,13 +237,11 @@ h6:last-child
 		margin: 0px 20px 0px 0px !important;
 		background-color: var(--background-color);
 	}
-	header nav > .m-container
-	{
+	header nav > .m-container,
+	footer nav > .m-container {
 		width: 100%;
 	}
-	main article > .m-container > .m-row,
-	footer nav > .m-container > .m-row
-	{
+	main article > .m-container > .m-row {
 		margin-left: var(--wide-page-left-offset);
 		margin-right: calc(var(--wide-page-left-offset) * -1);
 	}
@@ -299,8 +249,7 @@ h6:last-child
 
 /* 'dim' blocks and notes */
 .m-block.m-dim pre.m-code,
-.m-note.m-dim pre.m-code
-{
+.m-note.m-dim pre.m-code {
 	opacity: 0.85;
 }
 
@@ -308,15 +257,13 @@ h6:last-child
 .m-block li,
 .m-note li,
 section > ul li,
-section > ol li
-{
+section > ol li {
 	margin-bottom: 0.2rem;
 }
 .m-block li:last-child,
 .m-note li:last-child,
 section > ul li:last-child,
-section > ol li:last-child
-{
+section > ol li:last-child {
 	margin-bottom: initial;
 }
 
@@ -324,18 +271,15 @@ section > ol li:last-child
 .m-block li > ul > li:first-child,
 .m-note li > ul > li:first-child,
 .m-block li > ol > li:first-child,
-.m-note li > ol > li:first-child
-{
+.m-note li > ol > li:first-child {
 	margin-top: 0.2rem;
 }
 
 /* detail sections */
-article section.m-doc-details > div > h3:first-child
-{
+article section.m-doc-details > div > h3:first-child {
 	background-color: var(--detail-section-header-color);
 }
-article section.m-doc-details > div::before
-{
+article section.m-doc-details > div::before {
 	border-color: var(--detail-section-header-color);
 	background-color: var(--detail-section-background-color);
 }
@@ -343,27 +287,23 @@ article section.m-doc-details > div::before
 /* namespace/class/struct etc prefixes in treeviews */
 ul.m-doc > li.m-doc-collapsible,
 ul.m-doc > li.m-doc-collapsible > a:first-child,
-ul.m-doc > li.m-doc-collapsible li
-{
+ul.m-doc > li.m-doc-collapsible li {
 	color: var(--dim-link-color) !important;
 }
 
 /* code blocks w/ output examples */
-pre.m-code + pre.m-console
-{
-	margin-top: -1.0rem;
+pre.m-code + pre.m-console {
+	margin-top: -1rem;
 	font-size: 0.8rem;
 }
-.m-note pre.m-code + pre.m-console
-{
+.m-note pre.m-code + pre.m-console {
 	color: var(--console-color);
 	background-color: var(--console-background-color);
 }
 
 /* code blocks - implementation details */
 pre.poxy-impl,
-code.poxy-impl
-{
+code.poxy-impl {
 	color: var(--code-color-comments) !important;
 	padding: 0rem !important;
 	margin: 0rem 0.2rem !important;
@@ -380,25 +320,21 @@ article section:target > .m-container-inflate > .m-console,
 article section:target > .m-container-inflate > .m-note,
 article section:target > .m-container-inflate > .m-block,
 article section:target section.m-doc-details > div > h3:first-child,
-article section.m-doc-details:target > div > h3:first-child
-{
+article section.m-doc-details:target > div > h3:first-child {
 	border-color: var(--article-heading-color) !important;
 }
-article section:target section.m-doc-details > div > h3:first-child
-{
+article section:target section.m-doc-details > div > h3:first-child {
 	border-left-style: solid;
 	border-left-width: 0.25rem;
 }
 
 /* 'filled' labels */
-.m-label:not(.m-flat)
-{
-  color: var(--background-color) !important;
+.m-label:not(.m-flat) {
+	color: var(--background-color) !important;
 }
 
 /* figures with captions */
-figure.m-figure > figcaption
-{
+figure.m-figure > figcaption {
 	font-weight: initial !important;
 	font-size: 1rem !important;
 	text-align: center;
@@ -406,67 +342,64 @@ figure.m-figure > figcaption
 }
 
 /* links in transparent 'success' blocks */
-.m-success:not(.m-note, .m-button) a
-{
+.m-success:not(.m-note, .m-button) a {
 	color: var(--success-color);
 }
 .m-success:not(.m-note, .m-button) a:hover,
 .m-success:not(.m-note, .m-button) a:focus,
-.m-success:not(.m-note, .m-button) a:active
-{
+.m-success:not(.m-note, .m-button) a:active {
 	color: var(--success-link-active-color);
 }
 
 /* links in transparent 'warning' blocks */
-.m-warning:not(.m-note, .m-button) a
-{
+.m-warning:not(.m-note, .m-button) a {
 	color: var(--warning-color);
 }
 .m-warning:not(.m-note, .m-button) a:hover,
 .m-warning:not(.m-note, .m-button) a:focus,
-.m-warning:not(.m-note, .m-button) a:active
-{
+.m-warning:not(.m-note, .m-button) a:active {
 	color: var(--warning-link-active-color);
 }
 
 /* links in transparent 'danger' blocks */
-.m-danger:not(.m-note, .m-button) a
-{
+.m-danger:not(.m-note, .m-button) a {
 	color: var(--danger-color);
 }
 .m-danger:not(.m-note, .m-button) a:hover,
 .m-danger:not(.m-note, .m-button) a:focus,
-.m-danger:not(.m-note, .m-button) a:active
-{
+.m-danger:not(.m-note, .m-button) a:active {
 	color: var(--danger-link-active-color);
 }
 
 /* links in transparent 'info' blocks */
-.m-info:not(.m-note, .m-button) a
-{
+.m-info:not(.m-note, .m-button) a {
 	color: var(--info-color);
 }
 .m-info:not(.m-note, .m-button) a:hover,
 .m-info:not(.m-note, .m-button) a:focus,
-.m-info:not(.m-note, .m-button) a:active
-{
+.m-info:not(.m-note, .m-button) a:active {
 	color: var(--info-link-active-color);
 }
 
 /* breaking overlong template<> definitions over multiple lines */
-.m-doc-template-params.m-doc-template-long
-{
-  display: block;
-  padding-left: 1rem;
+.m-doc-template-params.m-doc-template-long {
+	display: block;
+	padding-left: 1rem;
 }
-.m-doc-template-params.m-doc-template-long .m-doc-template-param:before
-{
-  content: "";
-  display: block;
+.m-doc-template-params.m-doc-template-long .m-doc-template-param:before {
+	content: "";
+	display: block;
 }
 
 /* killing <wbr> tags in function details table template lists */
-section.m-doc-details > div > .m-table.m-fullwidth.m-flat tbody td:first-of-type wbr
-{
-   display: none;
+section.m-doc-details div .m-table.m-fullwidth.m-flat tbody td:first-of-type wbr {
+	display: none;
+}
+
+/* support for those pretty "about the author" blocks as seen in other m.css pages */
+.poxy-about-the-author .poxy-socials a img,
+.poxy-about-the-author .poxy-socials a svg {
+	max-width: 1.5rem;
+	max-height: 1.5rem;
+	margin-right: 0.5rem;
 }
