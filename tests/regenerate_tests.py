@@ -102,6 +102,8 @@ def regenerate_expected_outputs():
             text = text.replace(r'href="poxy/poxy.css"', r'href="../../../src/poxy/data/css/poxy.css"')
             text = text.replace(r'src="poxy/poxy.js"', r'src="../../../src/poxy/data/poxy.js"')
             text = text.replace(r'src="search-v2.js"', r'src="../../../src/poxy/data/m.css/documentation/search.js"')
+            text = text.replace(r'href="poxy/', r'href="../../../src/poxy/data/')
+            text = text.replace(r'src="poxy/', r'src="../../../src/poxy/data/')
             text = re.sub(r'Poxy v[0-9]+[.][0-9]+[.][0-9]+', r'Poxy v0.0.0', text)
             text = re.sub(r'version="\s*[0-9]+[.][0-9]+[.][0-9]+\s*"', r'version="0.0.0"', text)
             text = re.sub(r'gitid="\s*[0-9a-fA-F]+\s*"', r'gitid="000000000000000000000000000000000000000"', text)

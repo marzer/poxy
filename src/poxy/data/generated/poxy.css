@@ -474,7 +474,7 @@ unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+
 }
 /*==== poxy-theme-dark.css ===========================================================================================*/
 .poxy-theme-dark {
---code-font: 'Consolas', 'Source Code Pro', monospace;
+--code-font: "Consolas", "Source Code Pro", monospace;
 --code-color-comments: #57a64a;
 --code-color-keywords: #569cd6;
 --code-color-identifiers: #e6e6e6;
@@ -496,6 +496,7 @@ unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+
 --special-filled-link-active-color: #e4a8ff;
 --detail-section-header-color: var(--header-background-color);
 --detail-section-background-color: rgba(0, 0, 0, 0.06);
+--sponsor-color: #ff69b4;
 }
 /*==== m-theme-light.css =============================================================================================*/
 .poxy-theme-light {
@@ -637,7 +638,7 @@ unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+
 }
 /*==== poxy-theme-light.css ==========================================================================================*/
 .poxy-theme-light {
---code-font: 'Consolas', 'Source Code Pro', monospace;
+--code-font: "Consolas", "Source Code Pro", monospace;
 --code-color-comments: #008000;
 --code-color-keywords: #0000ff;
 --code-color-identifiers: #151414;
@@ -655,13 +656,22 @@ unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+
 --special-saturation: 50%;
 --special-luminosity: 60%;
 --special-color: hsl(var(--special-hue), var(--special-saturation), var(--special-luminosity));
---special-link-active-color: hsl(var(--special-hue), var(--special-saturation), calc(var(--special-luminosity) * 0.7));
+--special-link-active-color: hsl(
+var(--special-hue),
+var(--special-saturation),
+calc(var(--special-luminosity) * 0.7)
+);
 --special-filled-color: hsl(var(--special-hue), var(--special-saturation), 25%);
---special-filled-background-color: hsl(var(--special-hue), calc(var(--special-saturation) * 0.8), calc(var(--special-luminosity) * 1.4));
+--special-filled-background-color: hsl(
+var(--special-hue),
+calc(var(--special-saturation) * 0.8),
+calc(var(--special-luminosity) * 1.4)
+);
 --special-filled-link-color: hsl(var(--special-hue), calc(var(--special-saturation) * 0.6), 50%);
 --special-filled-link-active-color: var(--special-filled-color);
 --detail-section-header-color: var(--theme-surface3);
 --detail-section-background-color: rgba(255, 255, 255, 0.3);
+--sponsor-color: #f8c8dc;
 }
 /*==== ../m.css/css/m-grid.css =======================================================================================*/
 *, ::before, ::after { box-sizing: border-box; }
@@ -2800,6 +2810,10 @@ margin-top: initial;
 .m-doc-template-params.m-doc-template-long { display: block; padding-left: 1rem; }
 .m-doc-template-params.m-doc-template-long .m-doc-template-param::before { content: ""; display: block; }
 section.m-doc-details div .m-table.m-fullwidth.m-flat tbody td:first-of-type wbr { display: none; }
-.poxy-about-the-author .poxy-socials a img,
-.poxy-about-the-author .poxy-socials a svg { max-width: 1.5rem; max-height: 1.5rem; margin-right: 0.5rem; }
+.poxy-about-the-author .poxy-icon img,
+.poxy-about-the-author .poxy-icon svg { max-width: 1.5rem; max-height: 1.5rem; margin-right: 0.5rem; }
+header nav #m-navbar-collapse li a.sponsor:hover { border-color: var(--sponsor-color) !important; }
+header nav a.sponsor:hover,
+footer nav a.sponsor:hover,
+a.poxy-icon.sponsor:hover { color: var(--sponsor-color) !important; }
 

@@ -543,7 +543,18 @@ class Defaults(object):
         r'm_keyword{3}': r'@xmlonly<mcss:search xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:keyword="\1" mcss:title="\2" mcss:suffix-length="\3" />@endxmlonly',
         r'm_enum_values_as_keywords': r'@xmlonly<mcss:search xmlns:mcss="http://mcss.mosra.cz/doxygen/" mcss:enum-values-as-keywords="true" />@endxmlonly',
     }
-    source_patterns = {r'*.h', r'*.hh', r'*.hxx', r'*.hpp', r'*.h++', r'*.ixx', r'*.inc', r'*.markdown', r'*.md', r'*.dox'}
+    source_patterns = {
+        r'*.h',
+        r'*.hh',
+        r'*.hxx',
+        r'*.hpp',
+        r'*.h++',
+        r'*.ixx',
+        r'*.inc',
+        r'*.markdown',
+        r'*.md',
+        r'*.dox',
+    }
     # code block syntax highlighting only
     #
     # note: we don't need to be comprehensive for the std namespace symbols;
@@ -850,7 +861,9 @@ class Inputs(object):
                     raise Error(rf"{key}: '{path}' was not a directory or file")
                 all_paths.add(path)
                 if recursive and path.is_dir():
-                    for subdir in enumerate_directories(path, filter=lambda p: not p.name.startswith(r'.'), recursive=True):
+                    for subdir in enumerate_directories(
+                        path, filter=lambda p: not p.name.startswith(r'.'), recursive=True
+                    ):
                         all_paths.add(subdir)
 
         ignores = set()
@@ -870,7 +883,11 @@ class FilteredInputs(Inputs):
 
     def __init__(self, config, key, input_dir, additional_inputs=None, additional_recursive_inputs=None):
         super().__init__(
-            config, key, input_dir, additional_inputs=additional_inputs, additional_recursive_inputs=additional_recursive_inputs
+            config,
+            key,
+            input_dir,
+            additional_inputs=additional_inputs,
+            additional_recursive_inputs=additional_recursive_inputs,
         )
         self.patterns = None
 
@@ -897,10 +914,20 @@ class Sources(FilteredInputs):
     )
 
     def __init__(
-        self, config, key, input_dir, additional_inputs=None, additional_recursive_inputs=None, additional_strip_paths=None
+        self,
+        config,
+        key,
+        input_dir,
+        additional_inputs=None,
+        additional_recursive_inputs=None,
+        additional_strip_paths=None,
     ):
         super().__init__(
-            config, key, input_dir, additional_inputs=additional_inputs, additional_recursive_inputs=additional_recursive_inputs
+            config,
+            key,
+            input_dir,
+            additional_inputs=additional_inputs,
+            additional_recursive_inputs=additional_recursive_inputs,
         )
 
         self.strip_paths = []
@@ -951,31 +978,33 @@ class Context(object):
     __config_schema = Schema(
         {
             Optional(r'aliases'): {str: str},
-            Optional(r'author'): str,
+            Optional(r'author'): Stripped(str),
             Optional(r'autolinks'): {str: str},
             Optional(r'badges'): {str: ValueOrArray(str, name=r'badges', length=2)},
             Optional(r'changelog'): Or(str, bool),
             Optional(r'code_blocks'): CodeBlocks.schema,
             Optional(r'cpp'): Or(str, int, error=r'cpp: expected string or integer'),
             Optional(r'defines'): {str: Or(str, int, bool)},  # legacy
-            Optional(r'description'): str,
+            Optional(r'description'): Stripped(str),
             Optional(r'examples'): FilteredInputs.schema,
             Optional(r'extra_files'): ValueOrArray(str, name=r'extra_files'),
-            Optional(r'favicon'): str,
+            Optional(r'favicon'): Stripped(str),
             Optional(r'generate_tagfile'): bool,
-            Optional(r'github'): str,
-            Optional(r'gitlab'): str,
-            Optional(r'html_header'): str,
+            Optional(r'github'): Stripped(str),
+            Optional(r'gitlab'): Stripped(str),
+            Optional(r'twitter'): Stripped(str),
+            Optional(r'sponsor'): Stripped(str),
+            Optional(r'html_header'): Stripped(str),
             Optional(r'images'): Inputs.schema,
             Optional(r'implementation_headers'): {str: ValueOrArray(str)},
             Optional(r'inline_namespaces'): ValueOrArray(str, name=r'inline_namespaces'),
             Optional(r'internal_docs'): bool,
             Optional(r'jquery'): bool,
             Optional(r'license'): ValueOrArray(str, length=2, name=r'license'),
-            Optional(r'logo'): str,
+            Optional(r'logo'): Stripped(str),
             Optional(r'macros'): {str: Or(str, int, bool)},
             Optional(r'meta_tags'): {str: Or(str, int)},
-            Optional(r'name'): str,
+            Optional(r'name'): Stripped(str),
             Optional(r'navbar'): ValueOrArray(str, name=r'navbar'),
             Optional(r'private_repo'): bool,
             Optional(r'robots'): bool,
@@ -1141,7 +1170,9 @@ class Context(object):
             self.output_dir = coerce_path(output_dir).resolve()
             self.verbose_value(r'Context.output_dir', self.output_dir)
             assert self.output_dir.is_absolute()
-            self.case_sensitive_paths = not (Path(str(paths.DATA).upper()).exists() and Path(str(paths.DATA).lower()).exists())
+            self.case_sensitive_paths = not (
+                Path(str(paths.DATA).upper()).exists() and Path(str(paths.DATA).lower()).exists()
+            )
             self.verbose_value(r'Context.case_sensitive_paths', self.case_sensitive_paths)
 
             # config path
@@ -1313,6 +1344,18 @@ class Context(object):
                 if not self.private_repo and self.repo.release_badge_uri:
                     badges.append((r'Releases', self.repo.release_badge_uri, self.repo.releases_uri))
 
+            # twitter
+            self.twitter = None
+            if r'twitter' in config and config[r'twitter']:
+                self.twitter = config[r'twitter']
+            self.verbose_value(r'Context.twitter', self.twitter)
+
+            # sponsor
+            self.sponsorship_uri = None
+            if r'sponsor' in config and config[r'sponsor']:
+                self.sponsorship_uri = config[r'sponsor']
+            self.verbose_value(r'Context.sponsorship_uri', self.twitter)
+
             # project C++ version
             # defaults to 'current' cpp year version based on (current year - 2)
             # 1998, 2003, *range(2011, 2300, 3)
@@ -1335,7 +1378,9 @@ class Context(object):
                         raise Error(rf"cpp: '{config['cpp']}' is not a valid cpp standard version")
             self.verbose_value(r'Context.cpp', self.cpp)
             badge = rf'poxy-badge-c++{str(self.cpp)[2:]}.svg'
-            badges.append((rf'C++{str(self.cpp)[2:]}', rf'poxy/{badge}', r'https://en.cppreference.com/w/cpp/compiler_support'))
+            badges.append(
+                (rf'C++{str(self.cpp)[2:]}', rf'poxy/{badge}', r'https://en.cppreference.com/w/cpp/compiler_support')
+            )
             add_internal_asset(badge)
 
             # project logo
@@ -1378,12 +1423,12 @@ class Context(object):
             if r'jquery' in config and config[r'jquery']:
                 jquery = enumerate_files(paths.DATA, any=r'jquery*.js')[0]
                 if jquery is not None:
-                    extra_files.append(jquery)
-                    self.scripts.append(jquery.name)
+                    add_internal_asset(jquery)
+                    self.scripts.append(rf'poxy/{jquery.name}')
 
             # scripts
-            self.scripts.append(rf'poxy/poxy.js')
             add_internal_asset(r'poxy.js')
+            self.scripts.append(r'poxy/poxy.js')
             if r'scripts' in config:
                 for f in coerce_collection(config[r'scripts']):
                     file = f.strip()
@@ -1429,7 +1474,9 @@ class Context(object):
                         as_lowercase = (False, True)
                         candidate_dir = self.input_dir
                         while True:
-                            for name, ext, lower in itertools.product(candidate_names, candidate_extensions, as_lowercase):
+                            for name, ext, lower in itertools.product(
+                                candidate_names, candidate_extensions, as_lowercase
+                            ):
                                 candidate_file = Path(candidate_dir, rf'{name.lower() if lower else name}{ext}')
                                 if (
                                     candidate_file.exists()
@@ -1474,13 +1521,19 @@ class Context(object):
 
             # images (IMAGE_PATH)
             self.images = Inputs(
-                config, r'images', self.input_dir, additional_recursive_inputs=[self.blog_dir if self.blog_files else None]
+                config,
+                r'images',
+                self.input_dir,
+                additional_recursive_inputs=[self.blog_dir if self.blog_files else None],
             )
             self.verbose_object(r'Context.images', self.images)
 
             # examples (EXAMPLES_PATH, EXAMPLE_PATTERNS)
             self.examples = FilteredInputs(
-                config, r'examples', self.input_dir, additional_recursive_inputs=[self.blog_dir if self.blog_files else None]
+                config,
+                r'examples',
+                self.input_dir,
+                additional_recursive_inputs=[self.blog_dir if self.blog_files else None],
             )
             self.verbose_object(r'Context.examples', self.examples)
 
@@ -1492,7 +1545,9 @@ class Context(object):
                 dest = str(v)
                 if source and dest:
                     if is_uri(source):
-                        file = Path(paths.TEMP, rf'tagfile_{sha1(source)}_{self.now.year}_{self.now.isocalendar().week}.xml')
+                        file = Path(
+                            paths.TEMP, rf'tagfile_{sha1(source)}_{self.now.year}_{self.now.isocalendar().week}.xml'
+                        )
                         self.tagfiles[source] = (file, dest)
                         self.unresolved_tagfiles = True
                     else:
@@ -1537,11 +1592,19 @@ class Context(object):
                         self.navbar[i] = r'groups'
                     elif self.navbar[i] == r'repository':
                         self.navbar[i] = r'repo'
+                    elif self.navbar[i] in (r'sponsorship', r'funding', r'fund'):
+                        self.navbar[i] = r'sponsor'
+
+                # twitter
+                if self.twitter and r'twitter' not in self.navbar:
+                    self.navbar.append(r'twitter')
+                while not self.twitter and r'twitter' in self.navbar:
+                    self.navbar.remove(r'twitter')
 
                 # repo logic
                 if not self.repo:
                     for KEY in (r'repo', *repos.KEYS):
-                        if KEY in self.navbar:
+                        while KEY in self.navbar:
                             self.navbar.remove(KEY)
                 else:
                     # remove repo buttons matching an uninstantiated repo type
@@ -1556,23 +1619,24 @@ class Context(object):
                     if r'repo' not in self.navbar:
                         self.navbar.append(r'repo')
 
+                # sponsor
+                if self.sponsorship_uri and r'sponsor' not in self.navbar:
+                    self.navbar.append(r'sponsor')
+                while not self.sponsorship_uri and r'sponsor' in self.navbar:
+                    self.navbar.remove(r'sponsor')
+
                 # theme logic
                 if self.theme != r'custom' and r'theme' not in self.navbar:
                     self.navbar.append(r'theme')
-                if self.theme == r'custom' and r'theme' in self.navbar:
+                while self.theme == r'custom' and r'theme' in self.navbar:
                     self.navbar.remove(r'theme')
 
-                # remove duplicate keywords
-                seen_keywords = set()
-                new_navbar = []
-                for nav in self.navbar:
-                    if nav in (r'files', r'pages', r'modules', r'namespaces', r'annotated', r'concepts', r'repo', r'theme'):
-                        if nav not in seen_keywords:
-                            seen_keywords.add(nav)
-                            new_navbar.append(nav)
-                    else:
-                        new_navbar.append(nav)
-                self.navbar = tuple(new_navbar)
+                # remove duplicates (working right-to-left)
+                self.navbar.reverse()
+                self.navbar = remove_duplicates(self.navbar)
+                self.navbar.reverse()
+                self.navbar = tuple(self.navbar)
+
                 self.verbose_value(r'Context.navbar', self.navbar)
 
             # <meta> tags
@@ -1679,7 +1743,12 @@ class Context(object):
                     if pattern.strip() and uri:
                         self.autolinks.append((pattern, uri))
             self.autolinks.sort(
-                key=lambda v: (self.__namespace_qualified.fullmatch(v[0]) is None, v[0].find(r'std::') == -1, -len(v[0]), v[0])
+                key=lambda v: (
+                    self.__namespace_qualified.fullmatch(v[0]) is None,
+                    v[0].find(r'std::') == -1,
+                    -len(v[0]),
+                    v[0],
+                )
             )
             self.autolinks = tuple(self.autolinks)
             self.verbose_value(r'Context.autolinks', self.autolinks)
@@ -1717,7 +1786,12 @@ class Context(object):
                     if file:
                         extra_files.append(Path(file))
 
+            # add all the 'icon' svgs as internal assets so they can be used by users if they wish
+            for f in enumerate_files(paths.DATA, all='poxy-icon-*.svg', recursive=False):
+                add_internal_asset(f)
+
             # finalize extra_files
+            extra_files = remove_duplicates(extra_files)
             self.extra_files = {}
             for i in range(len(extra_files)):
                 file = extra_files[i]

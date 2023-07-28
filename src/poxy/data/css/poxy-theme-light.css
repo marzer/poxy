@@ -1,6 +1,5 @@
-.poxy-theme-light
-{
-	--code-font: 'Consolas', 'Source Code Pro', monospace;
+.poxy-theme-light {
+	--code-font: "Consolas", "Source Code Pro", monospace;
 	--code-color-comments: #008000;
 	--code-color-keywords: #0000ff;
 	--code-color-identifiers: #151414;
@@ -19,12 +18,22 @@
 	--special-saturation: 50%;
 	--special-luminosity: 60%;
 	--special-color: hsl(var(--special-hue), var(--special-saturation), var(--special-luminosity));
-	--special-link-active-color: hsl(var(--special-hue), var(--special-saturation), calc(var(--special-luminosity) * 0.7));
+	--special-link-active-color: hsl(
+		var(--special-hue),
+		var(--special-saturation),
+		calc(var(--special-luminosity) * 0.7)
+	);
 	--special-filled-color: hsl(var(--special-hue), var(--special-saturation), 25%);
-	--special-filled-background-color:  hsl(var(--special-hue), calc(var(--special-saturation) * 0.8), calc(var(--special-luminosity) * 1.4));
+	--special-filled-background-color: hsl(
+		var(--special-hue),
+		calc(var(--special-saturation) * 0.8),
+		calc(var(--special-luminosity) * 1.4)
+	);
 	--special-filled-link-color: hsl(var(--special-hue), calc(var(--special-saturation) * 0.6), 50%);
 	--special-filled-link-active-color: var(--special-filled-color);
 
 	--detail-section-header-color: var(--theme-surface3);
 	--detail-section-background-color: rgba(255, 255, 255, 0.3);
+
+	--sponsor-color: #f8c8dc;
 }

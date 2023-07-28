@@ -107,6 +107,14 @@ def tail(s: str, split: str) -> str:
     return s[idx + len(split) :]
 
 
+def remove_duplicates(vals: list) -> list:
+    new_vals = []
+    for v in coerce_collection(vals):
+        if v not in new_vals:
+            new_vals.append(v)
+    return new_vals
+
+
 # =======================================================================================================================
 # REGEX REPLACER
 # =======================================================================================================================

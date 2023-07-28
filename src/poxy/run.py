@@ -1214,7 +1214,7 @@ def preprocess_mcss_config(context: Context):
                 if not found:
                     bar[i] = None
             bar = [b for b in bar if b is not None]
-            # handle theme and repo links
+            # handle theme, repo, sponsor, twitter
             for i in range(len(bar)):
                 bar[i] = bar[i].strip()
                 if bar[i] == r'repo':
@@ -1223,7 +1223,7 @@ def preprocess_mcss_config(context: Context):
                         continue
                     icon_path = Path(paths.DATA, context.repo.icon_filename)
                     if icon_path.exists():
-                        svg = SVG(icon_path, logger=context.verbose_logger, root_id=r'poxy-repo-icon')
+                        svg = SVG(icon_path, logger=context.verbose_logger, root_id=r'poxy-icon-repo')
                         bar[i] = (
                             rf'<a title="View on {type(context.repo).__name__}" '
                             + rf'target="_blank" href="{context.repo.uri}" '
@@ -1242,6 +1242,30 @@ def preprocess_mcss_config(context: Context):
                         r'<a title="Toggle dark and light themes" '
                         + r'id="poxy-theme-switch" href="javascript:void(null);" role="button" '
                         + rf'class="poxy-icon theme" onClick="toggle_theme(); return false;">{svg}</a>',
+                        [],
+                    )
+                elif bar[i] == r'twitter':
+                    svg = SVG(
+                        Path(paths.DATA, r'poxy-icon-twitter.svg'),
+                        logger=context.verbose_logger,
+                        root_id=r'poxy-icon-twitter',
+                    )
+                    bar[i] = (
+                        rf'<a title="Twitter" '
+                        + rf'target="_blank" href="https://twitter.com/{context.twitter}" '
+                        + rf'class="poxy-icon twitter">{svg}</a>',
+                        [],
+                    )
+                elif bar[i] == r'sponsor':
+                    svg = SVG(
+                        Path(paths.DATA, r'poxy-icon-sponsor.svg'),
+                        logger=context.verbose_logger,
+                        root_id=r'poxy-icon-sponsor',
+                    )
+                    bar[i] = (
+                        rf'<a title="Become a sponsor" '
+                        + rf'target="_blank" href="{context.sponsorship_uri}" '
+                        + rf'class="poxy-icon sponsor">{svg}</a>',
                         [],
                     )
                 elif bar[i] in context.compounds:
@@ -1279,6 +1303,8 @@ def preprocess_mcss_config(context: Context):
         if context.repo:
             footer.append(rf'<a href="{context.repo.uri}" target="_blank">{type(context.repo).__name__}</a>')
             footer.append(rf'<a href="{context.repo.issues_uri}" target="_blank">Report an issue</a>')
+        if context.sponsorship_uri:
+            footer.append(rf'<a href="{context.sponsorship_uri}" class="sponsor" target="_blank">Become a sponsor</a>')
         if context.changelog:
             footer.append(rf'<a href="md_poxy_changelog.html">Changelog</a>')
         if context.license and context.license[r'uri']:

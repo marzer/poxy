@@ -1,6 +1,5 @@
-.poxy-theme-dark
-{
-	--code-font: 'Consolas', 'Source Code Pro', monospace;
+.poxy-theme-dark {
+	--code-font: "Consolas", "Source Code Pro", monospace;
 	--code-color-comments: #57a64a;
 	--code-color-keywords: #569cd6;
 	--code-color-identifiers: #e6e6e6;
@@ -24,4 +23,6 @@
 
 	--detail-section-header-color: var(--header-background-color);
 	--detail-section-background-color: rgba(0, 0, 0, 0.06);
+
+	--sponsor-color: #ff69b4;
 }
