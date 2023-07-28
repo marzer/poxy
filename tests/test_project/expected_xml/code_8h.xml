@@ -6,6 +6,8 @@
 		<innerclass refid="structtest_1_1struct__1_1_1nested__struct" prot="public">test::struct_1::nested_struct</innerclass>
 		<innerclass refid="classtest_1_1class__1" prot="public">test::class_1</innerclass>
 		<innerclass refid="classtest_1_1template__class__1" prot="public">test::template_class_1</innerclass>
+		<innerconcept refid="concepttest_1_1concept__1">test::concept_1</innerconcept>
+		<innerconcept refid="concepttest_1_1nested_1_1concept__2">test::nested::concept_2</innerconcept>
 		<innernamespace refid="namespacetest">test</innernamespace>
 		<innernamespace refid="namespacetest_1_1nested">test::nested</innernamespace>
 		<innernamespace refid="namespacetest_1_1empty">test::empty</innernamespace>
@@ -237,7 +239,7 @@
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_1a011c6f27e90f228cd68be9def15bc076" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>
-					<ref refid="cpp/types/integer" kindref="compound" external="D:/Repositories/poxy/poxy/data/cppreference-doxygen-web.tag.xml">std::uint8_t</ref>
+					<ref refid="cpp/types/integer" kindref="compound" external="D:/Repositories/poxy/src/poxy/data/cppreference-doxygen-web.tag.xml">std::uint8_t</ref>
 				</type>
 				<definition>std::uint8_t test::do_the_thing</definition>
 				<argsstring>()</argsstring>
@@ -266,6 +268,21 @@
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
 				<location file="src/code.h" line="246" column="6" declfile="src/code.h" declline="246" declcolumn="6"/>
+			</memberdef>
+			<memberdef kind="function" id="namespacetest_1a47137b30af06ae000dc60125b3a2cf37" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>auto</type>
+				<definition>auto test::foo</definition>
+				<argsstring>()</argsstring>
+				<name>foo</name>
+				<qualifiedname>test::foo</qualifiedname>
+				<briefdescription>
+					<para>A function with a deduced return type. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>We shouldn't see a redundant "-&gt; auto" in the output. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="263" column="6" bodyfile="src/code.h" bodystart="263" bodyend="266"/>
 			</memberdef>
 		</sectiondef>
 		<briefdescription>

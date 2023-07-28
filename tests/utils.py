@@ -19,7 +19,7 @@ def run_poxy(dir=Path.cwd(), *args, check=True) -> CompletedProcess:
 
     global _poxy_path
     if _poxy_path is None:
-        _poxy_path = str(Path(Path(__file__).parents[2], r'src', r'__main__.py').resolve())
+        _poxy_path = str(Path(Path(__file__).parents[1], r'src', r'__main__.py').resolve())
         assert_existing_file(_poxy_path)
 
     return run_python_script(_poxy_path, *[str(arg) for arg in args if arg is not None], check=check, cwd=dir)

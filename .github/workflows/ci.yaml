@@ -12,7 +12,7 @@ on:
             - "**.xml"
             - "**/poxy/data/*"
             - "**/workflows/**.yaml"
-            - "requirements.txt"
+            - "pyproject.toml"
     pull_request:
         branches:
             - main
@@ -24,7 +24,7 @@ on:
             - "**.xml"
             - "**/poxy/data/*"
             - "**/workflows/**.yaml"
-            - "requirements.txt"
+            - "pyproject.toml"
     workflow_dispatch:
 
 concurrency:
@@ -32,8 +32,8 @@ concurrency:
     cancel-in-progress: true
 
 env:
-    clang_version: "14"
-    gcc_version: "11"
+    clang_version: "15"
+    gcc_version: "12"
 
 jobs:
     linux:
@@ -44,11 +44,6 @@ jobs:
                     - "clang"
                 linker:
                     - "lld"
-                python:
-                    - "3.7"
-                    - "3.8"
-                    - "3.9"
-                    - "3.10"
                 doxygen_tag:
                     #- "Release_1_8_17"
                     #- "Release_1_8_18"
@@ -72,9 +67,12 @@ jobs:
         steps:
             - name: Install base dependencies
               run: |
-                  sudo add-apt-repository ppa:deadsnakes/ppa
                   sudo apt -y update
-                  sudo apt -y install --no-install-recommends git python3-pip
+                  sudo apt -y install --no-install-recommends git python3 python3-pip
+
+            - name: Install python dependencies
+              run: |
+                  sudo python3 -m pip install --upgrade pip build
 
             - name: Install compiler dependencies
               if: ${{ matrix.doxygen_tag != 'none' }}
@@ -101,26 +99,14 @@ jobs:
                   sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-${{ env.gcc_version }} 1000
                   sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-${{ env.gcc_version }} 1000
 
-            - name: Install python
-              run: |
-                  sudo apt install
-                  sudo apt install python${{ matrix.python }} python${{ matrix.python }}-distutils
-                  sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python${{ matrix.python }} 1000
-                  sudo python3 -m pip install pip
-
             - uses: actions/checkout@v3
               with:
-                  path: poxy
-
-            - name: Install python dependencies
-              run: |
-                  cd "${{ github.workspace }}/poxy"
-                  sudo python3 -m pip install --upgrade --requirement requirements.txt
+                  path: repo
 
             - name: Install poxy
               run: |
-                  cd "${{ github.workspace }}/poxy"
-                  sudo python3 -m pip install -e .
+                  cd "${{ github.workspace }}/repo"
+                  sudo python3 -m pip install --upgrade .
 
             - name: Print poxy help
               run: |

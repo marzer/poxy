@@ -66,6 +66,7 @@
               <ul>
                 <li><a href="#namespaces">Namespaces</a></li>
                 <li><a href="#nested-classes">Classes</a></li>
+                <li><a href="#nested-concepts">Concepts</a></li>
                 <li><a href="#enum-members">Enums</a></li>
                 <li><a href="#typedef-members">Typedefs</a></li>
                 <li><a href="#func-members">Functions</a></li>
@@ -103,10 +104,25 @@
             </dt>
             <dd>A class.</dd>
             <dt>
-              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              <div class="m-doc-template">template&lt;<span class="m-doc-template-params"><span class="m-doc-template-param">typename T</span></span>&gt;</div>
               class <a class="m-doc" href="classtest_1_1template__class__1.html">test::template_class_1</a>
             </dt>
             <dd>A template class.</dd>
+          </dl>
+        </section>
+        <section id="nested-concepts">
+          <h2><a href="#nested-concepts">Concepts</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              concept <a class="m-doc" href="concepttest_1_1concept__1.html">test::concept_1</a>
+            </dt>
+            <dd>A concept.</dd>
+            <dt>
+              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              concept <a class="m-doc" href="concepttest_1_1nested_1_1concept__2.html">test::nested::concept_2</a>
+            </dt>
+            <dd>A concept.</dd>
           </dl>
         </section>
         <section id="enum-members">
@@ -138,7 +154,7 @@
             </dt>
             <dd>A C++11 'using' typedef.</dd>
             <dt>
-              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              <div class="m-doc-template">template&lt;<span class="m-doc-template-params"><span class="m-doc-template-param">typename T</span></span>&gt;</div>
               using <a class="m-doc" href="namespacetest.html#ab80f438f7d1d6d6e3b184b7ce32df687">a_typedef_template</a> = T
             </dt>
             <dd>A C++11 'using' typedef template.</dd>
@@ -152,7 +168,7 @@
             </dt>
             <dd>A function that appears as a friend to a <a class="m-doc" href="classtest_1_1class__1.html">test::<wbr/>class_1</a>.</dd>
             <dt>
-              <div class="m-doc-template">template&lt;typename T, typename U&gt;</div>
+              <div class="m-doc-template">template&lt;<span class="m-doc-template-params"><span class="m-doc-template-param">typename T</span>, <span class="m-doc-template-param">typename U</span></span>&gt;</div>
               <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="namespacetest.html#ae66b7e2e94f84934cff5de3e512ce0ee">do_the_other_thing</a>(</span><span class="m-doc-wrap">U u) -&gt; T <span class="m-label m-flat m-primary">constexpr</span> <span class="m-label m-flat m-success">noexcept</span></span>
             </dt>
             <dd>A function template.</dd>
@@ -164,6 +180,10 @@
               <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="namespacetest.html#af2e6008ff8ee50f6cda80da681d44348">do_the_thing_automatically</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
             </dt>
             <dd>A function with a trailing return type.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="namespacetest.html#a47137b30af06ae000dc60125b3a2cf37">foo</a>(</span><span class="m-doc-wrap">) -&gt; auto</span>
+            </dt>
+            <dd>A function with a deduced return type.</dd>
           </dl>
         </section>
         <section id="var-members">
@@ -232,7 +252,7 @@
     </div>
   </div>
 </div>
-<script src="../../../poxy/data/m.css/documentation/search.js"></script>
+<script src="../../../poxy/data/m.css/documentation/search.js"></script><script>install_mcss_search_shim();</script>
 <script async="async" src="searchdata-v2.js"></script>
 <footer><nav>
   <div class="m-container">

@@ -135,7 +135,7 @@
             </dt>
             <dd>A struct.</dd>
             <dt>
-              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              <div class="m-doc-template">template&lt;<span class="m-doc-template-params"><span class="m-doc-template-param">typename T</span></span>&gt;</div>
               class <a class="m-doc" href="classtest_1_1template__class__1.html">template_class_1</a>
             </dt>
             <dd>A template class.</dd>
@@ -180,7 +180,7 @@
             </dt>
             <dd>A C++11 'using' typedef.</dd>
             <dt>
-              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              <div class="m-doc-template">template&lt;<span class="m-doc-template-params"><span class="m-doc-template-param">typename T</span></span>&gt;</div>
               using <a class="m-doc" href="#ab80f438f7d1d6d6e3b184b7ce32df687">a_typedef_template</a> = T
             </dt>
             <dd>A C++11 'using' typedef template.</dd>
@@ -194,7 +194,7 @@
             </dt>
             <dd>A function that appears as a friend to a <a class="m-doc" href="classtest_1_1class__1.html">test::<wbr/>class_1</a>.</dd>
             <dt>
-              <div class="m-doc-template">template&lt;typename T, typename U&gt;</div>
+              <div class="m-doc-template">template&lt;<span class="m-doc-template-params"><span class="m-doc-template-param">typename T</span>, <span class="m-doc-template-param">typename U</span></span>&gt;</div>
               <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="#ae66b7e2e94f84934cff5de3e512ce0ee">do_the_other_thing</a>(</span><span class="m-doc-wrap">U u) -&gt; T <span class="m-label m-flat m-primary">constexpr</span> <span class="m-label m-flat m-success">noexcept</span></span>
             </dt>
             <dd>A function template.</dd>
@@ -206,6 +206,10 @@
               <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="#af2e6008ff8ee50f6cda80da681d44348">do_the_thing_automatically</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
             </dt>
             <dd>A function with a trailing return type.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="#a47137b30af06ae000dc60125b3a2cf37">foo</a>(</span><span class="m-doc-wrap">) -&gt; auto</span>
+            </dt>
+            <dd>A function with a deduced return type.</dd>
           </dl>
         </section>
         <section id="var-members">
@@ -304,7 +308,7 @@
             <h3>
               <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="code_8h.html">&lt;src/code.h&gt;</a></div>
               <div class="m-doc-template">
-                template&lt;typename T&gt;
+                template&lt;<span class="m-doc-template-params"><span class="m-doc-template-param">typename T</span></span>&gt;
               </div>
               using test::<wbr/><a class="m-doc-self" href="#ab80f438f7d1d6d6e3b184b7ce32df687">a_typedef_template</a> = T
             </h3>
@@ -326,7 +330,7 @@
             <h3>
               <div class="m-doc-include m-code m-inverted m-right-m m-text-right"><span class="cp">#include</span> <a class="cpf" href="code_8h.html">&lt;src/code.h&gt;</a></div>
               <div class="m-doc-template">
-                template&lt;typename T, typename U&gt;
+                template&lt;<span class="m-doc-template-params"><span class="m-doc-template-param">typename T</span>, <span class="m-doc-template-param">typename U</span></span>&gt;
               </div>
               <span class="m-doc-wrap-bumper">T test::<wbr/></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a class="m-doc-self" href="#ae66b7e2e94f84934cff5de3e512ce0ee">do_the_other_thing</a>(</span><span class="m-doc-wrap">U u) <span class="m-label m-primary">constexpr</span> <span class="m-label m-success">noexcept</span></span></span>
             </h3>
@@ -379,6 +383,14 @@
             <p>A function with a trailing return type.</p>
 <p>More info.</p>
           </div></section>
+          <section class="m-doc-details" id="a47137b30af06ae000dc60125b3a2cf37"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto test::<wbr/></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a class="m-doc-self" href="#a47137b30af06ae000dc60125b3a2cf37">foo</a>(</span><span class="m-doc-wrap">)</span></span>
+              <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="code_8h.html">&lt;src/code.h&gt;</a></div>
+            </h3>
+            <p>A function with a deduced return type.</p>
+<p>We shouldn't see a redundant "-&gt; auto" in the output.</p>
+          </div></section>
         </section>
         <section>
           <h2>Variable documentation</h2>
@@ -429,7 +441,7 @@
     </div>
   </div>
 </div>
-<script src="../../../poxy/data/m.css/documentation/search.js"></script>
+<script src="../../../poxy/data/m.css/documentation/search.js"></script><script>install_mcss_search_shim();</script>
 <script async="async" src="searchdata-v2.js"></script>
 <footer><nav>
   <div class="m-container">

@@ -103,6 +103,13 @@
       <anchor>af2e6008ff8ee50f6cda80da681d44348</anchor>
       <arglist>() -&gt; int</arglist>
     </member>
+    <member kind="function">
+      <type>auto</type>
+      <name>foo</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a47137b30af06ae000dc60125b3a2cf37</anchor>
+      <arglist>()</arglist>
+    </member>
     <member kind="variable">
       <type>constexpr bool</type>
       <name>inline_variable</name>
@@ -334,6 +341,13 @@
       <anchorfile>namespacetest.html</anchorfile>
       <anchor>af2e6008ff8ee50f6cda80da681d44348</anchor>
       <arglist>() -&gt; int</arglist>
+    </member>
+    <member kind="function">
+      <type>auto</type>
+      <name>foo</name>
+      <anchorfile>namespacetest.html</anchorfile>
+      <anchor>a47137b30af06ae000dc60125b3a2cf37</anchor>
+      <arglist>()</arglist>
     </member>
     <member kind="variable">
       <type>constexpr bool</type>
