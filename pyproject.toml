@@ -61,28 +61,25 @@ readme = { file = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
-# namespaces = true
+include = ["poxy*"]
 
-# [tool.setuptools.package-data]
-# "*" = ['*.txt', '*.hpp', '.clang-format']
+[tool.setuptools.package-data]
+"*" = [
+	'*.css',
+	'*.woff',
+	'*.woff2',
+	'*.json',
+	'*.rst',
+	'*.html',
+	'*.xml',
+	'*.png',
+	'*.js',
+	'*.svg',
+	'*.txt',
+]
 
 [tool.setuptools.exclude-package-data]
-"*" = [
-	'meson.build',
-	'.git*',
-	'.istanbul.yaml',
-	'*.rst',
-	'*.pyc',
-	'data/m.css/artwork/*',
-	'data/m.css/doc/*',
-	'data/m.css/documentation/test/*',
-	'data/m.css/documentation/test_doxygen/*',
-	'data/m.css/documentation/test_python/*',
-	'data/m.css/documentation/templates/python/*',
-	'data/m.css/package/*',
-	'data/m.css/plugins/m/test/*',
-	'data/m.css/site/*',
-]
+"*" = ['meson.build', '.git*', '.istanbul.yaml', '*.pyc']
 
 [tool.black]
 line-length = 120

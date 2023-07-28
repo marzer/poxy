@@ -105,7 +105,7 @@
 		<sectiondef kind="public-static-attrib">
 			<memberdef kind="variable" id="classtest_1_1class__1_1ae05cfedbf34e9f128e87410c09ad3780" prot="public" static="yes" constexpr="yes" mutable="no">
 				<type>
-					<ref refid="cpp/types/byte" kindref="compound" external="D:/Repositories/poxy/src/poxy/data/cppreference-doxygen-web.tag.xml">std::byte</ref>
+					<ref refid="cpp/types/byte" kindref="compound" external="D:/Repositories/poxy/src/poxy/cppreference-doxygen-web.tag.xml">std::byte</ref>
 				</type>
 				<definition>constexpr std::byte test::class_1::public_static_variable</definition>
 				<argsstring/>
@@ -319,7 +319,7 @@
 		<collaborationgraph>
 			<node id="2">
 				<label>std::byte</label>
-				<link refid="cpp/types/byte" external="D:/Repositories/poxy/src/poxy/data/cppreference-doxygen-web.tag.xml"/>
+				<link refid="cpp/types/byte" external="D:/Repositories/poxy/src/poxy/cppreference-doxygen-web.tag.xml"/>
 			</node>
 			<node id="1">
 				<label>test::class_1</label>

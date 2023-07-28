@@ -23,16 +23,19 @@ REPOSITORY = Path(SRC, r'..').resolve()
 TESTS = Path(REPOSITORY, r'tests')
 """The root directory of the repository's tests."""
 
-DATA = Path(PACKAGE, r'data')
-"""The root directory of all package data."""
+IMG = Path(PACKAGE, r'img')
+"""The img directory."""
 
-CSS = Path(DATA, r'css')
+CSS = Path(PACKAGE, r'css')
 """The css directory."""
 
-MCSS = Path(DATA, r'm.css')
+JS = Path(PACKAGE, r'js')
+"""The js directory."""
+
+MCSS = Path(PACKAGE, r'mcss')
 """The root directory of the bundled m.css build."""
 
-GENERATED = Path(DATA, r'generated')
+GENERATED = Path(PACKAGE, r'generated')
 """The root directory of all auto-generated package data."""
 
 FONTS = Path(GENERATED, r'fonts')

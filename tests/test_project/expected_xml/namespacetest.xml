@@ -232,7 +232,7 @@
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_1a011c6f27e90f228cd68be9def15bc076" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>
-					<ref refid="cpp/types/integer" kindref="compound" external="D:/Repositories/poxy/src/poxy/data/cppreference-doxygen-web.tag.xml">std::uint8_t</ref>
+					<ref refid="cpp/types/integer" kindref="compound" external="D:/Repositories/poxy/src/poxy/cppreference-doxygen-web.tag.xml">std::uint8_t</ref>
 				</type>
 				<definition>std::uint8_t test::do_the_thing</definition>
 				<argsstring>()</argsstring>

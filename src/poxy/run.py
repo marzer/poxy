@@ -1104,11 +1104,14 @@ def preprocess_mcss_config(context: Context):
     if 1:
         # stylesheets
         for stylesheet in context.stylesheets:
+            assert stylesheet is not None
             html_header += f'<link href="{stylesheet}" rel="stylesheet" referrerpolicy="no-referrer" />\n'
         # scripts
         for script in context.scripts:
+            assert script is not None
             html_header += f'<script src="{script}"></script>\n'
         if context.theme != r'custom':
+            assert context.theme is not None
             html_header += f'<script>initialize_theme("{context.theme}");</script>\n'
 
         # metadata
@@ -1221,7 +1224,7 @@ def preprocess_mcss_config(context: Context):
                     if not context.repo:
                         bar[i] = None
                         continue
-                    icon_path = Path(paths.DATA, context.repo.icon_filename)
+                    icon_path = Path(paths.IMG, context.repo.icon_filename)
                     if icon_path.exists():
                         svg = SVG(icon_path, logger=context.verbose_logger, root_id=r'poxy-icon-repo')
                         bar[i] = (
@@ -1234,7 +1237,7 @@ def preprocess_mcss_config(context: Context):
                         bar[i] = None
                 elif bar[i] == r'theme':
                     svg = SVG(
-                        Path(paths.DATA, r'poxy-icon-theme.svg'),
+                        Path(paths.IMG, r'poxy-icon-theme.svg'),
                         logger=context.verbose_logger,
                         root_id=r'poxy-theme-switch-img',
                     )
@@ -1246,7 +1249,7 @@ def preprocess_mcss_config(context: Context):
                     )
                 elif bar[i] == r'twitter':
                     svg = SVG(
-                        Path(paths.DATA, r'poxy-icon-twitter.svg'),
+                        Path(paths.IMG, r'poxy-icon-twitter.svg'),
                         logger=context.verbose_logger,
                         root_id=r'poxy-icon-twitter',
                     )
@@ -1258,7 +1261,7 @@ def preprocess_mcss_config(context: Context):
                     )
                 elif bar[i] == r'sponsor':
                     svg = SVG(
-                        Path(paths.DATA, r'poxy-icon-sponsor.svg'),
+                        Path(paths.IMG, r'poxy-icon-sponsor.svg'),
                         logger=context.verbose_logger,
                         root_id=r'poxy-icon-sponsor',
                     )

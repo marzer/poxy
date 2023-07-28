@@ -1154,11 +1154,12 @@ class Context(object):
         self.now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
 
         self.verbose_value(r'dirs.PACKAGE', paths.PACKAGE)
-        self.verbose_value(r'dirs.DATA', paths.DATA)
-        self.verbose_value(r'dirs.MCSS', paths.MCSS)
         self.verbose_value(r'dirs.CSS', paths.CSS)
         self.verbose_value(r'dirs.GENERATED', paths.GENERATED)
         self.verbose_value(r'dirs.FONTS', paths.FONTS)
+        self.verbose_value(r'dirs.IMG', paths.IMG)
+        self.verbose_value(r'dirs.JS', paths.JS)
+        self.verbose_value(r'dirs.MCSS', paths.MCSS)
         self.verbose_value(r'dirs.TEMP', paths.TEMP)
         self.verbose_value(r'doxygen.path()', doxygen.path())
 
@@ -1171,7 +1172,7 @@ class Context(object):
             self.verbose_value(r'Context.output_dir', self.output_dir)
             assert self.output_dir.is_absolute()
             self.case_sensitive_paths = not (
-                Path(str(paths.DATA).upper()).exists() and Path(str(paths.DATA).lower()).exists()
+                Path(str(paths.PACKAGE).upper()).exists() and Path(str(paths.PACKAGE).lower()).exists()
             )
             self.verbose_value(r'Context.case_sensitive_paths', self.case_sensitive_paths)
 
@@ -1254,7 +1255,7 @@ class Context(object):
             assert self.mcss_conf_path.is_absolute()
 
             # misc
-            self.cppref_tagfile = coerce_path(paths.DATA, r'cppreference-doxygen-web.tag.xml').resolve()
+            self.cppref_tagfile = coerce_path(paths.PACKAGE, r'cppreference-doxygen-web.tag.xml').resolve()
             self.verbose_value(r'Context.cppref_tagfile', self.cppref_tagfile)
             assert_existing_file(self.cppref_tagfile)
             assert self.cppref_tagfile.is_absolute()
@@ -1266,15 +1267,21 @@ class Context(object):
             self.scripts = []
             self.stylesheets = []
 
-            def add_internal_asset(p):
+            def add_internal_asset(p) -> str:
                 nonlocal extra_files
                 nonlocal self
-                if not self.copy_assets:
-                    return
+                assert p is not None
                 p = coerce_path(p)
-                if not p.is_absolute():
-                    p = Path(paths.DATA, p)
-                extra_files.append((p, rf'poxy/{p.name}'))
+                if self.copy_assets:
+                    if not p.is_absolute():
+                        for dir in (paths.FONTS, paths.GENERATED, paths.JS, paths.IMG):
+                            new_p = dir / p
+                            if new_p.exists():
+                                p = new_p
+                                break
+                    assert_existing_file(p)
+                    extra_files.append((p, rf'poxy/{p.name}'))
+                return rf'poxy/{p.name}'
 
             config = dict()
             if self.config_path.exists():
@@ -1317,12 +1324,11 @@ class Context(object):
                     badge = re.sub(r'(?:[.]0+)+$', '', spdx.lower())  # trailing .0, .0.0 etc
                     badge = badge.strip(' \t-._:')  # leading + trailing junk
                     badge = re.sub(r'[:;!@#$%^&*\\|/,.<>?`~\[\]{}()_+\-= \t]+', '_', badge)  # internal junk
-                    badge = Path(paths.DATA, rf'poxy-badge-license-{badge}.svg')
+                    badge = Path(paths.IMG, rf'poxy-badge-license-{badge}.svg')
                     self.verbose(rf"Finding badge SVG for license '{spdx}'...")
                     if badge.exists():
                         self.verbose(rf'Badge file found at {badge}')
-                        add_internal_asset(badge)
-                        badges.append((spdx, rf'poxy/{badge.name}', uri))
+                        badges.append((spdx, add_internal_asset(badge), uri))
             self.verbose_value(r'Context.license', self.license)
 
             # project repo access level
@@ -1402,8 +1408,7 @@ class Context(object):
             elif r'theme' in config:
                 self.theme = str(config[r'theme'])
             if self.theme != r'custom':
-                add_internal_asset(Path(paths.DATA, r'generated', r'poxy.css'))
-                self.stylesheets.append(rf'poxy/poxy.css')
+                self.stylesheets.append(add_internal_asset(paths.GENERATED / r'poxy.css'))
             self.verbose_value(r'Context.theme', self.theme)
 
             # stylesheets (HTML_EXTRA_STYLESHEETS)
@@ -1421,14 +1426,12 @@ class Context(object):
 
             # jquery
             if r'jquery' in config and config[r'jquery']:
-                jquery = enumerate_files(paths.DATA, any=r'jquery*.js')[0]
+                jquery = enumerate_files(paths.JS, any=r'jquery*.js')[0]
                 if jquery is not None:
-                    add_internal_asset(jquery)
-                    self.scripts.append(rf'poxy/{jquery.name}')
+                    self.scripts.append(add_internal_asset(jquery))
 
             # scripts
-            add_internal_asset(r'poxy.js')
-            self.scripts.append(r'poxy/poxy.js')
+            self.scripts.append(add_internal_asset(paths.JS / r'poxy.js'))
             if r'scripts' in config:
                 for f in coerce_collection(config[r'scripts']):
                     file = f.strip()
@@ -1787,7 +1790,7 @@ class Context(object):
                         extra_files.append(Path(file))
 
             # add all the 'icon' svgs as internal assets so they can be used by users if they wish
-            for f in enumerate_files(paths.DATA, all='poxy-icon-*.svg', recursive=False):
+            for f in enumerate_files(paths.IMG, all='poxy-icon-*.svg', recursive=False):
                 add_internal_asset(f)
 
             # finalize extra_files

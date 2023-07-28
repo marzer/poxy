@@ -673,7 +673,7 @@ calc(var(--special-luminosity) * 1.4)
 --detail-section-background-color: rgba(255, 255, 255, 0.3);
 --sponsor-color: #f8c8dc;
 }
-/*==== ../m.css/css/m-grid.css =======================================================================================*/
+/*==== ../mcss/css/m-grid.css ========================================================================================*/
 *, ::before, ::after { box-sizing: border-box; }
 body { margin: 0; }
 .m-container { width: 100%; margin: auto; padding-left: 1rem; padding-right: 1rem; }
@@ -882,7 +882,7 @@ body { margin: 0; }
 .m-show-l { display: block; }
 .m-col-l-none { width: auto; float: none; }
 }
-/*==== ../m.css/css/m-components.css =================================================================================*/
+/*==== ../mcss/css/m-components.css ==================================================================================*/
 html { font-size: var(--font-size); background-color: var(--background-color); }
 body { font-family: var(--font); font-size: 1rem; line-height: var(--line-height); color: var(--color); }
 h1, h2, h3, h4, h5, h6 { margin-top: 0; font-weight: var(--heading-font-weight); }
@@ -1936,7 +1936,7 @@ div.m-plot svg .m-bar.m-special,
 .m-graph g.m-node.m-special polyline,
 .m-graph g.m-cluster.m-special polygon { stroke: var(--special-color); }
 .m-container-inflatable section:target .m-note.m-info { border-color: var(--info-color); }
-/*==== ../m.css/css/m-layout.css =====================================================================================*/
+/*==== ../mcss/css/m-layout.css ======================================================================================*/
 body > header > nav { width: 100%; background-color: var(--header-background-color); min-height: 3rem; }
 body > header > nav.m-navbar-landing,
 body > header > nav.m-navbar-cover { background-color: transparent; position: relative; }
@@ -2462,7 +2462,7 @@ border-left-width: 0.125rem;
 .m-console .go { color: var(--console-color); }
 .m-console .gp { color: #16a085; font-weight: bold }
 .m-console .w { color: var(--console-color); }
-/*==== ../m.css/css/m-documentation.css ==============================================================================*/
+/*==== ../mcss/css/m-documentation.css ===============================================================================*/
 a.m-doc, a.m-doc-self, a.m-doc-external,
 ul.m-doc li.m-doc-expansible > a:first-child, ul.m-doc li.m-doc-collapsible > a:first-child,
 .m-code.m-inverted.m-doc-include > a { text-decoration: none; }

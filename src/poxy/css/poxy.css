@@ -19,23 +19,23 @@
 */
 
 /* base font */
-@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600');
+@import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600");
 
 /* vars for dark theme */
-@import url('m-theme-dark.css');
-@import url('poxy-theme-dark.css');
+@import url("m-theme-dark.css");
+@import url("poxy-theme-dark.css");
 
 /* vars for light theme */
-@import url('m-theme-light.css');
-@import url('poxy-theme-light.css');
+@import url("m-theme-light.css");
+@import url("poxy-theme-light.css");
 
 /* m.css */
-@import url('../m.css/css/m-grid.css');
-@import url('../m.css/css/m-components.css');
-@import url('m-special.css');
-@import url('../m.css/css/m-layout.css');
-@import url('poxy-pygments.css');
-@import url('../m.css/css/m-documentation.css');
+@import url("../mcss/css/m-grid.css");
+@import url("../mcss/css/m-components.css");
+@import url("m-special.css");
+@import url("../mcss/css/m-layout.css");
+@import url("poxy-pygments.css");
+@import url("../mcss/css/m-documentation.css");
 
 /* poxy overrides */
-@import url('poxy-overrides.css');
+@import url("poxy-overrides.css");
