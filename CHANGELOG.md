@@ -4,6 +4,7 @@
 
 -   migrated to `pyproject.toml`
 -   fixed footer being off-center (#24) (@wroyca)
+-   fixed redundant `auto` in trailing return types (#26) (@wroyca)
 
 ## v0.12.7 - 2023-07-27
 

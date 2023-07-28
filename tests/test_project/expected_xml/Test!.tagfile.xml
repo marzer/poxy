@@ -105,9 +105,9 @@
     </member>
     <member kind="function">
       <type>auto</type>
-      <name>foo</name>
+      <name>a_function_with_a_deduced_return_type</name>
       <anchorfile>namespacetest.html</anchorfile>
-      <anchor>a47137b30af06ae000dc60125b3a2cf37</anchor>
+      <anchor>af10bf287d581eb8aae63d450e3f848c5</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="variable">
@@ -344,9 +344,9 @@
     </member>
     <member kind="function">
       <type>auto</type>
-      <name>foo</name>
+      <name>a_function_with_a_deduced_return_type</name>
       <anchorfile>namespacetest.html</anchorfile>
-      <anchor>a47137b30af06ae000dc60125b3a2cf37</anchor>
+      <anchor>af10bf287d581eb8aae63d450e3f848c5</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="variable">

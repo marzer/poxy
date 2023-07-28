@@ -179,6 +179,21 @@
 				<inbodydescription></inbodydescription>
 				<location file="src/code.h" line="62" column="6" declfile="src/code.h" declline="62" declcolumn="6"/>
 			</memberdef>
+			<memberdef kind="function" id="namespacetest_1af10bf287d581eb8aae63d450e3f848c5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>__poxy_deduced_auto_return_type</type>
+				<definition>auto test::a_function_with_a_deduced_return_type</definition>
+				<argsstring>()</argsstring>
+				<name>a_function_with_a_deduced_return_type</name>
+				<qualifiedname>test::a_function_with_a_deduced_return_type</qualifiedname>
+				<briefdescription>
+					<para>A function with a deduced return type. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>We shouldn't see a redundant "-&gt; auto" in the output. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="263" column="6" bodyfile="src/code.h" bodystart="263" bodyend="266"/>
+			</memberdef>
 			<memberdef kind="function" id="namespacetest_1ae66b7e2e94f84934cff5de3e512ce0ee" prot="public" static="no" constexpr="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
 				<templateparamlist>
 					<param>
@@ -268,21 +283,6 @@
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
 				<location file="src/code.h" line="246" column="6" declfile="src/code.h" declline="246" declcolumn="6"/>
-			</memberdef>
-			<memberdef kind="function" id="namespacetest_1a47137b30af06ae000dc60125b3a2cf37" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-				<type>auto</type>
-				<definition>auto test::foo</definition>
-				<argsstring>()</argsstring>
-				<name>foo</name>
-				<qualifiedname>test::foo</qualifiedname>
-				<briefdescription>
-					<para>A function with a deduced return type. </para>
-				</briefdescription>
-				<detaileddescription>
-					<para>We shouldn't see a redundant "-&gt; auto" in the output. </para>
-				</detaileddescription>
-				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="263" column="6" bodyfile="src/code.h" bodystart="263" bodyend="266"/>
 			</memberdef>
 		</sectiondef>
 		<briefdescription>

@@ -260,7 +260,7 @@ namespace test
 
 	/// \brief A function with a deduced return type.
 	/// \details We shouldn't see a redundant "-> auto" in the output.
-	auto foo()
+	auto a_function_with_a_deduced_return_type()
 	{
 		return 0;
 	}

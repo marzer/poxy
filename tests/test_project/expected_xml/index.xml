@@ -137,8 +137,8 @@
 		<member refid="namespacetest_1af2e6008ff8ee50f6cda80da681d44348" kind="function">
 			<name>do_the_thing_automatically</name>
 		</member>
-		<member refid="namespacetest_1a47137b30af06ae000dc60125b3a2cf37" kind="function">
-			<name>foo</name>
+		<member refid="namespacetest_1af10bf287d581eb8aae63d450e3f848c5" kind="function">
+			<name>a_function_with_a_deduced_return_type</name>
 		</member>
 	</compound>
 	<compound refid="namespacetest_1_1empty" kind="namespace">
@@ -200,8 +200,8 @@
 		<member refid="namespacetest_1af2e6008ff8ee50f6cda80da681d44348" kind="function">
 			<name>do_the_thing_automatically</name>
 		</member>
-		<member refid="namespacetest_1a47137b30af06ae000dc60125b3a2cf37" kind="function">
-			<name>foo</name>
+		<member refid="namespacetest_1af10bf287d581eb8aae63d450e3f848c5" kind="function">
+			<name>a_function_with_a_deduced_return_type</name>
 		</member>
 	</compound>
 	<compound refid="subfolder_2code_8h" kind="file">

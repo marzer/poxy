@@ -179,7 +179,9 @@ def preprocess_doxyfile(context: Context):
         df.set_value(r'PROJECT_LOGO', context.logo)
         df.set_value(r'SHOW_INCLUDE_FILES', context.show_includes)
         df.set_value(r'INTERNAL_DOCS', context.internal_docs)
-        df.add_value(r'ENABLED_SECTIONS', (r'private', r'internal') if context.internal_docs else (r'public', r'external'))
+        df.add_value(
+            r'ENABLED_SECTIONS', (r'private', r'internal') if context.internal_docs else (r'public', r'external')
+        )
         df.add_value(r'ENABLED_SECTIONS', r'poxy_supports_concepts')
         if context.xml_v2:
             df.set_value(r'INLINE_INHERITED_MEMB', False)
@@ -377,7 +379,9 @@ def postprocess_xml(context: Context):
                         deleted = True
 
         extracted_implementation = False
-        xml_files = [f for f in get_all_files(context.temp_xml_dir, any=(r'*.xml')) if f.name.lower() != r'doxyfile.xml']
+        xml_files = [
+            f for f in get_all_files(context.temp_xml_dir, any=(r'*.xml')) if f.name.lower() != r'doxyfile.xml'
+        ]
         all_inners_by_type = {r'namespace': set(), r'class': set(), r'concept': set()}
 
         # do '<doxygenindex>' first
@@ -390,7 +394,9 @@ def postprocess_xml(context: Context):
             changed = False
 
             # remove entries for files we might have explicitly deleted above
-            for compound in [tag for tag in root.findall(r'compound') if tag.get(r'kind') in (r'file', r'dir', r'concept')]:
+            for compound in [
+                tag for tag in root.findall(r'compound') if tag.get(r'kind') in (r'file', r'dir', r'concept')
+            ]:
                 ref_file = Path(context.temp_xml_dir, rf'{compound.get(r"refid")}.xml')
                 if not ref_file.exists():
                     root.remove(compound)
@@ -512,7 +518,9 @@ def postprocess_xml(context: Context):
                     # fix keywords like 'friend' erroneously included in the type
                     if 1:
                         members = [
-                            m for m in section.findall(r'memberdef') if m.get(r'kind') in (r'friend', r'function', r'variable')
+                            m
+                            for m in section.findall(r'memberdef')
+                            if m.get(r'kind') in (r'friend', r'function', r'variable')
                         ]
 
                         # leaked keywords
@@ -550,11 +558,12 @@ def postprocess_xml(context: Context):
                                     elif kw == r'friend':
                                         member.set(r'kind', r'friend')
 
-                    # fix goofy parsing of trailing return types
+                    # fix issues with trailing return types
                     if 1:
-                        members = [m for m in section.findall(r'memberdef') if m.get(r'kind') in (r'friend', r'function')]
+                        members = [
+                            m for m in section.findall(r'memberdef') if m.get(r'kind') in (r'friend', r'function')
+                        ]
 
-                        # trailing return type bug (https://github.com/mosra/m.css/issues/94)
                         for member in members:
                             type_elem = member.find(r'type')
                             if type_elem is None or type_elem.text != r'auto':
@@ -562,6 +571,8 @@ def postprocess_xml(context: Context):
                             args_elem = member.find(r'argsstring')
                             if args_elem is None or not args_elem.text or args_elem.text.find(r'decltype') != -1:
                                 continue
+
+                            # fix "-> void -> auto" bug (https://github.com/mosra/m.css/issues/94)
                             match = re.search(r'^(.*?)\s*->\s*([a-zA-Z][a-zA-Z0-9_::*&<>\s]+?)\s*$', args_elem.text)
                             if match:
                                 args_elem.text = str(match[1])
@@ -571,6 +582,13 @@ def postprocess_xml(context: Context):
                                 trailing_return_type = re.sub(r'\s+(::|[<>*&])', r'\1', trailing_return_type)
                                 type_elem.text = trailing_return_type
                                 changed = True
+                                continue
+
+                            # fix "auto foo() -> auto" redundancy (https://github.com/marzer/poxy/issues/26)
+                            if args_elem.text == r'()':
+                                type_elem.text = r'__poxy_deduced_auto_return_type'
+                                changed = True
+                                continue
 
                     # re-sort members to override Doxygen's weird and stupid sorting 'rules'
                     if 1:
@@ -652,7 +670,9 @@ def postprocess_xml(context: Context):
                                 changed = True
                         sectiondefs = compounddef.findall(r'sectiondef')
                         if sectiondefs:
-                            implementation_header_sectiondefs[hid] = implementation_header_sectiondefs[hid] + sectiondefs
+                            implementation_header_sectiondefs[hid] = (
+                                implementation_header_sectiondefs[hid] + sectiondefs
+                            )
                             extracted_implementation = True
                             if iid in implementation_header_unused_values:
                                 del implementation_header_unused_values[iid]
@@ -893,7 +913,17 @@ def parse_xml(context: Context):
             return
         # for files and groups we can only extract #defines because they need the full::namespace::context
         # otherwise we get all the C++ types
-        member_kinds = (r'namespace', r'class', r'struct', r'union', r'concept', r'typedef', r'enum', r'enumvalue', r'function')
+        member_kinds = (
+            r'namespace',
+            r'class',
+            r'struct',
+            r'union',
+            r'concept',
+            r'typedef',
+            r'enum',
+            r'enumvalue',
+            r'function',
+        )
         if compound_kind in (r'group', r'file'):
             member_kinds = (r'define',)
         members = [(m, m.find(r'name')) for m in compound.findall(r'member') if m.get(r'kind') in member_kinds]
@@ -950,7 +980,9 @@ def parse_xml(context: Context):
                     tries.namespaces.add(n.text)
 
                 classes = [
-                    (c, c.find(r'name')) for c in node.findall(r'class') if c.get(r'kind') in (r'class', r'struct', r'union')
+                    (c, c.find(r'name'))
+                    for c in node.findall(r'class')
+                    if c.get(r'kind') in (r'class', r'struct', r'union')
                 ]
                 classes = [(c, n) for c, n in classes if n is not None and name_ok(n.text)]
                 for class_, n in classes:
@@ -1052,7 +1084,9 @@ def compile_regexes(context: Context):
     context.code_blocks.namespaces = regex_or(
         context.code_blocks.namespaces, pattern_prefix=r'(?:::)?', pattern_suffix=r'(?:::)?'
     )
-    context.code_blocks.types = regex_or(context.code_blocks.types, pattern_prefix=r'(?:::)?', pattern_suffix=r'(?:::)?')
+    context.code_blocks.types = regex_or(
+        context.code_blocks.types, pattern_prefix=r'(?:::)?', pattern_suffix=r'(?:::)?'
+    )
     context.code_blocks.enums = regex_or(context.code_blocks.enums, pattern_prefix=r'(?:::)?')
     context.code_blocks.functions = regex_or(context.code_blocks.functions, pattern_prefix=r'(?:::)?')
     context.code_blocks.macros = regex_or(context.code_blocks.macros)
@@ -1370,12 +1404,15 @@ def postprocess_html(context: Context):
         fixers.MarkdownPages(),
         fixers.InjectSVGs(),
         fixers.InstallSearchShim(),
+        fixers.DeducedAutoReturnType(),
     )
 
     threads = min(len(files), context.threads, 16)
     context.info(rf'Post-processing {len(files)} HTML files on {threads} thread{"s" if threads > 1 else ""}...')
     if threads > 1:
-        with futures.ProcessPoolExecutor(max_workers=threads, initializer=_initialize_worker, initargs=(context,)) as executor:
+        with futures.ProcessPoolExecutor(
+            max_workers=threads, initializer=_initialize_worker, initargs=(context,)
+        ) as executor:
             jobs = [executor.submit(postprocess_html_file, file) for file in files]
             for future in futures.as_completed(jobs):
                 try:
@@ -1510,7 +1547,11 @@ def run_mcss(context: Context):
             doxy_args.append(r'--debug')
         try:
             run_python_script(
-                Path(paths.MCSS, r'documentation/doxygen.py'), *doxy_args, stdout=stdout, stderr=stderr, cwd=context.input_dir
+                Path(paths.MCSS, r'documentation/doxygen.py'),
+                *doxy_args,
+                stdout=stdout,
+                stderr=stderr,
+                cwd=context.input_dir,
             )
         except:
             context.info(r'm.css failed!')

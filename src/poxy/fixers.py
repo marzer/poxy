@@ -131,7 +131,11 @@ class CustomTags(HTMLFixer):
             for name in self.__allowed_parents:
                 tags = doc.article_content.find_all(name)
                 for tag in tags:
-                    if tag.decomposed or len(tag.contents) == 0 or soup.find_parent(tag, 'a', doc.article_content) is not None:
+                    if (
+                        tag.decomposed
+                        or len(tag.contents) == 0
+                        or soup.find_parent(tag, 'a', doc.article_content) is not None
+                    ):
                         continue
                     replacer = RegexReplacer(
                         self.__double_tags, lambda m, out: self.__double_tags_substitute(m, out, context), str(tag)
@@ -674,7 +678,9 @@ class AutoDocLinks(HTMLFixer):
         # now search the document for any other potential links
         if 1:
             tags = soup.shallow_search(
-                doc.article_content, self.__allowedNames, lambda t: soup.find_parent(t, 'a', doc.article_content) is None
+                doc.article_content,
+                self.__allowedNames,
+                lambda t: soup.find_parent(t, 'a', doc.article_content) is None,
             )
             strings = []
             for tag in tags:
@@ -699,7 +705,9 @@ class AutoDocLinks(HTMLFixer):
                         changed = True
                         del strings[i]
                         for tag in new_tags:
-                            strings = strings + soup.string_descendants(tag, lambda t: soup.find_parent(t, 'a', parent) is None)
+                            strings = strings + soup.string_descendants(
+                                tag, lambda t: soup.find_parent(t, 'a', parent) is None
+                            )
                         continue
                     i = i + 1
         return changed
@@ -805,7 +813,9 @@ class EmptyTags(HTMLFixer):
     def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
         changed = False
         for tag in doc.body((r'p', r'span')):
-            if not tag.contents or (len(tag.contents) == 1 and isinstance(tag.contents[0], NavigableString) and not tag.string):
+            if not tag.contents or (
+                len(tag.contents) == 1 and isinstance(tag.contents[0], NavigableString) and not tag.string
+            ):
                 soup.destroy_node(tag)
                 changed = True
         return changed
@@ -835,7 +845,9 @@ class InjectSVGs(HTMLFixer):
         if not imgs:
             return False
         imgs = [
-            i for i in imgs if r'src' in i.attrs and i[r'src'] and not is_uri(i[r'src']) and i[r'src'].lower().endswith(r'.svg')
+            i
+            for i in imgs
+            if r'src' in i.attrs and i[r'src'] and not is_uri(i[r'src']) and i[r'src'].lower().endswith(r'.svg')
         ]
         count = 0
         for img in imgs:
@@ -874,6 +886,9 @@ class ImplementationDetails(PlainTextFixer):
         return text
 
 
+WBR = r'(?:<wbr[ \t]*/?>)?'
+
+
 class MarkdownPages(PlainTextFixer):
     '''
     Cleans up some HTML snafus from markdown-based pages.
@@ -886,11 +901,26 @@ class MarkdownPages(PlainTextFixer):
             or lower_name.startswith(r'm_d__')  #
             or (context.changelog and lower_name == r'poxy_changelog.html')
         ):
-            WBR = r'(?:<wbr[ \t]*/?>)?'
             PREFIX = rf'_{WBR}_{WBR}poxy_{WBR}thiswasan_{WBR}'
             text = re.sub(rf'{PREFIX}amp', r'&amp;', text)
             text = re.sub(rf'{PREFIX}at', r'@', text)
             text = re.sub(rf'{PREFIX}fe0f', r'&#xFE0F;', text)
+        return text
+
+
+class DeducedAutoReturnType(PlainTextFixer):
+    '''
+    Fixes 'auto() -> auto'.
+    '''
+
+    __deduced_auto_return_type_brief = re.compile(
+        rf'\)[ \t]*-&gt;[ \t]*_{WBR}_{WBR}poxy_{WBR}deduced_{WBR}auto_{WBR}return_{WBR}type'
+    )
+    __deduced_auto_return_type = re.compile(rf'_{WBR}_{WBR}poxy_{WBR}deduced_{WBR}auto_{WBR}return_{WBR}type')
+
+    def __call__(self, context: Context, text: str, path: Path) -> str:
+        text = self.__deduced_auto_return_type_brief.sub(r')', text)
+        text = self.__deduced_auto_return_type.sub(r'auto', text)
         return text
 
 
@@ -994,4 +1024,5 @@ __all__ = [
     'MarkdownPages',
     'Pygments',
     'InstallSearchShim',
+    'DeducedAutoReturnType',
 ]
