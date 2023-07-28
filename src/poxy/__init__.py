@@ -4,10 +4,12 @@
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 
-try:
-	from . import main as m
-except ImportError:
-	import poxy.main as m
+from .main import main, main_blog_post
+from .version import VERSION, VERSION_STRING
+
+__all__ = ['main', 'main_blog_post', 'VERSION', 'VERSION_STRING']
+
+__version__ = VERSION_STRING
 
 if __name__ == '__main__':
-	m.main()
+    main()

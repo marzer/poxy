@@ -3,8 +3,9 @@
 	"prettier.tabWidth": 4,
 	"editor.rulers": [120],
 	"editor.formatOnSave": true,
+	"editor.formatOnPaste": false,
+	"editor.formatOnType": false,
 	"files.eol": "\n",
-	"python.formatting.provider": "yapf",
 	"html.format.indentInnerHtml": true,
 	"files.exclude": {
 		"**/__pycache__": true,

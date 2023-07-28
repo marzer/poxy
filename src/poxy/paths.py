@@ -3,8 +3,9 @@
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
+
 """
-Constants for various key directory paths.
+Constants for various key paths.
 """
 
 import tempfile
@@ -12,6 +13,15 @@ from pathlib import Path
 
 PACKAGE = Path(Path(__file__).resolve().parent)
 """The root directory of the package installation."""
+
+SRC = Path(PACKAGE, r'..').resolve()
+"""The root directory of repository's package sources."""
+
+REPOSITORY = Path(SRC, r'..').resolve()
+"""The root directory of the repository."""
+
+TESTS = Path(REPOSITORY, r'tests')
+"""The root directory of the repository's tests."""
 
 DATA = Path(PACKAGE, r'data')
 """The root directory of all package data."""
@@ -27,9 +37,6 @@ GENERATED = Path(DATA, r'generated')
 
 FONTS = Path(GENERATED, r'fonts')
 """Directory containing all the self-hosted google fonts."""
-
-TESTS = Path(PACKAGE, r'..', r'tests')
-"""The root directory of the repository's tests."""
 
 TEMP = Path(tempfile.gettempdir(), r'poxy')
 """A global temp directory shared by all instances of poxy."""

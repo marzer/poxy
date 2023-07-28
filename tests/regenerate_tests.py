@@ -6,9 +6,11 @@
 
 import re
 import sys
-from subprocess import CalledProcessError
-from utils import *
 from pathlib import Path
+from subprocess import CalledProcessError
+
+from utils import *
+
 try:
 	import pytomlpp as toml  # fast; based on toml++ (C++)
 except ImportError:

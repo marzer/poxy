@@ -1,0 +1,91 @@
+# This file is a part of marzer/poxy and is subject to the the terms of the MIT license.
+# Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
+# See https://github.com/marzer/poxy/master/LICENSE.txt for the full license text.
+# SPDX-License-Identifier: MIT
+
+# windows:
+# python -m build && twine upload dist/* && rmdir /S /Q dist
+
+[build-system]
+requires = ['setuptools', 'wheel']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'poxy'
+requires-python = '>=3.7'
+description = 'Documentation generator for C++.'
+authors = [{ name = "Mark Gillard", email = "mark.gillard@outlook.com.au" }]
+license = { text = 'MIT' }
+keywords = ['c++', 'doxygen', 'documentation']
+classifiers = [
+	'Development Status :: 4 - Beta',
+	'License :: OSI Approved :: MIT License',
+	'Programming Language :: C++',
+	'Topic :: Documentation',
+	'Topic :: Software Development :: Code Generators',
+	'Topic :: Software Development :: Documentation',
+	'Topic :: Utilities',
+]
+dependencies = [
+	'misk >= 0.7.0',
+	'bs4',
+	'jinja2',
+	'pygments',
+	'html5lib',
+	'lxml',
+	'tomli',
+	'schema != 0.7.5',
+	'requests',
+	'trieregex',
+]
+dynamic = ['version', 'readme']
+
+[project.scripts]
+poxy = 'poxy:main'
+poxyblog = 'poxy:main_blog_post'
+
+[project.urls]
+Source = 'https://github.com/marzer/poxy'
+Tracker = 'https://github.com/marzer/poxy/issues'
+Funding = 'https://github.com/sponsors/marzer'
+
+[tool.setuptools]
+zip-safe = true
+
+[tool.setuptools.dynamic]
+version = { file = 'src/poxy/version.txt' }
+readme = { file = [
+	'README.md',
+	'CHANGELOG.md',
+], content-type = 'text/markdown' }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+# namespaces = true
+
+# [tool.setuptools.package-data]
+# "*" = ['*.txt', '*.hpp', '.clang-format']
+
+[tool.setuptools.exclude-package-data]
+"*" = [
+	'meson.build',
+	'.git*',
+	'.istanbul.yaml',
+	'*.rst',
+	'*.pyc',
+	'data/m.css/artwork/*',
+	'data/m.css/doc/*',
+	'data/m.css/documentation/test/*',
+	'data/m.css/documentation/test_doxygen/*',
+	'data/m.css/documentation/test_python/*',
+	'data/m.css/documentation/templates/python/*',
+	'data/m.css/package/*',
+	'data/m.css/plugins/m/test/*',
+	'data/m.css/site/*',
+]
+
+[tool.black]
+line-length = 128
+target-version = ['py39']
+skip-string-normalization = true
+skip-magic-trailing-comma = true

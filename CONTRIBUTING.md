@@ -35,7 +35,9 @@ pip install -e .
 
 ### Code style
 
-It's Python. I'm primarily a C++ programmer. I really don't care that much. If you want to be consistent, the codebase is configured for use with [yapf], so you can point your editor to that as an autoformatter.
+It's Python. I'm primarily a C++ programmer. I really don't care that much.
+If you want to be consistent, the codebase is configured for use with [black], so you can point your editor
+to that as an autoformatter.
 
 I'm not too fussy though. I'm unlikely to reject a PR on the basis of style unless you do something truly horrendous.
 
@@ -127,4 +129,4 @@ poxy --update-tests
 [mosra/m.css]: https://github.com/mosra/m.css
 [marzer/m.css]: https://github.com/marzer/m.css
 [data/css]: https://github.com/marzer/poxy/tree/main/poxy/data/css
-[yapf]: https://github.com/google/yapf
+[black]: https://pypi.org/project/black/

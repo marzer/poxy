@@ -178,10 +178,10 @@ namespace test
 	/// \tparam T A type.
 	template <typename T>
 	concept concept_1 = requires(T a) {
-							{
-								std::hash<T>{}(a)
-								} -> std::convertible_to<std::size_t>;
-						};
+		{
+			std::hash<T>{}(a)
+		} -> std::convertible_to<std::size_t>;
+	};
 
 	/// \brief Another namespace.
 	namespace nested
@@ -191,10 +191,10 @@ namespace test
 		/// \tparam T A type.
 		template <typename T>
 		concept concept_2 = requires(T a) {
-								{
-									std::hash<T>{}(a)
-									} -> std::convertible_to<std::size_t>;
-							};
+			{
+				std::hash<T>{}(a)
+			} -> std::convertible_to<std::size_t>;
+		};
 	}
 
 	/// \brief An empty namespace.
@@ -257,4 +257,11 @@ namespace test
 	/// \details More info.
 	template <typename T>
 	using a_typedef_template = T;
+
+	/// \brief A function with a deduced return type.
+	/// \details We shouldn't see a redundant "-> auto" in the output.
+	auto foo()
+	{
+		return 0;
+	}
 }
