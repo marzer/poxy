@@ -397,8 +397,12 @@ section.m-doc-details div .m-table.m-fullwidth.m-flat tbody td:first-of-type wbr
 }
 
 /* support for those pretty "about the author" blocks as seen in other m.css pages */
-.poxy-about-the-author .poxy-icon img,
-.poxy-about-the-author .poxy-icon svg {
+.poxy-about-the-author .socials {
+	display: block;
+	padding-top: 0.5rem;
+}
+.poxy-about-the-author img.poxy-icon,
+.poxy-about-the-author svg.poxy-icon {
 	max-width: 1.5rem;
 	max-height: 1.5rem;
 	margin-right: 0.5rem;
