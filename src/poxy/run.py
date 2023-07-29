@@ -460,6 +460,15 @@ def postprocess_xml(context: Context):
             compound_title = compounddef.find(r'title')
             compound_title = compound_title.text if compound_title is not None else compound_name
 
+            # fix weird regression in doxygen 1.9.7
+            if compound_kind == r'file' and doxygen.version() == (1, 9, 7):
+                sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'define']
+                for sectiondef in sectiondefs:
+                    members = [m for m in sectiondef.findall(r'member') if m.get(r'kind') == r'define']
+                    for member in members:
+                        sectiondef.remove(member)
+                        changed = True
+
             # add entry to compounds etc
             if compound_id not in context.compounds:
                 context.compounds[compound_id] = {
@@ -1641,7 +1650,7 @@ def run(
 
         # generate + postprocess XML in temp_xml_dir
         # (we always do this even when output_xml is false because it is required by the html)
-        with timer(rf'Generating XML files with Doxygen {doxygen.version()}') as t:
+        with timer(rf'Generating XML files with Doxygen {doxygen.version_string()}') as t:
             run_doxygen(context)
         with timer(r'Post-processing XML files') as t:
             if context.xml_v2:

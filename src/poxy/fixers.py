@@ -34,149 +34,265 @@ class PlainTextFixer(object):
 # HTML post-processes
 # =======================================================================================================================
 
+# yapf: disable
+
+PAIRED_TAGS = TrieRegEx(
+    r'aside',
+    r'code',
+    r'div',
+    r'p',
+    r'pre',
+    r'span',
+    r'aside',
+    r'b',
+    r'center',
+    r'em',
+    r'h1',
+    r'h2',
+    r'h3',
+    r'h4',
+    r'h5',
+    r'h6',
+    r'i',
+    r'li',
+    r'ol',
+    r'strong',
+    r'u',
+    r'ul',
+)
+PAIRED_TAGS = PAIRED_TAGS.regex()
+PAIRED_TAGS = re.compile(
+    r'\[\s*'
+    + rf'({PAIRED_TAGS})\s*'  # group 1: tag name
+    + r'([^\]]*?)\s*'  # group 2: tag attributes
+    + r'\]'
+    + r'(.*?)'  # group 3: tag content
+    + r'\[\s*/\s*\1\s*\]',  # closer
+    re.I | re.S,
+)
+
+SINGLE_TAGS = TrieRegEx(
+    r'add_class',
+    r'add_parent_class',
+    r'add_parent_parent_class',
+    r'htmlentity',
+    r'entity',
+    r'emoji',
+    r'img',
+    r'li',
+    r'ol',
+    r'parent_add_class',
+    r'parent_parent_add_class',
+    r'parent_parent_remove_class',
+    r'parent_parent_set_class',
+    r'parent_parent_set_id',
+    r'parent_parent_set_name',
+    r'parent_remove_class',
+    r'parent_set_class',
+    r'parent_set_id',
+    r'parent_set_name',
+    r'remove_class',
+    r'remove_parent_class',
+    r'remove_parent_parent_class',
+    r'set_class',
+    r'set_id',
+    r'set_name',
+    r'set_parent_class',
+    r'set_parent_class',
+    r'set_parent_id',
+    r'set_parent_id',
+    r'set_parent_name',
+    r'set_parent_name',
+    r'ul',
+)
+SINGLE_TAGS = SINGLE_TAGS.regex()
+SINGLE_TAGS = re.compile(
+    r'\[\s*'
+    + rf'({SINGLE_TAGS})\s*'  # group 1: tag name
+    + r'([^\]]*?)\s*'  # group 2: tag attributes
+    + r'\]',
+    re.I | re.S,
+)
+
+# yapf: enable
+
+TAG_PARENTS = TrieRegEx(
+    r'dd',
+    r'p',
+    r'h1',
+    r'h2',
+    r'h3',
+    r'h4',
+    r'h5',
+    r'h6',
+    r'li',
+    r'aside',
+    r'td',
+    r'div',
+    r'span',
+    r'a',
+    r'i',
+    r'u',
+    r'b',
+)
+TAG_PARENTS = TAG_PARENTS.regex()
+TAG_PARENTS = re.compile(rf'^{TAG_PARENTS}$', re.I)
+
+TAG_DISALLOWED_PARENTS = (r'code', r'pre')
+
 
 class CustomTags(HTMLFixer):
     '''
     Modifies HTML using custom square-bracket [tags].
     '''
 
-    __double_tags = re.compile(
-        r'\[\s*('
-        + r'p|center|span|div|aside|code|pre|h1|h2|h3|h4|h5|h6|em|strong|b|i|u|li|ul|ol'
-        + r')(.*?)\s*\](.*?)\[\s*/\1\s*\]',
-        re.I | re.S,
-    )
-    __single_tags = re.compile(
-        r'\[\s*(/?(?:'
-        + r'p|img|span|div|aside|code|pre|emoji'
-        + r'|(?:parent_)?set_(?:parent_)?(?:name|class)'
-        + r'|(?:parent_)?(?:add|remove)_(?:parent_)?class'
-        + r'|br|li|ul|ol|(?:html)?entity)'
-        + r')(\s+[^\]]+?)?\s*\]',
-        re.I | re.S,
-    )
     __hex_entity = re.compile(r'(?:[0#]?[xX])?([a-fA-F0-9]+)')
-    __allowed_parents = ('dd', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'aside', 'td', 'div', 'span')
 
-    @classmethod
-    def __double_tags_substitute(cls, m, out, context):
-        return f'<{m[1]}{html.unescape(m[2])}>{m[3]}</{m[1]}>'
+    def __paired_tags_substitute(cls, m, out, context):
+        tag_name = m[1].lower()
+        tag_attrs = m[2].strip() if m[2] else ''
+        tag_attrs = rf' {tag_attrs}' if tag_attrs else ''
+        tag_content = m[3].strip() if m[3] else ''
+        if tag_content:
+            return rf'<{tag_name}{tag_attrs}>{tag_content}</{tag_name}>'
+        return rf'<{tag_name}{tag_attrs} />'
 
     @classmethod
     def __single_tags_substitute(cls, m, out, context):
         tag_name = m[1].lower()
-        tag_content = m[2].strip() if m[2] else ''
-        if tag_name == 'htmlentity' or tag_name == 'entity':
-            if not tag_content:
+        tag_attrs = m[2].strip() if m[2] else ''
+        if tag_name in (r'htmlentity', r'entity'):
+            if not tag_attrs:
                 return ''
-            hex_match = cls.__hex_entity.fullmatch(tag_content)
+            hex_match = cls.__hex_entity.fullmatch(tag_attrs)
             if hex_match:
                 try:
                     cp = int(hex_match[1], 16)
                     if cp <= 0x10FFFF:
-                        return f'&#x{hex_match[1]};'
+                        return rf'&#x{hex_match[1]};'
                 except:
                     pass
-            return f'&{tag_content};'
-        elif tag_name == 'emoji':
-            tag_content = tag_content.lower()
-            if not tag_content:
+            return f'&{tag_attrs};'
+        elif tag_name == r'emoji':
+            if not tag_attrs:
                 return ''
+            tag_attrs = tag_attrs.lower()
             emoji = None
             for base in (16, 10):
                 try:
-                    emoji = context.emoji[int(tag_content, base)]
+                    emoji = context.emoji[int(tag_attrs, base)]
                     if emoji is not None:
                         break
                 except:
                     pass
             if emoji is None:
-                emoji = context.emoji[tag_content]
-            if emoji is not None:
-                return str(emoji)
+                emoji = context.emoji[tag_attrs]
+            return str(emoji) if emoji is not None else ''
+        elif tag_name.find(r'_class') != -1:
+            if tag_attrs:
+                tag_attrs = [s.strip() for s in tag_attrs.split()]
+                tag_attrs = [s for s in tag_attrs if s]
+                if tag_attrs:
+                    out.append((tag_name, tag_attrs))
             return ''
-        elif tag_name in (
-            r'add_class',
-            r'remove_class',
-            r'set_class',
-            r'parent_add_class',
-            r'parent_remove_class',
-            r'parent_set_class',
-            r'add_parent_class',
-            r'remove_parent_class',
-            r'set_parent_class',
-        ):
-            classes = []
-            if tag_content:
-                for s in tag_content.split():
-                    if s:
-                        classes.append(s)
-            if classes:
-                out.append((tag_name, classes))
-            return ''
-        elif tag_name in (r'set_name', r'parent_set_name', r'set_parent_name'):
-            if tag_content:
-                out.append((tag_name, tag_content))
+        elif tag_name.find(r'_name') != -1 or tag_name.find(r'_id') != -1:
+            if tag_attrs:
+                out.append((tag_name, tag_attrs))
             return ''
         else:
-            return f'<{m[1]}{(" " + tag_content) if tag_content else ""}>'
+            return rf'<{tag_name}{rf" {tag_attrs}" if tag_attrs else ""}>'
 
     def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
         if doc.article_content is None:
             return False
+
         changed = False
+
+        def get_candidate_tags():
+            tags = doc.article_content.find_all(TAG_PARENTS)
+            tags = [tag for tag in tags if not tag.decomposed and len(tag.contents)]
+            tags = [tag for tag in tags if soup.find_parent(tag, TAG_DISALLOWED_PARENTS, doc.article_content) is None]
+            return tags
+
+        # paired tags
         changed_this_pass = True
         while changed_this_pass:
             changed_this_pass = False
-            for name in self.__allowed_parents:
-                tags = doc.article_content.find_all(name)
-                for tag in tags:
-                    if (
-                        tag.decomposed
-                        or len(tag.contents) == 0
-                        or soup.find_parent(tag, 'a', doc.article_content) is not None
-                    ):
-                        continue
-                    replacer = RegexReplacer(
-                        self.__double_tags, lambda m, out: self.__double_tags_substitute(m, out, context), str(tag)
-                    )
-                    if replacer:
-                        changed_this_pass = True
-                        soup.replace_tag(tag, str(replacer))
-                        continue
-                    replacer = RegexReplacer(
-                        self.__single_tags, lambda m, out: self.__single_tags_substitute(m, out, context), str(tag)
-                    )
-                    if replacer:
-                        changed_this_pass = True
-                        parent = tag.parent
-                        new_tags = soup.replace_tag(tag, str(replacer))
-                        for i in range(len(replacer)):
-                            if replacer[i][0].find(r'parent_') != -1:
-                                if parent is None:
-                                    continue
-                                if replacer[i][0] in (r'parent_add_class', r'add_parent_class'):
-                                    soup.add_class(parent, replacer[i][1])
-                                elif replacer[i][0] in (r'parent_remove_class', r'remove_parent_class'):
-                                    soup.remove_class(parent, replacer[i][1])
-                                elif replacer[i][0] in (r'parent_set_class', r'set_parent_class'):
-                                    soup.set_class(parent, replacer[i][1])
-                                elif replacer[i][0] in (r'parent_set_name', r'set_parent_name'):
-                                    parent.name = replacer[i][1]
-                            elif len(new_tags) == 1 and not isinstance(new_tags[0], NavigableString):
-                                if replacer[i][0] == r'add_class':
-                                    soup.add_class(new_tags[0], replacer[i][1])
-                                elif replacer[i][0] == r'remove_class':
-                                    soup.remove_class(new_tags[0], replacer[i][1])
-                                elif replacer[i][0] == r'set_class':
-                                    soup.set_class(new_tags[0], replacer[i][1])
-                                elif replacer[i][0] == r'set_name':
-                                    new_tags[0].name = replacer[i][1]
-
-                        continue
+            for tag in get_candidate_tags():
+                replacer = RegexReplacer(
+                    PAIRED_TAGS, lambda m, out: self.__paired_tags_substitute(m, out, context), str(tag)
+                )
+                if replacer:
+                    changed_this_pass = True
+                    soup.replace_tag(tag, str(replacer))
+                    break
             if changed_this_pass:
                 doc.smooth()
                 changed = True
+
+        # single tags
+        changed_this_pass = True
+        while changed_this_pass:
+            changed_this_pass = False
+            tags = get_candidate_tags()
+            strings = []
+            for tag in tags:
+                strings += [string for string in tag.children if isinstance(string, NavigableString) and len(string)]
+            for string in strings:
+                before = str(string)
+                replacer = RegexReplacer(
+                    SINGLE_TAGS, lambda m, out: self.__single_tags_substitute(m, out, context), str(string)
+                )
+                if replacer:
+                    changed_this_pass = True
+                    parent = string.parent
+                    new_tags = soup.replace_tag(string, str(replacer))
+                    if parent is not None and parent.name == 'p' and not len(parent.contents):
+                        parent = parent.parent
+                    for i in range(len(replacer)):  # custom tag handling
+                        key = replacer[i][0]
+                        if key.find(r'parent_') != -1:
+                            if key.find(r'parent_parent') != -1:
+                                key = key.replace(r'parent_parent', r'parent')
+                                if parent is not None:
+                                    parent = parent.parent
+                            if parent is None:
+                                continue
+                            if key in (r'parent_add_class', r'add_parent_class'):
+                                soup.add_class(parent, replacer[i][1])
+                            elif key in (r'parent_remove_class', r'remove_parent_class'):
+                                soup.remove_class(parent, replacer[i][1])
+                            elif key in (r'parent_set_class', r'set_parent_class'):
+                                soup.set_class(parent, replacer[i][1])
+                            elif key in (r'parent_set_name', r'set_parent_name'):
+                                parent.name = replacer[i][1]
+                            elif key in (r'parent_set_id', r'set_parent_id'):
+                                parent['id'] = replacer[i][1]
+                        elif key.find(r'_class') or key.find(r'_name') != -1 or key.find(r'_id') != -1:
+                            target = None
+                            if len(new_tags) == 1:
+                                target = new_tags[0]
+                            elif not new_tags:
+                                target = parent
+                            if target is not None and isinstance(target, NavigableString):
+                                target = target.parent
+                            if not target:
+                                continue
+                            if key == r'add_class':
+                                soup.add_class(target, replacer[i][1])
+                            elif key == r'remove_class':
+                                soup.remove_class(target, replacer[i][1])
+                            elif key == r'set_class':
+                                soup.set_class(target, replacer[i][1])
+                            elif key == r'set_name':
+                                target.name = replacer[i][1]
+                            elif key == r'set_id':
+                                target.id = replacer[i][1]
+                    continue
+            if changed_this_pass:
+                doc.smooth()
+                changed = True
+
         return changed
 
 

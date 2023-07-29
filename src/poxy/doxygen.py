@@ -111,14 +111,20 @@ def path() -> Path:
     return path.val
 
 
-def version() -> str:
+def version() -> tuple[int, int, int]:
     if not hasattr(version, "val"):
         proc = subprocess.run([str(path()), r'--version'], capture_output=True, encoding=r'utf-8', check=True)
         ret = proc.stdout.strip() if proc.stdout is not None else ''
         if not ret and proc.stderr.strip():
             raise Error(rf'doxygen exited with error: {proc.stderr.strip()}')
-        version.val = ret
+        ret = re.fullmatch(r'\s*[v]?\s*([0-9]+)\s*\.\s*([0-9]+)\s*\.\s*([0-9])(\s.+?)?', ret, flags=re.I)
+        assert ret
+        version.val = (int(ret[1]), int(ret[2]), int(ret[3]))
     return version.val
+
+
+def version_string() -> str:
+    return rf'{version()[0]}.{version()[1]}.{version()[2]}'
 
 
 # =======================================================================================================================
@@ -411,7 +417,9 @@ def _parse_xml_file(g: graph.Graph, path: Path, log_func=None):
         # extract constexpr, constinit, static, mutable etc out of the type if doxygen has leaked it
         while type_elem.text:
             text = rf' {type_elem.text} '
-            match = re.search(r'\s(?:(?:const(?:expr|init|eval)|static|mutable|explicit|virtual|inline|friend)\s)+', text)
+            match = re.search(
+                r'\s(?:(?:const(?:expr|init|eval)|static|mutable|explicit|virtual|inline|friend)\s)+', text
+            )
             if match is None:
                 break
             type_elem.text = (text[: match.start()] + r' ' + text[match.end() :]).strip()
@@ -463,7 +471,9 @@ def _parse_xml_file(g: graph.Graph, path: Path, log_func=None):
         node = g.get_or_create_node(id=compound.get(r'refid'), type=KINDS_TO_NODE_TYPES[compound.get(r'kind')])
 
         if node.type is graph.File:  # files use their local name?? doxygen is so fucking weird
-            node.local_name = tail(extract_subelement_text(compound, r'name').strip().replace('\\', r'/').rstrip(r'/'), r'/')  #
+            node.local_name = tail(
+                extract_subelement_text(compound, r'name').strip().replace('\\', r'/').rstrip(r'/'), r'/'
+            )  #
         else:
             node.qualified_name = extract_subelement_text(compound, r'name')
 
@@ -472,7 +482,9 @@ def _parse_xml_file(g: graph.Graph, path: Path, log_func=None):
             member_kind = member_elem.get(r'kind')
             if member_kind == r'enumvalue':
                 continue
-            member = g.get_or_create_node(id=member_elem.get(r'refid'), type=KINDS_TO_NODE_TYPES[member_kind], parent=node)
+            member = g.get_or_create_node(
+                id=member_elem.get(r'refid'), type=KINDS_TO_NODE_TYPES[member_kind], parent=node
+            )
             name = extract_subelement_text(member_elem, r'name')
             if name:
                 if member.type is graph.Define:
@@ -1088,7 +1100,9 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
         )
         for node_type in _ordered(*COMPOUND_NODE_TYPES):
             for node in g(node_type):
-                compound = xml_utils.make_child(root, r'compound', refid=node.id, kind=NODE_TYPES_TO_KINDS[node.type])  #
+                compound = xml_utils.make_child(
+                    root, r'compound', refid=node.id, kind=NODE_TYPES_TO_KINDS[node.type]
+                )  #
                 xml_utils.make_child(compound, r'name').text = node.qualified_name
                 if node.type is graph.Directory:
                     continue

@@ -104,7 +104,7 @@ def regenerate_expected_outputs():
             text = text.replace(r'src="search-v2.js"', r'src="../../../src/poxy/mcss/documentation/search.js"')
             text = re.sub(r'Poxy v[0-9]+[.][0-9]+[.][0-9]+', r'Poxy v0.0.0', text)
             text = re.sub(r'version="\s*[0-9]+[.][0-9]+[.][0-9]+\s*"', r'version="0.0.0"', text)
-            text = re.sub(r'gitid="\s*[0-9a-fA-F]+\s*"', r'gitid="000000000000000000000000000000000000000"', text)
+            text = re.sub(r'\s*doxygen_gitid="\s*[0-9a-fA-F]+\s*"', r'', text)
             print(rf"Writing {path}")
             with open(path, r'w', encoding=r'utf-8', newline='\n') as f:
                 f.write(text)

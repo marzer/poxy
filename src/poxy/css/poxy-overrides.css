@@ -50,10 +50,16 @@ a:hover {
 }
 
 article div > section {
-	margin-top: 2rem;
+	margin-top: 2.5rem;
+}
+article div > section:first-of-type {
+	margin-top: initial;
 }
 article div > section > section {
-	margin-bottom: 2.25rem;
+	margin-top: 2.25rem;
+}
+article div > section > section:first-of-type {
+	margin-top: initial;
 }
 
 a.poxy-external {
@@ -397,6 +403,9 @@ section.m-doc-details div .m-table.m-fullwidth.m-flat tbody td:first-of-type wbr
 }
 
 /* support for those pretty "about the author" blocks as seen in other m.css pages */
+.poxy-about-the-author {
+	margin-top: 4rem;
+}
 .poxy-about-the-author .socials {
 	display: block;
 	padding-top: 0.5rem;

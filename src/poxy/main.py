@@ -116,12 +116,19 @@ def main(invoker=True):
         help=r'override the default visual theme (default: read from config)',
     )
     args.add_argument(
-        r'--threads', type=int, default=0, metavar=r'N', help=r"set the number of threads to use (default: automatic)"  #
+        r'--threads',
+        type=int,
+        default=0,
+        metavar=r'N',
+        help=r"set the number of threads to use (default: automatic)",  #
     )
     args.add_argument(r'--version', action=r'store_true', help=r"print the version and exit", dest=r'print_version')  #
     make_boolean_optional_arg(args, r'xml', default=False, help=r'specify whether XML output is required')  #
     make_boolean_optional_arg(
-        args, r'werror', default=None, help=r'override the treating of warnings as errors (default: read from config)'  #
+        args,
+        r'werror',
+        default=None,
+        help=r'override the treating of warnings as errors (default: read from config)',  #
     )
     args.add_argument(
         r'--bug-report', action=r'store_true', help=r"captures all output in a zip file for easier bug reporting."  #
@@ -136,7 +143,9 @@ def main(invoker=True):
     args.add_argument(r'--update-fonts', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--update-emoji', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--update-tests', action=r'store_true', help=argparse.SUPPRESS)  #
-    args.add_argument(r'--update-mcss', type=Path, default=None, metavar=r'<path>', help=argparse.SUPPRESS, dest=r'mcss')  #
+    args.add_argument(
+        r'--update-mcss', type=Path, default=None, metavar=r'<path>', help=argparse.SUPPRESS, dest=r'mcss'
+    )  #
     args.add_argument(  # --xml and --html are the replacements for --xmlonly
         r'--xmlonly', action=r'store_true', help=argparse.SUPPRESS  #
     )
@@ -200,7 +209,19 @@ def main(invoker=True):
     bug_report_zip = (Path.cwd() / r'poxy_bug_report.zip').resolve()
 
     if args.bug_report:
-        bug_report_args = [arg for arg in sys.argv[1:] if arg not in (r'--bug-report', r'--bug-report-internal')]
+        BUG_REPORT_STRIP_ARGS = (
+            r'--bug-report',
+            r'--bug-report-internal',
+            r'-v',
+            r'--verbose',
+            r'--color',
+            r'--no-color',
+            r'--colour',
+            r'--no-colour',
+        )
+
+        bug_report_args = [arg for arg in sys.argv[1:]]
+        bug_report_args_stripped = [arg for arg in bug_report_args if arg not in BUG_REPORT_STRIP_ARGS]
 
         print(r'Preparing output paths')
         delete_directory(bug_report_directory)
@@ -209,7 +230,7 @@ def main(invoker=True):
 
         print(r'Invoking poxy')
         result = subprocess.run(
-            args=[r'poxy', *bug_report_args, r'--bug-report-internal'],
+            args=[r'poxy', *bug_report_args, r'--bug-report-internal', r'--verbose'],
             cwd=str(Path.cwd()),
             check=False,
             stdout=subprocess.PIPE,
@@ -229,9 +250,9 @@ def main(invoker=True):
 
         print(r'Writing metadata')
         with open(bug_report_directory / r'metadata.txt', r'w', newline='\n', encoding=r'utf-8') as f:
-            print(rf'version: {VERSION_STRING}', file=f)
-            print(rf'args: {bug_report_args}', file=f)
-            print(rf'returncode: {result.returncode}', file=f)
+            f.write(f'version: {VERSION_STRING}\n')
+            f.write(f'args: {bug_report_args_stripped}\n')
+            f.write(f'returncode: {result.returncode}\n')
 
         # zip file
         print(r'Zipping files')

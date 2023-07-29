@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.1 - 2023-07-29
+
+-   fixed crash regression with Doxygen 1.9.7
+-   fixed issues with \[tag\] substitution
+-   minor style fixes
+
 ## v0.13.0 - 2023-07-28
 
 -   migrated to `pyproject.toml`
