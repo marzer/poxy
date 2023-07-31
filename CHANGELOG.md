@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.2 - 2023-07-31
+
+-   fixed doxygen's `@ref` links to `#id` anchors on the same page being treated as external links
+-   added auto-linking for C++ [named requirements](https://en.cppreference.com/w/cpp/named_req)
+-   minor style fixes
+
 ## v0.13.1 - 2023-07-29
 
 -   fixed crash regression with Doxygen 1.9.7

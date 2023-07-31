@@ -194,23 +194,25 @@ h3 .m-doc-include .cp {
 }
 
 /* "Try this code on Compiler Explorer" */
-.godbolt {
+pre .poxy-godbolt,
+code .poxy-godbolt {
 	font-family: "Source Sans Pro", sans-serif;
 }
-p.godbolt {
+pre p.poxy-godbolt,
+code p.poxy-godbolt {
 	text-align: center;
 	padding: 0rem;
 	text-indent: 0rem;
+	float: right;
 }
-a.godbolt {
+pre p.poxy-godbolt a.poxy-godbolt,
+code p.poxy-godbolt a.poxy-godbolt {
 	padding: 0.5rem;
 	display: inline-block;
 }
-pre > p.godbolt {
-	float: right;
-}
 @media screen and (max-width: 768px) {
-	.godbolt {
+	pre p.poxy-godbolt,
+	code p.poxy-godbolt {
 		display: none;
 	}
 }
@@ -406,7 +408,7 @@ section.m-doc-details div .m-table.m-fullwidth.m-flat tbody td:first-of-type wbr
 .poxy-about-the-author {
 	margin-top: 4rem;
 }
-.poxy-about-the-author .socials {
+.poxy-about-the-author .poxy-socials {
 	display: block;
 	padding-top: 0.5rem;
 }
@@ -425,4 +427,9 @@ header nav a.sponsor:hover,
 footer nav a.sponsor:hover,
 a.poxy-icon.sponsor:hover {
 	color: var(--sponsor-color) !important;
+}
+
+/* C++ named requirement links */
+main article a.poxy-named-requirement {
+	font-style: italic;
 }

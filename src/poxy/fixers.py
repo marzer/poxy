@@ -836,31 +836,45 @@ class Links(HTMLFixer):
 
     __external_href = re.compile(r'^(?:https?|s?ftp|mailto)[:].+$', re.I)
     __internal_doc_id = re.compile(r'^[a-fA-F0-9]+$')
-    __godbolt = re.compile(r'^\s*https[:]//godbolt.org/z/.+?$', re.I)
     __local_href = re.compile(r'^([-/_a-zA-Z0-9]+\.[a-zA-Z]+)(?:#(.*))?$')
+    __godbolt = re.compile(r'^\s*(?:https?[:]//)?(?:www[.])?godbolt[.]org/z/.+?$', re.I)
+    __cppreference = re.compile(r'^\s*(?:https?[:]//)?(?:[a-z]+[.])?cppreference[.]com.*$', re.I)
+    __named_req = re.compile(r'^\s*(?:https?[:]//)?(?:[a-z]+[.])?cppreference[.]com/w/cpp/named_req/.+?$', re.I)
 
     def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
         changed = False
         for anchor in doc.body('a', href=True):
-            href = anchor['href']
+            # make sure internal links to #ids on the same page don't get treated as external links
+            # (some versions of doxygen did this with @ref)
+            if anchor['href'].startswith(rf'{path.name}#'):
+                anchor['href'] = anchor['href'][len(rf'{path.name}') :]
+                changed = True
+
+            # tag links to cppreference.com
+            if self.__cppreference.fullmatch(anchor['href']):
+                changed = soup.add_class(anchor, 'poxy-cppreference') or changed
+
+            # tag links to cpp named requirements
+            if self.__named_req.fullmatch(anchor['href']):
+                changed = soup.add_class(anchor, 'poxy-named-requirement') or changed
 
             # make sure links to external sources are correctly marked as such
-            if self.__external_href.fullmatch(href) is not None:
+            if self.__external_href.fullmatch(anchor['href']) is not None:
                 if 'target' not in anchor.attrs or anchor['target'] != '_blank':
                     anchor['target'] = '_blank'
                     changed = True
                 changed = soup.add_class(anchor, 'poxy-external') or changed
 
                 # do magic with godbolt.org links
-                if self.__godbolt.fullmatch(href):
-                    changed = soup.add_class(anchor, 'godbolt') or changed
+                if self.__godbolt.fullmatch(anchor['href']):
+                    changed = soup.add_class(anchor, 'poxy-godbolt') or changed
                     if (
                         anchor.parent.name == 'p'
                         and len(anchor.parent.contents) == 1
                         and anchor.parent.next_sibling is not None
-                        and anchor.parent.next_sibling.name == 'pre'
+                        and anchor.parent.next_sibling.name in ('pre', 'code')
                     ):
-                        soup.add_class(anchor.parent, ('m-note', 'm-success', 'godbolt'))
+                        soup.add_class(anchor.parent, ('m-note', 'm-success', 'poxy-godbolt'))
                         code_block = anchor.parent.next_sibling
                         code_block.insert(0, anchor.parent.extract())
                         changed = True
@@ -869,7 +883,7 @@ class Links(HTMLFixer):
             is_mdoc = r'class' in anchor.attrs and (r'm-doc' in anchor['class'] or r'm-doc-self' in anchor['class'])
 
             # make sure links to local files point to actual existing files
-            match = self.__local_href.fullmatch(href)
+            match = self.__local_href.fullmatch(anchor['href'])
             if match and not coerce_path(path.parent, match[1]).exists():
                 changed = True
                 # fix for some doxygen versions not emitting the 'md_' prefix:
@@ -880,8 +894,7 @@ class Links(HTMLFixer):
                         continue
                 # non-existent hrefs that correspond to internal documentation can sometimes by fixed by the next step
                 if is_mdoc:
-                    href = r'#'
-                    anchor[r'href'] = r'#'
+                    anchor['href'] = r'#'
                 # otherwise this is a href to a non-existent file so we just convert it to a plain span
                 else:
                     for attr in (
@@ -902,7 +915,11 @@ class Links(HTMLFixer):
                     continue
 
             # make sure internal documentation #id links actually have somewhere to go
-            if is_mdoc and href.startswith(r'#') and (len(href) == 1 or doc.body.find(id=href[1:]) is None):
+            if (
+                is_mdoc
+                and anchor['href'].startswith(r'#')
+                and (len(anchor['href']) == 1 or doc.body.find(id=anchor['href'][1:]) is None)
+            ):
                 changed = True
                 soup.remove_class(anchor, 'm-doc')
                 soup.add_class(anchor, 'm-doc-self')
