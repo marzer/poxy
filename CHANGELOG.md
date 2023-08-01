@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.13.3 - 2023-08-01
+
+-   fixed floating TOCs sometimes clipping off the bottom of the screen when the viewport was vertically narrow
+
 ## v0.13.2 - 2023-07-31
 
 -   fixed doxygen's `@ref` links to `#id` anchors on the same page being treated as external links

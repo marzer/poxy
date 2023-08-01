@@ -2732,7 +2732,7 @@ h4:last-child,
 h5:last-child,
 h6:last-child { margin-bottom: 0rem; }
 .m-doc-details table img.m-image { margin-left: inherit; }
-@media screen and (min-width: 1300px) and (min-height: 775px) {
+@media screen and (min-width: 1300px) {
 :root { --wide-page-left-offset: -160px; }
 #poxy-toc {
 position: fixed;
@@ -2742,6 +2742,8 @@ min-width: 200px;
 z-index: 5;
 margin: 0px 20px 0px 0px !important;
 background-color: var(--background-color);
+overflow-y: auto;
+max-height: calc(100% - 7rem);
 }
 header nav > .m-container,
 footer nav > .m-container { width: 100%; }

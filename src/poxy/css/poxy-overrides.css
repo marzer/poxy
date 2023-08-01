@@ -232,7 +232,7 @@ h6:last-child {
 }
 
 /* wide screens with room for a floating TOC */
-@media screen and (min-width: 1300px) and (min-height: 775px) {
+@media screen and (min-width: 1300px) {
 	:root {
 		--wide-page-left-offset: -160px;
 	}
@@ -244,6 +244,8 @@ h6:last-child {
 		z-index: 5;
 		margin: 0px 20px 0px 0px !important;
 		background-color: var(--background-color);
+		overflow-y: auto;
+		max-height: calc(100% - 7rem);
 	}
 	header nav > .m-container,
 	footer nav > .m-container {
