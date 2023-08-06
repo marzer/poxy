@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.13.4 - 2023-08-06
+
+-   fixed excessive `template<>` noise in details views
+
 ## v0.13.3 - 2023-08-01
 
 -   fixed floating TOCs sometimes clipping off the bottom of the screen when the viewport was vertically narrow

@@ -1443,6 +1443,7 @@ def postprocess_html(context: Context):
         fixers.InjectSVGs(),
         fixers.InstallSearchShim(),
         fixers.DeducedAutoReturnType(),
+        fixers.RemoveTemplateNoise(),
     )
 
     threads = min(len(files), context.threads, 16)

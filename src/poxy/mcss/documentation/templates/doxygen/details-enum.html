@@ -3,7 +3,7 @@
               {% if compound.templates != None %}
               <div class="m-doc-template">
                 {% set j = joiner(', ') %}
-                template&lt;{% for t in compound.templates %}{{ j() }}{{ t.type }} {% if t.name %}{{ t.name }}{% else %}_{{ loop.index }}{% endif %}{% endfor %}&gt;
+                template&nbsp;&lt;<span class="m-doc-template-params{% if compound.templates|length >= 3 %} m-doc-template-long{% endif %}">{% for t in compound.templates %}{{ j() }}<span class="m-doc-template-param">{{ t.type }} {% if t.name %}{{ t.name }}{% else %}_{{ loop.index }}{% endif %}</span>{% endfor %}</span>&gt;
               </div>
               {% endif %}
               enum {% if enum.is_strong %}class {% endif %}{{ prefix }}<a href="#{{ enum.id }}" class="m-doc-self">{{ enum.name }}</a>{% if enum.type %}: {{ enum.type }}{% endif %}{% if enum.is_protected %} <span class="m-label m-warning">protected</span>{% endif %}{% if enum.since %} {{ enum.since }}{% endif %}

@@ -56,7 +56,13 @@ def make_boolean_optional_arg(args, name, default, help='', **kwargs):
         args.add_argument(rf'--{name}', default=default, help=help, action=argparse.BooleanOptionalAction, **kwargs)
     else:
         args.add_argument(rf'--{name}', action=r'store_true', help=help, **kwargs)
-        args.add_argument(rf'--no-{name}', action=r'store_false', dest=name, **kwargs)
+        args.add_argument(
+            rf'--no-{name}',
+            action=r'store_false',
+            help=(help if help == argparse.SUPPRESS else None),
+            dest=name,
+            **kwargs,
+        )
         args.set_defaults(**{name: default})
 
 
@@ -140,7 +146,7 @@ def main(invoker=True):
     args.add_argument(r'--nocleanup', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--noassets', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--update-styles', action=r'store_true', help=argparse.SUPPRESS)  #
-    args.add_argument(r'--update-fonts', action=r'store_true', help=argparse.SUPPRESS)  #
+    make_boolean_optional_arg(args, r'update-fonts', default=None, help=argparse.SUPPRESS)
     args.add_argument(r'--update-emoji', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--update-tests', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(
@@ -175,7 +181,8 @@ def main(invoker=True):
 
     if args.mcss is not None:
         args.update_styles = True
-        args.update_fonts = True
+        if args.update_fonts is None:
+            args.update_fonts = True
         mcss.update_bundled_install(args.mcss)
     assert_existing_directory(paths.MCSS)
     assert_existing_file(Path(paths.MCSS, r'documentation/doxygen.py'))

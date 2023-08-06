@@ -998,6 +998,23 @@ class InjectSVGs(HTMLFixer):
         return count > 0
 
 
+class RemoveTemplateNoise(HTMLFixer):
+    '''
+    Removes some template noise from detail blocks.
+    '''
+
+    def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
+        tags = [tag for tag in doc.article.find_all(r'span', class_='m-doc-wrap-bumper-prefix') if not tag.decomposed]
+        changed = False
+        for tag in tags:
+            m = re.fullmatch(r'([a-zA-Z_][a-zA-Z_0-9:]*)<.+?>::', tag.get_text())
+            if not m:
+                continue
+            tag.string = rf'{m[1]}::'
+            changed = True
+        return changed
+
+
 # =======================================================================================================================
 # plain text post-processes
 # =======================================================================================================================
@@ -1158,4 +1175,5 @@ __all__ = [
     'Pygments',
     'InstallSearchShim',
     'DeducedAutoReturnType',
+    'RemoveTemplateNoise',
 ]

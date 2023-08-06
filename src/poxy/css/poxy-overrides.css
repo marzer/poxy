@@ -401,6 +401,12 @@ figure.m-figure > figcaption {
 	display: block;
 }
 
+/* hiding the 'parent' template info in details blocks */
+.m-doc-details .m-doc-template .m-doc-template-parent,
+.m-doc-details .m-doc-template .m-doc-template-parent + br {
+	display: none;
+}
+
 /* killing <wbr> tags in function details table template lists */
 section.m-doc-details div .m-table.m-fullwidth.m-flat tbody td:first-of-type wbr {
 	display: none;
