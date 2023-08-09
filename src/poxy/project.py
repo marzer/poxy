@@ -1174,6 +1174,7 @@ class Context(object):
         theme: str,
         copy_assets: bool,
         temp_dir: Path = None,
+        bug_report: bool = False,
         **kwargs,
     ):
         self.logger = logger
@@ -1183,6 +1184,7 @@ class Context(object):
         self.cleanup = bool(cleanup)
         self.copy_assets = bool(copy_assets)
         self.verbose_logger = logger if self.__verbose else None
+        self.bug_report = bool(bug_report)
 
         self.info(rf'Poxy v{VERSION_STRING}')
 
@@ -1252,6 +1254,8 @@ class Context(object):
                     self.config_path = Path(self.config_path, r'poxy.toml')
                 if not self.config_path.exists() or not self.config_path.is_file():
                     raise Error(rf"Config '{self.config_path}' did not exist or was not a file")
+                if self.bug_report:
+                    copy_file(self.config_path, paths.BUG_REPORT_DIR)
             assert self.config_path.is_absolute()
             self.verbose_value(r'Context.config_path', self.config_path)
 

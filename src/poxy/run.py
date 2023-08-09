@@ -1621,6 +1621,7 @@ def run(
     theme: str = None,
     copy_assets: bool = True,
     temp_dir: Path = None,
+    bug_report: bool = False,
     **kwargs,
 ):
     timer = lambda desc: ScopeTimer(desc, print_start=True, print_end=context.verbose_logger)
@@ -1640,6 +1641,7 @@ def run(
         theme=theme,
         copy_assets=copy_assets,
         temp_dir=temp_dir,
+        bug_report=bug_report,
         **kwargs,
     ) as context:
         preprocess_doxyfile(context)

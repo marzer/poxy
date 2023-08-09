@@ -66,6 +66,71 @@ def make_boolean_optional_arg(args, name, default, help='', **kwargs):
         args.set_defaults(**{name: default})
 
 
+def bug_report():
+    BUG_REPORT_STRIP_ARGS = (
+        r'--bug-report',
+        r'--bug-report-internal',
+        r'-v',
+        r'--verbose',
+        r'--color',
+        r'--no-color',
+        r'--colour',
+        r'--no-colour',
+    )
+
+    bug_report_args = [arg for arg in sys.argv[1:] if arg not in BUG_REPORT_STRIP_ARGS]
+    bug_report_zip = (Path.cwd() / r'poxy_bug_report.zip').resolve()
+
+    print(r'Preparing output paths')
+    delete_directory(paths.BUG_REPORT_DIR)
+    delete_file(bug_report_zip)
+    os.makedirs(str(paths.BUG_REPORT_DIR), exist_ok=True)
+
+    print(r'Invoking poxy')
+    result = subprocess.run(
+        args=[r'poxy', *bug_report_args, r'--bug-report-internal', r'--verbose'],
+        cwd=str(Path.cwd()),
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        encoding='utf-8',
+    )
+
+    if result.stdout is not None:
+        print(r'Writing stdout')
+        with open(paths.BUG_REPORT_DIR / r'stdout.txt', r'w', newline='\n', encoding=r'utf-8') as f:
+            f.write(result.stdout)
+
+    if result.stderr is not None:
+        print(r'Writing stderr')
+        with open(paths.BUG_REPORT_DIR / r'stderr.txt', r'w', newline='\n', encoding=r'utf-8') as f:
+            f.write(result.stderr)
+
+    print(r'Writing metadata')
+    with open(paths.BUG_REPORT_DIR / r'metadata.txt', r'w', newline='\n', encoding=r'utf-8') as f:
+        f.write(f'version: {VERSION_STRING}\n')
+        f.write(f'args: {bug_report_args}\n')
+        f.write(f'returncode: {result.returncode}\n')
+
+    # zip file
+    print(r'Zipping files')
+    with zipfile.ZipFile(str(bug_report_zip), 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip:
+        file_prefix_len = len(str(paths.BUG_REPORT_DIR))
+        for file in get_all_files(paths.BUG_REPORT_DIR, recursive=True):
+            if file.suffix is not None and file.suffix.lower() in (r'.pyc',):
+                continue
+            relative_file = str(file)[file_prefix_len:].replace('\\', '/').strip('/')
+            zip.write(file, arcname=rf'poxy_bug_report/{relative_file}')
+
+    print(r'Cleaning up')
+    delete_directory(paths.BUG_REPORT_DIR)
+
+    print(
+        f'Zip generated: {bug_report_zip}\n'
+        'Please attach this file when you make a report at github.com/marzer/poxy/issues, thanks!'
+    )
+
+
 def main(invoker=True):
     """
     The entry point when the library is invoked as `poxy`.
@@ -92,6 +157,7 @@ def main(invoker=True):
     # --------------------------------------------------------------
     # public user-facing arguments
     # --------------------------------------------------------------
+
     args.add_argument(
         r'config',
         type=Path,
@@ -139,9 +205,11 @@ def main(invoker=True):
     args.add_argument(
         r'--bug-report', action=r'store_true', help=r"captures all output in a zip file for easier bug reporting."  #
     )
+
     # --------------------------------------------------------------
     # hidden/developer-only/deprecated/diagnostic arguments
     # --------------------------------------------------------------
+
     args.add_argument(r'--where', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--nocleanup', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--noassets', action=r'store_true', help=argparse.SUPPRESS)  #
@@ -212,72 +280,8 @@ def main(invoker=True):
     # bug report invocation
     # --------------------------------------------------------------
 
-    bug_report_directory = (Path.cwd() / r'poxy_bug_report').resolve()
-    bug_report_zip = (Path.cwd() / r'poxy_bug_report.zip').resolve()
-
     if args.bug_report:
-        BUG_REPORT_STRIP_ARGS = (
-            r'--bug-report',
-            r'--bug-report-internal',
-            r'-v',
-            r'--verbose',
-            r'--color',
-            r'--no-color',
-            r'--colour',
-            r'--no-colour',
-        )
-
-        bug_report_args = [arg for arg in sys.argv[1:]]
-        bug_report_args_stripped = [arg for arg in bug_report_args if arg not in BUG_REPORT_STRIP_ARGS]
-
-        print(r'Preparing output paths')
-        delete_directory(bug_report_directory)
-        delete_file(bug_report_zip)
-        os.makedirs(str(bug_report_directory), exist_ok=True)
-
-        print(r'Invoking poxy')
-        result = subprocess.run(
-            args=[r'poxy', *bug_report_args, r'--bug-report-internal', r'--verbose'],
-            cwd=str(Path.cwd()),
-            check=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            encoding='utf-8',
-        )
-
-        if result.stdout is not None:
-            print(r'Writing stdout')
-            with open(bug_report_directory / r'stdout.txt', r'w', newline='\n', encoding=r'utf-8') as f:
-                f.write(result.stdout)
-
-        if result.stderr is not None:
-            print(r'Writing stderr')
-            with open(bug_report_directory / r'stderr.txt', r'w', newline='\n', encoding=r'utf-8') as f:
-                f.write(result.stderr)
-
-        print(r'Writing metadata')
-        with open(bug_report_directory / r'metadata.txt', r'w', newline='\n', encoding=r'utf-8') as f:
-            f.write(f'version: {VERSION_STRING}\n')
-            f.write(f'args: {bug_report_args_stripped}\n')
-            f.write(f'returncode: {result.returncode}\n')
-
-        # zip file
-        print(r'Zipping files')
-        with zipfile.ZipFile(str(bug_report_zip), 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip:
-            file_prefix_len = len(str(bug_report_directory))
-            for file in get_all_files(bug_report_directory, recursive=True):
-                if file.suffix is not None and file.suffix.lower() in (r'.pyc',):
-                    continue
-                relative_file = str(file)[file_prefix_len:].replace('\\', '/').strip('/')
-                zip.write(file, arcname=rf'poxy_bug_report/{relative_file}')
-
-        print(r'Cleaning up')
-        delete_directory(bug_report_directory)
-
-        print(
-            f'Zip generated: {bug_report_zip}\n'
-            'Please attach this file when you make a report at github.com/marzer/poxy/issues, thanks!'
-        )
+        bug_report()
         return
 
     # --------------------------------------------------------------
@@ -291,9 +295,8 @@ def main(invoker=True):
     output_dir = Path.cwd()
     temp_dir = None
     if args.bug_report_internal:
-        output_dir = bug_report_directory / r'output'
-        temp_dir = bug_report_directory / r'temp'
-        args.verbose = True
+        output_dir = paths.BUG_REPORT_DIR
+        temp_dir = paths.BUG_REPORT_DIR / r'temp'
         args.nocleanup = True
 
     with ScopeTimer(r'All tasks', print_start=False, print_end=True) as timer:
@@ -313,6 +316,7 @@ def main(invoker=True):
             theme=args.theme,
             copy_assets=not args.noassets,
             temp_dir=temp_dir,
+            bug_report=bool(args.bug_report_internal),
             # kwargs:
             xml_v2=args.xml_v2,
         )

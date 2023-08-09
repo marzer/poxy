@@ -43,3 +43,6 @@ FONTS = Path(GENERATED, r'fonts')
 
 TEMP = Path(tempfile.gettempdir(), r'poxy')
 """A global temp directory shared by all instances of poxy."""
+
+BUG_REPORT_DIR = (TEMP / r'bug_report').resolve()
+"""Directory used for assembling bug reports."""

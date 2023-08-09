@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.13.5 - 2023-08-09
+
+-   fixed `--bug-report` regression (#29) (@wroyca)
+
 ## v0.13.4 - 2023-08-06
 
 -   fixed excessive `template<>` noise in details views
