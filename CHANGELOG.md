@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.13.6 - 2023-08-10
+
+-   update m.css to fix libgs.so lookup (#31) (@wroyca, @mosra)
+
 ## v0.13.5 - 2023-08-09
 
 -   fixed `--bug-report` regression (#29) (@wroyca)
