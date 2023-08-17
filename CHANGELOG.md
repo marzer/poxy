@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.13.7 - 2023-08-17
+
+-   fixed minor syntax highlighting issues
+
 ## v0.13.6 - 2023-08-10
 
 -   update m.css to fix libgs.so lookup (#31) (@wroyca, @mosra)

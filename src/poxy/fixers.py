@@ -1139,6 +1139,13 @@ class Pygments(PlainTextFixer):
                 text,
             )
 
+            # hack to make basic "using XXXX = ..." directives look nice
+            text = re.sub(
+                r'<span\s+class="k"\s*>(\s*using\s*)</span>(\s+)<span\s+class="n"\s*>([a-zA-Z_][a-zA-Z0-9_]*?)</span>(\s+)<span\s+class="o"\s*>(\s*=\s*)</span>',
+                r'<span class="k">\1</span>\2<span class="nc">\3</span>\4<span class="o">\5</span>',
+                text,
+            )
+
         return text
 
 

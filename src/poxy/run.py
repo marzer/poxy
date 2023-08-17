@@ -469,6 +469,29 @@ def postprocess_xml(context: Context):
                         sectiondef.remove(member)
                         changed = True
 
+            # do a bit of cleanup of <programlisting>
+            for programlisting in compounddef.iterdescendants(tag="programlisting"):
+                # fix &amp;zwj; mangling (zero-width joiners don't make sense in code blocks anyways)
+                for descendant in programlisting.iterdescendants():
+                    if descendant.text:
+                        new_text = descendant.text.replace('&amp;zwj;', '')
+                        new_text = descendant.text.replace('&zwj;', '')
+                        if new_text != descendant.text:
+                            descendant.text = new_text
+                            changed = True
+                    if descendant.tail:
+                        new_text = descendant.tail.replace('&amp;zwj;', '')
+                        new_text = descendant.tail.replace('&zwj;', '')
+                        if new_text != descendant.tail:
+                            descendant.tail = new_text
+                            changed = True
+                # delete highlight blocks that contribute absolutely nothing:
+                for highlight in programlisting.iterdescendants(tag="highlight"):
+                    if not highlight.text and not highlight.tail and not len(highlight):
+                        highlight.getparent().remove(highlight)
+                        changed = True
+                        continue
+
             # add entry to compounds etc
             if compound_id not in context.compounds:
                 context.compounds[compound_id] = {

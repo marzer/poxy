@@ -27,7 +27,7 @@ classifiers = [
 	'Topic :: Utilities',
 ]
 dependencies = [
-	'misk >= 0.7.0',
+	'misk >= 0.8.1',
 	'bs4',
 	'jinja2',
 	'pygments',
