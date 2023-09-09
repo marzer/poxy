@@ -57,8 +57,11 @@ jobs:
                     #- "Release_1_9_5"
                     #- "Release_1_9_6"
                     - "none"
+                os:
+                    - "ubuntu-latest"
+                    - "ubuntu-20.04"
 
-        runs-on: ubuntu-latest
+        runs-on: "${{ matrix.os }}"
 
         defaults:
             run:

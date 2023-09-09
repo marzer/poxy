@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: MIT
 
 from pathlib import Path
+from typing import Tuple
 
 VERSION = ()
 
@@ -13,5 +14,6 @@ with open(Path(__file__).parent / r'version.txt', encoding='utf-8') as file:
     assert len(VERSION) == 3
 
 VERSION_STRING = r'.'.join([str(v) for v in VERSION])
+VERSION: Tuple[int, int, int]
 
 __all__ = [r'VERSION', r'VERSION_STRING']

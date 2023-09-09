@@ -7,6 +7,8 @@
 Helpers for working with HTML using BeautifulSoup.
 """
 
+from typing import List, Union
+
 import bs4
 
 from .utils import *
@@ -126,7 +128,7 @@ def set_class(tag, classes):
     add_class(tag, classes)
 
 
-def get_classes(tag) -> list:
+def get_classes(tag) -> List[str]:
     assert tag is not None
     if 'class' not in tag.attrs:
         return []
@@ -153,7 +155,7 @@ def has_any_classes(tag, *classes) -> bool:
 
 
 class HTMLDocument(object):
-    def __init__(self, source: typing.Union[str, Path], logger):
+    def __init__(self, source: Union[str, Path], logger):
         self.__logger = logger
 
         assert source is not None

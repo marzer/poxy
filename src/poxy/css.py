@@ -7,13 +7,17 @@
 Functions for working with CSS files.
 """
 
+from typing import Tuple
+
 from . import paths
 from .utils import *
 
 RX_COMMENT = re.compile(r'''/[*].+?[*]/''', flags=re.DOTALL)
 RX_IMPORT = re.compile(r'''@import\s+url\(\s*['"]?\s*(.+?)\s*['"]?\s*\)\s*;''', flags=re.I)
 RX_MCSS_FILENAME = re.compile(r'(?:m|pygments)-[a-z0-9_-]+[.]css$', flags=re.I)
-RX_GOOGLE_FONT = re.compile(r'''url\(\s*['"]?(https://fonts[.]gstatic[.]com/[a-z0-9_/%+?:-]+?[.]woff2)['"]?\s*\)''', flags=re.I)
+RX_GOOGLE_FONT = re.compile(
+    r'''url\(\s*['"]?(https://fonts[.]gstatic[.]com/[a-z0-9_/%+?:-]+?[.]woff2)['"]?\s*\)''', flags=re.I
+)
 
 
 def strip_comments(text) -> str:
@@ -38,7 +42,7 @@ def has_mcss_filename(path) -> bool:
     return bool(RX_MCSS_FILENAME.match(path))
 
 
-def resolve_imports(text, cwd=None, use_cached_fonts=True) -> typing.Tuple[str, bool]:
+def resolve_imports(text, cwd=None, use_cached_fonts=True) -> Tuple[str, bool]:
     if cwd is None:
         cwd = Path.cwd()
     cwd = coerce_path(cwd).resolve()

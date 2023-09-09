@@ -7,12 +7,14 @@
 Functions and classes for working with various source control repositories.
 """
 
+from typing import Tuple
+
 from .utils import *
 
 RX_REPO_PAIR = re.compile(r"""\s*([a-zA-Z0-9_+.-]+)\s*[/\\:,;|]\s*([a-zA-Z0-9_+.-]+)\s*""")
 
 
-def extract_user_and_repo(s) -> typing.Tuple[str, str]:
+def extract_user_and_repo(s) -> Tuple[str, str]:
     assert s is not None
     s = str(s)
     global RX_REPO_PAIR
@@ -38,7 +40,9 @@ class GitHub(object):
         self.issues_uri = rf'{self.uri}/issues'
         self.pull_requests_uri = rf'{self.uri}/pulls'
         self.releases_uri = rf'{self.uri}/releases'
-        self.release_badge_uri = (rf'https://img.shields.io/github/v/release/{self.user}/{self.repository}?style=flat-square',)
+        self.release_badge_uri = (
+            rf'https://img.shields.io/github/v/release/{self.user}/{self.repository}?style=flat-square',
+        )
         self.icon_filename = rf'poxy-icon-{GitHub.KEY}.svg'
 
     def __bool__(self) -> bool:

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.13.8 - 2023-09-09
+
+-   fixed regression for Python &lt;= 3.8 (#32) (@timjanik)
+
 ## v0.13.7 - 2023-08-17
 
 -   fixed minor syntax highlighting issues

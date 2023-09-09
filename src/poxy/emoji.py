@@ -8,6 +8,7 @@ Functions and classes for working with emoji.
 """
 
 import json
+from typing import Collection, Union
 
 from . import paths
 from .utils import *
@@ -38,7 +39,7 @@ def update_database_file():
 
 
 class Emoji(object):
-    def __init__(self, key: str, codepoints: typing.Union[int, typing.Collection[int]], uri: str):
+    def __init__(self, key: str, codepoints: Union[int, Collection[int]], uri: str):
         self.key = str(key)
         self.codepoints = [int(cp) for cp in coerce_collection(codepoints)]
         self.codepoints.sort()
@@ -80,14 +81,14 @@ class Database(object):
             if key in self.__by_key and alias not in self.__by_key:
                 self.__by_key[alias] = self.__by_key[key]
 
-    def __contains__(self, key: typing.Union[int, str]) -> bool:
+    def __contains__(self, key: Union[int, str]) -> bool:
         assert key is not None
         if isinstance(key, int):
             return key in self.__by_codepoint
         else:
             return key.lower().replace(r'-', r'_') in self.__by_key
 
-    def __getitem__(self, key: typing.Union[int, str]) -> Emoji:
+    def __getitem__(self, key: Union[int, str]) -> Emoji:
         assert key is not None
         if isinstance(key, int):
             if key in self.__by_codepoint:

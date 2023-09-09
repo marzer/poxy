@@ -11,6 +11,7 @@ import itertools
 import os
 import shutil
 import subprocess
+from typing import Tuple
 
 from lxml import etree
 
@@ -111,7 +112,7 @@ def path() -> Path:
     return path.val
 
 
-def version() -> tuple[int, int, int]:
+def version() -> Tuple[int, int, int]:
     if not hasattr(version, "val"):
         proc = subprocess.run([str(path()), r'--version'], capture_output=True, encoding=r'utf-8', check=True)
         ret = proc.stdout.strip() if proc.stdout is not None else ''

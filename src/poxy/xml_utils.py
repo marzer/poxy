@@ -7,6 +7,8 @@
 XML utilities - Helpers for working with XML using lxml.
 """
 
+from typing import Union
+
 from lxml import etree
 
 from .utils import *
@@ -34,7 +36,7 @@ def make_child(parent, tag_name: str, **attrs):
     return etree.SubElement(parent, tag_name, attrib=attrs)
 
 
-def read(source: typing.Union[str, bytes, Path], parser=None, logger=None):
+def read(source: Union[str, bytes, Path], parser=None, logger=None):
     assert source is not None
     assert source
     assert isinstance(source, (str, bytes, Path))
@@ -49,11 +51,11 @@ def read(source: typing.Union[str, bytes, Path], parser=None, logger=None):
     return etree.fromstring(source, parser=parser)
 
 
-ElementTypes = typing.Union[etree.ElementBase, etree._Element, etree._ElementTree]
+ElementTypes = Union[etree.ElementBase, etree._Element, etree._ElementTree]
 
 
 def write(
-    source: typing.Union[str, bytes, ElementTypes],
+    source: Union[str, bytes, ElementTypes],
     dest: Path,
     parser=None,
     logger=None,
