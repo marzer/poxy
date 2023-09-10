@@ -9,6 +9,7 @@ Functions and classes for working with Doxygen.
 
 import itertools
 import os
+import re
 import shutil
 import subprocess
 from typing import Tuple
@@ -118,7 +119,7 @@ def version() -> Tuple[int, int, int]:
         ret = proc.stdout.strip() if proc.stdout is not None else ''
         if not ret and proc.stderr.strip():
             raise Error(rf'doxygen exited with error: {proc.stderr.strip()}')
-        ret = re.fullmatch(r'\s*[v]?\s*([0-9]+)\s*\.\s*([0-9]+)\s*\.\s*([0-9])(\s.+?)?', ret, flags=re.I)
+        ret = re.fullmatch(r'^\s*v?\s*([0-9]+)\s*[.]\s*([0-9]+)\s*[.]\s*([0-9]+)(?:[^0-9].*)?$', ret, flags=re.I)
         assert ret
         version.val = (int(ret[1]), int(ret[2]), int(ret[3]))
     return version.val
@@ -171,7 +172,9 @@ class Doxyfile(object):
         if not self.__dirty:
             return
         if 1:
-            log(self.__logger, rf'Invoking doxygen to clean doxyfile')
+            log(self.__logger, rf'Cleaning doxyfile')
+            # https://github.com/marzer/poxy/issues/33:
+            self.__text = re.sub(r'_ENCODING\s*=\s*"([^"]*?)"', r'_ENCODING = \1', self.__text)
             result = subprocess.run(
                 [str(path()), r'-s', r'-u', r'-'],
                 check=True,

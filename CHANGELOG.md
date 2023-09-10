@@ -1,8 +1,12 @@
 # Changelog
 
+## v0.13.9 - 2023-09-10
+
+-   fixed crash on Doxygen &lt;= 1.8.17 (#33) (@tim-janik)
+
 ## v0.13.8 - 2023-09-09
 
--   fixed regression for Python &lt;= 3.8 (#32) (@timjanik)
+-   fixed regression for Python &lt;= 3.8 (#32) (@tim-janik)
 
 ## v0.13.7 - 2023-08-17
 

@@ -111,9 +111,10 @@ jobs:
                   cd "${{ github.workspace }}/repo"
                   sudo python3 -m pip install --upgrade .
 
-            - name: Print poxy help
+            - name: Print poxy help and version
               run: |
                   poxy --help
+                  poxy --version
 
             - name: Build and install doxygen from source
               if: ${{ matrix.doxygen_tag != 'none' }}
@@ -132,6 +133,7 @@ jobs:
               run: |
                   sudo apt -y install doxygen
                   doxygen --version
+                  poxy --doxygen-version
 
             - name: Run poxy on test_project
               run: |

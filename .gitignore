@@ -1,6 +1,7 @@
 # test outputs
 tests/**/html/
 tests/**/xml/
+tests/**/latex/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

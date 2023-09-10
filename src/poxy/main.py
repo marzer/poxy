@@ -14,7 +14,7 @@ import subprocess
 import sys
 import zipfile
 
-from . import css, emoji, graph, mcss, paths
+from . import css, doxygen, emoji, graph, mcss, paths
 from .run import run
 from .schemas import SchemaError
 from .utils import *
@@ -217,6 +217,7 @@ def main(invoker=True):
     make_boolean_optional_arg(args, r'update-fonts', default=None, help=argparse.SUPPRESS)
     args.add_argument(r'--update-emoji', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--update-tests', action=r'store_true', help=argparse.SUPPRESS)  #
+    args.add_argument(r'--doxygen-version', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(
         r'--update-mcss', type=Path, default=None, metavar=r'<path>', help=argparse.SUPPRESS, dest=r'mcss'
     )  #
@@ -233,6 +234,14 @@ def main(invoker=True):
 
     if args.print_version:
         print(VERSION_STRING)
+        return
+
+    # --------------------------------------------------------------
+    # --doxygen-version
+    # --------------------------------------------------------------
+
+    if args.doxygen_version:
+        print(doxygen.version_string())
         return
 
     # --------------------------------------------------------------
