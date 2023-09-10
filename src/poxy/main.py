@@ -111,6 +111,10 @@ def bug_report():
         f.write(f'version: {VERSION_STRING}\n')
         f.write(f'args: {bug_report_args}\n')
         f.write(f'returncode: {result.returncode}\n')
+        try:
+            f.write(f'doxygen: {doxygen.raw_version_string()}\n')
+        except:
+            f.write(f'doxygen: --version failed\n')
 
     # zip file
     print(r'Zipping files')

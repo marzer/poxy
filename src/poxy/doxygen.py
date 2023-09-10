@@ -113,15 +113,22 @@ def path() -> Path:
     return path.val
 
 
+def raw_version_string() -> str:
+    if not hasattr(raw_version_string, "val"):
+        proc = subprocess.run([str(path()), r'--version'], capture_output=True, encoding=r'utf-8', check=True)
+        val = proc.stdout.strip() if proc.stdout is not None else ''
+        if not val and proc.stderr.strip():
+            raise Error(rf'doxygen exited with error: {proc.stderr.strip()}')
+        setattr(raw_version_string, 'val', val)
+    return raw_version_string.val
+
+
 def version() -> Tuple[int, int, int]:
     if not hasattr(version, "val"):
-        proc = subprocess.run([str(path()), r'--version'], capture_output=True, encoding=r'utf-8', check=True)
-        ret = proc.stdout.strip() if proc.stdout is not None else ''
-        if not ret and proc.stderr.strip():
-            raise Error(rf'doxygen exited with error: {proc.stderr.strip()}')
-        ret = re.fullmatch(r'^\s*v?\s*([0-9]+)\s*[.]\s*([0-9]+)\s*[.]\s*([0-9]+)(?:[^0-9].*)?$', ret, flags=re.I)
-        assert ret
-        version.val = (int(ret[1]), int(ret[2]), int(ret[3]))
+        val = raw_version_string()
+        val = re.fullmatch(r'^\s*v?\s*([0-9]+)\s*[.]\s*([0-9]+)\s*[.]\s*([0-9]+)(?:[^0-9].*)?$', val, flags=re.I)
+        assert val
+        setattr(version, 'val', (int(val[1]), int(val[2]), int(val[3])))
     return version.val
 
 

@@ -1,7 +1,8 @@
-# test outputs
+# misc outputs
 tests/**/html/
 tests/**/xml/
 tests/**/latex/
+poxy_bug_report.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
