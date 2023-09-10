@@ -115,7 +115,7 @@ jobs:
               run: |
                   poxy --help
 
-            - name: Build and install doxygen
+            - name: Build and install doxygen from source
               if: ${{ matrix.doxygen_tag != 'none' }}
               run: |
                   cd "${{ github.workspace }}"
@@ -126,3 +126,17 @@ jobs:
                   CC=cc CC_LD=${{ matrix.linker }} CXX=c++ CXX_LD=${{ matrix.linker }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=MinSizeRel ..
                   CC=cc CC_LD=${{ matrix.linker }} CXX=c++ CXX_LD=${{ matrix.linker }} make -j
                   CC=cc CC_LD=${{ matrix.linker }} CXX=c++ CXX_LD=${{ matrix.linker }} sudo make install
+
+            - name: Install doxygen from apt
+              if: ${{ matrix.doxygen_tag == 'none' }}
+              run: |
+                  sudo apt -y install doxygen
+                  doxygen --version
+
+            - name: Run poxy on test_project
+              run: |
+                  cd "${{ github.workspace }}/repo/tests/test_project"
+                  poxy
+                  poxy --xml
+                  poxy --verbose
+                  poxy --bug-report
