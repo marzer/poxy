@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.14.0 - 2023-11-25
+
+-   added the use of `*` wildcards in `implementation_headers`
+
 ## v0.13.9 - 2023-09-10
 
 -   fixed crash on Doxygen &lt;= 1.8.17 (#33) (@tim-janik)

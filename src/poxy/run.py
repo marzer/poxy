@@ -303,15 +303,60 @@ def postprocess_xml(context: Context):
     assert context is not None
     assert isinstance(context, Context)
 
-    xml_files = get_all_files(context.temp_xml_dir, any=(r'*.xml'))
+    xml_files = [f for f in get_all_files(context.temp_xml_dir, any=(r'*.xml')) if f.name.lower() != r'doxyfile.xml']
     if not xml_files:
         return
 
     context.verbose(rf'Post-processing {len(xml_files) + len(context.tagfiles)} XML files...')
 
-    inline_namespace_ids = None
-    if context.inline_namespaces:
-        inline_namespace_ids = [f'namespace{doxygen.mangle_name(ns)}' for ns in context.inline_namespaces]
+    # pre-pass to resolve wildcards in implementation headers
+    implementation_headers_with_wildcards = []
+    for i in range(len(context.implementation_headers)):
+        for impl in context.implementation_headers[i][1]:
+            impl: str
+            if impl.find('*') == -1:
+                continue
+            impl = re.sub(r'[*][*]+', r'*', impl)
+            impl = impl.replace(r'*', r'_____poxy_wildcard_____')
+            impl = re.escape(impl)
+            impl = impl.replace(r'_____poxy_wildcard_____', r'''[^<>:"'|?*\^]*''')
+            implementation_headers_with_wildcards.append((i, impl))
+    if implementation_headers_with_wildcards:
+        for xml_file in xml_files:
+            root = xml_utils.read(xml_file)
+            if root.tag != r'doxygen':
+                continue
+            compounddef = root.find(r'compounddef')
+            if compounddef is None:
+                continue
+            if compounddef.get(r'kind') != r'file':
+                continue
+            location = compounddef.find(r'location')
+            if location is None:
+                continue
+            location = location.get(r'file')
+            if not location:
+                continue
+            for header_index, impl in implementation_headers_with_wildcards:
+                if re.fullmatch(impl, location):
+                    context.implementation_headers[header_index][1].append(location)
+
+    # remove any wildcards, duplicates and sanity-check the implementation headers
+    seen_implementation_headers = set()
+    for header, _ in context.implementation_headers:
+        if header in seen_implementation_headers:
+            raise Error(rf"implementation_headers: '{header}' seen more than once")
+        seen_implementation_headers.add(header)
+    for i in range(len(context.implementation_headers)):
+        impls = sorted(remove_duplicates(context.implementation_headers[i][1]))
+        impls = [impl for impl in impls if impl.find('*') == -1]
+        for impl in impls:
+            if impl in seen_implementation_headers:
+                raise Error(rf"implementation_headers: '{impl}' seen more than once")
+            seen_implementation_headers.add(impl)
+        context.implementation_headers[i][1] = impls
+    context.implementation_headers = [h for h in context.implementation_headers if (h[0] and h[1])]
+    context.verbose_value(r'Context.implementation_headers', context.implementation_headers)
 
     implementation_header_data = None
     implementation_header_mappings = None
@@ -348,6 +393,10 @@ def postprocess_xml(context: Context):
     context.compounds = dict()
     context.compound_pages = dict()
     context.compound_kinds = set()
+
+    inline_namespace_ids = None
+    if context.inline_namespaces:
+        inline_namespace_ids = [f'namespace{doxygen.mangle_name(ns)}' for ns in context.inline_namespaces]
 
     # process xml files
     if 1:

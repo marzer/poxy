@@ -1739,12 +1739,19 @@ class Context(object):
             self.implementation_headers = []
             if 'implementation_headers' in config:
                 for k, v in config['implementation_headers'].items():
+                    # header
                     header = k.strip().replace('\\', '/')
+                    if not header:
+                        continue
+                    if header.find('*') != -1:
+                        raise Error(rf"implementation_headers: target header path '{header}' may not have wildcards")
+                    # impls
                     impls = coerce_collection(v)
                     impls = [i.strip().replace('\\', '/') for i in impls]
                     impls = [i for i in impls if i]
-                    if header and impls:
-                        self.implementation_headers.append((header, impls))
+                    impls = sorted(remove_duplicates(impls))
+                    if impls:
+                        self.implementation_headers.append([header, impls])
             self.implementation_headers = tuple(self.implementation_headers)
             self.verbose_value(r'Context.implementation_headers', self.implementation_headers)
 

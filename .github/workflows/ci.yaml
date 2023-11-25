@@ -31,10 +31,6 @@ concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
-env:
-    clang_version: "15"
-    gcc_version: "12"
-
 jobs:
     linux:
         strategy:
@@ -58,7 +54,7 @@ jobs:
                     #- "Release_1_9_6"
                     - "none"
                 os:
-                    - "ubuntu-latest"
+                    - "ubuntu-22.04"
                     - "ubuntu-20.04"
 
         runs-on: "${{ matrix.os }}"
@@ -80,27 +76,26 @@ jobs:
             - name: Install compiler dependencies
               if: ${{ matrix.doxygen_tag != 'none' }}
               run: |
-                  sudo apt -y install --no-install-recommends cmake flex bison libstdc++-${{ env.gcc_version }}-dev
+                  sudo apt -y install --no-install-recommends cmake flex bison
 
             - name: Install lld
               if: ${{ matrix.doxygen_tag != 'none' && startsWith(matrix.linker, 'lld') }}
               run: |
-                  sudo apt -y install --no-install-recommends lld-${{ env.clang_version }}
-                  sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-${{ env.clang_version }} 1000
+                  sudo apt -y install --no-install-recommends lld
 
             - name: Install clang
               if: ${{ matrix.doxygen_tag != 'none' && startsWith(matrix.compiler, 'clang') }}
               run: |
-                  sudo apt -y install --no-install-recommends clang-${{ env.clang_version }}
-                  sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-${{ env.clang_version }} 1000
-                  sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang-${{ env.clang_version }} 1000
+                  sudo apt -y install --no-install-recommends clang
+                  sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 1000
+                  sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang 1000
 
             - name: Install gcc
               if: ${{ matrix.doxygen_tag != 'none' && startsWith(matrix.compiler, 'gcc') }}
               run: |
-                  sudo apt -y install --no-install-recommends gcc-${{ env.gcc_version }} g++-${{ env.gcc_version }}
-                  sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-${{ env.gcc_version }} 1000
-                  sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-${{ env.gcc_version }} 1000
+                  sudo apt -y install --no-install-recommends gcc g++
+                  sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 1000
+                  sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 1000
 
             - uses: actions/checkout@v3
               with:
