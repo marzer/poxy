@@ -195,16 +195,7 @@ def preprocess_doxyfile(context: Context):
         df.add_value(r'CLANG_OPTIONS', rf'-std=c++{context.cpp%100}')
         df.add_value(r'CLANG_OPTIONS', r'-Wno-everything')
 
-        home_md_path = None
-        for home_md in (r'HOME.md', r'home.md', r'INDEX.md', r'index.md', r'README.md', r'readme.md'):
-            p = Path(context.input_dir, home_md)
-            if p.exists() and p.is_file():
-                home_md_path = p
-                break
-        if home_md_path is not None:
-            home_md_temp_path = Path(context.temp_pages_dir, r'home.md')
-            copy_file(home_md_path, home_md_temp_path, logger=context.verbose_logger)
-            df.set_value(r'USE_MDFILE_AS_MAINPAGE', home_md_temp_path)
+        df.set_value(r'USE_MDFILE_AS_MAINPAGE', context.main_page)
 
         df.append()
         df.append(r'# context.warnings', end='\n\n')  # ---------------------------------------------------

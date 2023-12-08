@@ -838,8 +838,8 @@ class Links(HTMLFixer):
     __internal_doc_id = re.compile(r'^[a-fA-F0-9]+$')
     __local_href = re.compile(r'^([-/_a-zA-Z0-9]+\.[a-zA-Z]+)(?:#(.*))?$')
     __godbolt = re.compile(r'^\s*(?:https?[:]//)?(?:www[.])?godbolt[.]org/z/.+?$', re.I)
-    __cppreference = re.compile(r'^\s*(?:https?[:]//)?(?:[a-z]+[.])?cppreference[.]com.*$', re.I)
-    __named_req = re.compile(r'^\s*(?:https?[:]//)?(?:[a-z]+[.])?cppreference[.]com/w/cpp/named_req/.+?$', re.I)
+    __cppreference = re.compile(r'^\s*(?:https?[:]//)?(?:[a-z]+[.])?cppreference[.]com/.*$', re.I)
+    __named_req = re.compile(r'^\s*(?:https?[:]//)?(?:[a-z]+[.])?cppreference[.]com/.+?/named_req/.+?$', re.I)
 
     def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
         changed = False

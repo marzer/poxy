@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.15.0 - 2023-12-08
+
+-   added config option `main_page` (a.k.a. `USE_MDFILE_AS_MAINPAGE`)
+-   fixed searching for `CHANGELOG` too far up the directory heirarchy (now stops when a `.git` folder is encountered)
+
 ## v0.14.0 - 2023-11-25
 
 -   added the use of `*` wildcards in `implementation_headers`

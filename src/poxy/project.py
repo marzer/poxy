@@ -1050,6 +1050,7 @@ class Context(object):
             Optional(r'autolinks'): {str: str},
             Optional(r'badges'): {str: ValueOrArray(str, name=r'badges', length=2)},
             Optional(r'changelog'): Or(str, bool),
+            Optional(r'main_page'): Or(str, bool),
             Optional(r'code_blocks'): CodeBlocks.schema,
             Optional(r'cpp'): Or(str, int, error=r'cpp: expected string or integer'),
             Optional(r'defines'): {str: Or(str, int, bool)},  # legacy
@@ -1560,7 +1561,11 @@ class Context(object):
                                 ):
                                     self.changelog = candidate_file
                                     break
-                            if self.changelog or candidate_dir.parent == candidate_dir:
+                            if (
+                                self.changelog
+                                or candidate_dir.parent == candidate_dir
+                                or (candidate_dir / '.git').exists()
+                            ):
                                 break
                             candidate_dir = candidate_dir.parent
                         if not self.changelog:
@@ -1579,6 +1584,47 @@ class Context(object):
                 copy_file(self.changelog, temp_changelog_path, logger=self.verbose_logger)
                 self.changelog = temp_changelog_path
             self.verbose_value(r'Context.changelog', self.changelog)
+
+            # main_page (USE_MDFILE_AS_MAINPAGE)
+            self.main_page = ''
+            if r'main_page' in config:
+                if isinstance(config['main_page'], bool):
+                    if config['main_page']:
+                        candidate_names = (r'README', r'HOME', r'MAINPAGE', r'INDEX')
+                        candidate_extensions = (r'.md', r'.txt', r'')
+                        as_lowercase = (False, True)
+                        candidate_dir = self.input_dir
+                        while True:
+                            for name, ext, lower in itertools.product(
+                                candidate_names, candidate_extensions, as_lowercase
+                            ):
+                                candidate_file = Path(candidate_dir, rf'{name.lower() if lower else name}{ext}')
+                                if (
+                                    candidate_file.exists()
+                                    and candidate_file.is_file()
+                                    and candidate_file.stat().st_size <= 1024 * 1024 * 2
+                                ):
+                                    self.main_page = candidate_file
+                                    break
+                            if (
+                                self.main_page
+                                or candidate_dir.parent == candidate_dir
+                                or (candidate_dir / '.git').exists()
+                            ):
+                                break
+                            candidate_dir = candidate_dir.parent
+                        if not self.main_page:
+                            self.warning(
+                                rf'main_page: Option was set to true but no file with a known main_page file name could be found! Consider using an explicit path.'
+                            )
+
+                else:
+                    self.main_page = coerce_path(config['main_page'])
+                    if not self.main_page.is_absolute():
+                        self.main_page = Path(self.input_dir, self.main_page)
+                    if not self.main_page.exists() or not self.main_page.is_file():
+                        raise Error(rf'main_page: {config["main_page"]} did not exist or was not a file')
+            self.verbose_value(r'Context.main_page', self.main_page)
 
             # sources (INPUT, FILE_PATTERNS, STRIP_FROM_PATH, STRIP_FROM_INC_PATH, EXTRACT_ALL)
             self.sources = Sources(
