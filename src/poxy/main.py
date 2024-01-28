@@ -10,9 +10,15 @@ The various entry-point methods used when poxy is invoked from the command line.
 import argparse
 import datetime
 import os
+import shutil
 import subprocess
 import sys
+import typing
 import zipfile
+from pathlib import Path
+
+import colorama
+from colorama import Fore, Style
 
 from . import css, doxygen, emoji, graph, mcss, paths
 from .run import run
@@ -22,10 +28,11 @@ from .version import *
 
 
 def _invoker(func, **kwargs):
+    colorama.init()
     try:
         func(**kwargs)
     except WarningTreatedAsError as err:
-        print(rf'Error: {err} (warning treated as error)', file=sys.stderr)
+        print(rf'{Style.BRIGHT}{Fore.RED}error:{Style.RESET_ALL} {err} (warning treated as error)', file=sys.stderr)
         sys.exit(1)
     except graph.GraphError as err:
         print_exception(err, include_type=True, include_traceback=True, skip_frames=1)
@@ -34,17 +41,17 @@ def _invoker(func, **kwargs):
         print(err, file=sys.stderr)
         sys.exit(1)
     except Error as err:
-        print(rf'Error: {err}', file=sys.stderr)
+        print(rf'{Style.BRIGHT}{Fore.RED}error:{Style.RESET_ALL} {err}', file=sys.stderr)
         sys.exit(1)
     except Exception as err:
-        print('\n*************\n', file=sys.stderr)
+        print(f'\n{Fore.RED}*************{Style.RESET_ALL}\n', file=sys.stderr)
         print_exception(err, include_type=True, include_traceback=True, skip_frames=1)
         print(
-            '*************\n'
+            f'{Fore.RED}*************\n'
             '\nYou appear to have triggered an internal bug!'
             '\nPlease re-run poxy with --bug-report and file an issue at github.com/marzer/poxy/issues'
             '\nMany thanks!'
-            '\n\n*************',
+            f'\n\n*************{Style.RESET_ALL}',
             file=sys.stderr,
         )
         sys.exit(1)
@@ -66,42 +73,281 @@ def make_boolean_optional_arg(args, name, default, help='', **kwargs):
         args.set_defaults(**{name: default})
 
 
-def bug_report():
-    BUG_REPORT_STRIP_ARGS = (
-        r'--bug-report',
-        r'--bug-report-internal',
-        r'-v',
-        r'--verbose',
-        r'--color',
-        r'--no-color',
-        r'--colour',
-        r'--no-colour',
+def git(git_args: str, cwd=None) -> typing.Tuple[int, str, str]:
+    assert git_args is not None
+    proc = subprocess.run(
+        ['git'] + str(git_args).strip().split(),
+        capture_output=True,
+        cwd=str(Path.cwd() if cwd is None else cwd),
+        encoding='utf-8',
     )
+    return (proc.returncode, proc.stdout.strip() if proc.stdout else "", proc.stderr.strip() if proc.stderr else "")
 
-    bug_report_args = [arg for arg in sys.argv[1:] if arg not in BUG_REPORT_STRIP_ARGS]
+
+def git_failed(git_output: typing.Tuple[int, str, str], desc=''):
+    assert git_output is not None
+    message = rf"git command failed"
+    if desc:
+        message += rf': {desc}'
+    if git_output[0] != 0:  # return code
+        message += f'\n  {Style.BRIGHT}exit code:{Style.RESET_ALL}\n    {git_output[0]}'
+    if git_output[1]:  # stdout
+        message += f'\n  {Style.BRIGHT}stdout:{Style.RESET_ALL}\n'
+        message += "\n".join([rf'    {i.strip()}' for i in git_output[1].split('\n') if i.strip()])
+    if git_output[2]:  # stderr
+        message += f'\n  {Style.BRIGHT}stderr:{Style.RESET_ALL}\n'
+        message += "\n".join([rf'    {i.strip()}' for i in git_output[2].split('\n') if i.strip()])
+    raise Error(message)
+
+
+def git_failed_if_nonzero(git_output: typing.Tuple[int, str, str], desc=''):
+    if git_output[0] != 0:
+        git_failed(git_output, desc)
+    return git_output
+
+
+def multi_version_git_tags(args: argparse.Namespace):
+    print('Running in git-tags mode')
+
+    input_dir = args.config.resolve()
+    if input_dir.is_file():
+        input_dir = input_dir.parent
+
+    if git('diff-files --quiet', cwd=input_dir)[0] or git('diff --no-ext-diff --cached --quiet', cwd=input_dir)[0]:
+        raise Error(rf'repository has uncommitted changes')
+
+    print('Fetching...')
+    git_failed_if_nonzero(git('fetch --tags', cwd=input_dir))
+
+    current_branch = git_failed_if_nonzero(git('rev-parse --abbrev-ref HEAD', cwd=input_dir))[1]
+    print(rf'Current branch: {current_branch}')
+    original_branch = current_branch
+
+    default_branch = git_failed_if_nonzero(git('rev-parse --abbrev-ref origin/HEAD', cwd=input_dir))[1]
+    default_branch = default_branch.removeprefix(r'origin/')
+    print(rf'Default branch: {default_branch}')
+
+    tags = git_failed_if_nonzero(git('tag', cwd=input_dir))[1].splitlines()
+    tags = [(t, t.strip().upper().lstrip('V').lstrip()) for t in tags]
+    tags = [(t, v) for t, v in tags if v]
+    tags = [(t, re.sub(r'\s+', '', v)) for t, v in tags]
+    tags = [(t, re.fullmatch(r'[0-9]+([.][0-9]+([.][0-9]+([.][0-9]+)?)?)?', v)) for t, v in tags]
+    tags = [(t, v) for t, v in tags if v]
+    tags = [(t, v[0].split('.')) for t, v in tags]
+    tags = [
+        (t, (int(v[0]), int(v[1]) if len(v) > 1 else 0, int(v[2]) if len(v) > 2 else 0, int(v[3]) if len(v) > 3 else 0))
+        for t, v in tags
+    ]
+    tags = sorted(tags, key=lambda t: t[1], reverse=True)
+    tags.insert(0, (default_branch, (999999, 999999, 999999, 999999)))
+
+    if 0:
+        # squash patch/rev differences
+        seen_versions = set()
+        for i in range(len(tags)):
+            normalized_version = (tags[i][1][0], tags[i][1][1])
+            if normalized_version in seen_versions:
+                tags[i] = None
+                continue
+            seen_versions.add(normalized_version)
+        tags = [t for t in tags if t]
+
+    tags = [t for t, _ in tags]
+    print("Versions:")
+    print("\n".join([rf'    {t}' for t in tags]))
+
+    worker_args = [
+        arg
+        for arg in sys.argv[1:]
+        if arg not in (r'--bug-report', r'--git-tags', r'--worker', r'--versions-in-navbar', r'--verbose', r'-v')
+    ]
+    for key in (r'--output-dir', r'--temp-dir', r'--copy-config-to'):
+        pos = -1
+        try:
+            pos = worker_args.index(key)
+        except:
+            pass
+        if pos != -1:
+            worker_args.pop(pos)
+            worker_args.pop(pos)
+
+    tags_temp_dir = paths.TEMP / 'tags' / temp_dir_name_for(str(Path.cwd()))
+    delete_directory(tags_temp_dir)
+    tags_temp_dir.mkdir(exist_ok=True, parents=True)
+
+    def cleanup():
+        nonlocal current_branch
+        nonlocal original_branch
+        nonlocal tags_temp_dir
+        nonlocal args
+        if not args.nocleanup:
+            delete_directory(tags_temp_dir)
+        if current_branch != original_branch:
+            print(rf'Switching back to {Style.BRIGHT}{original_branch}{Style.RESET_ALL}')
+            git_failed_if_nonzero(git(rf'checkout {original_branch}', cwd=input_dir))
+            current_branch = original_branch
+
+    emitted_tags = set()
+    with Defer(cleanup):
+        for tag in tags:
+            if current_branch != tag:
+                print(rf'Checking out {Style.BRIGHT}{tag}{Style.RESET_ALL}')
+                git_failed_if_nonzero(git(rf'checkout {tag}', cwd=input_dir))
+                current_branch = tag
+
+            if current_branch == default_branch:
+                git_failed_if_nonzero(git(rf'pull', cwd=input_dir))
+
+            output_dir = args.output_dir.resolve()
+            if tag != default_branch:
+                output_dir = tags_temp_dir / tag
+                output_dir.mkdir(exist_ok=True, parents=True)
+
+            try:
+                print(rf'Generating documentation for {Style.BRIGHT}{tag}{Style.RESET_ALL}')
+                result = subprocess.run(
+                    args=[
+                        r'poxy',
+                        r'--worker',
+                        r'--versions-in-navbar',
+                        r'--output-dir',
+                        str(output_dir),
+                        *worker_args,
+                    ],
+                    cwd=str(Path.cwd()),
+                    capture_output=not args.verbose,
+                    encoding='utf-8',
+                )
+                if result.returncode != 0:
+                    raise Error(
+                        rf'Poxy exited with code {result.returncode}{"" if args.verbose else " (re-run with --verbose to see worker output)"}'
+                    )
+            except Exception as exc:
+                msg = rf'documentation generation failed for {Style.BRIGHT}{tag}{Style.RESET_ALL}: {exc}'
+                if args.werror:
+                    raise WarningTreatedAsError(msg)
+                else:
+                    print(rf'{Style.BRIGHT}{Fore.YELLOW}warning:{Style.RESET_ALL} {msg}', file=sys.stderr)
+                    continue
+
+            if tag != default_branch:
+                source_dir = output_dir
+                output_dir = args.output_dir.resolve()
+                for src in ('html' if args.html else None, 'xml' if args.xml else None):
+                    if src is None:
+                        continue
+                    src = source_dir / src
+                    if not src.is_dir():
+                        continue
+                    dest = output_dir / src.name / tag
+                    dest.mkdir(exist_ok=True, parents=True)
+                    delete_directory(src / 'poxy')
+                    delete_file(src / 'poxy_changelog.html')
+                    delete_file(src / 'md_poxy_changelog.html')
+                    shutil.copytree(str(src), str(dest), dirs_exist_ok=True)
+                    if not args.nocleanup:
+                        delete_directory(src)
+
+            emitted_tags.add(tag)
+
+    if not args.html:
+        return
+
+    print("Linking versions in HTML output")
+    tags = [t for t in tags if t in emitted_tags]
+    html_root = args.output_dir.resolve() / 'html'
+    for tag in tags:
+        html_dir = html_root
+        if tag != default_branch:
+            html_dir /= tag
+        assert_existing_directory(html_dir)
+        for fp in get_all_files(html_dir, any=('*.css', '*.html', '*.js'), recursive=False):
+            text = read_all_text_from_file(fp)
+            if tag != default_branch:
+                text = text.replace('href="poxy/', 'href="../poxy/')
+                text = text.replace('href="poxy_changelog.html', 'href="../poxy_changelog.html')
+                text = text.replace('href="md_poxy_changelog.html', 'href="../md_poxy_changelog.html')
+                text = text.replace('src="poxy/', 'src="../poxy/')
+            versions = rf'<li class="poxy-navbar-version-selector"><a href="{fp.name}">Version: {"HEAD" if tag == default_branch else tag}</a><ol>'
+            for dest_tag in tags:
+                target = html_root
+                if dest_tag != default_branch:
+                    target /= dest_tag
+                assert target.is_dir()
+                target /= fp.name
+                if not target.is_file():
+                    target = target.parent / 'index.html'
+                assert target.is_file()
+                if tag == default_branch and dest_tag != default_branch:
+                    target = rf'{dest_tag}/{target.name}'
+                elif tag != default_branch and dest_tag == default_branch:
+                    target = rf'../{target.name}'
+                elif tag != dest_tag:
+                    target = rf'../{dest_tag}/{target.name}'
+                else:
+                    target = target.name
+                versions += (
+                    rf'<li><a href="{str(target)}">{"HEAD" if dest_tag == default_branch else dest_tag}</a></li>'
+                )
+            versions += rf'</ol></li>'
+            text = re.sub(
+                r'<li>\s*<span\s+class="poxy-navbar-version-selector"\s*>\s*FIXME\s*</span>\s*</li>',
+                versions,
+                text,
+                flags=re.I,
+            )
+            with open(fp, r'w', newline='\n', encoding=r'utf-8') as f:
+                f.write(text)
+
+
+def bug_report(args: argparse.Namespace):
+    bug_report_args = [arg for arg in sys.argv[1:] if arg not in (r'--bug-report', r'--worker', r'-v', r'--verbose')]
+    for key in (r'--output-dir', r'--temp-dir', r'--copy-config-to'):
+        pos = -1
+        try:
+            pos = bug_report_args.index(key)
+        except:
+            pass
+        if pos != -1:
+            bug_report_args.pop(pos)
+            bug_report_args.pop(pos)
+
+    if '--git-tags' in bug_report_args:
+        raise Error(r'--git-tags is currently incompatible with --bug-report. This will be fixed in a later version!')
+
     bug_report_zip = (Path.cwd() / r'poxy_bug_report.zip').resolve()
 
     print(r'Preparing output paths')
     delete_directory(paths.BUG_REPORT_DIR)
     delete_file(bug_report_zip)
-    os.makedirs(str(paths.BUG_REPORT_DIR), exist_ok=True)
+    paths.BUG_REPORT_DIR.mkdir(exist_ok=True, parents=True)
 
     print(r'Invoking poxy')
     result = subprocess.run(
-        args=[r'poxy', *bug_report_args, r'--bug-report-internal', r'--verbose'],
+        args=[
+            r'poxy',
+            r'--worker',
+            r'--verbose',
+            r'--nocleanup',
+            r'--output-dir',
+            str(paths.BUG_REPORT_DIR),
+            r'--temp-dir',
+            str(paths.BUG_REPORT_DIR / r'temp'),
+            r'--copy-config-to',
+            str(paths.BUG_REPORT_DIR),
+            *bug_report_args,
+        ],
         cwd=str(Path.cwd()),
-        check=False,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+        capture_output=True,
         encoding='utf-8',
     )
 
-    if result.stdout is not None:
+    if result.stdout:
         print(r'Writing stdout')
         with open(paths.BUG_REPORT_DIR / r'stdout.txt', r'w', newline='\n', encoding=r'utf-8') as f:
             f.write(result.stdout)
 
-    if result.stderr is not None:
+    if result.stderr:
         print(r'Writing stderr')
         with open(paths.BUG_REPORT_DIR / r'stderr.txt', r'w', newline='\n', encoding=r'utf-8') as f:
             f.write(result.stderr)
@@ -130,8 +376,8 @@ def bug_report():
     delete_directory(paths.BUG_REPORT_DIR)
 
     print(
-        f'Zip generated: {bug_report_zip}\n'
-        'Please attach this file when you make a report at github.com/marzer/poxy/issues, thanks!'
+        f'Zip generated: {Style.BRIGHT}{bug_report_zip}{Style.RESET_ALL}\n'
+        rf'{Fore.CYAN}{Style.BRIGHT}Please attach this file when you make a report at https://github.com/marzer/poxy/issues, thanks!{Style.RESET_ALL}'
     )
 
 
@@ -146,12 +392,13 @@ def main(invoker=True):
     # yapf: disable
     args = argparse.ArgumentParser(
         description=
+        rf'{Fore.CYAN}{Style.BRIGHT}'
         r'''  _ __   _____  ___   _ ''' '\n'
         r''' | '_ \ / _ \ \/ / | | |''' '\n'
         r''' | |_) | (_) >  <| |_| |''' '\n'
         r''' | .__/ \___/_/\_\\__, |''' '\n'
         r''' | |               __/ |''' '\n'
-        r''' |_|              |___/ ''' rf' v{VERSION_STRING} - github.com/marzer/poxy'
+        r''' |_|              |___/ ''' rf'{Style.RESET_ALL} v{VERSION_STRING} - github.com/marzer/poxy'
         '\n\n'
         r'Generate fancy C++ documentation.',
         formatter_class=argparse.RawTextHelpFormatter
@@ -166,8 +413,8 @@ def main(invoker=True):
         r'config',
         type=Path,
         nargs='?',
-        default=Path('.'),
-        help=r'path to poxy.toml or a directory containing it (default: %(default)s)',
+        default=Path.cwd(),
+        help=r'path to poxy.toml or a directory containing it (default: .)',
     )
     args.add_argument(r'-v', r'--verbose', action=r'store_true', help=r"enable very noisy diagnostic output")  #
     make_boolean_optional_arg(args, r'html', default=True, help=r'specify whether HTML output is required')  #
@@ -189,7 +436,7 @@ def main(invoker=True):
         r'--theme',  #
         choices=[r'light', r'dark', r'custom'],
         default=None,
-        help=r'override the default visual theme (default: read from config)',
+        help=r'sets the default visual theme (default: read from config)',
     )
     args.add_argument(
         r'--threads',
@@ -201,13 +448,13 @@ def main(invoker=True):
     args.add_argument(r'--version', action=r'store_true', help=r"print the version and exit", dest=r'print_version')  #
     make_boolean_optional_arg(args, r'xml', default=False, help=r'specify whether XML output is required')  #
     make_boolean_optional_arg(
-        args,
-        r'werror',
-        default=None,
-        help=r'override the treating of warnings as errors (default: read from config)',  #
-    )
+        args, r'werror', default=None, help=r'treat warnings as errors (default: read from config)'
+    )  #
     args.add_argument(
         r'--bug-report', action=r'store_true', help=r"captures all output in a zip file for easier bug reporting."  #
+    )
+    args.add_argument(
+        r'--git-tags', action=r'store_true', help=r"add git-tag-based semver version switcher to the generated HTML"  #
     )
 
     # --------------------------------------------------------------
@@ -222,14 +469,16 @@ def main(invoker=True):
     args.add_argument(r'--update-emoji', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--update-tests', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--doxygen-version', action=r'store_true', help=argparse.SUPPRESS)  #
-    args.add_argument(
-        r'--update-mcss', type=Path, default=None, metavar=r'<path>', help=argparse.SUPPRESS, dest=r'mcss'
-    )  #
+    args.add_argument(r'--update-mcss', type=Path, default=None, help=argparse.SUPPRESS)  #
     args.add_argument(  # --xml and --html are the replacements for --xmlonly
         r'--xmlonly', action=r'store_true', help=argparse.SUPPRESS  #
     )
     args.add_argument(r'--xml-v2', action=r'store_true', help=argparse.SUPPRESS)  #
-    args.add_argument(r'--bug-report-internal', action=r'store_true', help=argparse.SUPPRESS)  #
+    args.add_argument(r'--worker', action=r'store_true', help=argparse.SUPPRESS)  #
+    args.add_argument(r'--output-dir', type=Path, default=Path.cwd(), help=argparse.SUPPRESS)  #
+    args.add_argument(r'--temp-dir', type=Path, default=None, help=argparse.SUPPRESS)  #
+    args.add_argument(r'--copy-config-to', type=Path, default=None, help=argparse.SUPPRESS)  #
+    args.add_argument(r'--versions-in-navbar', action=r'store_true', help=argparse.SUPPRESS)  #
     args = args.parse_args()
 
     # --------------------------------------------------------------
@@ -260,11 +509,11 @@ def main(invoker=True):
     # developer-only subcommands
     # --------------------------------------------------------------
 
-    if args.mcss is not None:
+    if args.update_mcss is not None:
         args.update_styles = True
         if args.update_fonts is None:
             args.update_fonts = True
-        mcss.update_bundled_install(args.mcss)
+        mcss.update_bundled_install(args.update_mcss)
     assert_existing_directory(paths.MCSS)
     assert_existing_file(Path(paths.MCSS, r'documentation/doxygen.py'))
 
@@ -286,15 +535,33 @@ def main(invoker=True):
             *[a for a in (r'--verbose' if args.verbose else None, r'--nocleanup' if args.nocleanup else None) if a],
         )
 
-    if args.update_styles or args.update_fonts or args.update_emoji or args.update_tests or args.mcss is not None:
+    if (
+        args.update_styles
+        or args.update_fonts
+        or args.update_emoji
+        or args.update_tests
+        or args.update_mcss is not None
+    ):
         return
+
+    if not args.worker:
+        print(rf'{Fore.CYAN}{Style.BRIGHT}poxy{Style.RESET_ALL} v{VERSION_STRING}')
 
     # --------------------------------------------------------------
     # bug report invocation
     # --------------------------------------------------------------
 
     if args.bug_report:
-        bug_report()
+        bug_report(args)
+        return
+
+    # --------------------------------------------------------------
+    # multi-version invocation
+    # --------------------------------------------------------------
+
+    if args.git_tags:
+        with ScopeTimer(r'All tasks', print_start=False, print_end=True) as timer:
+            multi_version_git_tags(args)
         return
 
     # --------------------------------------------------------------
@@ -305,18 +572,11 @@ def main(invoker=True):
         args.html = False
         args.xml = True
 
-    output_dir = Path.cwd()
-    temp_dir = None
-    if args.bug_report_internal:
-        output_dir = paths.BUG_REPORT_DIR
-        temp_dir = paths.BUG_REPORT_DIR / r'temp'
-        args.nocleanup = True
-
-    with ScopeTimer(r'All tasks', print_start=False, print_end=True) as timer:
+    with ScopeTimer(r'All tasks', print_start=False, print_end=not args.worker) as timer:
         run(
             # named args:
             config_path=args.config,
-            output_dir=output_dir,
+            output_dir=args.output_dir,
             output_html=args.html,
             output_xml=args.xml,
             threads=args.threads,
@@ -328,8 +588,9 @@ def main(invoker=True):
             treat_warnings_as_errors=args.werror,
             theme=args.theme,
             copy_assets=not args.noassets,
-            temp_dir=temp_dir,
-            bug_report=bool(args.bug_report_internal),
+            temp_dir=args.temp_dir,
+            copy_config_to=args.copy_config_to,
+            versions_in_navbar=args.versions_in_navbar,
             # kwargs:
             xml_v2=args.xml_v2,
         )
@@ -354,6 +615,8 @@ def main_blog_post(invoker=True):
     if args.print_version:
         print(VERSION_STRING)
         return
+
+    print(rf'{Fore.CYAN}{Style.BRIGHT}poxy{Style.RESET_ALL} v{VERSION_STRING}')
 
     date = datetime.datetime.now().date()
 

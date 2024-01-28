@@ -11,14 +11,14 @@ import io
 import logging
 import re
 import sys
-import typing
-from pathlib import Path
+import typing  # used transitively
+from pathlib import Path  # used transitively
 
 import requests
 from misk import *
 from trieregex import TrieRegEx
 
-from . import paths
+from . import paths  # used transitively
 
 # =======================================================================================================================
 # FUNCTIONS
@@ -113,6 +113,16 @@ def remove_duplicates(vals: list) -> list:
         if v not in new_vals:
             new_vals.append(v)
     return new_vals
+
+
+def temp_dir_name_for(input, path=None):
+    out = re.sub(r'''[!@#$%^&*()+={}<>;:'"_\\/\n\t -]+''', r'_', str(input).strip(r'\/'))
+    if len(out) > 256:
+        out = str(input)
+        if not paths.CASE_SENSITIVE:
+            out = out.upper()
+        out = sha1(out)
+    return out
 
 
 # =======================================================================================================================

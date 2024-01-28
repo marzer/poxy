@@ -46,3 +46,6 @@ TEMP = Path(tempfile.gettempdir(), r'poxy')
 
 BUG_REPORT_DIR = (TEMP / r'bug_report').resolve()
 """Directory used for assembling bug reports."""
+
+CASE_SENSITIVE = not (Path(str(PACKAGE).upper()).exists() and Path(str(PACKAGE).lower()).exists())
+"""True if the file system is case-sensitive."""

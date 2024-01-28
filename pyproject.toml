@@ -18,25 +18,26 @@ authors = [{ name = "Mark Gillard", email = "mark.gillard@outlook.com.au" }]
 license = { text = 'MIT' }
 keywords = ['c++', 'doxygen', 'documentation']
 classifiers = [
-	'Development Status :: 4 - Beta',
-	'License :: OSI Approved :: MIT License',
-	'Programming Language :: C++',
-	'Topic :: Documentation',
-	'Topic :: Software Development :: Code Generators',
-	'Topic :: Software Development :: Documentation',
-	'Topic :: Utilities',
+    'Development Status :: 4 - Beta',
+    'License :: OSI Approved :: MIT License',
+    'Programming Language :: C++',
+    'Topic :: Documentation',
+    'Topic :: Software Development :: Code Generators',
+    'Topic :: Software Development :: Documentation',
+    'Topic :: Utilities',
 ]
 dependencies = [
-	'misk >= 0.8.1',
-	'bs4',
-	'jinja2',
-	'pygments',
-	'html5lib',
-	'lxml',
-	'tomli',
-	'schema != 0.7.5',
-	'requests',
-	'trieregex',
+    'misk >= 0.8.1',
+    'bs4',
+    'jinja2',
+    'pygments',
+    'html5lib',
+    'lxml',
+    'tomli',
+    'schema != 0.7.5',
+    'requests',
+    'trieregex',
+    'colorama',
 ]
 dynamic = ['version', 'readme']
 
@@ -55,8 +56,8 @@ zip-safe = true
 [tool.setuptools.dynamic]
 version = { file = 'src/poxy/version.txt' }
 readme = { file = [
-	'README.md',
-	'CHANGELOG.md',
+    'README.md',
+    'CHANGELOG.md',
 ], content-type = 'text/markdown' }
 
 [tool.setuptools.packages.find]
@@ -65,17 +66,17 @@ include = ["poxy*"]
 
 [tool.setuptools.package-data]
 "*" = [
-	'*.css',
-	'*.woff',
-	'*.woff2',
-	'*.json',
-	'*.rst',
-	'*.html',
-	'*.xml',
-	'*.png',
-	'*.js',
-	'*.svg',
-	'*.txt',
+    '*.css',
+    '*.woff',
+    '*.woff2',
+    '*.json',
+    '*.rst',
+    '*.html',
+    '*.xml',
+    '*.png',
+    '*.js',
+    '*.svg',
+    '*.txt',
 ]
 
 [tool.setuptools.exclude-package-data]

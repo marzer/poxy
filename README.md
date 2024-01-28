@@ -69,15 +69,14 @@ Poxy is a command-line application.
 ```
 usage: poxy [-h] [-v] [--html | --no-html] [--ppinclude <regex>] [--ppexclude <regex>]
             [--theme {light,dark,custom}] [--threads N] [--version] [--xml | --no-xml]
-            [--werror | --no-werror] [--bug-report]
-            [config]
+            [--werror | --no-werror] [--bug-report] [--git-tags] [config]
 
   _ __   _____  ___   _
  | '_ \ / _ \ \/ / | | |
  | |_) | (_) >  <| |_| |
  | .__/ \___/_/\_\\__, |
  | |               __/ |
- |_|              |___/  v0.12.0 - github.com/marzer/poxy
+ |_|              |___/  v0.16.0 - github.com/marzer/poxy
 
 Generate fancy C++ documentation.
 
@@ -87,17 +86,17 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   -v, --verbose         enable very noisy diagnostic output
-  --html, --no-html     specify whether HTML output is required (default: True)
+  --html, --no-html     specify whether HTML output is required
   --ppinclude <regex>   pattern matching HTML file names to post-process (default: all)
   --ppexclude <regex>   pattern matching HTML file names to exclude from post-processing (default: none)
   --theme {light,dark,custom}
-                        override the default visual theme (default: read from config)
+                        sets the default visual theme (default: read from config)
   --threads N           set the number of threads to use (default: automatic)
   --version             print the version and exit
-  --xml, --no-xml       specify whether XML output is required (default: False)
-  --werror, --no-werror
-                        override the treating of warnings as errors (default: read from config)
+  --xml, --no-xml       specify whether XML output is required
+  --werror, --no-werror treat warnings as errors (default: read from config)
   --bug-report          captures all output in a zip file for easier bug reporting.
+  --git-tags            add git-tag-based semver version switcher to the generated HTML
 ```
 
 The basic three-step to using Poxy is similar to Doxygen:

@@ -1289,7 +1289,7 @@ def preprocess_mcss_config(context: Context):
                 if not found:
                     bar[i] = None
             bar = [b for b in bar if b is not None]
-            # handle theme, repo, sponsor, twitter
+            # handle theme, repo, sponsor, twitter, version
             for i in range(len(bar)):
                 bar[i] = bar[i].strip()
                 if bar[i] == r'repo':
@@ -1343,6 +1343,8 @@ def preprocess_mcss_config(context: Context):
                         + rf'class="poxy-icon sponsor">{svg}</a>',
                         [],
                     )
+                elif bar[i] == r'version':
+                    bar[i] = (rf'<span class="poxy-navbar-version-selector">FIXME</span>', [])
                 elif bar[i] in context.compounds:
                     bar[i] = (
                         rf'<a href="{context.compounds[bar[i]]["filename"]}">{context.compounds[bar[i]]["title"]}</a>',
@@ -1684,7 +1686,8 @@ def run(
     theme: str = None,
     copy_assets: bool = True,
     temp_dir: Path = None,
-    bug_report: bool = False,
+    copy_config_to: Path = None,
+    versions_in_navbar: bool = False,
     **kwargs,
 ):
     timer = lambda desc: ScopeTimer(desc, print_start=True, print_end=context.verbose_logger)
@@ -1704,7 +1707,8 @@ def run(
         theme=theme,
         copy_assets=copy_assets,
         temp_dir=temp_dir,
-        bug_report=bug_report,
+        copy_config_to=copy_config_to,
+        versions_in_navbar=versions_in_navbar,
         **kwargs,
     ) as context:
         preprocess_doxyfile(context)

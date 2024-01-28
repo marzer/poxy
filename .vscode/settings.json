@@ -1,15 +1,35 @@
 {
 	"prettier.useTabs": true,
 	"prettier.tabWidth": 4,
+	"prettier.printWidth": 120,
+	"prettier.singleAttributePerLine": true,
 	"editor.rulers": [120],
 	"editor.formatOnSave": true,
 	"editor.formatOnPaste": false,
 	"editor.formatOnType": false,
-	"files.eol": "\n",
 	"html.format.indentInnerHtml": true,
+	"files.eol": "\n",
 	"files.exclude": {
 		"**/__pycache__": true,
 		"**/build": true,
 		"**/*.egg-info": true
 	},
+	"files.associations": {
+		"type_traits": "cpp",
+		"concepts": "cpp",
+		"cstddef": "cpp",
+		"cstdint": "cpp",
+		"cstdlib": "cpp",
+		"initializer_list": "cpp",
+		"xstddef": "cpp",
+		"xtr1common": "cpp"
+	},
+	"python.formatting.provider": "none",
+	"[python]": {
+		"editor.defaultFormatter": "ms-python.black-formatter"
+	},
+	"css.format.braceStyle": "expand",
+	"[css]": {
+		"editor.formatOnSave": true
+	}
 }

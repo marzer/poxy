@@ -20,6 +20,7 @@ except ImportError:
 
 import datetime
 import itertools
+from colorama import Fore, Style
 
 from . import doxygen, emoji, paths, repos
 from .schemas import *
@@ -1119,7 +1120,7 @@ class Context(object):
         if self.warnings.treat_as_errors:
             raise WarningTreatedAsError(msg)
         else:
-            self.__log(logging.WARNING, rf'Warning: {msg}', indent=indent)
+            self.__log(logging.WARNING, rf'{Style.BRIGHT}{Fore.YELLOW}warning:{Style.RESET_ALL} {msg}', indent=indent)
 
     def verbose_value(self, name, val):
         if not self.__verbose:
@@ -1175,7 +1176,8 @@ class Context(object):
         theme: str,
         copy_assets: bool,
         temp_dir: Path = None,
-        bug_report: bool = False,
+        copy_config_to: Path = None,
+        versions_in_navbar: bool = False,
         **kwargs,
     ):
         self.logger = logger
@@ -1185,9 +1187,7 @@ class Context(object):
         self.cleanup = bool(cleanup)
         self.copy_assets = bool(copy_assets)
         self.verbose_logger = logger if self.__verbose else None
-        self.bug_report = bool(bug_report)
-
-        self.info(rf'Poxy v{VERSION_STRING}')
+        self.versions_in_navbar = bool(versions_in_navbar)
 
         self.verbose_value(r'Context.output_html', self.output_html)
         self.verbose_value(r'Context.output_xml', self.output_xml)
@@ -1242,21 +1242,17 @@ class Context(object):
             self.output_dir = coerce_path(output_dir).resolve()
             self.verbose_value(r'Context.output_dir', self.output_dir)
             assert self.output_dir.is_absolute()
-            self.case_sensitive_paths = not (
-                Path(str(paths.PACKAGE).upper()).exists() and Path(str(paths.PACKAGE).lower()).exists()
-            )
-            self.verbose_value(r'Context.case_sensitive_paths', self.case_sensitive_paths)
 
             # config path
             self.config_path = Path(r'poxy.toml').resolve()
             if config_path is not None:
                 self.config_path = coerce_path(config_path).resolve()
-                if self.config_path.exists() and self.config_path.is_dir():
+                if self.config_path.is_dir():
                     self.config_path = Path(self.config_path, r'poxy.toml')
-                if not self.config_path.exists() or not self.config_path.is_file():
+                if not self.config_path.is_file():
                     raise Error(rf"Config '{self.config_path}' did not exist or was not a file")
-                if self.bug_report:
-                    copy_file(self.config_path, paths.BUG_REPORT_DIR)
+            if copy_config_to is not None and self.config_path.is_file():
+                copy_file(self.config_path, copy_config_to)
             assert self.config_path.is_absolute()
             self.verbose_value(r'Context.config_path', self.config_path)
 
@@ -1270,13 +1266,7 @@ class Context(object):
             if temp_dir is not None:
                 self.temp_dir = Path(temp_dir).absolute()
             else:
-                self.temp_dir = re.sub(r'''[!@#$%^&*()+={}<>;:'"_\\/\n\t -]+''', r'_', str(self.input_dir).strip(r'\/'))
-                if len(self.temp_dir) > 256:
-                    self.temp_dir = str(self.input_dir)
-                    if not self.case_sensitive_paths:
-                        self.temp_dir = self.temp_dir.upper()
-                    self.temp_dir = sha1(self.temp_dir)
-                self.temp_dir = Path(paths.TEMP, self.temp_dir)
+                self.temp_dir = paths.TEMP / 'contexts' / temp_dir_name_for(self.input_dir)
             self.verbose_value(r'Context.temp_dir', self.temp_dir)
             assert self.temp_dir.is_absolute()
 
@@ -1715,6 +1705,12 @@ class Context(object):
                         self.navbar[i] = r'repo'
                     elif self.navbar[i] in (r'sponsorship', r'funding', r'fund'):
                         self.navbar[i] = r'sponsor'
+
+                # version switcher
+                if self.versions_in_navbar and r'version' not in self.navbar:
+                    self.navbar.append(r'version')
+                while not self.versions_in_navbar and r'version' in self.navbar:
+                    self.navbar.remove(r'version')
 
                 # twitter
                 if self.twitter and r'twitter' not in self.navbar:

@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.16.0 - 2024-01-28
+
+-   added multi-version mode argument `--git-tags`
+-   added colour to output
+
 ## v0.15.0 - 2023-12-08
 
 -   added config option `main_page` (a.k.a. `USE_MDFILE_AS_MAINPAGE`)
