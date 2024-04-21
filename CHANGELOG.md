@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.17.0 - 2024-04-21
+
+-   added arguments `--min-version` and `--squash-patches` for more control over `--git-tags` mode
+
 ## v0.16.0 - 2024-01-28
 
 -   added multi-version mode argument `--git-tags`

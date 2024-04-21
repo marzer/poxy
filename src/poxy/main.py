@@ -141,7 +141,7 @@ def multi_version_git_tags(args: argparse.Namespace):
     tags = sorted(tags, key=lambda t: t[1], reverse=True)
     tags.insert(0, (default_branch, (999999, 999999, 999999, 999999)))
 
-    if 0:
+    if args.squash_patches:
         # squash patch/rev differences
         seen_versions = set()
         for i in range(len(tags)):
@@ -152,6 +152,25 @@ def multi_version_git_tags(args: argparse.Namespace):
             seen_versions.add(normalized_version)
         tags = [t for t in tags if t]
 
+    if args.min_version is not None:
+        args.min_version = re.sub(r'[ \t]+', '', str(args.min_version).strip())
+        m = re.fullmatch(r'^[vV]?([0-9]+)(?:[.]([0-9]+)(?:[.]([0-9]+)(?:[.]([0-9]+))?)?)?$', args.min_version)
+        if m:
+            min_ver = (
+                (int(m[1] if m[1] else 0)),
+                (int(m[2] if m[2] else 0)),
+                (int(m[3] if m[3] else 0)),
+                (int(m[4] if m[4] else 0)),
+            )
+            tags = [t for t in tags if t[1] >= min_ver]
+        else:
+            try:
+                max_vers = int(args.min_version)
+                assert max_vers < 0
+                tags = tags[:-max_vers]
+            except:
+                raise Error(rf'min-version: expected semver tag or negative integer')
+
     tags = [t for t, _ in tags]
     print("Versions:")
     print("\n".join([rf'    {t}' for t in tags]))
@@ -159,7 +178,16 @@ def multi_version_git_tags(args: argparse.Namespace):
     worker_args = [
         arg
         for arg in sys.argv[1:]
-        if arg not in (r'--bug-report', r'--git-tags', r'--worker', r'--versions-in-navbar', r'--verbose', r'-v')
+        if arg
+        not in (
+            r'--bug-report',
+            r'--git-tags',
+            r'--worker',
+            r'--versions-in-navbar',
+            r'--verbose',
+            r'-v',
+            r'--higest-patch-only',
+        )
     ]
     for key in (r'--output-dir', r'--temp-dir', r'--copy-config-to'):
         pos = -1
@@ -430,7 +458,7 @@ def main(invoker=True):
         type=str,
         default=None,
         metavar=r'<regex>',
-        help=r"pattern matching HTML file names to exclude from post-processing (default: none)",
+        help=r"pattern matching HTML file names to exclude from post-processing (default: %(default)s)",
     )
     args.add_argument(
         r'--theme',  #
@@ -455,6 +483,19 @@ def main(invoker=True):
     )
     args.add_argument(
         r'--git-tags', action=r'store_true', help=r"add git-tag-based semver version switcher to the generated HTML"  #
+    )
+    make_boolean_optional_arg(
+        args,
+        r'squash-patches',
+        default=True,
+        help='when using --git-tags and two version tags differ by a patch number,\ngenerate docs for the highest one only (default: %(default)s)',
+    )
+    args.add_argument(
+        r'--min-version',
+        type=str,
+        default=None,
+        metavar='<version>',
+        help='sets the minimum version number to emit when using --git-tags,\nor a negative integer to mean "the last N versions". (default: %(default)s)',
     )
 
     # --------------------------------------------------------------

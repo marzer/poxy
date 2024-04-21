@@ -69,14 +69,16 @@ Poxy is a command-line application.
 ```
 usage: poxy [-h] [-v] [--html | --no-html] [--ppinclude <regex>] [--ppexclude <regex>]
             [--theme {light,dark,custom}] [--threads N] [--version] [--xml | --no-xml]
-            [--werror | --no-werror] [--bug-report] [--git-tags] [config]
+            [--werror | --no-werror] [--bug-report] [--git-tags]
+            [--squash-patches | --no-squash-patches] [--min-version <version>]
+            [config]
 
   _ __   _____  ___   _
  | '_ \ / _ \ \/ / | | |
  | |_) | (_) >  <| |_| |
  | .__/ \___/_/\_\\__, |
  | |               __/ |
- |_|              |___/  v0.16.0 - github.com/marzer/poxy
+ |_|              |___/  v0.17.0 - github.com/marzer/poxy
 
 Generate fancy C++ documentation.
 
@@ -88,15 +90,22 @@ options:
   -v, --verbose         enable very noisy diagnostic output
   --html, --no-html     specify whether HTML output is required
   --ppinclude <regex>   pattern matching HTML file names to post-process (default: all)
-  --ppexclude <regex>   pattern matching HTML file names to exclude from post-processing (default: none)
+  --ppexclude <regex>   pattern matching HTML file names to exclude from post-processing (default: None)
   --theme {light,dark,custom}
                         sets the default visual theme (default: read from config)
   --threads N           set the number of threads to use (default: automatic)
   --version             print the version and exit
   --xml, --no-xml       specify whether XML output is required
-  --werror, --no-werror treat warnings as errors (default: read from config)
+  --werror, --no-werror
+                        treat warnings as errors (default: read from config)
   --bug-report          captures all output in a zip file for easier bug reporting.
   --git-tags            add git-tag-based semver version switcher to the generated HTML
+  --squash-patches, --no-squash-patches
+                        when using --git-tags and two version tags differ by a patch number,
+                        generate docs for the highest one only (default: True)
+  --min-version <version>
+                        sets the minimum version number to emit when using --git-tags,
+                        or a negative integer to mean "the last N versions". (default: None)
 ```
 
 The basic three-step to using Poxy is similar to Doxygen:
