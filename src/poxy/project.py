@@ -7,6 +7,7 @@
 Everything relating to the 'project context' object that describes the project for which the documentation is being generated.
 """
 
+import sys
 import copy
 import os
 
@@ -1222,7 +1223,10 @@ class Context(object):
             html_exclude = re.compile(str(html_exclude))
         self.html_exclude = html_exclude
 
-        self.now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
+        if (sys.version_info[0], sys.version_info[1]) >= (3, 11):
+            self.now = datetime.datetime.now(datetime.UTC).replace(microsecond=0)
+        else:
+            self.now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
 
         self.verbose_value(r'dirs.PACKAGE', paths.PACKAGE)
         self.verbose_value(r'dirs.CSS', paths.CSS)
@@ -1657,7 +1661,7 @@ class Context(object):
                 if source and dest:
                     if is_uri(source):
                         file = Path(
-                            paths.TEMP, rf'tagfile_{sha1(source)}_{self.now.year}_{self.now.isocalendar().week}.xml'
+                            paths.TEMP, rf'tagfile_{sha1(source)}_{self.now.year}_{self.now.isocalendar()[1]}.xml'
                         )
                         self.tagfiles[source] = (file, dest)
                         self.unresolved_tagfiles = True

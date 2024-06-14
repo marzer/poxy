@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.17.1 - 2024-06-14
+
+-   Fixed `'tuple' object has no attribute 'week'` error on Python &lt;= 3.8
+
 ## v0.17.0 - 2024-04-21
 
 -   added arguments `--min-version` and `--squash-patches` for more control over `--git-tags` mode
