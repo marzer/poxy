@@ -1463,9 +1463,10 @@ def postprocess_html_file(path, context: Context = None):
                     html.smooth()
             elif isinstance(fix, fixers.PlainTextFixer):
                 switch_to_text()
-                prev_text = text
-                text = fix(context, prev_text, path)
-                changed = changed or prev_text != text
+                new_text = fix(context, text, path)
+                if new_text is not None and new_text != text:
+                    text = new_text
+                    changed = True
 
         if changed:
             switch_to_text()
@@ -1491,25 +1492,7 @@ def postprocess_html(context: Context):
     if not files:
         return
 
-    context.fixers = (
-        fixers.MarkTOC(),
-        fixers.Pygments(),
-        fixers.CodeBlocks(),
-        fixers.Banner(),
-        fixers.CPPModifiers1(),
-        fixers.CPPModifiers2(),
-        fixers.StripIncludes(),
-        fixers.AutoDocLinks(),
-        fixers.Links(),
-        fixers.CustomTags(),
-        fixers.EmptyTags(),
-        fixers.ImplementationDetails(),
-        fixers.MarkdownPages(),
-        fixers.InjectSVGs(),
-        fixers.InstallSearchShim(),
-        fixers.DeducedAutoReturnType(),
-        fixers.RemoveTemplateNoise(),
-    )
+    context.fixers = fixers.create_all()
 
     threads = min(len(files), context.threads, 16)
     context.info(rf'Post-processing {len(files)} HTML files on {threads} thread{"s" if threads > 1 else ""}...')

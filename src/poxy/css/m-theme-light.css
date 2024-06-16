@@ -126,7 +126,7 @@
   --success-filled-background-color:  hsl(var(--success-hue), calc(var(--success-saturation) * 0.9), calc(var(--success-luminosity) * 1.8));
   --success-filled-link-color: hsl(var(--success-hue), calc(var(--success-saturation) * 0.8), 40%);
   --success-filled-link-active-color: var(--success-filled-color);
-  
+
   --warning-hue: 53;
   --warning-saturation: 50%;
   --warning-luminosity: 44%;
@@ -164,7 +164,7 @@
   --dim-link-color: #292929;
   --dim-link-active-color: hsl(var(--dim-hue), var(--dim-saturation), calc(var(--dim-luminosity) * 0.7));
   --dim-filled-color: #656565;
-  --dim-filled-background-color: #c5c4c4;
+  --dim-filled-background-color: #d3d3d3;
   --dim-filled-link-color: #292929;
   --dim-filled-link-active-color: #7c7c7c;
   --dim-button-active-color: #292929;

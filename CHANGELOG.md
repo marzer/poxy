@@ -1,8 +1,15 @@
 # Changelog
 
+## v0.17.2 - 2024-06-16
+
+-   fixed qualified return types appearing squashed together without whitespace in some circumstances
+-   fixed performance regression in post-process step
+-   updated m.css
+-   minor style fixes
+
 ## v0.17.1 - 2024-06-14
 
--   Fixed `'tuple' object has no attribute 'week'` error on Python &lt;= 3.8
+-   fixed `'tuple' object has no attribute 'week'` error on Python &lt;= 3.8
 
 ## v0.17.0 - 2024-04-21
 

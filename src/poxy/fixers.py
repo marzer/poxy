@@ -11,6 +11,7 @@ import html
 
 from bs4 import NavigableString
 from trieregex import TrieRegEx
+from typing import Tuple, Union
 
 from . import soup
 from .project import Context
@@ -843,6 +844,10 @@ class Links(HTMLFixer):
 
     def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
         changed = False
+
+        elems_with_ids = [e for e in doc.body(id=True) if e['id'] is not None and len(e['id'])]
+        elems_with_ids = {e['id']: e for e in elems_with_ids}
+
         for anchor in doc.body('a', href=True):
             # make sure internal links to #ids on the same page don't get treated as external links
             # (some versions of doxygen did this with @ref)
@@ -918,19 +923,20 @@ class Links(HTMLFixer):
             if (
                 is_mdoc
                 and anchor['href'].startswith(r'#')
-                and (len(anchor['href']) == 1 or doc.body.find(id=anchor['href'][1:]) is None)
+                and (len(anchor['href']) == 1 or anchor['href'][1:] not in elems_with_ids)
             ):
                 changed = True
                 soup.remove_class(anchor, 'm-doc')
                 soup.add_class(anchor, 'm-doc-self')
                 anchor['href'] = '#'
-                parent_with_id = anchor.find_parent(id=self.__internal_doc_id)
+                parent_with_id = anchor.find_parent(id=self.__internal_doc_id, cutoff=doc.body)
                 if parent_with_id is None:
-                    parent_with_id = anchor.find_parent((r'dt', r'tr'), id=False)
+                    parent_with_id = anchor.find_parent((r'dt', r'tr'), id=False, cutoff=doc.body)
                     if parent_with_id is not None:
                         parent_with_id['id'] = sha256(parent_with_id.get_text())
+                        elems_with_ids[parent_with_id['id']] = parent_with_id
                 if parent_with_id is None:
-                    parent_with_id = anchor.find_parent(id=True)
+                    parent_with_id = anchor.find_parent(id=True, cutoff=doc.body)
                 if parent_with_id is not None:
                     anchor['href'] = '#' + parent_with_id['id']
                 continue
@@ -1058,9 +1064,9 @@ class MarkdownPages(PlainTextFixer):
         return text
 
 
-class DeducedAutoReturnType(PlainTextFixer):
+class ReturnTypes(PlainTextFixer):
     '''
-    Fixes 'auto() -> auto'.
+    Fixes various issues with function return types
     '''
 
     __deduced_auto_return_type_brief = re.compile(
@@ -1069,8 +1075,30 @@ class DeducedAutoReturnType(PlainTextFixer):
     __deduced_auto_return_type = re.compile(rf'_{WBR}_{WBR}poxy_{WBR}deduced_{WBR}auto_{WBR}return_{WBR}type')
 
     def __call__(self, context: Context, text: str, path: Path) -> str:
+
+        # fix 'auto() -> auto'
         text = self.__deduced_auto_return_type_brief.sub(r')', text)
         text = self.__deduced_auto_return_type.sub(r'auto', text)
+
+        # fix missing whitespace between qualifiers
+        text = re.sub(
+            r'(<span\s+class="m-doc-wrap-bumper"\s*>)(const|volatile|const\s+volatile|volatile\s+const)(<a\s+class="m-doc")',
+            r'\1\2&nbsp;\3',
+            text,
+        )
+        text = re.sub(
+            r'\)((?:\s+(?:const|volatile|mutable|noexcept|&|&&|&amp;|&amp;&amp;))*)\s*-&gt;\s*(const|volatile|const\s+volatile|volatile\s+const)(<a\s+class="m-doc")',
+            r')\1&nbsp;&rarr;&nbsp;\2&nbsp;\3',
+            text,
+        )
+
+        # turn -> into &rarr;
+        text = re.sub(
+            r'\)((?:\s+(?:const|volatile|mutable|noexcept|&|&&|&amp;|&amp;&amp;))*)\s+-&gt;',
+            r')\1&nbsp;&rarr;&nbsp;',
+            text,
+        )
+
         return text
 
 
@@ -1112,39 +1140,41 @@ class Pygments(PlainTextFixer):
     '''
 
     def __call__(self, context: Context, text: str, path: Path) -> str:
-        if re.search(r'class="[^"]*?m-code[^"]*?"', text):
-            # at some point pygments started adding markup to whitespace,
-            # causing an awful lot of markup bloat. m.css does not style this markup
-            # so we can safely strip it away.
-            text = re.sub(r'<span class="w">(\s+)</span>', r'\1', text)
+        if not re.search(r'class="[^"]*?m-code[^"]*?"', text):
+            return None
 
-            # fix numeric UDLs being treated as a separate token
-            text = re.sub(
-                rf'<span\s+class="(m[bfhio])"\s*>(.*?)</span><span class="n">((?:_[a-zA-Z0-9_]*)|{BUILTIN_LITERALS})</span>',  #
-                r'<span class="\1">\2\3</span>',
-                text,
-            )
+        # at some point pygments started adding markup to whitespace,
+        # causing an awful lot of markup bloat. m.css does not style this markup
+        # so we can safely strip it away.
+        text = re.sub(r'<span class="w">(\s+)</span>', r'\1', text)
 
-            # fix string UDLs being treated as a separate token
-            text = re.sub(
-                rf'<span\s+class="s"\s*>(.*?)</span><span class="n">((?:_[a-zA-Z0-9_]*)|{BUILTIN_LITERALS})</span>',  #
-                r'<span class="s">\1\2</span>',
-                text,
-            )
+        # fix numeric UDLs being treated as a separate token
+        text = re.sub(
+            rf'<span\s+class="(m[bfhio])"\s*>(.*?)</span><span class="n">((?:_[a-zA-Z0-9_]*)|{BUILTIN_LITERALS})</span>',  #
+            r'<span class="\1">\2\3</span>',
+            text,
+        )
 
-            # hack to make some basic #ifs, #defines etc. look nice
-            text = re.sub(
-                r'<span\s+class="cp"\s*>(\s*#\s*(?:(?:el)?if(?:n?def)?|define|undef)\s+)([a-zA-Z_][a-zA-Z_0-9]*?)([^a-zA-Z_0-9])',  #
-                r'<span class="cp">\1</span><span class="fm">\2</span><span class="cp">\3',
-                text,
-            )
+        # fix string UDLs being treated as a separate token
+        text = re.sub(
+            rf'<span\s+class="s"\s*>(.*?)</span><span class="n">((?:_[a-zA-Z0-9_]*)|{BUILTIN_LITERALS})</span>',  #
+            r'<span class="s">\1\2</span>',
+            text,
+        )
 
-            # hack to make basic "using XXXX = ..." directives look nice
-            text = re.sub(
-                r'<span\s+class="k"\s*>(\s*using\s*)</span>(\s+)<span\s+class="n"\s*>([a-zA-Z_][a-zA-Z0-9_]*?)</span>(\s+)<span\s+class="o"\s*>(\s*=\s*)</span>',
-                r'<span class="k">\1</span>\2<span class="nc">\3</span>\4<span class="o">\5</span>',
-                text,
-            )
+        # hack to make some basic #ifs, #defines etc. look nice
+        text = re.sub(
+            r'<span\s+class="cp"\s*>(\s*#\s*(?:(?:el)?if(?:n?def)?|define|undef)\s+)([a-zA-Z_][a-zA-Z_0-9]*?)([^a-zA-Z_0-9])',  #
+            r'<span class="cp">\1</span><span class="fm">\2</span><span class="cp">\3',
+            text,
+        )
+
+        # hack to make basic "using XXXX = ..." directives look nice
+        text = re.sub(
+            r'<span\s+class="k"\s*>(\s*using\s*)</span>(\s+)<span\s+class="n"\s*>([a-zA-Z_][a-zA-Z0-9_]*?)</span>(\s+)<span\s+class="o"\s*>(\s*=\s*)</span>',
+            r'<span class="k">\1</span>\2<span class="nc">\3</span>\4<span class="o">\5</span>',
+            text,
+        )
 
         return text
 
@@ -1163,24 +1193,28 @@ class InstallSearchShim(PlainTextFixer):
         )
 
 
-__all__ = [
-    'HTMLFixer',
-    'PlainTextFixer',
-    'CustomTags',
-    'CPPModifiers1',
-    'CPPModifiers2',
-    'StripIncludes',
-    'Banner',
-    'CodeBlocks',
-    'AutoDocLinks',
-    'Links',
-    'EmptyTags',
-    'MarkTOC',
-    'InjectSVGs',
-    'ImplementationDetails',
-    'MarkdownPages',
-    'Pygments',
-    'InstallSearchShim',
-    'DeducedAutoReturnType',
-    'RemoveTemplateNoise',
-]
+def create_all() -> Tuple[Union[HTMLFixer, PlainTextFixer]]:
+
+    # order matters here!
+    return (
+        MarkTOC(),  # html
+        Pygments(),
+        CodeBlocks(),  # html
+        Banner(),  # html
+        CPPModifiers1(),  # html
+        CPPModifiers2(),  # html
+        StripIncludes(),  # html
+        AutoDocLinks(),  # html
+        Links(),  # html
+        CustomTags(),  # html
+        RemoveTemplateNoise(),  # html
+        EmptyTags(),  # html
+        ImplementationDetails(),
+        MarkdownPages(),
+        InstallSearchShim(),
+        ReturnTypes(),
+        InjectSVGs(),  # html
+    )
+
+
+__all__ = ['HTMLFixer', 'PlainTextFixer', 'create_all']
