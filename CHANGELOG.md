@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.18.0 - 2024-08-03
+
+-   added config option `excluded_symbols` (a.k.a. Doxygen's `EXCLUDE_SYMBOLS`) (#36) (@Guekka)
+
 ## v0.17.2 - 2024-06-16
 
 -   fixed qualified return types appearing squashed together without whitespace in some circumstances

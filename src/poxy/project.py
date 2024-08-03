@@ -1059,6 +1059,7 @@ class Context(object):
             Optional(r'description'): Stripped(str),
             Optional(r'examples'): FilteredInputs.schema,
             Optional(r'extra_files'): ValueOrArray(str, name=r'extra_files'),
+            Optional(r'excluded_symbols'): ValueOrArray(str, name=r'excluded_symbols'),
             Optional(r'favicon'): Stripped(str),
             Optional(r'generate_tagfile'): bool,
             Optional(r'github'): Stripped(str),
@@ -1780,6 +1781,13 @@ class Context(object):
                     if namespace:
                         self.inline_namespaces.add(namespace)
             self.verbose_value(r'Context.inline_namespaces', self.inline_namespaces)
+
+            self.excluded_symbols = set()
+            if 'excluded_symbols' in config:
+                for symbol in coerce_collection(config['excluded_symbols']):
+                    symbol = symbol.strip()
+                    if symbol:
+                        self.excluded_symbols.add(symbol)
 
             # implementation headers
             self.implementation_headers = []

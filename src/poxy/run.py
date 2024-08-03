@@ -197,6 +197,9 @@ def preprocess_doxyfile(context: Context):
 
         df.set_value(r'USE_MDFILE_AS_MAINPAGE', context.main_page)
 
+        if context.excluded_symbols:
+            df.set_value(r'EXCLUDE_SYMBOLS', context.excluded_symbols)
+
         df.append()
         df.append(r'# context.warnings', end='\n\n')  # ---------------------------------------------------
 
