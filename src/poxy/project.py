@@ -1253,7 +1253,11 @@ class Context(object):
             if config_path is not None:
                 self.config_path = coerce_path(config_path).resolve()
                 if self.config_path.is_dir():
-                    self.config_path = Path(self.config_path, r'poxy.toml')
+                    for candidate in (r'poxy.toml', r'docs/poxy.toml', r'doc/poxy.toml', r'doxygen/poxy.toml'):
+                        candidate_path = self.config_path / candidate
+                        if candidate_path and candidate_path.is_file():
+                            self.config_path = candidate_path
+                            break
                 if not self.config_path.is_file():
                     raise Error(rf"Config '{self.config_path}' did not exist or was not a file")
             if copy_config_to is not None and self.config_path.is_file():

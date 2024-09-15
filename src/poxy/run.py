@@ -11,6 +11,7 @@ import concurrent.futures as futures
 import os
 import subprocess
 import tempfile
+import copy
 from distutils.dir_util import copy_tree
 from io import StringIO
 
@@ -466,6 +467,78 @@ def postprocess_xml(context: Context):
             if changed:
                 xml_utils.write(root, xml_file)
 
+        # doxygen >= 1.9.7 needs some special handling to play nice with m.css
+        # see: https://github.com/mosra/m.css/issues/239
+        if doxygen.version() >= (1, 9, 7):
+
+            member_references = dict()
+
+            # collect all the unresolved references
+            for xml_file in xml_files:
+                root = xml_utils.read(xml_file)
+                if root.tag != r'doxygen':
+                    continue
+                compounddef = root.find(r'compounddef')
+                if compounddef is None:
+                    continue
+                compound_kind = compounddef.get(r'kind')
+                if compound_kind is None or not compound_kind or not compound_kind in (r'file', r'namespace'):
+                    continue
+                for sectiondef in compounddef.findall(r'sectiondef'):
+                    for member in sectiondef.findall(r'member'):
+                        refid = member.get(r'refid')
+                        if refid is not None:
+                            refid = str(refid)
+                        if refid and refid not in member_references:
+                            member_references[refid] = None
+
+            if member_references:
+
+                # resolve
+                for xml_file in xml_files:
+                    root = xml_utils.read(xml_file)
+                    if root.tag != r'doxygen':
+                        continue
+                    compounddef = root.find(r'compounddef')
+                    if compounddef is None:
+                        continue
+                    for sectiondef in compounddef.findall(r'sectiondef'):
+                        for memberdef in sectiondef.findall(r'memberdef'):
+                            id = memberdef.get(r'id')
+                            if id is not None:
+                                id = str(id)
+                            if id and id in member_references and member_references[id] is None:
+                                member_references[refid] = memberdef
+                for id, memberdef in member_references.items():
+                    if memberdef is None:
+                        context.warning(rf"could not resolve <member> reference with id '{id}'!")
+
+                # replace
+                for xml_file in xml_files:
+                    root = xml_utils.read(xml_file)
+                    if root.tag != r'doxygen':
+                        continue
+                    compounddef = root.find(r'compounddef')
+                    if compounddef is None:
+                        continue
+                    compound_kind = compounddef.get(r'kind')
+                    if compound_kind is None or not compound_kind or not compound_kind in (r'file', r'namespace'):
+                        continue
+                    changed = False
+                    for sectiondef in compounddef.findall(r'sectiondef'):
+                        replacements = []
+                        for member in sectiondef.findall(r'member'):
+                            refid = member.get(r'refid')
+                            if refid is not None:
+                                refid = str(refid)
+                            if refid and refid in member_references and member_references[refid] is not None:
+                                replacements.append((member, member_references[refid]))
+                        for member, memberdef in replacements:
+                            sectiondef.replace(member, copy.deepcopy(memberdef))
+                            changed = True
+                    if changed:
+                        xml_utils.write(root, xml_file)
+
         # now do '<doxygen>' files
         for xml_file in xml_files:
             root = xml_utils.read(xml_file)
@@ -502,15 +575,6 @@ def postprocess_xml(context: Context):
 
             compound_title = compounddef.find(r'title')
             compound_title = compound_title.text if compound_title is not None else compound_name
-
-            # fix weird regression in doxygen 1.9.7
-            if compound_kind == r'file' and doxygen.version() == (1, 9, 7):
-                sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'define']
-                for sectiondef in sectiondefs:
-                    members = [m for m in sectiondef.findall(r'member') if m.get(r'kind') == r'define']
-                    for member in members:
-                        sectiondef.remove(member)
-                        changed = True
 
             # do a bit of cleanup of <programlisting>
             for programlisting in compounddef.iterdescendants(tag="programlisting"):
@@ -630,7 +694,7 @@ def postprocess_xml(context: Context):
                                     changed = True
                                     if attr is not None:
                                         member.set(attr, attr_value)
-                                    elif kw == r'friend':
+                                    elif kw == r'friend' and member.get(r'kind') != r'variable':
                                         member.set(r'kind', r'friend')
 
                     # fix issues with trailing return types

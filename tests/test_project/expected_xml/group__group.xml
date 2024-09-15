@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="group__group" kind="group">
+		<compoundname>group</compoundname>
+		<title>A group.</title>
+		<sectiondef kind="define">
+			<memberdef kind="define" id="group__group_1gab8f35b5fe5a9047e142acaef9b5336ca" prot="public" static="no">
+				<name>KEK_IN_GROUP</name>
+				<initializer>1</initializer><briefdescription>
+					<para>A macro inside a group. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="17" column="9" bodyfile="src/code.h" bodystart="17" bodyend="-1"/>
+			</memberdef>
+		</sectiondef>
+		<briefdescription></briefdescription>
+		<detaileddescription></detaileddescription>
+	</compounddef>
+</doxygen>

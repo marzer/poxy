@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+-   added workaround for [this issue](https://github.com/mosra/m.css/issues/239) introduced in Doxygen 1.9.7
+-   updated m.css
+
 ## v0.18.0 - 2024-08-03
 
 -   added config option `excluded_symbols` (a.k.a. Doxygen's `EXCLUDE_SYMBOLS`) (#36) (@Guekka)

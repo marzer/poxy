@@ -10,9 +10,7 @@
 		</templateparamlist>
 		<initializer>template&lt;typename T&gt;
 concept <ref refid="concepttest_1_1concept__1" kindref="compound">test::concept_1</ref> =  requires(T a) {
-		{
-			<ref refid="cpp/utility/hash" kindref="compound" external="D:/Repositories/poxy/src/poxy/cppreference-doxygen-web.tag.xml">std::hash</ref>&lt;T&gt;{}(a)
-		} -&gt; std::convertible_to&lt;<ref refid="cpp/types/size_t" kindref="compound" external="D:/Repositories/poxy/src/poxy/cppreference-doxygen-web.tag.xml">std::size_t</ref>&gt;;
+		{ <ref refid="cpp/utility/hash" kindref="compound" external="D:/Repositories/poxy/src/poxy/cppreference-doxygen-web.tag.xml">std::hash</ref>&lt;T&gt;{}(a) } -&gt; std::convertible_to&lt;<ref refid="cpp/types/size_t" kindref="compound" external="D:/Repositories/poxy/src/poxy/cppreference-doxygen-web.tag.xml">std::size_t</ref>&gt;;
 	}    </initializer><briefdescription>
 			<para>A concept. </para>
 		</briefdescription>
@@ -29,6 +27,6 @@ concept <ref refid="concepttest_1_1concept__1" kindref="compound">test::concept_
 				</parameterlist>
 			</para>
 		</detaileddescription>
-		<location file="src/code.h" line="180" column="1"/>
+		<location file="src/code.h" line="187" column="1"/>
 	</compounddef>
 </doxygen>

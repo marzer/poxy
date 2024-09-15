@@ -6,8 +6,6 @@
 		<innerclass refid="structtest_1_1struct__1_1_1nested__struct" prot="public">test::struct_1::nested_struct</innerclass>
 		<innerclass refid="classtest_1_1class__1" prot="public">test::class_1</innerclass>
 		<innerclass refid="classtest_1_1template__class__1" prot="public">test::template_class_1</innerclass>
-		<innerconcept refid="concepttest_1_1concept__1">test::concept_1</innerconcept>
-		<innerconcept refid="concepttest_1_1nested_1_1concept__2">test::nested::concept_2</innerconcept>
 		<innernamespace refid="namespacetest">test</innernamespace>
 		<innernamespace refid="namespacetest_1_1nested">test::nested</innernamespace>
 		<innernamespace refid="namespacetest_1_1empty">test::empty</innernamespace>
@@ -22,6 +20,17 @@
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
 				<location file="src/code.h" line="7" column="9" bodyfile="src/code.h" bodystart="7" bodyend="-1"/>
+			</memberdef>
+			<memberdef kind="define" id="group__group_1gab8f35b5fe5a9047e142acaef9b5336ca" prot="public" static="no">
+				<name>KEK_IN_GROUP</name>
+				<initializer>1</initializer><briefdescription>
+					<para>A macro inside a group. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="17" column="9" bodyfile="src/code.h" bodystart="17" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="enum">
@@ -57,7 +66,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="219" column="1" bodyfile="src/code.h" bodystart="220" bodyend="226"/>
+				<location file="src/code.h" line="222" column="1" bodyfile="src/code.h" bodystart="223" bodyend="229"/>
 			</memberdef>
 			<memberdef kind="enum" id="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065" prot="public" static="no" strong="no">
 				<type/>
@@ -91,7 +100,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="208" column="1" bodyfile="src/code.h" bodystart="209" bodyend="215"/>
+				<location file="src/code.h" line="211" column="1" bodyfile="src/code.h" bodystart="212" bodyend="218"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="typedef">
@@ -108,11 +117,11 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="250" column="13" bodyfile="src/code.h" bodystart="250" bodyend="-1"/>
+				<location file="src/code.h" line="253" column="13" bodyfile="src/code.h" bodystart="253" bodyend="-1"/>
 			</memberdef>
-			<memberdef kind="typedef" id="namespacetest_1a011ffb640026d2f49f9c73fe09d88cfb" prot="public" static="no">
+			<memberdef kind="typedef" id="namespacetest_1af3b055b49aff8d48bea92e5f226daa5d" prot="public" static="no">
 				<type>int</type>
-				<definition>using test::a_typedef = typedef int</definition>
+				<definition>using test::a_typedef =  int</definition>
 				<argsstring/>
 				<name>a_typedef</name>
 				<qualifiedname>test::a_typedef</qualifiedname>
@@ -123,16 +132,16 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="254" column="1" bodyfile="src/code.h" bodystart="254" bodyend="-1"/>
+				<location file="src/code.h" line="257" column="1" bodyfile="src/code.h" bodystart="257" bodyend="-1"/>
 			</memberdef>
-			<memberdef kind="typedef" id="namespacetest_1ab80f438f7d1d6d6e3b184b7ce32df687" prot="public" static="no">
+			<memberdef kind="typedef" id="namespacetest_1a58dc421199859607c527ded8e3d87bae" prot="public" static="no">
 				<templateparamlist>
 					<param>
 						<type>typename T</type>
 					</param>
 				</templateparamlist>
 				<type>T</type>
-				<definition>using test::a_typedef_template = typedef T</definition>
+				<definition>using test::a_typedef_template =  T</definition>
 				<argsstring/>
 				<name>a_typedef_template</name>
 				<qualifiedname>test::a_typedef_template</qualifiedname>
@@ -143,13 +152,13 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="259" column="1" bodyfile="src/code.h" bodystart="259" bodyend="-1"/>
+				<location file="src/code.h" line="262" column="1" bodyfile="src/code.h" bodystart="262" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="var">
 			<memberdef kind="variable" id="namespacetest_1af2f5b0612e98ea3ef9de39eb10981879" prot="public" static="no" constexpr="yes" mutable="no">
 				<type>bool</type>
-				<definition>constexpr bool test::inline_variable</definition>
+				<definition>bool test::inline_variable</definition>
 				<argsstring/>
 				<name>inline_variable</name>
 				<qualifiedname>test::inline_variable</qualifiedname>
@@ -160,7 +169,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="66" column="23" bodyfile="src/code.h" bodystart="66" bodyend="-1"/>
+				<location file="src/code.h" line="73" column="23" bodyfile="src/code.h" bodystart="73" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="func">
@@ -177,7 +186,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="62" column="6" declfile="src/code.h" declline="62" declcolumn="6"/>
+				<location file="src/code.h" line="69" column="6" declfile="src/code.h" declline="69" declcolumn="6"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_1af10bf287d581eb8aae63d450e3f848c5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>__poxy_deduced_auto_return_type</type>
@@ -192,7 +201,7 @@
 					<para>We shouldn't see a redundant "-&gt; auto" in the output. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="263" column="6" bodyfile="src/code.h" bodystart="263" bodyend="266"/>
+				<location file="src/code.h" line="266" column="6" bodyfile="src/code.h" bodystart="266" bodyend="269"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_1ae66b7e2e94f84934cff5de3e512ce0ee" prot="public" static="no" constexpr="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
 				<templateparamlist>
@@ -204,7 +213,7 @@
 					</param>
 				</templateparamlist>
 				<type>T</type>
-				<definition>constexpr T test::do_the_other_thing</definition>
+				<definition>T test::do_the_other_thing</definition>
 				<argsstring>(U u) noexcept</argsstring>
 				<name>do_the_other_thing</name>
 				<qualifiedname>test::do_the_other_thing</qualifiedname>
@@ -250,7 +259,7 @@
 					</para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="239" column="13" bodyfile="src/code.h" bodystart="239" bodyend="242"/>
+				<location file="src/code.h" line="242" column="13" bodyfile="src/code.h" bodystart="242" bodyend="245"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_1a011c6f27e90f228cd68be9def15bc076" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>
@@ -267,11 +276,11 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="230" column="14" declfile="src/code.h" declline="230" declcolumn="14"/>
+				<location file="src/code.h" line="233" column="14" declfile="src/code.h" declline="233" declcolumn="14"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_1af2e6008ff8ee50f6cda80da681d44348" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>int</type>
-				<definition>auto test::do_the_thing_automatically</definition>
+				<definition>int test::do_the_thing_automatically</definition>
 				<argsstring>()</argsstring>
 				<name>do_the_thing_automatically</name>
 				<qualifiedname>test::do_the_thing_automatically</qualifiedname>
@@ -282,7 +291,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="246" column="6" declfile="src/code.h" declline="246" declcolumn="6"/>
+				<location file="src/code.h" line="249" column="6" declfile="src/code.h" declline="249" declcolumn="6"/>
 			</memberdef>
 		</sectiondef>
 		<briefdescription>
