@@ -3,6 +3,7 @@
 ## Unreleased
 
 -   added workaround for [this issue](https://github.com/mosra/m.css/issues/239) introduced in Doxygen 1.9.7
+-   made `--bug-report` keep a copy of the original (pre-pre-processed?) XML
 -   updated m.css
 
 ## v0.18.0 - 2024-08-03

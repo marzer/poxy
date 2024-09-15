@@ -329,7 +329,11 @@ def multi_version_git_tags(args: argparse.Namespace):
 
 
 def bug_report(args: argparse.Namespace):
-    bug_report_args = [arg for arg in sys.argv[1:] if arg not in (r'--bug-report', r'--worker', r'-v', r'--verbose')]
+    bug_report_args = [
+        arg
+        for arg in sys.argv[1:]
+        if arg not in (r'--bug-report', r'--worker', r'-v', r'--verbose', r'--keep-original-xml')
+    ]
     for key in (r'--output-dir', r'--temp-dir', r'--copy-config-to'):
         pos = -1
         try:
@@ -357,6 +361,7 @@ def bug_report(args: argparse.Namespace):
             r'--worker',
             r'--verbose',
             r'--nocleanup',
+            r'--keep-original-xml',
             r'--output-dir',
             str(paths.BUG_REPORT_DIR),
             r'--temp-dir',
@@ -520,6 +525,7 @@ def main(invoker=True):
     args.add_argument(r'--temp-dir', type=Path, default=None, help=argparse.SUPPRESS)  #
     args.add_argument(r'--copy-config-to', type=Path, default=None, help=argparse.SUPPRESS)  #
     args.add_argument(r'--versions-in-navbar', action=r'store_true', help=argparse.SUPPRESS)  #
+    args.add_argument(r'--keep-original-xml', action=r'store_true', help=argparse.SUPPRESS)  #
     args = args.parse_args()
 
     # --------------------------------------------------------------
@@ -632,6 +638,7 @@ def main(invoker=True):
             temp_dir=args.temp_dir,
             copy_config_to=args.copy_config_to,
             versions_in_navbar=args.versions_in_navbar,
+            keep_original_xml=args.keep_original_xml,
             # kwargs:
             xml_v2=args.xml_v2,
         )

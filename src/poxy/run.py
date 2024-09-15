@@ -1172,11 +1172,13 @@ def parse_xml(context: Context):
     context.verbose_object(r'Context.code_blocks', context.code_blocks)
 
 
-def clean_xml(context: Context):
+def clean_xml(context: Context, dir=None):
     assert context is not None
     assert isinstance(context, Context)
+    if dir is None:
+        dir = context.temp_xml_dir
 
-    xml_files = get_all_files(context.temp_xml_dir, any=(r'*.xml'))
+    xml_files = get_all_files(dir, any=(r'*.xml'))
     for xml_file in xml_files:
         root = xml_utils.read(
             xml_file, parser=xml_utils.create_parser(remove_blank_text=True), logger=context.verbose_logger  #
@@ -1738,6 +1740,7 @@ def run(
     temp_dir: Path = None,
     copy_config_to: Path = None,
     versions_in_navbar: bool = False,
+    keep_original_xml: bool = False,
     **kwargs,
 ):
     timer = lambda desc: ScopeTimer(desc, print_start=True, print_end=context.verbose_logger)
@@ -1771,7 +1774,11 @@ def run(
         # generate + postprocess XML in temp_xml_dir
         # (we always do this even when output_xml is false because it is required by the html)
         with timer(rf'Generating XML files with Doxygen {doxygen.version_string()}') as t:
+            delete_directory(context.temp_original_xml_dir)
             run_doxygen(context)
+            if keep_original_xml:
+                copy_tree(str(context.temp_xml_dir), str(context.temp_original_xml_dir))
+                clean_xml(context, dir=context.temp_original_xml_dir)
         with timer(r'Post-processing XML files') as t:
             if context.xml_v2:
                 postprocess_xml_v2(context)

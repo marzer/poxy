@@ -1286,8 +1286,11 @@ class Context(object):
 
             # temp xml output path used by doxygen
             self.temp_xml_dir = Path(self.temp_dir, r'xml')
+            self.temp_original_xml_dir = Path(self.temp_dir, r'xml_original')
             self.verbose_value(r'Context.temp_xml_dir', self.temp_xml_dir)
+            self.verbose_value(r'Context.temp_original_xml_dir', self.temp_original_xml_dir)
             assert self.temp_xml_dir.is_absolute()
+            assert self.temp_original_xml_dir.is_absolute()
 
             # xml output path (--xml)
             self.xml_dir = Path(self.output_dir, r'xml')
