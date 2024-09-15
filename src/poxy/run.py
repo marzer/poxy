@@ -508,7 +508,7 @@ def postprocess_xml(context: Context):
                             if id is not None:
                                 id = str(id)
                             if id and id in member_references and member_references[id] is None:
-                                member_references[refid] = memberdef
+                                member_references[id] = memberdef
                 for id, memberdef in member_references.items():
                     if memberdef is None:
                         context.warning(rf"could not resolve <member> reference with id '{id}'!")
@@ -694,8 +694,10 @@ def postprocess_xml(context: Context):
                                     changed = True
                                     if attr is not None:
                                         member.set(attr, attr_value)
-                                    elif kw == r'friend' and member.get(r'kind') != r'variable':
-                                        member.set(r'kind', r'friend')
+                                    if kw == r'friend' and type.text == r'' and member.get(r'kind') == r'variable':
+                                        type.text = r'friend'
+                                        matched_bad_keyword = False
+                                        break
 
                     # fix issues with trailing return types
                     if 1:

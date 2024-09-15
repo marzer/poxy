@@ -2,7 +2,9 @@
 
 ## Unreleased
 
+-   fixed crash when using simple type specifiers in friend declarations (#37) (@benjaminulmer)
 -   added workaround for [this issue](https://github.com/mosra/m.css/issues/239) introduced in Doxygen 1.9.7
+-   added auto-linking for various cppreference.com pages
 -   made `--bug-report` keep a copy of the original (pre-pre-processed?) XML
 -   updated m.css
 
