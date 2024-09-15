@@ -3,7 +3,7 @@
 #
 #   This file is part of m.css.
 #
-#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023
+#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024
 #             Vladimír Vondruš <mosra@centrum.cz>
 #   Copyright © 2020 Yuri Edward <nicolas1.fraysse@epitech.eu>
 #   Copyright © 2022 Mark Gillard <mark.gillard@outlook.com.au>
@@ -219,10 +219,18 @@ def parse_ref(state: State, element: ET.Element, add_inline_css_class: str = Non
     id = element.attrib['refid']
 
     if element.attrib['kindref'] == 'compound':
+        # TODO Unlike below, where the filename is dropped if it matches the
+        # current compound URL, here I don't really know what to do because
+        # <a> with empty href="" gets treated as a non-link by browsers.
         url = id + '.html'
     elif element.attrib['kindref'] == 'member':
         i = id.rindex('_1')
-        url = id[:i] + '.html' + '#' + id[i+2:]
+        url = id[:i] + '.html'
+        # There's no point in including the filename itself if linking to an
+        # anchor on the same page.
+        if url == state.current_compound_url:
+            url = ''
+        url += '#' + id[i+2:]
     else: # pragma: no cover
         logging.critical("{}: unknown <ref> kind {}".format(state.current, element.attrib['kindref']))
         assert False
@@ -440,7 +448,7 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
         # some silly reason, and then the Markdown is processed as a HTML,
         # resulting in <blockquote><para><zwj/>. Drop the <zwj/> from there, as
         # it's useless and messes up with our <para> patching logic.
-        if index == 0 and i.tag == 'zwj' and element.tag == 'para' and immediate_parent and immediate_parent.tag == 'blockquote':
+        if index == 0 and i.tag == 'zwj' and element.tag == 'para' and immediate_parent is not None and immediate_parent.tag == 'blockquote':
             if i.tail:
                 tail: str = html.escape(i.tail)
                 if trim:
@@ -473,7 +481,7 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
             # In a blockquote we need to not count the initial <zwj/> added by
             # Doxygen 1.9. Otherwise all code blocks alone in a blockquote
             # would be treated as inline.
-            if element.tag == 'para' and immediate_parent and immediate_parent.tag == 'blockquote':
+            if element.tag == 'para' and immediate_parent is not None and immediate_parent.tag == 'blockquote':
                 element_children_count = 0
                 for listing_index, listing in enumerate(element):
                     if listing_index == 0 and listing.tag == 'zwj': continue
@@ -503,7 +511,7 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
                 # and begin of a code block by a paragraph even if there is
                 # a blank line. But it does so for xrefitems such as @todo.
                 # I don't even.)
-                ((previous_section or (previous_element and previous_element.tag == 'blockquote')) and (not i.tail or not i.tail.strip()) and index + 1 == element_children_count)
+                ((previous_section or (previous_element is not None and previous_element.tag == 'blockquote')) and (not i.tail or not i.tail.strip()) and index + 1 == element_children_count)
             ):
                 code_block = True
 
@@ -581,7 +589,7 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
                 out.parsed = out.parsed.rstrip()
                 if not out.parsed:
                     out.write_paragraph_start_tag = False
-                elif immediate_parent and immediate_parent.tag == 'listitem' and i.tag in ['itemizedlist', 'orderedlist']:
+                elif immediate_parent is not None and immediate_parent.tag == 'listitem' and i.tag in ['itemizedlist', 'orderedlist']:
                     out.write_paragraph_start_tag = False
                 elif out.write_paragraph_close_tag:
                     out.parsed += '</p>'
@@ -600,8 +608,9 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
                 out.parsed += '<p>'
                 out.write_paragraph_close_tag = True
 
-        # Block elements
-        if i.tag in ['sect1', 'sect2', 'sect3', 'sect4']:
+        # Block elements. Until Doxygen 1.10 it was at most <sect4>, 1.11 seems
+        # to have up to 6: https://github.com/doxygen/doxygen/issues/11016
+        if i.tag in ['sect1', 'sect2', 'sect3', 'sect4', 'sect5', 'sect6']:
             assert element.tag != 'para' # should be top-level block element
             has_block_elements = True
 
@@ -640,6 +649,11 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
                     tag = 'h4'
                 elif element.tag == 'sect4':
                     tag = 'h5'
+                elif element.tag == 'sect5':
+                    tag = 'h6'
+                elif element.tag == 'sect6':
+                    tag = 'h6'
+                    logging.warning("{}: more than five levels of sections are not supported, stopping at <h6>".format(state.current))
                 elif not element.tag == 'simplesect': # pragma: no cover
                     assert False
 
@@ -675,7 +689,11 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
                     out.parsed += '<{0} id="{1}">{2}</{0}>'.format(tag, id, title)
 
         # Apparently, in 1.8.18, <heading> is used for Markdown headers only if
-        # we run out of sect1-4 tags. Eh, what the hell.
+        # we run out of sect1-4 tags. Which also happens when there's a heading
+        # with a ####### underline. In 1.11+ it doesn't produce a <heading>,
+        # and instead just puts the #'s to the output verbatim. Which means we
+        # can't warn for that. See test_contents.SectionsHeadings for repro
+        # cases.
         elif i.tag == 'heading':
             assert element.tag == 'para' # is inside a paragraph :/
             has_block_elements = True
@@ -1159,6 +1177,15 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
         # Adding a custom CSS class to the immediately following block/inline
         # element
         elif i.tag == '{http://mcss.mosra.cz/doxygen/}class':
+            # Doxygen may put one or more spaces before, depending on the
+            # version. Replace them with just one to have consistent output
+            # across all versions. Have to keep at least one as it's often
+            # intentional, block elements such as <mcss:div> have both the
+            # leading and trailing spaces stripped always. Sane is done for
+            # <mcss:span> below.
+            if out.parsed.endswith(' '):
+                out.parsed = out.parsed.rstrip() + ' '
+
             # Bubble up in case we are alone in a paragraph, as that's meant to
             # affect the next paragraph content.
             if len([listing for listing in element]) == 1:
@@ -1401,6 +1428,15 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
         # in _document_all_stuff(). In that case the class attribute is not
         # present.
         elif i.tag == '{http://mcss.mosra.cz/doxygen/}span':
+            # Doxygen may put one or more spaces before, depending on the
+            # version. Replace them with just one to have consistent output
+            # across all versions. Have to keep at least one as it's often
+            # intentional, block elements such as <mcss:div> have both the
+            # leading and trailing spaces stripped always. Sane is done for
+            # <mcss:class> above.
+            if out.parsed.endswith(' '):
+                out.parsed = out.parsed.rstrip() + ' '
+
             content = parse_inline_desc(state, i).strip()
             if '{http://mcss.mosra.cz/doxygen/}class' in i.attrib:
                 out.parsed += '<span class="{}">{}</span>'.format(i.attrib['{http://mcss.mosra.cz/doxygen/}class'], content)
@@ -1698,13 +1734,14 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
             # is done by the caller.
             out.parsed += html.escape(i.tail.lstrip())
 
-        # Otherwise strip if requested by the caller or if this is right after
-        # a line break
+        # Otherwise strip if requested by the caller, if this is right after a
+        # line break or a <mcss:div>, or if <mcss:class> was before (which
+        # likely had a space before itself as well)
         elif i.tail:
             tail: str = html.escape(i.tail)
             if trim:
                 tail = tail.strip()
-            elif out.parsed.endswith('<br />'):
+            elif out.parsed.endswith('<br />') or i.tag in ['{http://mcss.mosra.cz/doxygen/}div', '{http://mcss.mosra.cz/doxygen/}class']:
                 tail = tail.lstrip()
             out.parsed += tail
 
@@ -1756,7 +1793,10 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
             # In 1.8.18+, if ///> is accidentally used to mark "a docblock for
             # the following symbol", it leads to a <blockquote> contained in
             # the brief. Not much to do except for ignoring the whole thing.
-            # See the contents_autobrief_blockquote test for details.
+            # See the contents_autobrief_blockquote test for details. Doesn't
+            # happen in 1.12 anymore, not sure if that changed due to
+            # https://github.com/doxygen/doxygen/issues/10902 or something
+            # else in some earlier version.
             if has_block_elements or paragraph_count > 1:
                 logging.warning("{}: ignoring brief description containing multiple paragraphs. Please modify your markup to remove any block elements from the following: {}".format(state.current, out.parsed))
                 out.parsed = ''
@@ -1860,7 +1900,11 @@ def parse_enum(state: State, element: ET.Element):
     state.current_definition_url_base, enum.base_url, enum.id, enum.include, enum.has_details = parse_id_and_include(state, element)
     enum.type = parse_type(state, element.find('type'))
     enum.name = element.find('name').text
-    if enum.name.startswith('@'): enum.name = '(anonymous)'
+    # Doxygen < 1.9.7 puts a generated name into the XML, starting with @,
+    # newer versions strip those away, leading to an empty name
+    # https://github.com/doxygen/doxygen/commit/a18e4c76ed6415893800c7d77a2f798614fb638b
+    if not enum.name or enum.name.startswith('@'):
+        enum.name = '(anonymous)'
     enum.brief = parse_desc(state, element.find('briefdescription'))
     enum.description, search_keywords, search_enum_values_as_keywords, enum.deprecated, enum.since = parse_enum_desc(state, element)
     enum.is_protected = element.attrib['prot'] == 'protected'
@@ -2106,6 +2150,15 @@ def parse_func(state: State, element: ET.Element):
     else:
         func.is_noexcept = False
         func.is_conditional_noexcept = False
+    # Noexcept can be also an attribute (since 1.8.16), merge with that. Until
+    # https://github.com/doxygen/doxygen/commit/b51d6d2dd2cb6a4945a3775a649e7eca8e120515
+    # (1.11) it seems it was present both in the signature and in the attribs.
+    if 'noexcept' in element.attrib:
+        func.is_noexcept = func.is_noexcept or element.attrib['noexcept'] == 'yes'
+    # noexceptexpression is since 1.11. If not present, it's not conditionally
+    # noexcept.
+    if 'noexceptexpression' in element.attrib:
+        func.is_conditional_noexcept = True
     # Put the rest (const, volatile, ...) into a suffix
     func.suffix = html.escape(signature[signature.rindex(')') + 1:].strip())
     if func.suffix: func.suffix = ' ' + func.suffix
@@ -2203,6 +2256,24 @@ def parse_var(state: State, element: ET.Element):
 
     var = Empty()
     state.current_definition_url_base, var.base_url, var.id, var.include, var.has_details = parse_id_and_include(state, element)
+    var.type = parse_type(state, element.find('type'))
+    if var.type.startswith('constexpr'):
+        var.type = var.type[10:]
+        var.is_constexpr = True
+    else:
+        var.is_constexpr = False
+    # When 1.8.18 encounters `constexpr static`, it keeps the static there. For
+    # `static constexpr` it doesn't. In both cases the static="yes" is put
+    # there correctly. Same case is for functions, although there it's further
+    # complicated with other possible keyword combinations. Fixed in 1.11.
+    if var.type.startswith('static'):
+        var.type = var.type[7:]
+    # Constexpr can be also an attribute, merge with that. Until
+    # https://github.com/doxygen/doxygen/commit/b51d6d2dd2cb6a4945a3775a649e7eca8e120515
+    # (1.11) it seems it was present both in the signature and in the attribs.
+    if 'constexpr' in element.attrib:
+        var.is_constexpr = var.is_constexpr or element.attrib['constexpr'] == 'yes'
+    var.is_static = element.attrib['static'] == 'yes'
     var.is_protected = element.attrib['prot'] == 'protected'
     var.is_private = element.attrib['prot'] == 'private'
     var.name = element.find('name').text
@@ -2289,7 +2360,11 @@ def parse_define(state: State, element: ET.Element):
 def _document_all_stuff(compounddef: ET.Element):
     for i in compounddef.findall('.//briefdescription/..'):
         brief = i.find('briefdescription')
-        if not brief and not i.find('detaileddescription'):
+        # ElementTree deprecated the __bool__ conversion of Element, so I now
+        # have to check that `detaileddescription` actually has any children.
+        # Checking against None is not enough as it could be present but be
+        # empty.
+        if not len(brief) and not len(i.find('detaileddescription')):
             # Add an empty <span> to the paragraph so it doesn't look empty.
             # Can't use strong/emphasis, as those are collapsed if empty as
             # well; on the other hand it's very unlikely that someone would
@@ -2366,8 +2441,10 @@ def extract_metadata(state: State, xml):
     compound.id  = compounddef.attrib['id']
     compound.kind = compounddef.attrib['kind']
     # Compound name is page filename, so we have to use title there. The same
-    # is for groups.
-    compound.name = html.escape(compounddef.find('title').text if compound.kind in ['page', 'group'] and compounddef.findtext('title') else compounddef.find('compoundname').text)
+    # is for groups. In some cases, such as anonymous namespaces in Doxygen
+    # 1.9.7+, <compoundname> is empty. Corresponding test case is in
+    # test_compound.Ignored. https://github.com/doxygen/doxygen/commit/a18e4c76ed6415893800c7d77a2f798614fb638b
+    compound.name = html.escape(compounddef.find('title').text if compound.kind in ['page', 'group'] and compounddef.findtext('title') else compounddef.findtext('compoundname'))
     # Compound URL is ID, except for index page, where it is named "indexpage"
     # and so I have to override it back to "index". Can't use <compoundname>
     # for pages because that doesn't reflect CASE_SENSE_NAMES. THANKS DOXYGEN.
@@ -2377,7 +2454,11 @@ def extract_metadata(state: State, xml):
     # Groups are explicitly created so they *have details*, other
     # things need to have at least some documentation. Pages are treated as
     # having something unless they're stupid. See the function for details.
-    compound.has_details = compound.kind == 'group' or compound.brief or compounddef.find('detaileddescription') or (compound.kind == 'page' and not is_a_stupid_empty_markdown_page(compounddef))
+    #
+    # ElementTree deprecated the __bool__ conversion of Element, so I now have
+    # to check that `detaileddescription` actually has any children. Checking
+    # against None is not enough as it could be present but be empty.
+    compound.has_details = compound.kind == 'group' or compound.brief or len(compounddef.find('detaileddescription')) or (compound.kind == 'page' and not is_a_stupid_empty_markdown_page(compounddef))
     compound.children = []
 
     # Version badges, deprecation status. If @since is followed by
@@ -2423,7 +2504,18 @@ def extract_metadata(state: State, xml):
         for i in compounddef.findall('innerclass'):
             compound.children += [i.attrib['refid']]
         for i in compounddef.findall('innernamespace'):
-            compound.children += [i.attrib['refid']]
+            # Children of inline namespaces get listed also in their parents as
+            # of 1.9.0 and https://github.com/doxygen/doxygen/commit/4372054e0b7af9c0cd1c1390859d8fef3581d8bb
+            # So e.g. if Bar is inline, Foo::Bar::Baz gets shortened to
+            # Foo::Baz, and listed as <innernamespace> of both Foo and
+            # Foo::Bar. Compare their IDs (because they don't get shortened)
+            # and add the namespace only if it's a direct descendant. Another
+            # patching gets done in postprocess_state() below, then the same
+            # child filtering is done in parse_xml(), and finally the
+            # duplicates have to be removed in parse_index_xml() as well. See
+            # test_compound.InlineNamespace for a matching test case.
+            if i.attrib['refid'].rpartition('_1_1')[0] == compound.id:
+                compound.children += [i.attrib['refid']]
         for i in compounddef.findall('innerconcept'):
             compound.children += [i.attrib['refid']]
     elif compounddef.attrib['kind'] in ['dir', 'file']:
@@ -2453,8 +2545,15 @@ def postprocess_state(state: State):
             compound.leaf_name = compound.name
             continue
 
+        # Extract leaf namespace name from symbol name, take just everything
+        # after the last ::, as the parent names may have intermediate inline
+        # namespaces removed since 1.9.0 and https://github.com/doxygen/doxygen/commit/4372054e0b7af9c0cd1c1390859d8fef3581d8bb
+        # The full name is reconstructed in a second step below.
+        if compound.kind == 'namespace':
+            compound.leaf_name = compound.name.rpartition('::')[2]
+
         # Strip parent namespace/class from symbol name
-        if compound.kind in ['namespace', 'struct', 'class', 'union', 'concept']:
+        elif compound.kind in ['struct', 'class', 'union', 'concept']:
             prefix = state.compounds[compound.parent].name + '::'
             assert compound.name.startswith(prefix)
             compound.leaf_name = compound.name[len(prefix):]
@@ -2470,6 +2569,18 @@ def postprocess_state(state: State):
 
         # Other compounds are not in any index pages or breadcrumb, so leaf
         # name not needed
+
+    # Now that we have leaf names for all namespaces made above, reconstruct
+    # full names from them. FFS, so much extra code just to undo this crap.
+    for _, compound in state.compounds.items():
+        if not compound.kind == 'namespace':
+            continue
+        compound.name = compound.leaf_name
+        parent = compound.parent
+        while parent:
+            compound_parent = state.compounds[parent]
+            compound.name = compound_parent.leaf_name + '::' + compound.name
+            parent = compound_parent.parent
 
     # Build reverse header name to ID mapping for #include information, unless
     # it's explicitly disabled. Doxygen doesn't provide full path for files so
@@ -2628,9 +2739,14 @@ def parse_xml(state: State, xml: str):
 
     assert len([i for i in root]) == 1
 
-    # Ignoring private structs/classes/concepts and unnamed namespaces
+    # Ignoring private structs/classes and unnamed namespaces
     if ((compounddef.attrib['kind'] in ['struct', 'class', 'union', 'concept'] and 'prot' in compounddef.attrib and compounddef.attrib['prot'] == 'private') or
-        (compounddef.attrib['kind'] == 'namespace' and '@' in compounddef.find('compoundname').text)):
+        # Doxygen 1.9.7+ makes <compoundname> empty for anonymous namespaces,
+        # earlier versions put a generated name with @ there. See
+        # test_compound.Ignored for a corresponding test case. Similar
+        # difference is with anonymous enums.
+        # https://github.com/doxygen/doxygen/commit/a18e4c76ed6415893800c7d77a2f798614fb638b
+        (compounddef.attrib['kind'] == 'namespace' and (compounddef.find('compoundname').text is None or '@' in compounddef.find('compoundname').text))):
         logging.debug("{}: only private things, skipping".format(state.current))
         return None
 
@@ -2642,7 +2758,12 @@ def parse_xml(state: State, xml: str):
     # Ignoring compounds w/o any description, except for groups,
     # which are created explicitly. Pages are treated as having something
     # unless they're stupid. See the function for details.
-    if not compounddef.find('briefdescription') and not compounddef.find('detaileddescription') and not compounddef.attrib['kind'] == 'group' and (not compounddef.attrib['kind'] == 'page' or is_a_stupid_empty_markdown_page(compounddef)):
+    #
+    # ElementTree deprecated the __bool__ conversion of Element, so I now have
+    # to check that `briefdescription` / `detaileddescription` actually has any
+    # children. Checking against None is not enough as it could be present but
+    # be empty.
+    if not len(compounddef.find('briefdescription')) and not len(compounddef.find('detaileddescription')) and not compounddef.attrib['kind'] == 'group' and (not compounddef.attrib['kind'] == 'page' or is_a_stupid_empty_markdown_page(compounddef)):
         logging.debug("{}: neither brief nor detailed description present, skipping".format(state.current))
         return None
 
@@ -2852,7 +2973,21 @@ def parse_xml(state: State, xml: str):
                     namespace.deprecated = symbol.deprecated
                     namespace.since = symbol.since
                     namespace.is_inline = compounddef_child.attrib.get('inline') == 'yes'
-                    compound.namespaces += [namespace]
+
+                    # Children of inline namespaces get listed also in their
+                    # parents as of 1.9.0 and https://github.com/doxygen/doxygen/commit/4372054e0b7af9c0cd1c1390859d8fef3581d8bb
+                    # So e.g. if Bar is inline, Foo::Bar::Baz gets shortened to
+                    # Foo::Baz, and listed as <innernamespace> of both Foo and
+                    # Foo::Bar. Compare their IDs (because they don't get
+                    # shortened) and add the namespace only if it's a direct
+                    # descendant. Same is done in extract_metadata() above. See
+                    # test_compound.InlineNamespace for a matching test case.
+                    #
+                    # Note that file / group compounds can also contain
+                    # <innernamespace>. Those should list all namespaces
+                    # always.
+                    if compound.kind != 'namespace' or compounddef_child.attrib['refid'].rpartition('_1_1')[0] == compound.id:
+                        compound.namespaces += [namespace]
 
                 else:
                     assert compounddef_child.tag in ('innerclass', 'innerconcept')
@@ -2959,6 +3094,33 @@ def parse_xml(state: State, xml: str):
 
         # Other, grouped in sections
         elif compounddef_child.tag == 'sectiondef':
+            # If grouping is used in the documentation, Doxygen 1.9.7+ no
+            # longer puts the whole <memberdef> info into file and namespace
+            # docs, but instead only <member> references, forcing the parsers
+            # to look for the identifier in other XML files.
+            #
+            # The reason for this, as discussed in the linked PR, is because
+            # some random downstream project failed due to encountering
+            # duplicate IDs (which are there for file/namespace members also,
+            # by the way! or for relatedalso members!!). And Doxygen maintainer
+            # VERY HELPFULLY OFFERED TO CRIPPLE THE XML OUTPUT FOR EVERYONE
+            # ELSE just to fix that damn thing. Once I calm down I may try to
+            # convince them to revert this insanity, until then enjoy the
+            # crappy output.
+            #
+            # Also, yes, it may happen that there are combined <memberdef> and
+            # <member> children. But handling that means adding the same damn
+            # piece of code, or some dumb filtering, to all branches below,
+            # just to counter a dumb decision. Nope. Nononono.
+            is_stupid = False
+            for memberdef in compounddef_child:
+                if memberdef.tag == 'member':
+                    logging.warning("{}: sorry, parsing of non-self-contained XML not implemented: due to https://github.com/doxygen/doxygen/issues/8790 the output will not list file / namespace {} members".format(state.current, compounddef_child.attrib['kind']))
+                    is_stupid = True
+                    break
+            if is_stupid:
+                continue
+
             if compounddef_child.attrib['kind'] == 'enum':
                 for memberdef in compounddef_child:
                     enum = parse_enum(state, memberdef)
@@ -3376,8 +3538,12 @@ def parse_xml(state: State, xml: str):
                     entry.include = None
 
     # Add the compound to search data, if it's documented
+    #
+    # ElementTree deprecated the __bool__ conversion of Element, so I now have
+    # to check that `detaileddescription` actually has any children. Checking
+    # against None is not enough as it could be present but be empty.
     # TODO: add example sources there? how?
-    if not state.config['SEARCH_DISABLED'] and not compound.kind == 'example' and (compound.kind == 'group' or compound.brief or compounddef.find('detaileddescription')):
+    if not state.config['SEARCH_DISABLED'] and not compound.kind == 'example' and (compound.kind == 'group' or compound.brief or len(compounddef.find('detaileddescription'))):
         if compound.kind == 'namespace':
             kind = EntryType.NAMESPACE
         elif compound.kind == 'struct':
@@ -3460,6 +3626,17 @@ def parse_index_xml(state: State, xml):
         entry.has_concept_descendents = compound.kind == 'concept'
         if compound.kind == 'namespace':
             entry.is_inline = compound.is_inline
+
+            # As of 1.9.0 and https://github.com/doxygen/doxygen/commit/4372054e0b7af9c0cd1c1390859d8fef3581d8bb
+            # children of inline namespaces are listed twice in index.xml, once
+            # with their full name, and once with the intermediate inline
+            # namespaces removed. Keep just the ones with full names, i.e.
+            # where the name matches what was painstakingly reconstructed
+            # in postprocess_state() before. I hate this fucking tool of a
+            # tool.
+            if compound.name != i.findtext('name'):
+                continue
+
         if compound.kind in ['class', 'struct', 'union']:
             entry.is_final = compound.is_final
 

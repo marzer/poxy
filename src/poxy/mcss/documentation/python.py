@@ -3,7 +3,7 @@
 #
 #   This file is part of m.css.
 #
-#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023
+#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024
 #             Vladimír Vondruš <mosra@centrum.cz>
 #   Copyright © 2020 Sergei Izmailov <sergei.a.izmailov@gmail.com>
 #
@@ -278,25 +278,40 @@ def is_underscored_and_undocumented(state: State, type, path, docstring):
 # Builtin dunder functions have hardcoded docstrings. This is totally useless
 # to have in the docs, so filter them out. Uh... kinda ugly.
 _filtered_builtin_functions = set([
-    ('__delattr__', "Implement delattr(self, name)."),
-    ('__eq__', "Return self==value."),
-    ('__ge__', "Return self>=value."),
-    ('__getattribute__', "Return getattr(self, name)."),
-    ('__gt__', "Return self>value."),
+    # https://github.com/python/cpython/blob/401fff7423ca3c8bf1d02e594edfd1412616a559/Objects/typeobject.c#L10470
+    # Matching the order there, be sure to follow it when updating
+    ('__repr__', "Return repr(self)."),
     ('__hash__', "Return hash(self)."),
-    ('__init__', "Initialize self.  See help(type(self)) for accurate signature."),
+    ('__call__', "Call self as a function."),
+    ('__str__', "Return str(self)."),
+    ('__getattribute__', "Return getattr(self, name)."),
+    ('__getattr__', "Implement getattr(self, name)."),
+    ('__setattr__', "Implement setattr(self, name, value)."),
+    ('__delattr__', "Implement delattr(self, name)."),
+    ('__lt__', "Return self<value."),
+    ('__le__', "Return self<=value."),
+    ('__eq__', "Return self==value."),
+    ('__ne__', "Return self!=value."),
+    ('__gt__', "Return self>value."),
+    ('__ge__', "Return self>=value."),
+    ('__iter__', "Implement iter(self)."),
+    ('__next__', "Implement next(self)."),
+    ('__get__', "Return an attribute of instance, which is of type owner."),
+    ('__set__', "Set an attribute of instance to value."),
+    ('__delete__', "Delete an attribute of instance."),
+    ('__init__',
+        "Initialize self.  See help(type(self)) for accurate signature."),
+    ('__new__',
+        "Create and return a new object.  See help(type) for accurate signature."),
+    ('__del__', "Called when the instance is about to be destroyed."),
+    # TODO there's many more, maybe just add all?
+
+    # https://github.com/python/cpython/blob/401fff7423ca3c8bf1d02e594edfd1412616a559/Objects/typeobject.c#L7342
     ('__init_subclass__',
         "This method is called when a class is subclassed.\n\n"
         "The default implementation does nothing. It may be\n"
         "overridden to extend subclasses.\n"),
-    ('__le__', "Return self<=value."),
-    ('__lt__', "Return self<value."),
-    ('__ne__', "Return self!=value."),
-    ('__new__',
-        "Create and return a new object.  See help(type) for accurate signature."),
-    ('__repr__', "Return repr(self)."),
-    ('__setattr__', "Implement setattr(self, name, value)."),
-    ('__str__', "Return str(self)."),
+    # https://github.com/python/cpython/blob/401fff7423ca3c8bf1d02e594edfd1412616a559/Objects/typeobject.c#L7328
     ('__subclasshook__',
         "Abstract classes can override this to customize issubclass().\n\n"
         "This is invoked early on by abc.ABCMeta.__subclasscheck__().\n"
@@ -329,8 +344,16 @@ if sys.version_info >= (3, 11):
         ('__getstate__', "Helper for pickle.")
     })
 
+# Python 3.12 changes the __format__ docstring
+if sys.version_info >= (3, 11):
+    _filtered_builtin_functions.update({
+        ('__format__', "Default object formatter.\n\nReturn str(self) if format_spec is empty. Raise TypeError otherwise.")
+    })
+
 _filtered_builtin_properties = set([
-    ('__weakref__', "list of weak references to the object (if defined)")
+    # (if defined) is gone in https://github.com/python/cpython/issues/112266
+    # which is backported all the way to 3.11
+    ('__weakref__', "list of weak references to the object" if sys.version_info >= (3, 11) else "list of weak references to the object (if defined)")
 ])
 
 _automatically_created_by_attrs = """
@@ -472,10 +495,30 @@ def crawl_class(state: State, path: List[str], class_):
                     # are added by typing.Generic on Py3.7+. Like above, can't
                     # use isinstance(object, Generic) because "Class
                     # typing.Generic cannot be used with class or instance
-                    # checks" and there's nothing else to catch on, so this
-                    # filters out all undocumented cases of these two
-                    if sys.version_info >= (3, 7) and name in ['__init_subclass__', '__class_getitem__'] and not object.__doc__:
-                        continue
+                    # checks"
+                    if sys.version_info >= (3, 7) and name == '__init_subclass__':
+                        # Before 3.12 it's completely undocumented and there's
+                        # nothing else to catch on, so this filters out all
+                        # undocumented cases
+                        if sys.version_info < (3, 12) and not object.__doc__:
+                            continue
+                        # https://github.com/python/cpython/blame/401fff7423ca3c8bf1d02e594edfd1412616a559/Objects/typevarobject.c#L2175
+                        if object.__doc__ == "Function to initialize subclasses.":
+                            continue
+                    if sys.version_info >= (3, 7) and name == '__class_getitem__':
+                        # Before 3.11 it's completely undocumented and there's
+                        # nothing else to catch on, so this filters out all
+                        # undocumented cases
+                        if sys.version_info < (3, 11) and not object.__doc__:
+                            continue
+                        # In 3.11 they OTOH get something very unique,
+                        # especially the markdown-like formatting
+                        # https://github.com/python/cpython/pull/31021
+                        # In 3.12 the extra spaces are removed
+                        if sys.version_info >= (3, 12) and object.__doc__.startswith("Parameterizes a generic class.\n\nAt least, parameterizing a generic class is the *main* thing"):
+                            continue
+                        if sys.version_info >= (3, 11) and object.__doc__.startswith("Parameterizes a generic class.\n\n        At least, parameterizing a generic class is the *main* thing"):
+                            continue
                     # ... or are auto-generated by attrs
                     if state.config['ATTRS_COMPATIBILITY']:
                         # All methods generated by attrs 20.1+ have a generic
@@ -1235,8 +1278,9 @@ def extract_annotation(state: State, referrer_path: List[str], annotation) -> Tu
         elif sys.version_info < (3, 7) and hasattr(annotation, '__name__'):
             name = 'typing.' + annotation.__name__
             args = annotation.__args__
-        # Any doesn't have __name__ in 3.6
-        elif sys.version_info < (3, 7) and annotation is typing.Any:
+        # Any doesn't have __name__ in 3.6, and doesn't have anything in 3.11+
+        # Not sure what commit caused that, probably https://github.com/python/cpython/pull/31841
+        elif (sys.version_info < (3, 7) or sys.version_info >= (3, 11)) and annotation is typing.Any:
             name = 'typing.Any'
             args = None
         # Whoops, something we don't know yet. Warn and return a string
@@ -2188,7 +2232,7 @@ class ExtractImages(Transform):
 
     def apply(self):
         ExtractImages._external_data = set()
-        for image in self.document.traverse(docutils.nodes.image):
+        for image in self.document.findall(docutils.nodes.image):
             # Skip absolute URLs
             if urllib.parse.urlparse(image['uri']).netloc: continue
 
@@ -2368,7 +2412,7 @@ def render_page(state: State, path, input_filename, env):
 
     # Extract metadata from the page
     metadata = {}
-    for docinfo in pub.document.traverse(docutils.nodes.docinfo):
+    for docinfo in pub.document.findall(docutils.nodes.docinfo):
         for element in docinfo.children:
             if element.tagname == 'field':
                 name_elem, body_elem = element.children
