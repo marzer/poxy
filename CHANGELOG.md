@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.19.0 - 2024-09-15
 
 -   fixed crash when using simple type specifiers in friend declarations (#37) (@benjaminulmer)
 -   added workaround for [this issue](https://github.com/mosra/m.css/issues/239) introduced in Doxygen 1.9.7
