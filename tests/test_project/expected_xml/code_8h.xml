@@ -19,7 +19,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="7" column="9" bodyfile="src/code.h" bodystart="7" bodyend="-1"/>
+				<location file="src/code.h" line="32" column="9" bodyfile="src/code.h" bodystart="32" bodyend="-1"/>
 			</memberdef>
 			<memberdef kind="define" id="group__group_1gab8f35b5fe5a9047e142acaef9b5336ca" prot="public" static="no">
 				<name>KEK_IN_GROUP</name>
@@ -30,7 +30,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="17" column="9" bodyfile="src/code.h" bodystart="17" bodyend="-1"/>
+				<location file="src/code.h" line="42" column="9" bodyfile="src/code.h" bodystart="42" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="enum">
@@ -66,7 +66,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="222" column="1" bodyfile="src/code.h" bodystart="223" bodyend="229"/>
+				<location file="src/code.h" line="247" column="1" bodyfile="src/code.h" bodystart="248" bodyend="254"/>
 			</memberdef>
 			<memberdef kind="enum" id="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065" prot="public" static="no" strong="no">
 				<type/>
@@ -100,7 +100,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="211" column="1" bodyfile="src/code.h" bodystart="212" bodyend="218"/>
+				<location file="src/code.h" line="236" column="1" bodyfile="src/code.h" bodystart="237" bodyend="243"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="typedef">
@@ -117,7 +117,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="253" column="13" bodyfile="src/code.h" bodystart="253" bodyend="-1"/>
+				<location file="src/code.h" line="278" column="13" bodyfile="src/code.h" bodystart="278" bodyend="-1"/>
 			</memberdef>
 			<memberdef kind="typedef" id="namespacetest_1af3b055b49aff8d48bea92e5f226daa5d" prot="public" static="no">
 				<type>int</type>
@@ -132,7 +132,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="257" column="1" bodyfile="src/code.h" bodystart="257" bodyend="-1"/>
+				<location file="src/code.h" line="282" column="1" bodyfile="src/code.h" bodystart="282" bodyend="-1"/>
 			</memberdef>
 			<memberdef kind="typedef" id="namespacetest_1a58dc421199859607c527ded8e3d87bae" prot="public" static="no">
 				<templateparamlist>
@@ -152,7 +152,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="262" column="1" bodyfile="src/code.h" bodystart="262" bodyend="-1"/>
+				<location file="src/code.h" line="287" column="1" bodyfile="src/code.h" bodystart="287" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="var">
@@ -169,7 +169,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="73" column="23" bodyfile="src/code.h" bodystart="73" bodyend="-1"/>
+				<location file="src/code.h" line="98" column="23" bodyfile="src/code.h" bodystart="98" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="func">
@@ -186,7 +186,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="69" column="6" declfile="src/code.h" declline="69" declcolumn="6"/>
+				<location file="src/code.h" line="94" column="6" declfile="src/code.h" declline="94" declcolumn="6"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_1af10bf287d581eb8aae63d450e3f848c5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>__poxy_deduced_auto_return_type</type>
@@ -201,7 +201,7 @@
 					<para>We shouldn't see a redundant "-&gt; auto" in the output. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="266" column="6" bodyfile="src/code.h" bodystart="266" bodyend="269"/>
+				<location file="src/code.h" line="291" column="6" bodyfile="src/code.h" bodystart="291" bodyend="294"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_1ae66b7e2e94f84934cff5de3e512ce0ee" prot="public" static="no" constexpr="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
 				<templateparamlist>
@@ -259,7 +259,7 @@
 					</para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="242" column="13" bodyfile="src/code.h" bodystart="242" bodyend="245"/>
+				<location file="src/code.h" line="267" column="13" bodyfile="src/code.h" bodystart="267" bodyend="270"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_1a011c6f27e90f228cd68be9def15bc076" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>
@@ -276,7 +276,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="233" column="14" declfile="src/code.h" declline="233" declcolumn="14"/>
+				<location file="src/code.h" line="258" column="14" declfile="src/code.h" declline="258" declcolumn="14"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_1af2e6008ff8ee50f6cda80da681d44348" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>int</type>
@@ -291,14 +291,83 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="249" column="6" declfile="src/code.h" declline="249" declcolumn="6"/>
+				<location file="src/code.h" line="274" column="6" declfile="src/code.h" declline="274" declcolumn="6"/>
 			</memberdef>
 		</sectiondef>
 		<briefdescription>
 			<para>Code, yo. </para>
 		</briefdescription>
 		<detaileddescription>
-			<para>More info. </para>
+			<para>More info.</para>
+			<para>These should be linkified by the internal <computeroutput>autolinks</computeroutput> parser: <itemizedlist>
+					<listitem>
+						<para>RAII </para>
+					</listitem>
+					<listitem>
+						<para>Resource acquisition is initialization </para>
+					</listitem>
+					<listitem>
+						<para>Resource acquisition is initialization (RAII) </para>
+					</listitem>
+					<listitem>
+						<para>CRTP </para>
+					</listitem>
+					<listitem>
+						<para>Curiously-recurring template pattern </para>
+					</listitem>
+					<listitem>
+						<para>Curiously-recurring template pattern (CRTP) </para>
+					</listitem>
+					<listitem>
+						<para>EBO </para>
+					</listitem>
+					<listitem>
+						<para>EBCO </para>
+					</listitem>
+					<listitem>
+						<para>Empty base-class optimisation </para>
+					</listitem>
+					<listitem>
+						<para>Empty base optimisation (EBO) </para>
+					</listitem>
+					<listitem>
+						<para>UDL </para>
+					</listitem>
+					<listitem>
+						<para>User-defined literal </para>
+					</listitem>
+					<listitem>
+						<para>User-defined literal operator </para>
+					</listitem>
+					<listitem>
+						<para>User-defined literal operators (UDLs) </para>
+					</listitem>
+					<listitem>
+						<para>RVO </para>
+					</listitem>
+					<listitem>
+						<para>NRVO </para>
+					</listitem>
+					<listitem>
+						<para>Return value optimization </para>
+					</listitem>
+					<listitem>
+						<para>Named return-value optimisation </para>
+					</listitem>
+					<listitem>
+						<para>Named return-value optimisations (NRVO) </para>
+					</listitem>
+					<listitem>
+						<para>INVOKE </para>
+					</listitem>
+					<listitem>
+						<para>INVOKE&lt;R&gt; </para>
+					</listitem>
+					<listitem>
+						<para>INVOKE expression </para>
+					</listitem>
+				</itemizedlist>
+			</para>
 		</detaileddescription>
 		<location file="src/code.h"/>
 	</compounddef>

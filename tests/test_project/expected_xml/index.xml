@@ -11,14 +11,11 @@
 		<member refid="classtest_1_1class__1_1ae8b4b78fc4748c7f1a370ee8413574be" kind="typedef">
 			<name>private_typedef</name>
 		</member>
-		<member refid="classtest_1_1class__1_1aafb901f5cd0e0fdb9a028c54468989c4" kind="friend">
+		<member refid="classtest_1_1class__1_1ac486fefa4f7305294f0512da7e6bb26b" kind="variable">
 			<name>struct_1</name>
 		</member>
-		<member refid="classtest_1_1class__1_1acca95119536ae9a653b949e083e88bd7" kind="friend">
-			<name>a_friend_function</name>
-		</member>
-		<member refid="classtest_1_1class__1_1aa74543381abc687ab6e8d46d78e26bf1" kind="friend">
-			<name>another_friend_function</name>
+		<member refid="classtest_1_1class__1_1a75103e4c3f5e4bc442416e302be44c57" kind="variable">
+			<name>private_variable</name>
 		</member>
 		<member refid="classtest_1_1class__1_1ae05cfedbf34e9f128e87410c09ad3780" kind="variable">
 			<name>public_static_variable</name>
@@ -35,8 +32,11 @@
 		<member refid="classtest_1_1class__1_1a2c7531e04784d4531785b2daac34a28c" kind="variable">
 			<name>private_static_variable</name>
 		</member>
-		<member refid="classtest_1_1class__1_1a75103e4c3f5e4bc442416e302be44c57" kind="variable">
-			<name>private_variable</name>
+		<member refid="classtest_1_1class__1_1acca95119536ae9a653b949e083e88bd7" kind="friend">
+			<name>a_friend_function</name>
+		</member>
+		<member refid="classtest_1_1class__1_1aa74543381abc687ab6e8d46d78e26bf1" kind="friend">
+			<name>another_friend_function</name>
 		</member>
 		<member refid="classtest_1_1class__1_1af2caa02646ff203339faf41a0efc4b20" kind="function">
 			<name>public_static_function</name>

@@ -35,7 +35,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="222" column="1" bodyfile="src/code.h" bodystart="223" bodyend="229"/>
+				<location file="src/code.h" line="247" column="1" bodyfile="src/code.h" bodystart="248" bodyend="254"/>
 			</memberdef>
 			<memberdef kind="enum" id="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065" prot="public" static="no" strong="no">
 				<type/>
@@ -69,7 +69,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="211" column="1" bodyfile="src/code.h" bodystart="212" bodyend="218"/>
+				<location file="src/code.h" line="236" column="1" bodyfile="src/code.h" bodystart="237" bodyend="243"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="typedef">
@@ -86,7 +86,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="253" column="13" bodyfile="src/code.h" bodystart="253" bodyend="-1"/>
+				<location file="src/code.h" line="278" column="13" bodyfile="src/code.h" bodystart="278" bodyend="-1"/>
 			</memberdef>
 			<memberdef kind="typedef" id="namespacetest_1af3b055b49aff8d48bea92e5f226daa5d" prot="public" static="no">
 				<type>int</type>
@@ -101,7 +101,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="257" column="1" bodyfile="src/code.h" bodystart="257" bodyend="-1"/>
+				<location file="src/code.h" line="282" column="1" bodyfile="src/code.h" bodystart="282" bodyend="-1"/>
 			</memberdef>
 			<memberdef kind="typedef" id="namespacetest_1a58dc421199859607c527ded8e3d87bae" prot="public" static="no">
 				<templateparamlist>
@@ -121,7 +121,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="262" column="1" bodyfile="src/code.h" bodystart="262" bodyend="-1"/>
+				<location file="src/code.h" line="287" column="1" bodyfile="src/code.h" bodystart="287" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="var">
@@ -138,7 +138,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="73" column="23" bodyfile="src/code.h" bodystart="73" bodyend="-1"/>
+				<location file="src/code.h" line="98" column="23" bodyfile="src/code.h" bodystart="98" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="func">
@@ -155,7 +155,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="69" column="6" declfile="src/code.h" declline="69" declcolumn="6"/>
+				<location file="src/code.h" line="94" column="6" declfile="src/code.h" declline="94" declcolumn="6"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_1af10bf287d581eb8aae63d450e3f848c5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>__poxy_deduced_auto_return_type</type>
@@ -170,7 +170,7 @@
 					<para>We shouldn't see a redundant "-&gt; auto" in the output. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="266" column="6" bodyfile="src/code.h" bodystart="266" bodyend="269"/>
+				<location file="src/code.h" line="291" column="6" bodyfile="src/code.h" bodystart="291" bodyend="294"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_1ae66b7e2e94f84934cff5de3e512ce0ee" prot="public" static="no" constexpr="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
 				<templateparamlist>
@@ -228,7 +228,7 @@
 					</para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="242" column="13" bodyfile="src/code.h" bodystart="242" bodyend="245"/>
+				<location file="src/code.h" line="267" column="13" bodyfile="src/code.h" bodystart="267" bodyend="270"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_1a011c6f27e90f228cd68be9def15bc076" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>
@@ -245,7 +245,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="233" column="14" declfile="src/code.h" declline="233" declcolumn="14"/>
+				<location file="src/code.h" line="258" column="14" declfile="src/code.h" declline="258" declcolumn="14"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_1af2e6008ff8ee50f6cda80da681d44348" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>int</type>
@@ -260,7 +260,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="249" column="6" declfile="src/code.h" declline="249" declcolumn="6"/>
+				<location file="src/code.h" line="274" column="6" declfile="src/code.h" declline="274" declcolumn="6"/>
 			</memberdef>
 		</sectiondef>
 		<briefdescription>
@@ -269,7 +269,7 @@
 		<detaileddescription>
 			<para>More info. Here's some C++: <programlisting filename=".cpp"><codeline><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>foo()</highlight></codeline><codeline><highlight class="normal">{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>42_a_numeric_udl;</highlight></codeline><codeline><highlight class="normal">}</highlight></codeline><codeline/><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>code<sp/>block<sp/>formatting<sp/>should<sp/>be<sp/>preserved;</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>this<sp/>line<sp/>should<sp/>be<sp/>indented<sp/>by<sp/>three<sp/>tabs,<sp/>the<sp/>above<sp/>by<sp/>two.</highlight></codeline><codeline/><codeline><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>bar()<sp/>noexcept</highlight></codeline><codeline><highlight class="normal">{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">""</highlight><highlight class="normal">_a_string_udl;</highlight></codeline><codeline><highlight class="normal">}</highlight></codeline><codeline/><codeline><highlight class="keyword">using<sp/></highlight><highlight class="normal">some_typedef<sp/>=<sp/>int;<sp/></highlight><highlight class="comment">//<sp/>'some_typedef'<sp/>should<sp/>be<sp/>coloured<sp/>as<sp/>a<sp/>type</highlight></codeline><codeline/><codeline><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal"><sp/>T&gt;</highlight></codeline><codeline><highlight class="keyword">using<sp/></highlight><highlight class="normal">templated_typedef<sp/>=<sp/>int;<sp/></highlight><highlight class="comment">//<sp/>'T'<sp/>and<sp/>'templated_typedef'<sp/>should<sp/>be<sp/>coloured<sp/>as<sp/>types</highlight></codeline><codeline/><codeline><highlight class="keyword">class<sp/></highlight><highlight class="normal">qux</highlight></codeline><codeline><highlight class="normal">{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>func();</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>func2(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal">);</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>func3();</highlight></codeline><codeline/><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>qux()</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>func();</highlight></codeline><codeline/><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(func2(7))</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>qux::func3();</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline><codeline><highlight class="normal">};</highlight></codeline></programlisting> <programlisting filename=".shell-session"><codeline><highlight class="normal">this<sp/>should<sp/>be<sp/>a<sp/>.sh<sp/>block.</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>each<sp/>line<sp/>should<sp/>be<sp/>indended<sp/>by<sp/>one<sp/>more<sp/>tab<sp/>than<sp/>the<sp/>last.</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>i<sp/>have<sp/>put<sp/>the<sp/>block<sp/>openers<sp/>and<sp/>closers<sp/>right<sp/>next<sp/>to<sp/>each<sp/>other</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>without<sp/>a<sp/>blank<sp/>line<sp/>in<sp/>between<sp/>because<sp/>this<sp/>breaks<sp/>parsing<sp/>in<sp/>m.css</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>but<sp/>poxy<sp/>has<sp/>a<sp/>fix<sp/>for<sp/>it.</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>additionally<sp/>it<sp/>should<sp/>appear<sp/>'glued'<sp/>to<sp/>the<sp/>above<sp/>C++<sp/>block,<sp/>because<sp/>magic.</highlight></codeline></programlisting> </para>
 		</detaileddescription>
-		<location file="src/code.h" line="65" column="1"/>
+		<location file="src/code.h" line="90" column="1"/>
 		<innerclass refid="classtest_1_1class__1" prot="public">test::class_1</innerclass>
 		<innernamespace refid="namespacetest_1_1empty">test::empty</innernamespace>
 		<innernamespace refid="namespacetest_1_1nested">test::nested</innernamespace>

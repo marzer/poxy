@@ -379,6 +379,7 @@ class Defaults(object):
         r'std::countr_zero(?:\(\))?': r'https://en.cppreference.com/w/cpp/numeric/countr_zero',
         r'std::enable_if(?:_t)?': r'https://en.cppreference.com/w/cpp/types/enable_if',
         r'std::exceptions?': r'https://en.cppreference.com/w/cpp/error/exception',
+        r'std::expecteds?': r'https://en.cppreference.com/w/cpp/utility/expected',
         r'std::floor[fl]?(?:\(\))?': r'https://en.cppreference.com/w/cpp/numeric/math/floor',
         r'std::fpos': r'https://en.cppreference.com/w/cpp/io/fpos',
         r'std::has_single_bit(?:\(\))?': r'https://en.cppreference.com/w/cpp/numeric/has_single_bit',
@@ -440,6 +441,8 @@ class Defaults(object):
         r'std::unordered_sets?': r'https://en.cppreference.com/w/cpp/container/unordered_set',
         r'std::vectors?': r'https://en.cppreference.com/w/cpp/container/vector',
         r'std::atomic[a-zA-Z_0-9]*': r'https://en.cppreference.com/w/cpp/atomic/atomic',
+        r'std::to_underlying(?:\(\))?': r'https://en.cppreference.com/w/cpp/utility/to_underlying',
+        r'std::move_only_functions?': r'https://en.cppreference.com/w/cpp/utility/functional/move_only_function',
         # named requirements
         r'Allocators?': r'https://en.cppreference.com/w/cpp/named_req/Allocator',
         r'AllocatorAwareContainers?': r'https://en.cppreference.com/w/cpp/named_req/AllocatorAwareContainer',
@@ -497,13 +500,13 @@ class Defaults(object):
         r'SeedSequences?': r'https://en.cppreference.com/w/cpp/named_req/SeedSequence',
         r'SequenceContainers?': r'https://en.cppreference.com/w/cpp/named_req/SequenceContainer',
         r'SharedLockables?': r'https://en.cppreference.com/w/cpp/named_req/SharedLockable',
-        r'SharedMutexs?': r'https://en.cppreference.com/w/cpp/named_req/SharedMutex',
+        r'SharedMutexes?': r'https://en.cppreference.com/w/cpp/named_req/SharedMutex',
         r'SharedTimedLockables?': r'https://en.cppreference.com/w/cpp/named_req/SharedTimedLockable',
-        r'SharedTimedMutexs?': r'https://en.cppreference.com/w/cpp/named_req/SharedTimedMutex',
+        r'SharedTimedMutexes?': r'https://en.cppreference.com/w/cpp/named_req/SharedTimedMutex',
         r'StandardLayoutTypes?': r'https://en.cppreference.com/w/cpp/named_req/StandardLayoutType',
         r'Swappables?': r'https://en.cppreference.com/w/cpp/named_req/Swappable',
         r'TimedLockables?': r'https://en.cppreference.com/w/cpp/named_req/TimedLockable',
-        r'TimedMutexs?': r'https://en.cppreference.com/w/cpp/named_req/TimedMutex',
+        r'TimedMutexes?': r'https://en.cppreference.com/w/cpp/named_req/TimedMutex',
         r'TransformationTraits?': r'https://en.cppreference.com/w/cpp/named_req/TransformationTrait',
         r'TrivialClocks?': r'https://en.cppreference.com/w/cpp/named_req/TrivialClock',
         r'TriviallyCopyables?': r'https://en.cppreference.com/w/cpp/named_req/TriviallyCopyable',
@@ -514,6 +517,14 @@ class Defaults(object):
         r'UniformRandomBitGenerators?': r'https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator',
         r'UnorderedAssociativeContainers?': r'https://en.cppreference.com/w/cpp/named_req/UnorderedAssociativeContainer',
         r'ValueSwappables?': r'https://en.cppreference.com/w/cpp/named_req/ValueSwappable',
+        # other misc cppreference pages
+        r'(?:RAII|[Rr]esource[ -][Aa]cquisition[ -][Ii]s[ -][Ii]nitiali[sz]ation(?: \(RAII\))?)': r'https://en.cppreference.com/w/cpp/language/raii',
+        r'(?:CRTP|[Cc]uriously[ -][Rr]ecurring[ -][Tt]emplate[ -][Pp]attern(?: \(CRTP\))?)': r'https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern',
+        r'(?:CTAD|[Cc]lass[ -][Tt]emplate[ -][Aa]rgument[ -][Dd]eduction(?: \(CTAD\))?)': r'https://en.cppreference.com/w/cpp/language/class_template_argument_deduction',
+        r'(?:EBC?O|[Ee]mpty[ -][Bb]ase[ -](?:[Cc]lass[ -])?[Oo]ptimi[sz]ations?(?: \(EBC?O\))?)': r'https://en.cppreference.com/w/cpp/language/ebo',
+        r'(?:UDLs?|[Uu]ser[ -][Dd]efined[ -][Ll]iterals?(?:[ -][Oo]perators?)?(?: \(UDLs?\))?)': r'https://en.cppreference.com/w/cpp/language/user_literal',
+        r'(?:N?RVO|[Cc]opy[ -][Ee]lision|(?:[Nn]amed[ -])?[Rr]eturn[ -][Vv]alue[ -][Oo]ptimi[sz]ations?(?: \(N?RVO\))?)': r'https://en.cppreference.com/w/cpp/language/copy_elision',
+        r'INVOKE(?:(?:<|&lt;)R(?:>|&gt;))?(?: [Ee]xpressions?)?': r'https://en.cppreference.com/w/cpp/utility/functional',
         # windows
         r'(?:L?P)?(?:'
         + r'D?WORD(?:32|64|_PTR)?|HANDLE|HMODULE|BOOL(?:EAN)?'
@@ -549,6 +560,8 @@ class Defaults(object):
         r'(?:::)?FPositionVertexBuffer(?:s)?': r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Engine/Rendering/FPositionVertexBuffer/',
         r'(?:::)?TArrayView(?:s)?': r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Core/Containers/TArrayView/',
         r'(?:::)?TArray(?:s)?': r'https://docs.unrealengine.com/4.27/en-US/API/Runtime/Core/Containers/TArray/',
+        # fmtlib
+        r'fmt::(?:v?format(?:_string|_to|ted_size|ter)?|memory_buffer|string_view|runtime|print|to_w?string|underlying|ptr|emphasis|styled)s?': 'https://fmt.dev/latest/api.html',
     }
     navbar = (r'files', r'groups', r'namespaces', r'classes', r'concepts')
     navbar_all = (r'pages', *navbar, r'repo', r'theme')

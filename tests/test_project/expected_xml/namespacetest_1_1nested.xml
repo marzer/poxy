@@ -6,7 +6,7 @@
 			<para>Another namespace. </para>
 		</briefdescription>
 		<detaileddescription></detaileddescription>
-		<location file="src/code.h" line="192" column="1"/>
+		<location file="src/code.h" line="217" column="1"/>
 		<innerconcept refid="concepttest_1_1nested_1_1concept__2" prot="public">test::nested::concept_2</innerconcept>
 	</compounddef>
 </doxygen>

@@ -1,6 +1,31 @@
 /// @file
 /// @brief Code, yo.
 /// @details More info.
+///
+/// These should be linkified by the internal `autolinks` parser: <ul>
+/// <li> RAII
+/// <li> Resource acquisition is initialization
+/// <li> Resource acquisition is initialization (RAII)
+/// <li> CRTP
+/// <li> Curiously-recurring template pattern
+/// <li> Curiously-recurring template pattern (CRTP)
+/// <li> EBO
+/// <li> EBCO
+/// <li> Empty base-class optimisation
+/// <li> Empty base optimisation (EBO)
+/// <li> UDL
+/// <li> User-defined literal
+/// <li> User-defined literal operator
+/// <li> User-defined literal operators (UDLs)
+/// <li> RVO
+/// <li> NRVO
+/// <li> Return value optimization
+/// <li> Named return-value optimisation
+/// <li> Named return-value optimisations (NRVO)
+/// <li> INVOKE
+/// <li> INVOKE<R>
+/// <li> INVOKE expression
+/// </ul>
 
 /// @brief A macro.
 /// @details More info.
@@ -101,7 +126,7 @@ namespace test
 	/// @details More info.
 	class class_1
 	{
-		friend struct struct_1;
+		friend struct_1;
 		friend void a_friend_function();
 
 	  public:

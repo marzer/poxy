@@ -17,7 +17,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="126" column="1" bodyfile="src/code.h" bodystart="126" bodyend="-1"/>
+				<location file="src/code.h" line="151" column="1" bodyfile="src/code.h" bodystart="151" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="protected-type">
@@ -34,7 +34,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="152" column="1" bodyfile="src/code.h" bodystart="152" bodyend="-1"/>
+				<location file="src/code.h" line="177" column="1" bodyfile="src/code.h" bodystart="177" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="private-type">
@@ -51,55 +51,35 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="173" column="1" bodyfile="src/code.h" bodystart="173" bodyend="-1"/>
+				<location file="src/code.h" line="198" column="1" bodyfile="src/code.h" bodystart="198" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
-		<sectiondef kind="friend">
-			<memberdef kind="friend" id="classtest_1_1class__1_1acca95119536ae9a653b949e083e88bd7" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-				<type>void</type>
-				<definition>void a_friend_function</definition>
-				<argsstring>()</argsstring>
-				<name>a_friend_function</name>
-				<qualifiedname>test::class_1::a_friend_function</qualifiedname>
-				<briefdescription>
-					<para>A function that appears as a friend to a <ref refid="classtest_1_1class__1" kindref="compound">test::class_1</ref>. </para>
-				</briefdescription>
-				<detaileddescription>
-					<para>More info. </para>
-				</detaileddescription>
-				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="105" column="13"/>
-			</memberdef>
-			<memberdef kind="friend" id="classtest_1_1class__1_1aa74543381abc687ab6e8d46d78e26bf1" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
-				<type>void</type>
-				<definition>void another_friend_function</definition>
-				<argsstring>()</argsstring>
-				<name>another_friend_function</name>
-				<qualifiedname>test::class_1::another_friend_function</qualifiedname>
-				<briefdescription>
-					<para>A friend function defined entirely in a class. </para>
-				</briefdescription>
-				<detaileddescription>
-					<para>More info. </para>
-				</detaileddescription>
-				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="130" column="13" bodyfile="src/code.h" bodystart="130" bodyend="131"/>
-			</memberdef>
-			<memberdef kind="friend" id="classtest_1_1class__1_1aafb901f5cd0e0fdb9a028c54468989c4" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-				<type>struct</type>
-				<definition>friend struct struct_1</definition>
+		<sectiondef kind="private-attrib">
+			<memberdef kind="variable" id="classtest_1_1class__1_1ac486fefa4f7305294f0512da7e6bb26b" prot="private" static="no" mutable="no">
+				<type>friend</type>
+				<definition>friend test::class_1::struct_1</definition>
 				<argsstring/>
 				<name>struct_1</name>
 				<qualifiedname>test::class_1::struct_1</qualifiedname>
-				<param>
-					<type>
-						<ref refid="structtest_1_1struct__1" kindref="compound">struct_1</ref>
-					</type>
-				</param>
 				<briefdescription></briefdescription>
 				<detaileddescription></detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="104" column="15" bodyfile="src/code.h" bodystart="104" bodyend="-1"/>
+				<location file="src/code.h" line="129" column="8" bodyfile="src/code.h" bodystart="129" bodyend="-1"/>
+			</memberdef>
+			<memberdef kind="variable" id="classtest_1_1class__1_1a75103e4c3f5e4bc442416e302be44c57" prot="private" static="no" mutable="no">
+				<type>bool</type>
+				<definition>bool test::class_1::private_variable</definition>
+				<argsstring/>
+				<name>private_variable</name>
+				<qualifiedname>test::class_1::private_variable</qualifiedname>
+				<briefdescription>
+					<para>A private variable. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="186" column="6" bodyfile="src/code.h" bodystart="186" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="public-static-attrib">
@@ -118,7 +98,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="110" column="28" bodyfile="src/code.h" bodystart="110" bodyend="110"/>
+				<location file="src/code.h" line="135" column="28" bodyfile="src/code.h" bodystart="135" bodyend="135"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="public-attrib">
@@ -135,7 +115,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="114" column="6" bodyfile="src/code.h" bodystart="114" bodyend="-1"/>
+				<location file="src/code.h" line="139" column="6" bodyfile="src/code.h" bodystart="139" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="protected-static-attrib">
@@ -152,7 +132,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="136" column="23" bodyfile="src/code.h" bodystart="136" bodyend="-1"/>
+				<location file="src/code.h" line="161" column="23" bodyfile="src/code.h" bodystart="161" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="protected-attrib">
@@ -169,7 +149,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="140" column="6" bodyfile="src/code.h" bodystart="140" bodyend="-1"/>
+				<location file="src/code.h" line="165" column="6" bodyfile="src/code.h" bodystart="165" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="private-static-attrib">
@@ -186,24 +166,39 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="157" column="23" bodyfile="src/code.h" bodystart="157" bodyend="-1"/>
+				<location file="src/code.h" line="182" column="23" bodyfile="src/code.h" bodystart="182" bodyend="-1"/>
 			</memberdef>
 		</sectiondef>
-		<sectiondef kind="private-attrib">
-			<memberdef kind="variable" id="classtest_1_1class__1_1a75103e4c3f5e4bc442416e302be44c57" prot="private" static="no" mutable="no">
-				<type>bool</type>
-				<definition>bool test::class_1::private_variable</definition>
-				<argsstring/>
-				<name>private_variable</name>
-				<qualifiedname>test::class_1::private_variable</qualifiedname>
+		<sectiondef kind="friend">
+			<memberdef kind="friend" id="classtest_1_1class__1_1acca95119536ae9a653b949e083e88bd7" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>void</type>
+				<definition>void a_friend_function</definition>
+				<argsstring>()</argsstring>
+				<name>a_friend_function</name>
+				<qualifiedname>test::class_1::a_friend_function</qualifiedname>
 				<briefdescription>
-					<para>A private variable. </para>
+					<para>A function that appears as a friend to a <ref refid="classtest_1_1class__1" kindref="compound">test::class_1</ref>. </para>
 				</briefdescription>
 				<detaileddescription>
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="161" column="6" bodyfile="src/code.h" bodystart="161" bodyend="-1"/>
+				<location file="src/code.h" line="130" column="13"/>
+			</memberdef>
+			<memberdef kind="friend" id="classtest_1_1class__1_1aa74543381abc687ab6e8d46d78e26bf1" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+				<type>void</type>
+				<definition>void another_friend_function</definition>
+				<argsstring>()</argsstring>
+				<name>another_friend_function</name>
+				<qualifiedname>test::class_1::another_friend_function</qualifiedname>
+				<briefdescription>
+					<para>A friend function defined entirely in a class. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>More info. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="155" column="13" bodyfile="src/code.h" bodystart="155" bodyend="156"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="public-static-func">
@@ -222,7 +217,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="118" column="27"/>
+				<location file="src/code.h" line="143" column="27"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="public-func">
@@ -239,7 +234,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="122" column="6"/>
+				<location file="src/code.h" line="147" column="6"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="protected-static-func">
@@ -256,7 +251,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="144" column="23"/>
+				<location file="src/code.h" line="169" column="23"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="protected-func">
@@ -273,7 +268,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="148" column="6"/>
+				<location file="src/code.h" line="173" column="6"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="private-static-func">
@@ -290,7 +285,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="165" column="23"/>
+				<location file="src/code.h" line="190" column="23"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="private-func">
@@ -307,7 +302,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="169" column="6"/>
+				<location file="src/code.h" line="194" column="6"/>
 			</memberdef>
 		</sectiondef>
 		<briefdescription>
@@ -329,7 +324,7 @@
 				</childnode>
 			</node>
 		</collaborationgraph>
-		<location file="src/code.h" line="102" column="1" bodyfile="src/code.h" bodystart="103" bodyend="174"/>
+		<location file="src/code.h" line="127" column="1" bodyfile="src/code.h" bodystart="128" bodyend="199"/>
 		<listofallmembers>
 			<member refid="classtest_1_1class__1_1acca95119536ae9a653b949e083e88bd7" prot="private" virt="non-virtual">
 				<scope>test::class_1</scope>
@@ -399,7 +394,7 @@
 				<scope>test::class_1</scope>
 				<name>public_variable</name>
 			</member>
-			<member refid="classtest_1_1class__1_1aafb901f5cd0e0fdb9a028c54468989c4" prot="private" virt="non-virtual">
+			<member refid="classtest_1_1class__1_1ac486fefa4f7305294f0512da7e6bb26b" prot="private" virt="non-virtual">
 				<scope>test::class_1</scope>
 				<name>struct_1</name>
 			</member>
