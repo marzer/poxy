@@ -59,7 +59,7 @@ def _invoker(func, **kwargs):
 
 
 def make_boolean_optional_arg(args, name, default, help='', **kwargs):
-    if sys.version_info.minor >= 9:
+    if sys.version_info >= (3, 9):
         args.add_argument(rf'--{name}', default=default, help=help, action=argparse.BooleanOptionalAction, **kwargs)
     else:
         args.add_argument(rf'--{name}', action=r'store_true', help=help, **kwargs)

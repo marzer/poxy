@@ -12,9 +12,9 @@ import os
 import subprocess
 import tempfile
 import copy
-from distutils.dir_util import copy_tree
-from io import StringIO
+import sys
 
+from io import StringIO
 from lxml import etree
 from trieregex import TrieRegEx
 
@@ -23,6 +23,19 @@ from .project import Context
 from .svg import SVG
 from .utils import *
 from .version import *
+
+if sys.version_info >= (3, 8):
+    import shutil
+
+    def copy_tree(src, dest):
+        shutil.copytree(str(src), str(dest), dirs_exist_ok=True)
+
+else:
+    import distutils.dir_util
+
+    def copy_tree(src, dest):
+        distutils.dir_util.copy_tree(str(src), str(dest))
+
 
 # =======================================================================================================================
 # HELPERS
@@ -1779,7 +1792,7 @@ def run(
             delete_directory(context.temp_original_xml_dir)
             run_doxygen(context)
             if keep_original_xml:
-                copy_tree(str(context.temp_xml_dir), str(context.temp_original_xml_dir))
+                copy_tree(context.temp_xml_dir, context.temp_original_xml_dir)
                 clean_xml(context, dir=context.temp_original_xml_dir)
         with timer(r'Post-processing XML files') as t:
             if context.xml_v2:
@@ -1795,7 +1808,7 @@ def run(
         # XML (the user-requested copy)
         if context.output_xml:
             with ScopeTimer(r'Copying XML', print_start=True, print_end=context.verbose_logger) as t:
-                copy_tree(str(context.temp_xml_dir), str(context.xml_dir))
+                copy_tree(context.temp_xml_dir, context.xml_dir)
 
             # copy tagfile
             if context.generate_tagfile and context.tagfile_path:
@@ -1818,7 +1831,7 @@ def run(
             # copy fonts
             if context.copy_assets:
                 with ScopeTimer(r'Copying fonts', print_start=True, print_end=context.verbose_logger) as t:
-                    copy_tree(str(paths.FONTS), str(Path(context.assets_dir, r'fonts')))
+                    copy_tree(paths.FONTS, Path(context.assets_dir, r'fonts'))
 
             # copy tagfile
             if context.generate_tagfile and context.tagfile_path:

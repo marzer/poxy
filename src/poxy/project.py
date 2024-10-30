@@ -1237,7 +1237,7 @@ class Context(object):
             html_exclude = re.compile(str(html_exclude))
         self.html_exclude = html_exclude
 
-        if (sys.version_info[0], sys.version_info[1]) >= (3, 11):
+        if sys.version_info >= (3, 11):
             self.now = datetime.datetime.now(datetime.UTC).replace(microsecond=0)
         else:
             self.now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc)
