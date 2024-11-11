@@ -1031,14 +1031,20 @@ class ImplementationDetails(PlainTextFixer):
     Replaces implementation details with appropriate shorthands.
     '''
 
-    __shorthands = ((r'POXY_IMPLEMENTATION_DETAIL_IMPL', r'<code class="m-note m-dim poxy-impl">/* ... */</code>'),)
+    __patterns = (
+        re.compile(
+            r'<\s*a\s+class="m-doc"\s+href=".+?"\s*>POXY_(?:<wbr>)?IMPLEMENTATION_(?:<wbr>)?DETAIL_(?:<wbr>)?IMPL<\s*/a\s*>',
+            re.I,
+        ),
+        re.compile(r'POXY_(?:<wbr>)?IMPLEMENTATION_(?:<wbr>)?DETAIL_(?:<wbr>)?IMPL', re.I),
+        re.compile(r'poxyimplementationdetailimplplaceholder', re.I),
+    )
+
+    __replacement = r'<code class="m-note m-dim poxy-impl">/* ... */</code>'
 
     def __call__(self, context: Context, text: str, path: Path) -> str:
-        for shorthand, replacement in self.__shorthands:
-            idx = text.find(shorthand)
-            while idx >= 0:
-                text = text[:idx] + replacement + text[idx + len(shorthand) :]
-                idx = text.find(shorthand)
+        for pattern in self.__patterns:
+            text = pattern.sub(self.__replacement, text)
         return text
 
 

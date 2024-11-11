@@ -2,20 +2,6 @@ name: ci
 
 on:
     push:
-        branches:
-            - main
-        paths:
-            - "**.py"
-            - "**.css"
-            - "**.js"
-            - "**.json"
-            - "**.xml"
-            - "**/poxy/data/*"
-            - "**/workflows/**.yaml"
-            - "pyproject.toml"
-    pull_request:
-        branches:
-            - main
         paths:
             - "**.py"
             - "**.css"

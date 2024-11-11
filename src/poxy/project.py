@@ -47,7 +47,7 @@ class Defaults(object):
         r'__has_builtin(...)': 0,
         r'__has_feature(...)': 0,
         r'__has_cpp_attribute(...)': 999999,
-        r'POXY_IMPLEMENTATION_DETAIL(...)': r'POXY_IMPLEMENTATION_DETAIL_IMPL',
+        r'POXY_IMPLEMENTATION_DETAIL(...)': r'poxyimplementationdetailimplplaceholder',
         r'POXY_IGNORE(...)': r'',
     }
     cpp_builtin_macros = {

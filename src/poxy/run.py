@@ -746,12 +746,17 @@ def postprocess_xml(context: Context):
 
                     # re-sort members to override Doxygen's weird and stupid sorting 'rules'
                     if 1:
-                        sort_members_by_name = lambda tag: tag.find(r'name').text
+                        # sort_members_by_name = lambda tag: tag.find(r'name').text
+                        def sort_members_by_name(tag):
+                            n = tag.find(r'name')
+                            if n is None:
+                                return ''
+                            return '' if n.text is None else n.text
+
                         members = [tag for tag in section.findall(r'memberdef')]
                         for tag in members:
                             section.remove(tag)
                         # fmt: off
-                        # yapf: disable
                         groups = [
                             ([tag for tag in members if tag.get(r'kind') == r'define'], True),  #
                             ([tag for tag in members if tag.get(r'kind') == r'typedef'], True),
@@ -763,7 +768,6 @@ def postprocess_xml(context: Context):
                             ([tag for tag in members if tag.get(r'kind') == r'function' and tag.get(r'static') == r'no'], True),
                             ([tag for tag in members if tag.get(r'kind') == r'friend'], True)
                         ]
-                        # yapf: enable
                         # fmt: on
                         for group, sort in groups:
                             if sort:

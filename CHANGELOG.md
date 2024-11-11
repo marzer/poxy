@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.19.3 - 2024-11-11
+
+- fixed crash with nested C-style enums without a name (#39) (@tim-janik)
+- fixed `POXY_IMPLEMENTATION_DETAIL_IMPL` appearing in HTML in some circumstances
+
 ## v0.19.1 - 2024-10-30
 
 - fixed `ModuleNotFoundError` error in Python 3.12 (#38) (@dekinet)
