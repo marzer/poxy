@@ -58,19 +58,21 @@ def _invoker(func, **kwargs):
     sys.exit(0)
 
 
-def make_boolean_optional_arg(args, name, default, help='', **kwargs):
+def make_boolean_optional_arg(args: argparse.ArgumentParser, name: str, default, help='', **kwargs):
+    name = name.strip().lstrip('-')
     if sys.version_info >= (3, 9):
         args.add_argument(rf'--{name}', default=default, help=help, action=argparse.BooleanOptionalAction, **kwargs)
     else:
-        args.add_argument(rf'--{name}', action=r'store_true', help=help, **kwargs)
+        dest = name.replace(r'-', r'_')
+        args.add_argument(rf'--{name}', action=r'store_true', help=help, dest=dest, default=default, **kwargs)
         args.add_argument(
             rf'--no-{name}',
             action=r'store_false',
             help=(help if help == argparse.SUPPRESS else None),
-            dest=name,
+            dest=dest,
+            default=default,
             **kwargs,
         )
-        args.set_defaults(**{name: default})
 
 
 def git(git_args: str, cwd=None) -> typing.Tuple[int, str, str]:
@@ -124,7 +126,8 @@ def multi_version_git_tags(args: argparse.Namespace):
     original_branch = current_branch
 
     default_branch = git_failed_if_nonzero(git('rev-parse --abbrev-ref origin/HEAD', cwd=input_dir))[1]
-    default_branch = default_branch.removeprefix(r'origin/')
+    if default_branch.startswith(r'origin/'):
+        default_branch = default_branch[len(r'origin/') :]
     print(rf'Default branch: {default_branch}')
 
     tags = git_failed_if_nonzero(git('tag', cwd=input_dir))[1].splitlines()

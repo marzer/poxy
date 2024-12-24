@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.19.4 - 2024-12-24
+
+- fixed minor issues on Python 3.8
+
 ## v0.19.3 - 2024-11-11
 
 - fixed crash with nested C-style enums without a name (#39) (@tim-janik)
