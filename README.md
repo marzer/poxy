@@ -53,6 +53,7 @@ The homepage + documentation for [toml++] is built using poxy:
 
 -   Python 3.7+
 -   Doxygen 1.8.20+ (must be visible on system path)
+-   Linux only: `sudo apt install dvisvgm`
 
 ### Then:
 

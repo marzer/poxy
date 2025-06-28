@@ -11,6 +11,10 @@ on:
             - "**/poxy/data/*"
             - "**/workflows/**.yaml"
             - "pyproject.toml"
+        branches:
+            - "**"
+        tags-ignore:
+            - "**"
     workflow_dispatch:
 
 concurrency:
@@ -22,35 +26,26 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                compiler:
-                    - "clang"
-                linker:
-                    - "lld"
-                doxygen_tag:
-                    #- "Release_1_8_17"
-                    #- "Release_1_8_18"
-                    #- "Release_1_8_19"
-                    #- "Release_1_8_20"
-                    #- "Release_1_9_0"
-                    #- "Release_1_9_1"
-                    #- "Release_1_9_2"
-                    #- "Release_1_9_3"
-                    #- "Release_1_9_4"
-                    #- "Release_1_9_5"
-                    #- "Release_1_9_6"
-                    - "none"
-                os:
-                    - "ubuntu-22.04"
-                    - "ubuntu-20.04"
+                doxygen:
+                    - "1.9.3"
+                    - "1.9.4"
+                    - "1.9.5"
+                    - "1.9.6"
+                    - "1.9.7"
+                    - "1.9.8"
+                    - "1.10.0"
+                    - "1.11.0"
+                    - "1.12.0"
+                    - "1.13.2"
                 python:
-                    - "3.7"
-                    - "3.8"
+                    - "3.8.12"
                     - "3.9"
                     - "3.10"
                     - "3.11"
                     - "3.12"
+                    - "3.13"
 
-        runs-on: "${{ matrix.os }}"
+        runs-on: ubuntu-24.04
 
         defaults:
             run:
@@ -60,42 +55,23 @@ jobs:
             - name: Install base dependencies
               run: |
                   sudo apt -y update
-                  sudo apt -y install --no-install-recommends git
+                  sudo apt -y install --no-install-recommends dvisvgm
+
+            - name: Install doxygen
+              uses: ssciwr/doxygen-install@v1
+              with:
+                  version: "${{ matrix.doxygen }}"
 
             - name: Install python
               uses: actions/setup-python@v5
               with:
-                  python-version: ${{ matrix.python }}
+                  python-version: "${{ matrix.python }}"
 
             - name: Install python dependencies
               run: |
                   python -m pip install --upgrade pip build setuptools wheel
 
-            - name: Install compiler dependencies
-              if: ${{ matrix.doxygen_tag != 'none' }}
-              run: |
-                  sudo apt -y install --no-install-recommends cmake flex bison
-
-            - name: Install lld
-              if: ${{ matrix.doxygen_tag != 'none' && startsWith(matrix.linker, 'lld') }}
-              run: |
-                  sudo apt -y install --no-install-recommends lld
-
-            - name: Install clang
-              if: ${{ matrix.doxygen_tag != 'none' && startsWith(matrix.compiler, 'clang') }}
-              run: |
-                  sudo apt -y install --no-install-recommends clang
-                  sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 1000
-                  sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang 1000
-
-            - name: Install gcc
-              if: ${{ matrix.doxygen_tag != 'none' && startsWith(matrix.compiler, 'gcc') }}
-              run: |
-                  sudo apt -y install --no-install-recommends gcc g++
-                  sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 1000
-                  sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 1000
-
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
               with:
                   path: repo
 
@@ -106,27 +82,10 @@ jobs:
 
             - name: Print poxy help and version
               run: |
-                  poxy --help
+                  poxy --where
                   poxy --version
-
-            - name: Build and install doxygen from source
-              if: ${{ matrix.doxygen_tag != 'none' }}
-              run: |
-                  cd "${{ github.workspace }}"
-                  git clone --depth 1 --branch ${{ matrix.doxygen_tag }} https://github.com/doxygen/doxygen.git
-                  cd doxygen
-                  mkdir build
-                  cd build
-                  CC=cc CC_LD=${{ matrix.linker }} CXX=c++ CXX_LD=${{ matrix.linker }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=MinSizeRel ..
-                  CC=cc CC_LD=${{ matrix.linker }} CXX=c++ CXX_LD=${{ matrix.linker }} make -j
-                  CC=cc CC_LD=${{ matrix.linker }} CXX=c++ CXX_LD=${{ matrix.linker }} sudo make install
-
-            - name: Install doxygen from apt
-              if: ${{ matrix.doxygen_tag == 'none' }}
-              run: |
-                  sudo apt -y install doxygen
-                  doxygen --version
                   poxy --doxygen-version
+                  poxy --help
 
             - name: Run poxy on test_project
               run: |

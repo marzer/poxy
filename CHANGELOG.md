@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.19.6 - 2025-06-28
+
+- fixed code blocks losing their file type with some versions of doxygen
+
 ## v0.19.4 - 2024-12-24
 
 - fixed minor issues on Python 3.8

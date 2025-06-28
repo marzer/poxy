@@ -13,6 +13,7 @@ import subprocess
 import tempfile
 import copy
 import sys
+import platform
 
 from io import StringIO
 from lxml import etree
@@ -611,6 +612,25 @@ def postprocess_xml(context: Context):
                         highlight.getparent().remove(highlight)
                         changed = True
                         continue
+                # fix <programlisting> losing the file type if we've set it explicitly
+                if (
+                    not programlisting.get(r'filename')
+                    and len(programlisting) >= 2
+                    and programlisting[0].tag == 'codeline'
+                ):
+                    codeline = programlisting[0]
+                    if len(codeline) == 1 and codeline[0].tag == 'highlight':
+                        highlight = codeline[0]
+                        if len(highlight) <= 1 and highlight.text:
+                            m = re.fullmatch(r"[{]([.][a-zA-Z0-9_-]+)[}]", highlight.text)
+                            if m:
+                                programlisting.set('filename', m[1])
+                                programlisting.remove(codeline)
+                                changed = True
+                # map .ascii -> .shell-session
+                if programlisting.get(r'filename') == '.ascii':
+                    programlisting.set('filename', '.shell-session')
+                    changed = True
 
             # add entry to compounds etc
             if compound_id not in context.compounds:
@@ -1721,13 +1741,48 @@ def run_mcss(context: Context):
         if context.is_verbose():
             doxy_args.append(r'--debug')
         try:
+
+            env = {k: v for k, v in os.environ.items()}
+
+            if 'LIBGS' not in env and platform.system().lower() == 'linux':
+                libgs_set = False
+
+                def try_set_libgs(p: Path) -> bool:
+                    nonlocal libgs_set
+                    nonlocal env
+                    if libgs_set:
+                        return True
+                    p = coerce_path(p)
+                    if not p:
+                        return False
+                    p = p.resolve()
+                    if not p.is_file():
+                        return False
+                    env['LIBGS'] = str(p)
+                    libgs_set = True
+                    return True
+
+                machine = platform.machine()
+                if machine:
+                    for prefix in ('/local/', '/'):
+                        for i in range(20, 9, -1):
+                            for j in range(20, -1, -1):
+                                if try_set_libgs(rf"/usr{prefix}lib/{machine}-linux-gnu/libgs.so.{i}.{j:02}"):
+                                    break
+                            if libgs_set or try_set_libgs(rf"/usr{prefix}lib/{machine}-linux-gnu/libgs.so.{i}"):
+                                break
+                        if libgs_set:
+                            break
+
             run_python_script(
                 Path(paths.MCSS, r'documentation/doxygen.py'),
                 *doxy_args,
                 stdout=stdout,
                 stderr=stderr,
                 cwd=context.input_dir,
+                env=env,
             )
+
         except:
             context.info(r'm.css failed!')
             dump_output_streams(context, read_output_streams(stdout, stderr), source=r'm.css')
