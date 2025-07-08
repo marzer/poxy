@@ -194,10 +194,12 @@ def preprocess_doxyfile(context: Context):
         df.set_value(r'PROJECT_LOGO', context.logo)
         df.set_value(r'SHOW_INCLUDE_FILES', context.show_includes)
         df.set_value(r'INTERNAL_DOCS', context.internal_docs)
-        df.add_value(
+
+        df.set_value(
             r'ENABLED_SECTIONS', (r'private', r'internal') if context.internal_docs else (r'public', r'external')
         )
         df.add_value(r'ENABLED_SECTIONS', r'poxy_supports_concepts')
+
         if context.xml_v2:
             df.set_value(r'INLINE_INHERITED_MEMB', False)
 
@@ -207,10 +209,12 @@ def preprocess_doxyfile(context: Context):
             df.set_value(r'GENERATE_TAGFILE', None)
 
         df.set_value(r'NUM_PROC_THREADS', min(context.threads, 32))
-        df.add_value(r'CLANG_OPTIONS', rf'-std=c++{context.cpp%100}')
+
+        df.set_value(r'CLANG_OPTIONS', rf'-std=c++{context.cpp%100}')
         df.add_value(r'CLANG_OPTIONS', r'-Wno-everything')
 
-        df.set_value(r'USE_MDFILE_AS_MAINPAGE', context.main_page)
+        if context.main_page:
+            df.set_value(r'USE_MDFILE_AS_MAINPAGE', context.main_page)
 
         if context.excluded_symbols:
             df.set_value(r'EXCLUDE_SYMBOLS', context.excluded_symbols)
@@ -224,72 +228,86 @@ def preprocess_doxyfile(context: Context):
         df.append()
         df.append(r'# context.sources', end='\n\n')  # ----------------------------------------------------
 
-        df.add_value(r'INPUT', context.sources.paths)
+        df.set_value(r'INPUT', context.sources.paths)
         df.set_value(r'FILE_PATTERNS', context.sources.patterns)
-        df.add_value(r'EXCLUDE', context.html_dir)
-        df.add_value(r'STRIP_FROM_PATH', context.sources.strip_paths)
+        df.set_value(r'STRIP_FROM_PATH', context.sources.strip_paths)
         df.set_value(r'EXTRACT_ALL', context.sources.extract_all)
+
+        df.set_value(r'EXCLUDE', context.html_dir)
+        if context.source_excludes:
+            df.add_value(r'EXCLUDE', context.source_excludes)
 
         df.append()
         df.append(r'# context.examples', end='\n\n')  # ----------------------------------------------------
 
-        df.add_value(r'EXAMPLE_PATH', context.examples.paths)
+        df.set_value(r'EXAMPLE_PATH', context.examples.paths)
         df.set_value(r'EXAMPLE_PATTERNS', context.examples.patterns)
 
         if context.images.paths:  # ----------------------------------------------------
             df.append()
             df.append(r'# context.images', end='\n\n')
-            df.add_value(r'IMAGE_PATH', context.images.paths)
+            df.set_value(r'IMAGE_PATH', context.images.paths)
 
         if context.tagfiles:  # ----------------------------------------------------
             df.append()
             df.append(r'# context.tagfiles', end='\n\n')
-            df.add_value(r'TAGFILES', [rf'{file}={dest}' for _, (file, dest) in context.tagfiles.items()])
+            df.set_value(r'TAGFILES', [rf'{file}={dest}' for _, (file, dest) in context.tagfiles.items()])
 
         if context.aliases:  # ----------------------------------------------------
             df.append()
             df.append(r'# context.aliases', end='\n\n')
-            df.add_value(r'ALIASES', [rf'{k}={v}' for k, v in context.aliases.items()])
+            df.set_value(r'ALIASES', [rf'{k}={v}' for k, v in context.aliases.items()])
 
         if context.macros:  # ----------------------------------------------------
             df.append()
             df.append(r'# context.macros', end='\n\n')
-            df.add_value(r'PREDEFINED', [rf'{k}={v}' for k, v in context.macros.items()])
+            df.set_value(r'PREDEFINED', [rf'{k}={v}' for k, v in context.macros.items()])
 
         df.cleanup()
         context.verbose(r'Doxyfile:')
         context.verbose(df.get_text(), indent=r'    ')
 
 
-def preprocess_changelog(context: Context):
+def preprocess_temp_markdown_files(context: Context):
     assert context is not None
     assert isinstance(context, Context)
-    if not context.changelog:
-        return
 
-    # make sure we're working with a temp copy, not the user's actual changelog
-    # (the actual copying should already be done in the context's initialization)
-    assert context.changelog.parent == context.temp_pages_dir
-    assert_existing_file(context.changelog)
+    for attr_name in 'main_page', 'changelog':
+        if not hasattr(context, attr_name):
+            continue
 
-    text = read_all_text_from_file(context.changelog, logger=context.verbose_logger).strip()
-    text = text.replace('\r\n', '\n')
-    text = re.sub(r'\n<br[ \t]*/?><br[ \t]*/?>\n', r'', text)
-    if context.repo:
-        text = re.sub(r'#([0-9]+)', lambda m: rf'[#{m[1]}]({context.repo.make_issue_uri(m[1])})', text)
-        text = re.sub(r'!([0-9]+)', lambda m: rf'[!{m[1]}]({context.repo.make_pull_request_uri(m[1])})', text)
-        text = re.sub(r'@([a-zA-Z0-9_-]+)', lambda m: rf'[@{m[1]}]({context.repo.make_user_uri(m[1])})', text)
-    text = text.replace(r'&amp;', r'__poxy_thiswasan_amp')
-    text = text.replace(r'&#xFE0F;', r'__poxy_thiswasan_fe0f')
-    text = text.replace(r'@', r'__poxy_thiswasan_at')
-    text = f'\n{text}\n'
-    text = re.sub('\n#[^#].+?\n', '\n', text)
-    text = f'@page poxy_changelog Changelog\n\n@tableofcontents\n\n{text}'
-    text = text.rstrip()
-    text += '\n\n'
-    context.verbose(rf'Writing {context.changelog}')
-    with open(context.changelog, r'w', encoding=r'utf-8', newline='\n') as f:
-        f.write(text)
+        path = getattr(context, attr_name)
+        if not path:
+            continue
+
+        # make sure we're working with a temp copy, not the user's actual files
+        # (the actual copying should already be done in the context's initialization)
+        assert path.parent == context.temp_pages_dir
+        assert_existing_file(path)
+
+        text = read_all_text_from_file(path, logger=context.verbose_logger).strip()
+        text = text.replace('\r\n', '\n')
+        text = re.sub(r'\n<br[ \t]*/?><br[ \t]*/?>\n', r'', text)
+        text = text.replace(r'&amp;', r'__poxy_this_was_amp')
+        text = re.sub(r'&#x([a-fA-F0-9]{2,4});', r'__poxy_this_was_hex\1', text)
+
+        if attr_name == 'changelog':
+
+            if context.repo:
+                text = re.sub(r'#([0-9]+)', lambda m: rf'[#{m[1]}]({context.repo.make_issue_uri(m[1])})', text)
+                text = re.sub(r'!([0-9]+)', lambda m: rf'[!{m[1]}]({context.repo.make_pull_request_uri(m[1])})', text)
+                text = re.sub(r'@([a-zA-Z0-9_-]+)', lambda m: rf'[@{m[1]}]({context.repo.make_user_uri(m[1])})', text)
+
+            text = text.replace(r'@', r'__poxy_this_was_at')
+            text = f'\n{text}\n'
+            text = re.sub('\n#[^#].+?\n', '\n', text)
+            text = f'@page poxy_changelog Changelog\n\n@tableofcontents\n\n{text}'
+            text = text.rstrip()
+            text += '\n\n'
+
+        context.verbose(rf'Writing {path}')
+        with open(path, r'w', encoding=r'utf-8', newline='\n') as f:
+            f.write(text)
 
 
 def preprocess_tagfiles(context: Context):
@@ -308,7 +326,7 @@ def preprocess_tagfiles(context: Context):
                 f.write(text)
 
 
-def postprocess_xml(context: Context):
+def preprocess_xml(context: Context):
     assert context is not None
     assert isinstance(context, Context)
 
@@ -647,6 +665,7 @@ def postprocess_xml(context: Context):
                 compound_page[r'title'] = compound_title
 
             if compound_kind != r'page':
+
                 # merge user-defined sections with the same header name
                 sectiondefs = [s for s in compounddef.findall(r'sectiondef') if s.get(r'kind') == r'user-defined']
                 sections_with_headers = dict()
@@ -805,6 +824,7 @@ def postprocess_xml(context: Context):
 
             # namespaces
             if compound_kind == r'namespace':
+
                 # set inline namespaces
                 if context.inline_namespaces:
                     for nsid in inline_namespace_ids:
@@ -815,6 +835,7 @@ def postprocess_xml(context: Context):
 
             # dirs
             if compound_kind == r'dir':
+
                 # remove implementation headers
                 if context.implementation_headers:
                     for innerfile in compounddef.findall(r'innerfile'):
@@ -876,6 +897,25 @@ def postprocess_xml(context: Context):
                     all_inners_by_type[r'class' if compound_kind in (r'struct', r'union') else compound_kind].add(
                         (compound_id, compound_name)
                     )
+
+            # pages
+            if compound_kind == r'page':
+
+                # fix <tableofcontents><tableofcontents></tableofcontents></tableofcontents>
+                while True:
+                    tocs = compounddef.findall(r'tableofcontents')
+                    tocs = [t for t in tocs if len(t) == 1 and t[0].tag == r'tableofcontents']
+                    tocs = [t for t in tocs if t.getparent() is not None and t.getparent().tag != r'tableofcontents']
+                    if not tocs:
+                        break
+                    for toc in tocs:
+                        toc_parent = toc.getparent()
+                        toc_index = toc_parent.getchildren().index(toc)
+                        assert toc_index >= 0
+                        toc_child = toc[0]
+                        toc_parent.remove(toc)
+                        toc_parent.insert(toc_index, toc_child)
+                        changed = True
 
             if changed:
                 xml_utils.write(root, xml_file)
@@ -1006,7 +1046,7 @@ def postprocess_xml(context: Context):
             xml_utils.write(xml_text, xml_file)
 
 
-def postprocess_xml_v2(context: Context):
+def preprocess_xml_v2(context: Context):
     assert context is not None
     assert isinstance(context, Context)
 
@@ -1840,7 +1880,7 @@ def run(
     ) as context:
         preprocess_doxyfile(context)
         preprocess_tagfiles(context)
-        preprocess_changelog(context)
+        preprocess_temp_markdown_files(context)
 
         if not context.output_html and not context.output_xml:
             return
@@ -1855,9 +1895,9 @@ def run(
                 clean_xml(context, dir=context.temp_original_xml_dir)
         with timer(r'Post-processing XML files') as t:
             if context.xml_v2:
-                postprocess_xml_v2(context)
+                preprocess_xml_v2(context)
             else:
-                postprocess_xml(context)
+                preprocess_xml(context)
             parse_xml(context)
             clean_xml(context)
 

@@ -960,17 +960,70 @@ class EmptyTags(HTMLFixer):
         return changed
 
 
-class MarkTOC(HTMLFixer):
+class FixTOC(HTMLFixer):
     '''
-    Marks any table-of-contents with a custom class.
+    Fixes minor table-of-contents issues.
     '''
 
     def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
+
         if doc.table_of_contents is None:
             return False
+
+        # inject css classes
         soup.add_class(doc.table_of_contents, r'poxy-toc')
         doc.table_of_contents['id'] = r'poxy-toc'
         soup.add_class(doc.body, r'poxy-has-toc')
+
+        # fix <ul> <li> <a href="#"></a> <ul> <li> </li> </ul> </ul>
+        items = doc.table_of_contents.find("ul", recursive=False)
+        if items:
+            items = items.find_all("li", recursive=False)
+        if items:
+
+            def string_content(node) -> str:
+                if node is None:
+                    return ''
+                if isinstance(node, str):
+                    return node.strip()
+                elif isinstance(node, NavigableString):
+                    return string_content(str(node))
+                elif hasattr(node, 'contents'):
+                    return ''.join([string_content(x) for x in node.contents if isinstance(x, NavigableString)])
+                return ''
+
+            for item in items:
+                if len(item.contents) != 5 or string_content(item) != '':
+                    continue
+
+                ul = item.find_all("ul")
+                if not len(ul) == 1 or id(ul[0].parent) != id(item) or string_content(ul[0]) != '':
+                    continue
+                ul = ul[0]
+
+                li = item.find_all("li")
+                if not len(li) == 1 or id(li[0].parent) != id(ul) or string_content(li[0]) != '':
+                    continue
+                li = li[0]
+                li_tags = [x for x in li.contents if not isinstance(x, NavigableString)]
+                if len(li_tags) != 1:
+                    continue
+
+                a = item.find_all("a")
+                if (
+                    not len(a) == 2
+                    or id(a[0].parent) != id(item)
+                    or id(a[1].parent) != id(li)
+                    or a[0]['href'] != '#'
+                    or string_content(a[0]) != ''
+                    or string_content(a[1]) == ''
+                ):
+                    continue
+                a = a[1]
+
+                item.clear()
+                item.append(a)
+
         return True
 
 
@@ -1062,11 +1115,13 @@ class MarkdownPages(PlainTextFixer):
             lower_name.startswith(r'md_')  #
             or lower_name.startswith(r'm_d__')  #
             or (context.changelog and lower_name == r'poxy_changelog.html')
+            or (context.main_page and lower_name in (r'poxy_main_page.html', r'index.html'))
         ):
-            PREFIX = rf'_{WBR}_{WBR}poxy_{WBR}thiswasan_{WBR}'
+            PREFIX = rf'_{WBR}_{WBR}poxy_{WBR}this_{WBR}was_{WBR}'
             text = re.sub(rf'{PREFIX}amp', r'&amp;', text)
             text = re.sub(rf'{PREFIX}at', r'@', text)
-            text = re.sub(rf'{PREFIX}fe0f', r'&#xFE0F;', text)
+            text = re.sub(rf'{PREFIX}hex([a-fA-F0-9]{{2,4}})', r'&#x\1;', text)
+            text = re.sub(r'<p><br[ \t]*/?></p>', r'', text)
         return text
 
 
@@ -1203,7 +1258,7 @@ def create_all() -> Tuple[Union[HTMLFixer, PlainTextFixer]]:
 
     # order matters here!
     return (
-        MarkTOC(),  # html
+        FixTOC(),  # html
         Pygments(),
         CodeBlocks(),  # html
         Banner(),  # html

@@ -1555,6 +1555,8 @@ class Context(object):
                         raise Error(rf"failed to parse date from blog post filename '{f.name}': {str(exc)}")
             self.verbose_value(r'Context.blog_files', self.blog_files)
 
+            self.source_excludes = set()
+
             # changelog
             self.changelog = ''
             if r'changelog' in config:
@@ -1595,6 +1597,7 @@ class Context(object):
                     if not self.changelog.exists() or not self.changelog.is_file():
                         raise Error(rf'changelog: {config["changelog"]} did not exist or was not a file')
             if self.changelog:
+                self.source_excludes.add(self.changelog)
                 temp_changelog_path = Path(self.temp_pages_dir, r'poxy_changelog.md')
                 copy_file(self.changelog, temp_changelog_path, logger=self.verbose_logger)
                 self.changelog = temp_changelog_path
@@ -1639,6 +1642,11 @@ class Context(object):
                         self.main_page = Path(self.input_dir, self.main_page)
                     if not self.main_page.exists() or not self.main_page.is_file():
                         raise Error(rf'main_page: {config["main_page"]} did not exist or was not a file')
+            if self.main_page:
+                self.source_excludes.add(self.main_page)
+                temp_main_page_path = Path(self.temp_pages_dir, r'poxy_main_page.md')
+                copy_file(self.main_page, temp_main_page_path, logger=self.verbose_logger)
+                self.main_page = temp_main_page_path
             self.verbose_value(r'Context.main_page', self.main_page)
 
             # sources (INPUT, FILE_PATTERNS, STRIP_FROM_PATH, STRIP_FROM_INC_PATH, EXTRACT_ALL)
@@ -1649,6 +1657,7 @@ class Context(object):
                 additional_inputs=(
                     self.temp_pages_dir,  #
                     self.changelog if self.changelog else None,
+                    self.main_page if self.main_page else None,
                     *[f for f, d in self.blog_files],
                 ),
                 additional_strip_paths=(self.temp_pages_dir,),

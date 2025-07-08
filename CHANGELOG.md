@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.19.7 - 2025-07-08
+
+- fixed various issues related to CHANGELOG and README handling
+- fixed page tables of contents being broken on some newer versions of Doxygen
+
 ## v0.19.6 - 2025-06-28
 
 - fixed code blocks losing their file type with some versions of doxygen
