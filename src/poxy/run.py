@@ -1776,6 +1776,14 @@ def run_doxygen(context: Context):
 def run_mcss(context: Context):
     assert context is not None
     assert isinstance(context, Context)
+
+    if platform.system().lower() == 'linux':
+        if not shutil.which(r'dvisvgm'):
+            context.warning(
+                r'could not find dvisvgm, or it was not executable; '
+                r'm.css may fail with an error about libgs.so (hint: install dvisvgm with APT or similar)'
+            )
+
     with make_temp_file() as stdout, make_temp_file() as stderr:
         doxy_args = [str(context.mcss_conf_path), r'--no-doxygen', r'--sort-globbed-files']
         if context.is_verbose():

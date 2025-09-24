@@ -1,9 +1,10 @@
 #
 #   This file is part of m.css.
 #
-#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024
+#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025
 #             Vladimír Vondruš <mosra@centrum.cz>
 #   Copyright © 2020 Blair Conrad <blair@blairconrad.com>
+#   Copyright © 2020 Sergei Izmailov <sergei.a.izmailov@gmail.com>
 #
 #   Permission is hereby granted, free of charge, to any person obtaining a
 #   copy of this software and associated documentation files (the "Software"),
@@ -289,12 +290,8 @@ class HtmlAnsiFormatter(HtmlFormatter):
         '(?P<Suffix>")'
     )
 
-    # Pygments 2.12+ doesn't have the outfile parameter anymore
-    def wrap(self, source, outfile=None):
-        return self._wrap_code(source)
-
-    def _wrap_code(self, source):
-        for i, t in source:
+    def _format_lines(self, tokensource):
+        for i, t in HtmlFormatter._format_lines(self, tokensource):
             if i == 1: # it's a line of formatted code
                 t = self._ansi_color_re.sub(self._replace_ansi_class, t)
             yield i, t

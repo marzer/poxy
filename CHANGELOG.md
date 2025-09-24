@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.19.8 - 2025-09-24
+
+- fixed additional libgs.so lookup issues
+- updated m.css
+
 ## v0.19.7 - 2025-07-08
 
 - fixed various issues related to CHANGELOG and README handling

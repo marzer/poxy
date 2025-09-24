@@ -1,8 +1,10 @@
 #
 #   This file is part of m.css.
 #
-#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024
+#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025
 #             Vladimír Vondruš <mosra@centrum.cz>
+#   Copyright © 2020 shniubobo <shniubobo@outlook.com>
+#   Copyright © 2022 Lukas Pirl <git@lukas-pirl.de>
 #   Copyright © 2024 John Turner <7strbass@gmail.com>
 #
 #   Permission is hereby granted, free of charge, to any person obtaining a
@@ -24,6 +26,7 @@
 #   DEALINGS IN THE SOFTWARE.
 #
 
+import html
 import os.path
 
 import docutils
@@ -91,7 +94,7 @@ def _highlight(code, language, options, *, is_block, filters=[]):
         del options['hl-lines']
 
     if isinstance(lexer, ansilexer.AnsiLexer):
-        formatter = ansilexer.HtmlAnsiFormatter(**options)
+        formatter = ansilexer.HtmlAnsiFormatter(nowrap=True, **options)
     else:
         formatter = HtmlFormatter(nowrap=True, **options)
 
@@ -105,6 +108,12 @@ def _highlight(code, language, options, *, is_block, filters=[]):
     if f: code = f(code)
 
     highlighted = highlight(code, lexer, formatter).rstrip()
+    # Pygments < 2.14 leave useless empty spans in the output. Filter them out
+    # to have the markup consistent across versions for easier testing.
+    # TODO same is in doxygen.py, remove once support for < 2.14 is dropped
+    highlighted = (highlighted
+        .replace('<span class="w"></span>', '')
+        .replace('<span class="cp"></span>', ''))
     # Strip whitespace around if inline code, strip only trailing whitespace if
     # a block
     if not is_block: highlighted = highlighted.lstrip()
@@ -121,8 +130,8 @@ def _highlight(code, language, options, *, is_block, filters=[]):
     return class_, highlighted
 
 class Code(Directive):
-    required_arguments = 1
-    optional_arguments = 0
+    required_arguments = 0
+    optional_arguments = 1
     final_argument_whitespace = True
     option_spec = {
         'hl-lines': directives.unchanged,
@@ -141,6 +150,13 @@ class Code(Directive):
         if 'classes' in self.options:
             classes += self.options['classes']
             del self.options['classes']
+
+        # If language is not specified, render a simple block
+        if not self.arguments:
+            content = nodes.raw('', html.escape('\n'.join(self.content)), format='html')
+            pre = nodes.literal_block('', classes=['m-code'] + classes)
+            pre.append(content)
+            return [pre]
 
         # Legacy alias to hl-lines
         if 'hl_lines' in self.options:
@@ -295,7 +311,7 @@ def code(role, rawtext, text, lineno, inliner, options={}, content=[]):
     # If language is not specified, render a simple literal
     if not 'language' in options:
         content = nodes.raw('', utils.unescape(text), format='html')
-        node = nodes.literal(rawtext, '', **options)
+        node = nodes.literal(rawtext, '', classes=['m-code'] + classes, **options)
         node.append(content)
         return [node], []
 

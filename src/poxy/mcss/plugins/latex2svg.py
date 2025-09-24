@@ -1,13 +1,29 @@
-#!/usr/bin/env python3
-"""latex2svg
-
-Read LaTeX code from stdin and render a SVG using LaTeX + dvisvgm.
-"""
-__version__ = '0.1.0'
-__author__ = 'Tino Wagner'
-__email__ = 'ich@tinowagner.com'
-__license__ = 'MIT'
-__copyright__ = '(c) 2017, Tino Wagner'
+#
+#   This file is part of m.css.
+#
+#   Copyright © 2017 Tino Wagner <ich@tinowagner.com>
+#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025
+#             Vladimír Vondruš <mosra@centrum.cz>
+#   Copyright © 2017 gotchafr <gotchafr@users.noreply.github.com>
+#
+#   Permission is hereby granted, free of charge, to any person obtaining a
+#   copy of this software and associated documentation files (the "Software"),
+#   to deal in the Software without restriction, including without limitation
+#   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#   and/or sell copies of the Software, and to permit persons to whom the
+#   Software is furnished to do so, subject to the following conditions:
+#
+#   The above copyright notice and this permission notice shall be included
+#   in all copies or substantial portions of the Software.
+#
+#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+#   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+#   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+#   DEALINGS IN THE SOFTWARE.
+#
 
 import os
 import sys
@@ -49,12 +65,26 @@ default_params = {
 }
 
 libgs = find_library('gs')
+if not libgs and hasattr(os.environ, 'LIBGS'):
+    libgs = str(getattr(os.environ, 'LIBGS'))
+    if not os.path.exists(libgs):
+        libgs = None
 if not hasattr(os.environ, 'LIBGS') and not libgs:
     if sys.platform == 'darwin':
         # Fallback to homebrew Ghostscript on macOS
         homebrew_libgs = '/usr/local/opt/ghostscript/lib/libgs.dylib'
         if os.path.exists(homebrew_libgs):
             default_params['libgs'] = homebrew_libgs
+    if sys.platform == 'linux':
+        # On certain Linux distros find_library() may not work even though the
+        # library is in usual paths. Try some candidates before failing hard.
+        for linux_libgs in [
+            '/usr/lib/libgs.so.10',
+            '/usr/lib/{}-linux-gnu/libgs.so.10'.format(os.uname().machine)
+        ]:
+            if os.path.exists(linux_libgs):
+                default_params['libgs'] = linux_libgs
+                break
     if not default_params['libgs']:
         print('Warning: libgs not found')
 # dvisvgm < 3.0 only looks for ghostscript < 10 on its own, attempt to supply

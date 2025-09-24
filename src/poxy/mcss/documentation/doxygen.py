@@ -3,10 +3,21 @@
 #
 #   This file is part of m.css.
 #
-#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024
+#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025
 #             Vladimír Vondruš <mosra@centrum.cz>
+#   Copyright © 2018 Ryohei Machida <machida_mn@complex.ist.hokudai.ac.jp>
+#   Copyright © 2018 Arvid Gerstmann <dev@arvid-g.de>
+#   Copyright © 2019, 2021 Cris Luengo <cris.l.luengo@gmail.com>
+#   Copyright © 2020 Rémi Marche <remimarche@gmail.com>
 #   Copyright © 2020 Yuri Edward <nicolas1.fraysse@epitech.eu>
-#   Copyright © 2022 Mark Gillard <mark.gillard@outlook.com.au>
+#   Copyright © 2020 Sergei Izmailov <sergei.a.izmailov@gmail.com>
+#   Copyright © 2020 Marin <marin.jurjevic@hotmail.com>
+#   Copyright © 2021 Maxime Schmitt <maxime.schmitt91@gmail.com>
+#   Copyright © 2021 Wojciech Jarosz <wkjarosz@users.noreply.github.com>
+#   Copyright © 2022 crf8472 <crf8472@web.de>
+#   Copyright © 2022 SRGDamia1 <sdamiano@stroudcenter.org>
+#   Copyright © 2022 luz paz <luzpaz@pm.me>
+#   Copyright © 2022 Mark Gillard <marzer_@hotmail.com>
 #
 #   Permission is hereby granted, free of charge, to any person obtaining a
 #   copy of this software and associated documentation files (the "Software"),
@@ -124,6 +135,7 @@ default_config = {
     'CLASS_INDEX_EXPAND_INNER': False,
 
     'M_MATH_CACHE_FILE': 'm.math.cache',
+    'M_MATH_RENDER_AS_CODE': False,
     'M_CODE_FILTERS_PRE': {},
     'M_CODE_FILTERS_POST': {},
 
@@ -252,9 +264,31 @@ def parse_ref(state: State, element: ET.Element, add_inline_css_class: str = Non
 
     return '<a href="{}" class="{}">{}</a>'.format(url, class_, add_wbr(parse_inline_desc(state, element).strip()))
 
+# Returns a shortened path if the prefix matches
+def remove_path_prefix(path: str, prefix: str) -> str:
+    common_path = os.path.commonprefix([path, prefix])
+    return path[len(common_path):].lstrip(os.path.sep) if common_path else path
+
+# Return the string that has the longest prefix stripped, as defined by Doxygen
+# in src/util.cpp
+def make_include_strip_from_path(path: str, prefixes: List[str]) -> str:
+    strip_candidates = list(filter(bool, map(lambda x: remove_path_prefix(path, x), prefixes)))
+    return min(strip_candidates, key=len) if strip_candidates else path
+
 def make_include(state: State, file) -> Tuple[str, str]:
     if file in state.includes and state.compounds[state.includes[file]].has_details:
-        return (html.escape('<{}>'.format(file)), state.compounds[state.includes[file]].url)
+        return (html.escape('<{}>'.format(make_include_strip_from_path(file, state.doxyfile['STRIP_FROM_INC_PATH']) if state.doxyfile['STRIP_FROM_INC_PATH'] is not None else file)), state.compounds[state.includes[file]].url)
+    return None
+
+# Used only from a single place but put here to ensure it's kept consistent
+# with make_include() above, in particular the checks
+def make_class_include(state: State, file_id, name) -> Tuple[str, str]:
+    # state.includes is a map from a filename to file ID, and since we already
+    # have a file ID we don't need to use it. But if it's empty, it means
+    # includes are disabled globally, in which case we shouldn't return
+    # anything.
+    if state.includes and state.compounds[file_id].has_details:
+        return (html.escape('<{}>'.format(name)), state.compounds[file_id].url)
     return None
 
 def parse_id_and_include(state: State, element: ET.Element) -> Tuple[str, str, str, Tuple[str, str], bool]:
@@ -667,7 +701,7 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
                     tag = 'h5'
                 elif element.tag == 'sect3':
                     tag = 'h6'
-                elif element.tag == 'sect4':
+                elif element.tag in ['sect4', 'sect5', 'sect6']:
                     tag = 'h6'
                     logging.warning("{}: more than three levels of sections in member descriptions are not supported, stopping at <h6>".format(state.current))
                 elif not element.tag == 'simplesect': # pragma: no cover
@@ -1095,14 +1129,22 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
                 elif 'height' in i.attrib:
                     sizespec = ' style="height: {};"'.format(i.attrib['height'])
 
+                # The alt text can apparently be specified only with the HTML
+                # <img> tag, not with @image. It's also present only since
+                # 1.9.1(?).
+                # TODO Doxygen seems to be double-escaping this, which
+                #   ultimately means we cannot escape this ourselves as it'd be
+                #   wrong. See test_contents.HtmlEscape for a repro case.
+                alt = i.attrib.get('alt', 'Image')
+
                 caption = i.text
                 if caption:
-                    out.parsed += '<figure class="m-figure{}"><img src="{}" alt="Image"{} /><figcaption>{}</figcaption></figure>'.format(
+                    out.parsed += '<figure class="m-figure{}"><img src="{}" alt="{}"{} /><figcaption>{}</figcaption></figure>'.format(
                         ' ' + add_css_class if add_css_class else '',
-                        name, sizespec, html.escape(caption))
+                        name, alt, sizespec, html.escape(caption))
                 else:
-                    out.parsed += '<img class="m-image{}" src="{}" alt="Image"{} />'.format(
-                        ' ' + add_css_class if add_css_class else '', name, sizespec)
+                    out.parsed += '<img class="m-image{}" src="{}" alt="{}"{} />'.format(
+                        ' ' + add_css_class if add_css_class else '', name, alt, sizespec)
 
         elif i.tag in ['dot', 'dotfile']:
             assert element.tag in ['para', '{http://mcss.mosra.cz/doxygen/}div']
@@ -1299,6 +1341,7 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
                        # Pygments knows only .vert, .frag, .geo
                        ('.glsl', 'glsl'),
                        ('.conf', 'ini'),
+                       ('.conf.cmake', 'ini'),
                        ('.xml-jinja', 'xml+jinja'),
                        ('.html-jinja', 'html+jinja'),
                        ('.jinja', 'jinja'),
@@ -1330,7 +1373,7 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
                 class_ = 'm-code'
 
             if isinstance(lexer, ansilexer.AnsiLexer):
-                formatter = ansilexer.HtmlAnsiFormatter()
+                formatter = ansilexer.HtmlAnsiFormatter(nowrap=True)
             else:
                 formatter = HtmlFormatter(nowrap=True)
 
@@ -1339,6 +1382,13 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
             if filter: code = filter(code)
 
             highlighted = highlight(code, lexer, formatter).rstrip()
+            # Pygments < 2.14 leave useless empty spans in the output. Filter
+            # them out to have the markup consistent across versions for easier
+            # testing.
+            # TODO same is in m.code, remove once support for < 2.14 is dropped
+            highlighted = (highlighted
+                .replace('<span class="w"></span>', '')
+                .replace('<span class="cp"></span>', ''))
             # Strip whitespace around if inline code, strip only trailing
             # whitespace if a block
             if not code_block: highlighted = highlighted.lstrip()
@@ -1359,23 +1409,34 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
 
             logging.debug("{}: rendering math: {}".format(state.current, i.text))
 
-            # Assume that Doxygen wrapped the formula properly to distinguish
-            # between inline, block or special environment
-            depth, svg = latex2svgextra.fetch_cached_or_render('{}'.format(i.text))
-
             # We should have decided about block/inline above
             assert formula_block is not None
-            if formula_block:
-                has_block_elements = True
-                out.parsed += '<div class="m-math{}">{}</div>'.format(
-                    ' ' + add_css_class if add_css_class else '',
-                    latex2svgextra.patch(i.text, svg, None, ''))
+
+            # Fallback rendering as code requested
+            if state.config['M_MATH_RENDER_AS_CODE']:
+                out.parsed += '<{0} class="m-code m-math{1}{2}">{3}</{0}>'.format(
+                    'pre' if formula_block else 'code',
+                    ' ' + add_css_class if formula_block and add_css_class else '',
+                    # TODO try w/ this removed
+                    ' ' + add_inline_css_class if not formula_block and add_inline_css_class else '',
+                    i.text)
             else:
-                # CSS classes and styling for proper vertical alignment. Depth is relative
-                # to font size, describes how below the line the text is. Scaling it back
-                # to 12pt font, scaled by 125% as set above in the config.
-                attribs = ' class="m-math{}"'.format(' ' + add_inline_css_class if add_inline_css_class else '')
-                out.parsed += latex2svgextra.patch(i.text, svg, depth, attribs)
+                # Assume that Doxygen wrapped the formula properly to
+                # distinguish between inline, block or special environment
+                depth, svg = latex2svgextra.fetch_cached_or_render('{}'.format(i.text))
+
+                if formula_block:
+                    has_block_elements = True
+                    out.parsed += '<div class="m-math{}">{}</div>'.format(
+                        ' ' + add_css_class if add_css_class else '',
+                        latex2svgextra.patch(i.text, svg, None, ''))
+                else:
+                    # CSS classes and styling for proper vertical alignment.
+                    # Depth is relative to font size, describes how below the
+                    # line the text is. Scaling it back to 12pt font, scaled by
+                    # 125% as set above in the config.
+                    attribs = ' class="m-math{}"'.format(' ' + add_inline_css_class if add_inline_css_class else '')
+                    out.parsed += latex2svgextra.patch(i.text, svg, depth, attribs)
 
         # Inline elements
         elif i.tag == 'linebreak':
@@ -1697,7 +1758,7 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
             try:
                 entity = mapping[i.tag]
                 out.parsed += '&{};'.format(entity)
-            except:
+            except: # pragma: no cover
                 logging.warning("{}: ignoring <{}> in desc".format(state.current, i.tag))
 
         # Now we can reset previous_section to None, nobody needs it anymore.
@@ -2426,6 +2487,12 @@ def extract_metadata(state: State, xml):
     if compounddef.tag != 'compounddef':
         logging.warning("{}: first child element expected to be <compounddef> but is <{}>, skipping whole file".format(state.current, compounddef.tag))
         return
+    # Using `in []` to prepare for potential future additions like 'C', but so
+    # far Doxygen treats even *.c files as language="C++". Reproduced in the
+    # test_ignored.Languages test case.
+    if compounddef.attrib.get('language', 'C++') not in ['C++']:
+        logging.warning("{}: unsupported language {}, skipping whole file".format(state.current, compounddef.attrib['language']))
+        return
     assert len([i for i in root]) == 1
 
     if compounddef.attrib['kind'] not in ['namespace', 'group', 'class', 'struct', 'union', 'dir', 'file', 'page', 'concept']:
@@ -2563,8 +2630,8 @@ def postprocess_state(state: State):
             prefix = state.compounds[compound.parent].name + '/'
             if compound.name.startswith(prefix):
                 compound.leaf_name = compound.name[len(prefix):]
-            else: # pragma: no cover
-                logging.warning("{}: potential issue: directory {} parent is not a prefix: {}".format(state.current, compound.name, prefix))
+            else:
+                logging.warning("potential issue: the parent of {}/ is {} which is not a prefix, you may want to enable FULL_PATH_NAMES together with STRIP_FROM_PATH and STRIP_FROM_INC_PATH to preserve filesystem hierarchy".format(compound.name, prefix))
                 compound.leaf_name = compound.name
 
         # Other compounds are not in any index pages or breadcrumb, so leaf
@@ -2601,25 +2668,26 @@ def postprocess_state(state: State):
             # Fill breadcrumb with leaf names and URLs
             include = []
             for i in reversed(path_reverse):
-                include += [state.compounds[i].leaf_name]
+                # TODO the escaping / unescaping is a mess, fix that
+                include += [html.unescape(state.compounds[i].leaf_name)]
 
             state.includes['/'.join(include)] = compound.id
 
     # Resolve navbar links that are just an ID
-    def resolve_link(html, title, url, id):
-        if not html and not title and not url:
+    def resolve_link(html_, title, url, id):
+        if not html_ and not title and not url:
             assert id in state.compounds, "Navbar references {} which wasn't found".format(id)
             found = state.compounds[id]
             title, url = found.name, found.url
-        return html, title, url, id
+        return html_, title, url, id
     for var in 'LINKS_NAVBAR1', 'LINKS_NAVBAR2':
         links = []
-        for html, title, url, id, sub in state.config[var]:
-            html, title, url, id = resolve_link(html, title, url, id)
+        for html_, title, url, id, sub in state.config[var]:
+            html_, title, url, id = resolve_link(html_, title, url, id)
             sublinks = []
             for i in sub:
                 sublinks += [resolve_link(*i)]
-            links += [(html, title, url, id, sublinks)]
+            links += [(html_, title, url, id, sublinks)]
         state.config[var] = links
 
 def build_search_data(state: State, merge_subtrees=True, add_lookahead_barriers=True, merge_prefixes=True) -> bytearray:
@@ -2735,6 +2803,9 @@ def parse_xml(state: State, xml: str):
         return
     compounddef: ET.Element = root[0]
     if compounddef.tag != 'compounddef':
+        return
+    # See extract_metadata() for why `in []` is used
+    if compounddef.attrib.get('language', 'C++') not in ['C++']:
         return
 
     assert len([i for i in root]) == 1
@@ -2862,13 +2933,44 @@ def parse_xml(state: State, xml: str):
     if compound.kind in ['struct', 'class', 'union', 'concept'] or (compound.kind == 'namespace' and compounddef.find('innerclass') is None and compounddef.find('innernamespace') is None and compounddef.find('sectiondef') is None):
         location_attribs = compounddef.find('location').attrib
         file = location_attribs['declfile'] if 'declfile' in location_attribs else location_attribs['file']
-        compound.include = make_include(state, file)
+
+        # Classes, structs and unions allow supplying custom header file and a
+        # custom include name, which *seems* to be present in the first
+        # <includes> element of given compound. If that's the case, we use the
+        # provided ID as the include link target and the name as the include
+        # name. Otherwise the information is extracted from the <location> tag.
+        # See test_compound.IncludesStripFromPath for a test case.
+        #
+        # Apparently, if STRIP_FROM_INC_PATH isn't set at all in the Doxyfile,
+        # the damn thing does the worst possible and keeps just the leaf
+        # filename there. Which is useless, so assume that if someone wants
+        # to override include names, they also set STRIP_FROM_INC_PATH.
+        #
+        # Furthermore, if VERBATIM_HEADERS is disabled, the <includes> tag has
+        # no refid, in which case we can't really make use of that either as
+        # we won't know what to link to. Print at least a helpful warning in
+        # that case.
+        compound_includes = compounddef.find('includes')
+        if state.doxyfile['STRIP_FROM_INC_PATH'] and compound.kind in ['struct', 'class', 'union'] and compound_includes is not None:
+            if 'refid' in compound_includes.attrib:
+                compound.include = make_class_include(state, compound_includes.attrib['refid'], compound_includes.text)
+            else:
+                actual_file = make_include_strip_from_path(file, state.doxyfile['STRIP_FROM_INC_PATH'])
+                if compound_includes.text != actual_file:
+                    logging.warning("{}: cannot use a custom include name <{}> with VERBATIM_HEADERS disabled, falling back to <{}>".format(state.current, compound_includes.text, actual_file))
+                compound.include = make_include(state, file)
+        else:
+            compound.include = make_include(state, file)
 
         # Save include for current compound. Every enum/var/function/... parser
         # checks against it and resets to None in case the include differs for
         # given entry, meaning all entries need to have their own include
         # definition instead. That's then finally reflected in has_details of
         # each entry.
+        #
+        # If the class overrode the include location to something else above,
+        # we *still* use the actual file from <location>, as otherwise an
+        # include would get listed redundantly for all class members.
         state.current_include = file
 
     # Namespaces with members get a placeholder that gets filled from the
@@ -3747,7 +3849,9 @@ def parse_doxyfile(state: State, doxyfile, values = None):
         'HTML_OUTPUT': ['html'],
         'DOT_FONTNAME': ['Helvetica'],
         'DOT_FONTSIZE': ['10'],
-        'SHOW_INCLUDE_FILES': ['YES']
+        'SHOW_INCLUDE_FILES': ['YES'],
+        'STRIP_FROM_PATH': [''],
+        'STRIP_FROM_INC_PATH': [''],
     }
 
     # Defaults so we don't fail with minimal Doxyfiles and also that the
@@ -3861,6 +3965,8 @@ def parse_doxyfile(state: State, doxyfile, values = None):
         ('INTERNAL_DOCS', None, bool),
         ('SHOW_INCLUDE_FILES', None, bool),
         ('TAGFILES', None, list),
+        ('STRIP_FROM_PATH', None, list),
+        ('STRIP_FROM_INC_PATH', None, list),
 
         ('M_THEME_COLOR', 'THEME_COLOR', str),
         ('M_FAVICON', 'FAVICON', str), # plus special handling below
@@ -3890,6 +3996,7 @@ def parse_doxyfile(state: State, doxyfile, values = None):
         ('M_VERSION_LABELS', 'VERSION_LABELS', bool),
 
         ('M_MATH_CACHE_FILE', 'M_MATH_CACHE_FILE', str),
+        ('M_MATH_RENDER_AS_CODE', 'M_MATH_RENDER_AS_CODE', bool),
     ]:
         if key not in values: continue
 
@@ -3965,6 +4072,22 @@ def parse_doxyfile(state: State, doxyfile, values = None):
             navbar_links += [extract_link(links[0]) + (sublinks, )]
 
         state.config[alias] = navbar_links
+
+    # File paths extracted from <location file="loc"/> have already been
+    # stripped with respect to the Doxygen STRIP_FROM_PATH option. However, the
+    # make_include function needs to additionally strip any prefix present in
+    # STRIP_FROM_INC_PATH if present.
+    if state.doxyfile['STRIP_FROM_INC_PATH'] is not None:
+        all_prefixes = state.doxyfile['STRIP_FROM_INC_PATH']
+        # Add all the prefixes in STRIP_FROM_INC_PATH which have a common
+        # prefix with STRIP_FROM_PATH
+        for path_prefix in state.doxyfile['STRIP_FROM_PATH']:
+            # Construct the list of non empty suffixes of STRIP_FROM_INC_PATH
+            # for this STRIP_FROM_PATH prefix
+            from_path_strip = list(filter(bool, map(lambda x: remove_path_prefix(x, path_prefix), state.doxyfile['STRIP_FROM_INC_PATH'])))
+            all_prefixes += from_path_strip
+        # Remove duplicates
+        state.doxyfile['STRIP_FROM_INC_PATH'] = list(set(all_prefixes))
 
     # Below we finalize the config values, converting them to formats that are
     # easy to understand by the code / templates (but not easy to write from
@@ -4087,7 +4210,9 @@ def run(state: State, *, templates=default_templates, wildcard=default_wildcard,
                     # Add back a trailing newline so we don't need to bother
                     # with patching test files to include a trailing newline to
                     # make Git happy. Can't use keep_trailing_newline because
-                    # that'd add it also for nested templates :(
+                    # that'd add it also for nested templates :( The rendered
+                    # file should never contain a trailing newline on its own.
+                    assert not rendered.endswith('\n')
                     f.write(b'\n')
         else:
             parsed = parse_xml(state, file)
@@ -4107,7 +4232,9 @@ def run(state: State, *, templates=default_templates, wildcard=default_wildcard,
                 # Add back a trailing newline so we don't need to bother with
                 # patching test files to include a trailing newline to make Git
                 # happy. Can't use keep_trailing_newline because that'd add it
-                # also for nested templates :(
+                # also for nested templates :( The rendered file should never
+                # contain a trailing newline on its own.
+                assert not rendered.endswith('\n')
                 f.write(b'\n')
 
     # Empty index page in case no mainpage documentation was provided so
@@ -4134,7 +4261,9 @@ def run(state: State, *, templates=default_templates, wildcard=default_wildcard,
             # Add back a trailing newline so we don't need to bother with
             # patching test files to include a trailing newline to make Git
             # happy. Can't use keep_trailing_newline because that'd add it
-            # also for nested templates :(
+            # also for nested templates :( The rendered file should never
+            # contain a trailing newline on its own.
+            assert not rendered.endswith('\n')
             f.write(b'\n')
 
     if not state.config['SEARCH_DISABLED']:
@@ -4162,7 +4291,9 @@ def run(state: State, *, templates=default_templates, wildcard=default_wildcard,
                 # Add back a trailing newline so we don't need to bother with
                 # patching test files to include a trailing newline to make Git
                 # happy. Can't use keep_trailing_newline because that'd add it
-                # also for nested templates :(
+                # also for nested templates :( The rendered file should never
+                # contain a trailing newline on its own.
+                assert not rendered.endswith('\n')
                 f.write(b'\n')
 
     # Copy all referenced files

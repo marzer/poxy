@@ -1,8 +1,9 @@
 #
 #   This file is part of m.css.
 #
-#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024
+#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025
 #             Vladimír Vondruš <mosra@centrum.cz>
+#   Copyright © 2020 shniubobo <shniubobo@outlook.com>
 #
 #   Loosely based on https://github.com/Nitron/pelican-alias,
 #   copyright © 2013 Christopher Williams

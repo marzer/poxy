@@ -1,8 +1,10 @@
 #
 #   This file is part of m.css.
 #
-#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024
+#   Copyright © 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025
 #             Vladimír Vondruš <mosra@centrum.cz>
+#   Copyright © 2020 shniubobo <shniubobo@outlook.com>
+#   Copyright © 2022 Lukas Pirl <git@lukas-pirl.de>
 #
 #   Permission is hereby granted, free of charge, to any person obtaining a
 #   copy of this software and associated documentation files (the "Software"),
@@ -71,8 +73,13 @@ class Math(rst.Directive):
     has_content = True
 
     def run(self):
-        set_classes(self.options)
         self.assert_has_content()
+
+        set_classes(self.options)
+        classes = []
+        if 'classes' in self.options:
+            classes += self.options['classes']
+            del self.options['classes']
 
         parent = self.state.parent
 
@@ -84,7 +91,7 @@ class Math(rst.Directive):
                 parent['classes'][parent['classes'].index('m-figure')] = 'm-code-figure'
 
             content = nodes.raw('', html.escape('\n'.join(self.content)), format='html')
-            pre = nodes.literal_block('')
+            pre = nodes.literal_block('', classes=['m-code', 'm-math'] + classes)
             pre.append(content)
             return [pre]
 
@@ -104,8 +111,7 @@ class Math(rst.Directive):
         node = nodes.raw(self.block_text, latex2svgextra.patch(content, svg, None, ''), format='html')
         node.line = self.content_offset + 1
         self.add_name(node)
-        container = nodes.container(**self.options)
-        container['classes'] += ['m-math']
+        container = nodes.container(classes=['m-math'] + classes, **self.options)
         container.append(node)
         return [container]
 
@@ -125,7 +131,7 @@ def math(role, rawtext, text, lineno, inliner, options={}, content=[]):
             del options['classes']
 
         content = nodes.raw('', html.escape(utils.unescape(text)), format='html')
-        node = nodes.literal(rawtext, '', **options)
+        node = nodes.literal(rawtext, '', classes=['m-code', 'm-math'] + classes, **options)
         node.append(content)
         return [node], []
 
