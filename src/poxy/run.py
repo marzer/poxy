@@ -103,7 +103,6 @@ DOXYGEN_DEFAULTS = (
     (r'GENERATE_TODOLIST', False),
     (r'GENERATE_TREEVIEW', False),
     (r'GENERATE_XML', True),
-    (r'HAVE_DOT', False),
     (r'HIDE_COMPOUND_REFERENCE', False),
     (r'HIDE_FRIEND_COMPOUNDS', False),
     (r'HIDE_IN_BODY_DOCS', False),
@@ -218,6 +217,8 @@ def preprocess_doxyfile(context: Context):
 
         if context.excluded_symbols:
             df.set_value(r'EXCLUDE_SYMBOLS', context.excluded_symbols)
+
+        df.set_value(r'HAVE_DOT', bool(context.dot))
 
         df.append()
         df.append(r'# context.warnings', end='\n\n')  # ---------------------------------------------------

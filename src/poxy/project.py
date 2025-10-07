@@ -10,6 +10,7 @@ Everything relating to the 'project context' object that describes the project f
 import sys
 import copy
 import os
+import shutil
 
 try:
     import pytomlpp as toml  # fast; based on toml++ (C++)
@@ -1100,6 +1101,7 @@ class Context(object):
             Optional(r'tagfiles'): {str: str},
             Optional(r'theme'): Or(r'dark', r'light', r'custom'),
             Optional(r'warnings'): Warnings.schema,
+            Optional(r'dot'): bool,
         },
         ignore_extra_keys=True,
     )
@@ -1705,6 +1707,17 @@ class Context(object):
                 if isinstance(v, (Path, str)):
                     assert_existing_file(k)
             self.verbose_value(r'Context.tagfiles', self.tagfiles)
+
+            # dot tool (HAVE_DOT)
+            self.dot = bool(config['dot']) if 'dot' in config else None
+            if self.dot is None or self.dot:
+                dot_exe = shutil.which('dot')
+                if dot_exe:
+                    self.info(rf'Found dot: {dot_exe}')
+                    self.dot = True
+                elif self.dot:  # user explicitly requested it
+                    self.dot = False
+                    self.warning('dot: set to true, but no dot executable could be found on the PATH')
 
             # navbar
             if 1:

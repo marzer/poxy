@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.20.0 - 2025-10-07
+
+- added config option `dot` (a.k.a. Doxygen's `HAVE_DOT`)
+
 ## v0.19.8 - 2025-09-24
 
 - fixed additional libgs.so lookup issues
