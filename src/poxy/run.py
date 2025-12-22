@@ -113,6 +113,7 @@ DOXYGEN_DEFAULTS = (
     (r'HTML_FILE_EXTENSION', r'.html'),
     (r'HTML_OUTPUT', r'html'),
     (r'IDL_PROPERTY_SUPPORT', False),
+    (r'IMPLICIT_DIR_DOCS', False),
     (r'INHERIT_DOCS', True),
     (r'INLINE_GROUPED_CLASSES', False),
     (r'INLINE_INFO', True),
