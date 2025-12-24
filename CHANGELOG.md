@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.20.1 - 2025-12-24
+
+- disabled Doxygen's IMPLICIT_DIR_DOCS (a.k.a. Doxygen's `HAVE_DOT`) (#41) (@fwerner)
+
 ## v0.20.0 - 2025-10-07
 
 - added config option `dot` (a.k.a. Doxygen's `HAVE_DOT`)
