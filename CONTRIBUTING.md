@@ -29,15 +29,42 @@ as 'editable' from a clone of the repository:
 ```sh
 git clone <your poxy fork>
 cd poxy
-pip install -r requirements.txt
-pip install -e .
+pip install -e '.[dev]'
 ```
+
+The `[dev]` extra pulls in `pytest` and `ruff` (matching the versions CI uses).
+
+### Running the tests
+
+```sh
+pytest
+```
+
+There are two kinds of test:
+
+-   **Unit tests** ([tests/test_units.py]) cover the pure helper functions. They need neither Doxygen nor
+    network access, run in a fraction of a second, and are the project's primary safety net.
+-   **Convergence tests** ([tests/test_snapshots.py]) build each project under `tests/test_*` and compare the
+    (sanitized) HTML/XML against the canonical `expected_html` / `expected_xml` trees. These require Doxygen on
+    your `PATH` and are skipped automatically if it isn't found.
+
+A core goal of poxy is to act as a man-in-the-middle between Doxygen and m.css, detecting and ironing out the
+differences between Doxygen versions. So the golden is poxy's _desired, version-independent_ output, and CI runs
+the convergence tests against the **full** Doxygen matrix, expecting every version to reproduce it exactly.
+
+A divergence on some Doxygen version is therefore a normalisation gap in poxy to be fixed - not a test to be
+relaxed. Re-bless the goldens (`poxy --update-tests`) only deliberately, using the reference Doxygen version
+documented in [`.github/workflows/ci.yaml`].
 
 ### Code style
 
 It's Python. I'm primarily a C++ programmer. I really don't care that much.
-If you want to be consistent, the codebase is configured for use with [black], so you can point your editor
-to that as an autoformatter.
+The codebase is linted and formatted with [ruff] (config in `pyproject.toml`); CI enforces both. Before pushing:
+
+```sh
+ruff check src tests
+ruff format src tests
+```
 
 I'm not too fussy though. I'm unlikely to reject a PR on the basis of style unless you do something truly horrendous.
 
@@ -119,8 +146,12 @@ These are the 'blessed' versions of whatever the test is assessing, and must be 
 impact the generated HTML or XML:
 
 ```sh
-poxy --update-tests
+poxy --update-tests   # equivalently: pytest --regenerate
 ```
+
+**⚠&#xFE0F; Note:** the golden is poxy's canonical version-independent output. Re-bless deliberately, and only
+using the reference Doxygen version (see [`.github/workflows/ci.yaml`]). Re-blessing on a different version bakes
+that version's quirks into the golden and masks the very normalisation gaps the convergence tests exist to catch.
 
 <br /><br />
 
@@ -128,5 +159,8 @@ poxy --update-tests
 [gitter]: https://gitter.im/marzer/poxy
 [mosra/m.css]: https://github.com/mosra/m.css
 [marzer/m.css]: https://github.com/marzer/m.css
-[data/css]: https://github.com/marzer/poxy/tree/main/poxy/data/css
-[black]: https://pypi.org/project/black/
+[data/css]: https://github.com/marzer/poxy/tree/main/src/poxy/css
+[ruff]: https://docs.astral.sh/ruff/
+[tests/test_units.py]: https://github.com/marzer/poxy/blob/main/tests/test_units.py
+[tests/test_snapshots.py]: https://github.com/marzer/poxy/blob/main/tests/test_snapshots.py
+[`.github/workflows/ci.yaml`]: https://github.com/marzer/poxy/blob/main/.github/workflows/ci.yaml

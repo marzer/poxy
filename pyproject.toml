@@ -3,8 +3,8 @@
 # See https://github.com/marzer/poxy/master/LICENSE.txt for the full license text.
 # SPDX-License-Identifier: MIT
 
-# windows:
-# python -m build && twine upload dist/* && rmdir /S /Q dist
+# releasing: push a 'v*' git tag - .github/workflows/release.yaml builds and publishes to PyPI
+# via trusted publishing. (manual fallback: python -m build && twine upload dist/*)
 
 [build-system]
 requires = ['setuptools', 'wheel']
@@ -12,7 +12,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'poxy'
-requires-python = '>=3.7'
+requires-python = '>=3.9'
 description = 'Documentation generator for C++.'
 authors = [{ name = "Mark Gillard", email = "mark.gillard@outlook.com.au" }]
 license = { text = 'MIT' }
@@ -21,6 +21,12 @@ classifiers = [
     'Development Status :: 4 - Beta',
     'License :: OSI Approved :: MIT License',
     'Programming Language :: C++',
+    'Programming Language :: Python :: 3 :: Only',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
     'Topic :: Documentation',
     'Topic :: Software Development :: Code Generators',
     'Topic :: Software Development :: Documentation',
@@ -33,13 +39,23 @@ dependencies = [
     'pygments',
     'html5lib',
     'lxml',
-    'tomli',
+    'tomli; python_version < "3.11"', # 3.11+ uses the stdlib tomllib
     'schema != 0.7.5',
     'requests',
     'trieregex',
     'colorama',
 ]
 dynamic = ['version', 'readme']
+
+[project.optional-dependencies]
+test = ['pytest']
+dev = [
+    'pytest',
+    'ruff == 0.15.14',
+    'pyright == 1.1.409',
+    'beautifulsoup4 == 4.13.3',
+    'lxml-stubs == 0.5.1',
+]
 
 [project.scripts]
 poxy = 'poxy:main'
@@ -54,7 +70,7 @@ Funding = 'https://github.com/sponsors/marzer'
 zip-safe = true
 
 [tool.setuptools.dynamic]
-version = { file = 'src/poxy/version.txt' }
+version = { file = 'VERSION' }
 readme = { file = [
     'README.md',
     'CHANGELOG.md',
@@ -82,8 +98,41 @@ include = ["poxy*"]
 [tool.setuptools.exclude-package-data]
 "*" = ['meson.build', '.git*', '.istanbul.yaml', '*.pyc']
 
-[tool.black]
+[tool.ruff]
 line-length = 120
-target-version = ['py37']
-skip-string-normalization = true
+target-version = 'py39'
+# the vendored m.css fork is maintained upstream - never lint or reformat it
+extend-exclude = ['src/poxy/mcss']
+
+[tool.ruff.format]
+quote-style = 'preserve'         # matches the old black skip-string-normalization
 skip-magic-trailing-comma = true
+
+[tool.ruff.lint]
+select = ['F', 'E4', 'E7', 'E9', 'W', 'I', 'UP', 'B']
+ignore = [
+    'F403', # 'from x import *' used (intentional throughout: misk, .utils, .version)
+    'F405', # name may be undefined / from star imports (ditto)
+    'F541', # f-string without placeholders (deliberate rf'' style habit)
+    'E731', # assigning a lambda (used deliberately for small local callables)
+    'E741', # ambiguous variable name (e.g. single-letter 'l')
+    'B007', # unused loop control variable (noisy, low value)
+    'B023', # closure over loop var: false positives here (lambdas invoked synchronously by re.sub / visitors)
+]
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
+
+[tool.pytest.ini_options]
+testpaths = ['tests']
+# unit tests need neither doxygen nor network; snapshot tests are marked and skip when doxygen is absent
+addopts = '-ra'
+
+[tool.pyright]
+include = ['src/poxy', 'src/__main__.py', 'tests']
+exclude = ['src/poxy/mcss', '**/__pycache__', '**/.*', 'build', 'dist']
+pythonVersion = '3.9'
+typeCheckingMode = 'basic'
+reportMissingModuleSource = false
+reportMissingTypeStubs = false
+reportWildcardImportFromLibrary = false

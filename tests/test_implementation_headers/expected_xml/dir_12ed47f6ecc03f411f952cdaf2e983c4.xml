@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="dir_poxyhash0" kind="dir">
+		<compoundname>detail</compoundname>
+		<briefdescription></briefdescription>
+		<detaileddescription></detaileddescription>
+		<location file="detail/"/>
+	</compounddef>
+</doxygen>

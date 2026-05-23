@@ -1,0 +1,10 @@
+name = 'ImplHeaders'
+description = 'implementation_headers test'
+cpp = 20
+
+[sources]
+recursive_paths = ['src']
+strip_paths = ['src']
+
+[implementation_headers]
+'foo.hpp' = ['detail/*.hpp']

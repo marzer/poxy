@@ -12,12 +12,12 @@ import os
 import re
 import shutil
 import subprocess
-from typing import Tuple
 
 from lxml import etree
 
 from . import graph, xml_utils
 from .utils import *
+from .xml_utils import require
 
 # =======================================================================================================================
 # functions
@@ -73,7 +73,7 @@ def format_for_doxyfile(val):
     elif isinstance(val, (int, float)):
         return str(val)
     else:
-        assert False
+        raise AssertionError
 
 
 def path() -> Path:
@@ -103,7 +103,7 @@ def path() -> Path:
                     doxygen = test_path(p)
                     if doxygen is not None:
                         break
-                except:
+                except Exception:
                     pass
 
         if doxygen is None:
@@ -119,16 +119,16 @@ def raw_version_string() -> str:
         val = proc.stdout.strip() if proc.stdout is not None else ''
         if not val and proc.stderr.strip():
             raise Error(rf'doxygen exited with error: {proc.stderr.strip()}')
-        setattr(raw_version_string, 'val', val)
+        raw_version_string.val = val
     return raw_version_string.val
 
 
-def version() -> Tuple[int, int, int]:
+def version() -> tuple[int, int, int]:
     if not hasattr(version, "val"):
         val = raw_version_string()
         val = re.fullmatch(r'^\s*v?\s*([0-9]+)\s*[.]\s*([0-9]+)\s*[.]\s*([0-9]+)(?:[^0-9].*)?$', val, flags=re.I)
         assert val
-        setattr(version, 'val', (int(val[1]), int(val[2]), int(val[3])))
+        version.val = int(val[1]), int(val[2]), int(val[3])
     return version.val
 
 
@@ -137,11 +137,60 @@ def version_string() -> str:
 
 
 # =======================================================================================================================
+# version policy + capabilities
+# =======================================================================================================================
+#
+# poxy is a man-in-the-middle between doxygen and m.css, so it has to know which doxygen versions it can
+# normalise correctly. the constants below mirror the version matrix exercised by the convergence CI.
+# version-reactive behaviour is expressed as named capability predicates rather than bare version tuples
+# scattered through the pipeline, so the "what changed in which version" knowledge lives in one place.
+
+# oldest doxygen poxy supports; below this the XML shape the fixups expect is not guaranteed
+MINIMUM_VERSION = (1, 9, 3)
+
+# version the convergence golden is blessed against (poxy --update-tests / pytest --regenerate)
+REFERENCE_VERSION = (1, 14, 0)
+
+# newest doxygen exercised by CI; newer may work but is unverified, so it only warns
+HIGHEST_TESTED_VERSION = (1, 17, 0)
+
+
+def _format_version(v) -> str:
+    return r'.'.join(str(i) for i in v)
+
+
+def check_supported(context=None):
+    '''
+    Enforces poxy's doxygen version-support policy: a hard error below MINIMUM_VERSION, a warning above
+    HIGHEST_TESTED_VERSION. Call once before relying on doxygen's output.
+    '''
+    v = version()
+    if v < MINIMUM_VERSION:
+        raise Error(
+            rf'doxygen {version_string()} is too old; poxy needs at least {_format_version(MINIMUM_VERSION)} '
+            rf'(recommended: {_format_version(REFERENCE_VERSION)}). please upgrade doxygen.'
+        )
+    if v > HIGHEST_TESTED_VERSION and context is not None:
+        context.warning(
+            rf'doxygen {version_string()} is newer than the most recent version poxy has been tested against '
+            rf'({_format_version(HIGHEST_TESTED_VERSION)}); output may contain un-normalised quirks'
+        )
+
+
+def has_unresolved_member_references() -> bool:
+    '''
+    doxygen >= 1.9.7 emits member references that m.css cannot resolve on its own, so poxy resolves
+    them itself during xml preprocessing. see https://github.com/mosra/m.css/issues/239
+    '''
+    return version() >= (1, 9, 7)
+
+
+# =======================================================================================================================
 # Doxyfile
 # =======================================================================================================================
 
 
-class Doxyfile(object):
+class Doxyfile:
     def __init__(self, input_path=None, output_path=None, cwd=None, logger=None, flush_at_exit=True):
         self.__logger = logger
         self.__dirty = True
@@ -274,7 +323,7 @@ class Doxyfile(object):
             self.flush()
 
 
-class Bool(object):
+class Bool:
     def __init__(self, value: bool):
         self.__value = bool(value)
 
@@ -282,7 +331,7 @@ class Bool(object):
         return r'yes' if self.__value else r'no'
 
 
-class Prot(object):
+class Prot:
     def __init__(self, value: graph.AccessLevel):
         self.__value = value
 
@@ -290,7 +339,7 @@ class Prot(object):
         return self.__value.name.lower()
 
 
-class Virt(object):
+class Virt:
     def __init__(self, value: bool):
         self.__value = bool(value)
 
@@ -327,13 +376,12 @@ COMPOUND_NODE_TYPES = {KINDS_TO_NODE_TYPES[c] for c in COMPOUNDS}
 VERSION = r'1.9.5'
 
 
-def _ordered(*types) -> list:
+def _ordered(*types) -> tuple:
     assert types is not None
     assert types
-    types = [*types]
-    types.sort(key=lambda t: t.__name__)
-    types = tuple(types)
-    return types
+    ordered = [*types]
+    ordered.sort(key=lambda t: t.__name__)
+    return tuple(ordered)
 
 
 def _parse_xml_file(g: graph.Graph, path: Path, log_func=None):
@@ -461,7 +509,7 @@ def _parse_xml_file(g: graph.Graph, path: Path, log_func=None):
         node.file = location.get(r'file')
         try:
             node.line = location.get(r'line')
-        except:
+        except Exception:
             pass
         node.column = location.get(r'column')
         attrs = []
@@ -479,11 +527,11 @@ def _parse_xml_file(g: graph.Graph, path: Path, log_func=None):
         if compound.get(r'kind') == r'friend':
             raise Error(rf"Malformed XML: <compound> tag attribute 'kind' had unexpected value 'friend'")
 
-        node = g.get_or_create_node(id=compound.get(r'refid'), type=KINDS_TO_NODE_TYPES[compound.get(r'kind')])
+        node = g.get_or_create_node(id=compound.get(r'refid'), type=KINDS_TO_NODE_TYPES[require(compound.get(r'kind'))])
 
         if node.type is graph.File:  # files use their local name?? doxygen is so fucking weird
             node.local_name = tail(
-                extract_subelement_text(compound, r'name').strip().replace('\\', r'/').rstrip(r'/'), r'/'
+                require(extract_subelement_text(compound, r'name')).strip().replace('\\', r'/').rstrip(r'/'), r'/'
             )  #
         else:
             node.qualified_name = extract_subelement_text(compound, r'name')
@@ -494,7 +542,7 @@ def _parse_xml_file(g: graph.Graph, path: Path, log_func=None):
             if member_kind == r'enumvalue':
                 continue
             member = g.get_or_create_node(
-                id=member_elem.get(r'refid'), type=KINDS_TO_NODE_TYPES[member_kind], parent=node
+                id=member_elem.get(r'refid'), type=KINDS_TO_NODE_TYPES[require(member_kind)], parent=node
             )
             name = extract_subelement_text(member_elem, r'name')
             if name:
@@ -513,7 +561,9 @@ def _parse_xml_file(g: graph.Graph, path: Path, log_func=None):
         if compounddef.get(r'kind') == r'friend':
             raise Error(rf"Malformed XML: <compounddef> tag attribute 'kind' had unexpected value 'friend'")
 
-        node = g.get_or_create_node(id=compounddef.get(r'id'), type=KINDS_TO_NODE_TYPES[compounddef.get(r'kind')])
+        node = g.get_or_create_node(
+            id=compounddef.get(r'id'), type=KINDS_TO_NODE_TYPES[require(compounddef.get(r'kind'))]
+        )
         node.access_level = compounddef.get(r'prot')
         parse_brief(node, compounddef)
         parse_detail(node, compounddef)
@@ -525,18 +575,17 @@ def _parse_xml_file(g: graph.Graph, path: Path, log_func=None):
         qualified_name = extract_subelement_text(compounddef, r'qualifiedname')
         qualified_name = qualified_name.strip() if qualified_name is not None else r''
         if not qualified_name and node.type in (graph.Directory, graph.File):
-            qualified_name = compounddef.find(r'location')
-            qualified_name = qualified_name.get(r'file') if qualified_name is not None else r''
+            location = compounddef.find(r'location')
+            qualified_name = require(location.get(r'file')) if location is not None else r''
             qualified_name = qualified_name.rstrip(r'/')
         if not qualified_name:
             qualified_name = extract_qualified_name(compounddef)
         node.qualified_name = qualified_name
 
         # get all memberdefs in one flat list
-        memberdefs = [compounddef]
-        memberdefs += [s for s in compounddef.findall(r'sectiondef')]
-        memberdefs = [s.findall(r'memberdef') for s in memberdefs]  # list of lists of memberdefs
-        memberdefs = list(itertools.chain.from_iterable(memberdefs))  # list of memberdefs
+        memberdef_containers = [compounddef]
+        memberdef_containers += [s for s in compounddef.findall(r'sectiondef')]
+        memberdefs = list(itertools.chain.from_iterable(c.findall(r'memberdef') for c in memberdef_containers))
 
         def get_memberdefs(kind: str):
             nonlocal memberdefs
@@ -544,7 +593,7 @@ def _parse_xml_file(g: graph.Graph, path: Path, log_func=None):
 
         # all <memberdefs>
         for elem in memberdefs:
-            kind = elem.get(r'kind')
+            kind = require(elem.get(r'kind'))
             member = g.get_or_create_node(id=elem.get(r'id'), type=KINDS_TO_NODE_TYPES[kind], parent=node)
             parse_brief(member, elem)
             parse_detail(member, elem)
@@ -644,9 +693,9 @@ def read_graph_from_xml(folder, log_func=None) -> graph.Graph:
         except KeyError:
             raise
         except graph.GraphError as ex:
-            raise graph.GraphError(rf'Parsing {path.name} failed: {ex}')
+            raise graph.GraphError(rf'Parsing {path.name} failed: {ex}') from ex
         except Exception as ex:
-            raise Error(rf'Parsing {path.name} failed: {ex}')
+            raise Error(rf'Parsing {path.name} failed: {ex}') from ex
 
     # deduce any missing qualified_names for C++ constructs
     again = True
@@ -872,7 +921,7 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
         )
 
         # create the root <compounddef>
-        compounddef = root.find(r'compounddef')
+        compounddef = require(root.find(r'compounddef'))
         if node.type not in (graph.Namespace, graph.Directory, graph.File, graph.Concept):
             compounddef.set(r'prot', str(Prot(node.access_level)))
 
@@ -1090,7 +1139,7 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
         for tag_name in (r'sectiondef',):
             for elem in list(compounddef.findall(tag_name)):
                 if not len(elem):
-                    elem.getparent().remove(elem)
+                    require(elem.getparent()).remove(elem)
 
         if log_func:
             log_func(rf'Writing {path}')
@@ -1128,14 +1177,20 @@ def write_graph_to_xml(g: graph.Graph, folder: Path, log_func=None):
                     for child in children:
                         assert child.local_name
                         member = xml_utils.make_child(
-                            compound, r'member', refid=child.id, kind=NODE_TYPES_TO_KINDS[child.type]  #
+                            compound,
+                            r'member',
+                            refid=child.id,
+                            kind=NODE_TYPES_TO_KINDS[child.type],  #
                         )
                         xml_utils.make_child(member, r'name').text = child.local_name
                         if child_type is graph.Enum:
                             for enumvalue in child(graph.EnumValue):
                                 assert enumvalue.local_name
                                 elem = xml_utils.make_child(
-                                    compound, r'member', refid=enumvalue.id, kind=NODE_TYPES_TO_KINDS[enumvalue.type]  #
+                                    compound,
+                                    r'member',
+                                    refid=enumvalue.id,
+                                    kind=NODE_TYPES_TO_KINDS[enumvalue.type],  #
                                 )
                                 xml_utils.make_child(elem, r'name').text = enumvalue.local_name
 

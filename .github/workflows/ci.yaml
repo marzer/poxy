@@ -11,6 +11,7 @@ on:
             - "**/poxy/data/*"
             - "**/workflows/**.yaml"
             - "pyproject.toml"
+            - "VERSION"
         branches:
             - "**"
         tags-ignore:
@@ -22,7 +23,72 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    linux:
+    # lint + format check (ruff)
+    lint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-python@v6
+              with:
+                  python-version: "3.13"
+            - name: Install ruff
+              run: |
+                  python -m pip install --upgrade pip
+                  python -m pip install '.[dev]'
+            - name: ruff check
+              run: python -m ruff check src tests
+            - name: ruff format --check
+              run: python -m ruff format --check src tests
+
+    # static type checking (pyright)
+    typecheck:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-python@v6
+              with:
+                  python-version: "3.13"
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+            - name: Install poxy + pyright
+              run: |
+                  python -m pip install --upgrade pip
+                  python -m pip install '.[dev]'
+            - name: pyright
+              run: python -m pyright
+
+    # unit tests for the pure (non-network, non-doxygen) helpers
+    unit:
+        strategy:
+            fail-fast: false
+            matrix:
+                python:
+                    - "3.9"
+                    - "3.10"
+                    - "3.11"
+                    - "3.12"
+                    - "3.13"
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-python@v6
+              with:
+                  python-version: "${{ matrix.python }}"
+            - name: Install poxy
+              run: |
+                  python -m pip install --upgrade pip
+                  python -m pip install --upgrade '.[test]'
+            - name: Run unit tests
+              run: python -m pytest tests/test_units.py -ra
+
+    # convergence: poxy's whole reason to exist is to normalize away doxygen's version-to-version differences,
+    # so the canonical expected_* golden must be reproduced byte-for-byte by EVERY supported doxygen version.
+    # any divergence here is a normalization gap in poxy to be fixed, not a test to be relaxed.
+    #
+    # reference doxygen version for re-blessing (poxy --update-tests / pytest --regenerate): 1.14.0.
+    # the golden reflects that version; divergence on any other version is the normalization punch-list.
+    convergence:
         strategy:
             fail-fast: false
             matrix:
@@ -39,13 +105,8 @@ jobs:
                     - "1.13.2"
                     - "1.14.0"
                     - "1.15.0"
-                python:
-                    - "3.8.12"
-                    - "3.9"
-                    - "3.10"
-                    - "3.11"
-                    - "3.12"
-                    - "3.13"
+                    - "1.16.0"
+                    - "1.17.0"
 
         runs-on: ubuntu-latest
 
@@ -61,28 +122,21 @@ jobs:
                   sudo apt -y install --no-install-recommends dvisvgm
 
             - name: Install doxygen
-              uses: ssciwr/doxygen-install@v1
+              uses: ssciwr/doxygen-install@v2
               with:
                   version: "${{ matrix.doxygen }}"
 
+            - uses: actions/checkout@v6
+
             - name: Install python
-              uses: actions/setup-python@v5
+              uses: actions/setup-python@v6
               with:
-                  python-version: "${{ matrix.python }}"
-
-            - name: Install python dependencies
-              run: |
-                  python --version
-                  python -m pip install --upgrade pip build setuptools wheel
-
-            - uses: actions/checkout@v4
-              with:
-                  path: repo
+                  python-version: "3.13"
 
             - name: Install poxy
               run: |
-                  cd "${{ github.workspace }}/repo"
-                  python -m pip install --upgrade .
+                  python -m pip install --upgrade pip
+                  python -m pip install --upgrade '.[test]'
 
             - name: Print poxy help and version
               run: |
@@ -91,10 +145,105 @@ jobs:
                   poxy --doxygen-version
                   poxy --help
 
-            - name: Run poxy on test_project
+            # strict: the golden must be reproduced regardless of doxygen version
+            - name: Snapshot convergence
+              run: python -m pytest tests/test_snapshots.py -ra
+
+            # additional smoke coverage of CLI paths not exercised by the snapshot tests
+            - name: CLI smoke
               run: |
-                  cd "${{ github.workspace }}/repo/tests/test_project"
-                  poxy
-                  poxy --xml
+                  cd tests/test_project
                   poxy --verbose
                   poxy --bug-report
+
+    # lint the workflow files + their embedded shell (catches release-script bugs before they misfire)
+    actionlint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - name: Download actionlint
+              id: actionlint
+              run: bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+            - name: Lint workflows
+              run: ${{ steps.actionlint.outputs.executable }} -color
+
+    # build the distribution and install the wheel into a clean venv to validate the packaging path
+    # end-to-end: setuptools' dynamic version, the entry-point script, and version.py's importlib.metadata
+    # fallback (the source tree never hits that branch, since the root VERSION file always wins there).
+    package:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-python@v6
+              with:
+                  python-version: "3.13"
+            - name: Build sdist + wheel
+              run: |
+                  python -m pip install --upgrade pip build
+                  python -m build
+            - name: Install wheel into a clean venv and verify version
+              run: |
+                  python -m venv /tmp/venv
+                  /tmp/venv/bin/pip install dist/*.whl
+                  expected="$(tr -d '[:space:]' < VERSION)"
+                  actual="$(cd /tmp && /tmp/venv/bin/poxy --version)"
+                  echo "expected='$expected' actual='$actual'"
+                  test "$actual" = "$expected"
+
+    # on a push to main, cut a release from VERSION once everything above is green. the release is created
+    # under a PAT (not the default GITHUB_TOKEN) so the tag it pushes triggers publish.yaml -> PyPI.
+    # idempotent: if a release for the current VERSION already exists it no-ops, so it's safe on every push.
+    release:
+        needs: [lint, typecheck, unit, convergence, actionlint, package]
+        if: github.ref == 'refs/heads/main'
+        runs-on: ubuntu-slim
+
+        defaults:
+            run:
+                shell: bash
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Create release from VERSION
+              env:
+                  # PAT (not the default GITHUB_TOKEN) so the tag this pushes triggers publish.yaml
+                  GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+              run: |
+                  shopt -s extglob
+                  version=$(<VERSION)
+                  version="${version##+([[:space:]])}"
+                  version="${version%%+([[:space:]])}"
+                  echo "VERSION: $version"
+
+                  if [ -z "$version" ]; then
+                    echo "empty VERSION; nothing to do."
+                    exit 0
+                  fi
+                  if [ "$version" = "0" ] || [ "$version" = "0.0" ] || [ "$version" = "0.0.0" ]; then
+                    echo "VERSION was set to 0.0.0; nothing to do."
+                    exit 0
+                  fi
+
+                  tag="v$version"
+                  if gh release view "$tag" --repo "${{ github.repository }}" ; then
+                    echo "release with tag $tag already exists; nothing to do."
+                    exit 0
+                  fi
+
+                  notes="This release was triggered automatically by a merge to \`${{ github.ref_name }}\`."
+                  notes+='<br/><br/>'
+                  if [ -f "CHANGELOG.md" ]; then
+                    notes+='See [CHANGELOG.md]('
+                    notes+="https://github.com/${{ github.repository }}/blob/$tag/CHANGELOG.md"
+                    notes+=') for a human-friendly change log. :tada:'
+                    notes+='<br/><br/>'
+                  fi
+
+                  gh release create "$tag" \
+                    --repo "${{ github.repository }}" \
+                    --target "${{ github.sha }}" \
+                    --title "$tag" \
+                    --generate-notes \
+                    --notes "$notes"

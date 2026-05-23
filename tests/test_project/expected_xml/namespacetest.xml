@@ -3,25 +3,25 @@
 	<compounddef id="namespacetest" kind="namespace" language="C++">
 		<compoundname>test</compoundname>
 		<sectiondef kind="enum">
-			<memberdef kind="enum" id="namespacetest_1a393facd551443a4aaea74c533c2bce6f" prot="public" static="no" strong="yes">
+			<memberdef kind="enum" id="namespacetest_poxyhash0" prot="public" static="no" strong="yes">
 				<type>unsigned</type>
 				<name>scoped_enum</name>
 				<qualifiedname>test::scoped_enum</qualifiedname>
-				<enumvalue id="namespacetest_1a393facd551443a4aaea74c533c2bce6fa209e4404bac5df6700a512df9e988ba3" prot="public">
+				<enumvalue id="namespacetest_poxyhash1" prot="public">
 					<name>val_0</name>
 					<briefdescription>
 						<para>Value zero. </para>
 					</briefdescription>
 					<detaileddescription></detaileddescription>
 				</enumvalue>
-				<enumvalue id="namespacetest_1a393facd551443a4aaea74c533c2bce6fad69dff41cc115965adfeaa0f58fed641" prot="public">
+				<enumvalue id="namespacetest_poxyhash2" prot="public">
 					<name>val_1</name>
 					<initializer>= 1</initializer><briefdescription>
 						<para>Value one. </para>
 					</briefdescription>
 					<detaileddescription></detaileddescription>
 				</enumvalue>
-				<enumvalue id="namespacetest_1a393facd551443a4aaea74c533c2bce6fa3745be12e7d2d79a55682a6b1ef5863c" prot="public">
+				<enumvalue id="namespacetest_poxyhash3" prot="public">
 					<name>val_2</name>
 					<initializer>= 2</initializer><briefdescription>
 						<para>Value two. </para>
@@ -37,25 +37,25 @@
 				<inbodydescription></inbodydescription>
 				<location file="src/code.h" line="247" column="1" bodyfile="src/code.h" bodystart="248" bodyend="254"/>
 			</memberdef>
-			<memberdef kind="enum" id="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065" prot="public" static="no" strong="no">
+			<memberdef kind="enum" id="namespacetest_poxyhash4" prot="public" static="no" strong="no">
 				<type/>
 				<name>unscoped_enum</name>
 				<qualifiedname>test::unscoped_enum</qualifiedname>
-				<enumvalue id="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065a3b6f77dbd09e17c5e8a30dcd3474012f" prot="public">
+				<enumvalue id="namespacetest_poxyhash5" prot="public">
 					<name>LEGACY_ENUM_VAL_0</name>
 					<briefdescription>
 						<para>Value zero. </para>
 					</briefdescription>
 					<detaileddescription></detaileddescription>
 				</enumvalue>
-				<enumvalue id="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065af18ad5a3bf0d316003544836a8734fd4" prot="public">
+				<enumvalue id="namespacetest_poxyhash6" prot="public">
 					<name>LEGACY_ENUM_VAL_1</name>
 					<initializer>= 1</initializer><briefdescription>
 						<para>Value one. </para>
 					</briefdescription>
 					<detaileddescription></detaileddescription>
 				</enumvalue>
-				<enumvalue id="namespacetest_1ac1a212ff6fd8b8aa63bd0d5536ae7065a731c49ced9fc7748acfebc0a4910494d" prot="public">
+				<enumvalue id="namespacetest_poxyhash7" prot="public">
 					<name>LEGACY_ENUM_VAL_2</name>
 					<initializer>= 2</initializer><briefdescription>
 						<para>Value two. </para>
@@ -73,7 +73,7 @@
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="typedef">
-			<memberdef kind="typedef" id="namespacetest_1a51ed0e00636746f407a20697efc8518e" prot="public" static="no">
+			<memberdef kind="typedef" id="namespacetest_poxyhash8" prot="public" static="no">
 				<type>int</type>
 				<definition>typedef int test::a_shit_typedef</definition>
 				<argsstring/>
@@ -86,11 +86,11 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="278" column="13" bodyfile="src/code.h" bodystart="278" bodyend="-1"/>
+				<location file="src/code.h" line="278" column="13" bodyfile="src/code.h" bodystart="278" bodyend="278"/>
 			</memberdef>
-			<memberdef kind="typedef" id="namespacetest_1af3b055b49aff8d48bea92e5f226daa5d" prot="public" static="no">
+			<memberdef kind="typedef" id="namespacetest_poxyhash9" prot="public" static="no">
 				<type>int</type>
-				<definition>using test::a_typedef =  int</definition>
+				<definition>using test::a_typedef = int</definition>
 				<argsstring/>
 				<name>a_typedef</name>
 				<qualifiedname>test::a_typedef</qualifiedname>
@@ -101,16 +101,16 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="282" column="1" bodyfile="src/code.h" bodystart="282" bodyend="-1"/>
+				<location file="src/code.h" line="282" column="1" bodyfile="src/code.h" bodystart="282" bodyend="282"/>
 			</memberdef>
-			<memberdef kind="typedef" id="namespacetest_1a58dc421199859607c527ded8e3d87bae" prot="public" static="no">
+			<memberdef kind="typedef" id="namespacetest_poxyhash10" prot="public" static="no">
 				<templateparamlist>
 					<param>
 						<type>typename T</type>
 					</param>
 				</templateparamlist>
 				<type>T</type>
-				<definition>using test::a_typedef_template =  T</definition>
+				<definition>using test::a_typedef_template = T</definition>
 				<argsstring/>
 				<name>a_typedef_template</name>
 				<qualifiedname>test::a_typedef_template</qualifiedname>
@@ -121,11 +121,11 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="287" column="1" bodyfile="src/code.h" bodystart="287" bodyend="-1"/>
+				<location file="src/code.h" line="287" column="1" bodyfile="src/code.h" bodystart="287" bodyend="287"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="var">
-			<memberdef kind="variable" id="namespacetest_1af2f5b0612e98ea3ef9de39eb10981879" prot="public" static="no" constexpr="yes" mutable="no">
+			<memberdef kind="variable" id="namespacetest_poxyhash11" prot="public" static="no" constexpr="yes" mutable="no">
 				<type>bool</type>
 				<definition>bool test::inline_variable</definition>
 				<argsstring/>
@@ -138,11 +138,11 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="98" column="23" bodyfile="src/code.h" bodystart="98" bodyend="-1"/>
+				<location file="src/code.h" line="98" column="23" bodyfile="src/code.h" bodystart="98" bodyend="98"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="func">
-			<memberdef kind="function" id="namespacetest_1a14eee7dd5169cc088aad164c5fcb1800" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+			<memberdef kind="function" id="namespacetest_poxyhash12" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>void</type>
 				<definition>void test::a_friend_function</definition>
 				<argsstring>()</argsstring>
@@ -157,8 +157,8 @@
 				<inbodydescription></inbodydescription>
 				<location file="src/code.h" line="94" column="6" declfile="src/code.h" declline="94" declcolumn="6"/>
 			</memberdef>
-			<memberdef kind="function" id="namespacetest_1af10bf287d581eb8aae63d450e3f848c5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-				<type>__poxy_deduced_auto_return_type</type>
+			<memberdef kind="function" id="namespacetest_poxyhash13" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>poxydeducedautoreturntype</type>
 				<definition>auto test::a_function_with_a_deduced_return_type</definition>
 				<argsstring>()</argsstring>
 				<name>a_function_with_a_deduced_return_type</name>
@@ -172,7 +172,7 @@
 				<inbodydescription></inbodydescription>
 				<location file="src/code.h" line="291" column="6" bodyfile="src/code.h" bodystart="291" bodyend="294"/>
 			</memberdef>
-			<memberdef kind="function" id="namespacetest_1ae66b7e2e94f84934cff5de3e512ce0ee" prot="public" static="no" constexpr="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+			<memberdef kind="function" id="namespacetest_poxyhash14" prot="public" static="no" constexpr="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
 				<templateparamlist>
 					<param>
 						<type>typename T</type>
@@ -230,9 +230,9 @@
 				<inbodydescription></inbodydescription>
 				<location file="src/code.h" line="267" column="13" bodyfile="src/code.h" bodystart="267" bodyend="270"/>
 			</memberdef>
-			<memberdef kind="function" id="namespacetest_1a011c6f27e90f228cd68be9def15bc076" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+			<memberdef kind="function" id="namespacetest_poxyhash15" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>
-					<ref refid="cpp/types/integer" kindref="compound" external="D:/Repositories/poxy/src/poxy/cppreference-doxygen-web.tag.xml">std::uint8_t</ref>
+					<ref refid="cpp/types/integer" kindref="compound" external="cppreference-doxygen-web.tag.xml">std::uint8_t</ref>
 				</type>
 				<definition>std::uint8_t test::do_the_thing</definition>
 				<argsstring>()</argsstring>
@@ -247,7 +247,7 @@
 				<inbodydescription></inbodydescription>
 				<location file="src/code.h" line="258" column="14" declfile="src/code.h" declline="258" declcolumn="14"/>
 			</memberdef>
-			<memberdef kind="function" id="namespacetest_1af2e6008ff8ee50f6cda80da681d44348" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+			<memberdef kind="function" id="namespacetest_poxyhash16" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>int</type>
 				<definition>int test::do_the_thing_automatically</definition>
 				<argsstring>()</argsstring>
@@ -267,14 +267,14 @@
 			<para>A namespace. </para>
 		</briefdescription>
 		<detaileddescription>
-			<para>More info. Here's some C++: <programlisting filename=".cpp"><codeline><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>foo()</highlight></codeline><codeline><highlight class="normal">{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>42_a_numeric_udl;</highlight></codeline><codeline><highlight class="normal">}</highlight></codeline><codeline/><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>code<sp/>block<sp/>formatting<sp/>should<sp/>be<sp/>preserved;</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>this<sp/>line<sp/>should<sp/>be<sp/>indented<sp/>by<sp/>three<sp/>tabs,<sp/>the<sp/>above<sp/>by<sp/>two.</highlight></codeline><codeline/><codeline><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>bar()<sp/>noexcept</highlight></codeline><codeline><highlight class="normal">{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">""</highlight><highlight class="normal">_a_string_udl;</highlight></codeline><codeline><highlight class="normal">}</highlight></codeline><codeline/><codeline><highlight class="keyword">using<sp/></highlight><highlight class="normal">some_typedef<sp/>=<sp/>int;<sp/></highlight><highlight class="comment">//<sp/>'some_typedef'<sp/>should<sp/>be<sp/>coloured<sp/>as<sp/>a<sp/>type</highlight></codeline><codeline/><codeline><highlight class="keyword">template</highlight><highlight class="normal"><sp/>&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal"><sp/>T&gt;</highlight></codeline><codeline><highlight class="keyword">using<sp/></highlight><highlight class="normal">templated_typedef<sp/>=<sp/>int;<sp/></highlight><highlight class="comment">//<sp/>'T'<sp/>and<sp/>'templated_typedef'<sp/>should<sp/>be<sp/>coloured<sp/>as<sp/>types</highlight></codeline><codeline/><codeline><highlight class="keyword">class<sp/></highlight><highlight class="normal">qux</highlight></codeline><codeline><highlight class="normal">{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>func();</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>func2(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal">);</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>func3();</highlight></codeline><codeline/><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>qux()</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>func();</highlight></codeline><codeline/><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(func2(7))</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>qux::func3();</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline><codeline><highlight class="normal">};</highlight></codeline></programlisting> <programlisting filename=".shell-session"><codeline><highlight class="normal">this<sp/>should<sp/>be<sp/>a<sp/>.sh<sp/>block.</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>each<sp/>line<sp/>should<sp/>be<sp/>indended<sp/>by<sp/>one<sp/>more<sp/>tab<sp/>than<sp/>the<sp/>last.</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>i<sp/>have<sp/>put<sp/>the<sp/>block<sp/>openers<sp/>and<sp/>closers<sp/>right<sp/>next<sp/>to<sp/>each<sp/>other</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>without<sp/>a<sp/>blank<sp/>line<sp/>in<sp/>between<sp/>because<sp/>this<sp/>breaks<sp/>parsing<sp/>in<sp/>m.css</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>but<sp/>poxy<sp/>has<sp/>a<sp/>fix<sp/>for<sp/>it.</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>additionally<sp/>it<sp/>should<sp/>appear<sp/>'glued'<sp/>to<sp/>the<sp/>above<sp/>C++<sp/>block,<sp/>because<sp/>magic.</highlight></codeline></programlisting> </para>
+			<para>More info. Here's some C++: <programlisting filename=".cpp"><codeline><highlight class="normal">int<sp/>foo()</highlight></codeline><codeline><highlight class="normal">{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>42_a_numeric_udl;</highlight></codeline><codeline><highlight class="normal">}</highlight></codeline><codeline/><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>code<sp/>block<sp/>formatting<sp/>should<sp/>be<sp/>preserved;</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>//<sp/>this<sp/>line<sp/>should<sp/>be<sp/>indented<sp/>by<sp/>three<sp/>tabs,<sp/>the<sp/>above<sp/>by<sp/>two.</highlight></codeline><codeline/><codeline><highlight class="normal">const<sp/>char*<sp/>bar()<sp/>noexcept</highlight></codeline><codeline><highlight class="normal">{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>""_a_string_udl;</highlight></codeline><codeline><highlight class="normal">}</highlight></codeline><codeline/><codeline><highlight class="normal">using<sp/>some_typedef<sp/>=<sp/>int;<sp/>//<sp/>'some_typedef'<sp/>should<sp/>be<sp/>coloured<sp/>as<sp/>a<sp/>type</highlight></codeline><codeline/><codeline><highlight class="normal">template<sp/>&lt;typename<sp/>T&gt;</highlight></codeline><codeline><highlight class="normal">using<sp/>templated_typedef<sp/>=<sp/>int;<sp/>//<sp/>'T'<sp/>and<sp/>'templated_typedef'<sp/>should<sp/>be<sp/>coloured<sp/>as<sp/>types</highlight></codeline><codeline/><codeline><highlight class="normal">class<sp/>qux</highlight></codeline><codeline><highlight class="normal">{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>static<sp/>int<sp/>func();</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>static<sp/>bool<sp/>func2(int);</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>static<sp/>void<sp/>func3();</highlight></codeline><codeline/><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>qux()</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>func();</highlight></codeline><codeline/><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(func2(7))</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>qux::func3();</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline><codeline><highlight class="normal">};</highlight></codeline></programlisting> <programlisting filename=".shell-session"><codeline><highlight class="normal">this<sp/>should<sp/>be<sp/>a<sp/>.sh<sp/>block.</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>each<sp/>line<sp/>should<sp/>be<sp/>indended<sp/>by<sp/>one<sp/>more<sp/>tab<sp/>than<sp/>the<sp/>last.</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>i<sp/>have<sp/>put<sp/>the<sp/>block<sp/>openers<sp/>and<sp/>closers<sp/>right<sp/>next<sp/>to<sp/>each<sp/>other</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>without<sp/>a<sp/>blank<sp/>line<sp/>in<sp/>between<sp/>because<sp/>this<sp/>breaks<sp/>parsing<sp/>in<sp/>m.css</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>but<sp/>poxy<sp/>has<sp/>a<sp/>fix<sp/>for<sp/>it.</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>additionally<sp/>it<sp/>should<sp/>appear<sp/>'glued'<sp/>to<sp/>the<sp/>above<sp/>C++<sp/>block,<sp/>because<sp/>magic.</highlight></codeline></programlisting> </para>
 		</detaileddescription>
 		<location file="src/code.h" line="90" column="1"/>
 		<innerclass refid="classtest_1_1class__1" prot="public">test::class_1</innerclass>
+		<innerconcept refid="concepttest_1_1concept__1" prot="public">test::concept_1</innerconcept>
 		<innernamespace refid="namespacetest_1_1empty">test::empty</innernamespace>
 		<innernamespace refid="namespacetest_1_1nested">test::nested</innernamespace>
 		<innerclass refid="structtest_1_1struct__1" prot="public">test::struct_1</innerclass>
 		<innerclass refid="classtest_1_1template__class__1" prot="public">test::template_class_1</innerclass>
-		<innerconcept refid="concepttest_1_1concept__1" prot="public">test::concept_1</innerconcept>
 	</compounddef>
 </doxygen>

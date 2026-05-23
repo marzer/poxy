@@ -16,157 +16,163 @@ from .utils import *
 # =======================================================================================================================
 
 
-class Namespace(object):
+class _NodeType:
+    '''Base for the node-type tag classes. CAN_CONTAIN is populated at module scope below.'''
+
+    CAN_CONTAIN: typing.ClassVar[typing.Set[type]] = set()
+
+
+class Namespace(_NodeType):
     '''Namespaces.'''
 
     pass
 
 
-class Class(object):
+class Class(_NodeType):
     '''Classes.'''
 
     pass
 
 
-class Struct(object):
+class Struct(_NodeType):
     '''Structs.'''
 
     pass
 
 
-class Union(object):
+class Union(_NodeType):
     '''Unions.'''
 
     pass
 
 
-class Concept(object):
+class Concept(_NodeType):
     '''C++20 `concept`.'''
 
     pass
 
 
-class Function(object):
+class Function(_NodeType):
     '''Functions.'''
 
     pass
 
 
-class Type(object):
+class Type(_NodeType):
     '''The type of a variable/enum/function return.'''
 
     pass
 
 
-class Variable(object):
+class Variable(_NodeType):
     '''Variables.'''
 
     pass
 
 
-class Enum(object):
+class Enum(_NodeType):
     '''Enums.'''
 
     pass
 
 
-class EnumValue(object):
+class EnumValue(_NodeType):
     '''Enum values.'''
 
     pass
 
 
-class Typedef(object):
+class Typedef(_NodeType):
     '''Typedefs/aliases.'''
 
     pass
 
 
-class Define(object):
+class Define(_NodeType):
     '''Preprocessor `#defines`'''
 
     pass
 
 
-class Group(object):
+class Group(_NodeType):
     '''Groups (at the global level).'''
 
     pass
 
 
-class MemberGroup(object):
+class MemberGroup(_NodeType):
     '''Member groups (at the class/union/struct level).'''
 
     pass
 
 
-class Directory(object):
+class Directory(_NodeType):
     '''A directory in the filesystem.'''
 
     pass
 
 
-class File(object):
+class File(_NodeType):
     '''A file.'''
 
     pass
 
 
-class Page(object):
+class Page(_NodeType):
     '''A documentation page (e.g. Doxygen's `@page`).'''
 
     pass
 
 
-class BriefDescription(object):
+class BriefDescription(_NodeType):
     '''A brief description of an element.'''
 
     pass
 
 
-class DetailedDescription(object):
+class DetailedDescription(_NodeType):
     '''A more detailed description of an element.'''
 
     pass
 
 
-class Initializer(object):
+class Initializer(_NodeType):
     '''An initializer block (usually a code snippet).'''
 
     pass
 
 
-class Paragraph(object):
+class Paragraph(_NodeType):
     '''A paragraph.'''
 
     pass
 
 
-class Text(object):
+class Text(_NodeType):
     '''Plain text.'''
 
     pass
 
 
-class Reference(object):
+class Reference(_NodeType):
     '''A reference to another node.'''
 
     pass
 
 
-class ExternalResource(object):
+class ExternalResource(_NodeType):
     '''A reference to some resource outside the project (e.g. something in a tagfile).'''
 
     pass
 
 
-class ExpositionMarkup(object):
+class ExpositionMarkup(_NodeType):
     '''A 'leftover' node for representing miscellaneous markup in expository contexts.'''
 
     pass
 
 
-class Friend(object):
+class Friend(_NodeType):
     '''A friend relationship.'''
 
     pass
@@ -213,8 +219,30 @@ EXPOSITION_NODE_TYPES = {
     ExpositionMarkup,
 }
 CPP_TYPES = {Namespace, Class, Struct, Union, Concept, Function, Variable, Enum, EnumValue, Typedef, Define}
-Namespace.CAN_CONTAIN = {Function, Class, Struct, Union, Variable, Typedef, Namespace, Concept, Enum, *DESCRIPTION_NODE_TYPES}
-Class.CAN_CONTAIN = {Class, Struct, Union, Function, Variable, Typedef, Enum, MemberGroup, Friend, *DESCRIPTION_NODE_TYPES}
+Namespace.CAN_CONTAIN = {
+    Function,
+    Class,
+    Struct,
+    Union,
+    Variable,
+    Typedef,
+    Namespace,
+    Concept,
+    Enum,
+    *DESCRIPTION_NODE_TYPES,
+}
+Class.CAN_CONTAIN = {
+    Class,
+    Struct,
+    Union,
+    Function,
+    Variable,
+    Typedef,
+    Enum,
+    MemberGroup,
+    Friend,
+    *DESCRIPTION_NODE_TYPES,
+}
 Struct.CAN_CONTAIN = Class.CAN_CONTAIN
 Union.CAN_CONTAIN = Class.CAN_CONTAIN
 Concept.CAN_CONTAIN = {Initializer, *DESCRIPTION_NODE_TYPES}
@@ -271,8 +299,7 @@ def _make_node_iterator(nodes, *types):
 
     def permissive_generator():
         nonlocal nodes
-        for node in nodes:
-            yield node
+        yield from nodes
 
     if not types:
         return permissive_generator()
@@ -294,7 +321,7 @@ def _make_node_iterator(nodes, *types):
     return selective_generator()
 
 
-class _NullNodeIterator(object):
+class _NullNodeIterator:
     def __iter__(self):
         return self
 
@@ -314,10 +341,10 @@ class GraphNodePropertyChanged(GraphError):
     pass
 
 
-class Node(object):
+class Node:
     """A single node in a C++ project graph."""
 
-    class _Props(object):
+    class _Props:
         pass
 
     def __make_hierarchy_containers(self):
@@ -336,7 +363,7 @@ class Node(object):
     # getters
     # ==============
 
-    def __property_get(self, name: str, out_type=None, default=None):
+    def __property_get(self, name: str, out_type=None, default=None) -> typing.Any:
         assert name is not None
         value = None
         if hasattr(self, r'_Node__props'):
@@ -507,7 +534,7 @@ class Node(object):
         # otherwise we throw so that we can detect when the source data is bad or the adapter is faulty
         # (since if a property _can_ be defined in multiple places it should be identical in all of them)
         if current is not None:
-            if type(current) != type(value):
+            if type(current) is not type(value):
                 raise GraphNodePropertyChanged(
                     rf"Node '{self.id}' property '{name}' first seen with type {type(current)}, now seen with type {type(value)}"
                 )
@@ -547,104 +574,104 @@ class Node(object):
             self.local_name = self.qualified_name
 
     @qualified_name.setter
-    def qualified_name(self, value: str):
+    def qualified_name(self, value: typing.Optional[str]):
         if value is not None and self.type in (Directory, File):
             value = str(value).strip().replace('\\', r'/').rstrip(r'/')
         self.__property_set(r'qualified_name', str, value, strip_strings=True)
         self.__deduce_local_name()
 
     @local_name.setter
-    def local_name(self, value: str):
+    def local_name(self, value: typing.Optional[str]):
         self.__property_set(r'local_name', str, value, strip_strings=True)
 
     @definition.setter
-    def definition(self, value: str):
+    def definition(self, value: typing.Optional[str]):
         self.__property_set(r'definition', str, value)
 
     @static.setter
-    def static(self, value: bool):
+    def static(self, value: typing.Union[bool, str, None]):
         self.__property_set(r'static', bool, value)
 
     @const.setter
-    def const(self, value: bool):
+    def const(self, value: typing.Union[bool, str, None]):
         self.__property_set(r'const', bool, value)
 
     @constexpr.setter
-    def constexpr(self, value: bool):
+    def constexpr(self, value: typing.Union[bool, str, None]):
         self.__property_set(r'constexpr', bool, value)
 
     @constinit.setter
-    def constinit(self, value: bool):
+    def constinit(self, value: typing.Union[bool, str, None]):
         self.__property_set(r'constinit', bool, value)
 
     @consteval.setter
-    def consteval(self, value: bool):
+    def consteval(self, value: typing.Union[bool, str, None]):
         self.__property_set(r'consteval', bool, value)
 
     @inline.setter
-    def inline(self, value: bool):
+    def inline(self, value: typing.Union[bool, str, None]):
         self.__property_set(r'inline', bool, value)
 
     @final.setter
-    def final(self, value: bool):
+    def final(self, value: typing.Union[bool, str, None]):
         self.__property_set(r'final', bool, value)
 
     @explicit.setter
-    def explicit(self, value: bool):
+    def explicit(self, value: typing.Union[bool, str, None]):
         self.__property_set(r'explicit', bool, value)
 
     @noexcept.setter
-    def noexcept(self, value: bool):
+    def noexcept(self, value: typing.Union[bool, str, None]):
         self.__property_set(r'noexcept', bool, value)
 
     @virtual.setter
-    def virtual(self, value: bool):
+    def virtual(self, value: typing.Union[bool, str, None]):
         self.__property_set(r'virtual', bool, value)
 
     @mutable.setter
-    def mutable(self, value: bool):
+    def mutable(self, value: typing.Union[bool, str, None]):
         self.__property_set(r'mutable', bool, value)
 
     @strong.setter
-    def strong(self, value: bool):
+    def strong(self, value: typing.Union[bool, str, None]):
         self.__property_set(r'strong', bool, value)
 
     @access_level.setter
-    def access_level(self, value: AccessLevel):
+    def access_level(self, value: typing.Union[AccessLevel, str, None]):
         self.__property_set(r'access_level', AccessLevel, value)
 
     @text.setter
-    def text(self, value: str):
+    def text(self, value: typing.Optional[str]):
         self.__property_set(r'text', str, value)
 
     @is_paragraph.setter
-    def is_paragraph(self, value: bool):
+    def is_paragraph(self, value: typing.Union[bool, str, None]):
         self.__property_set(r'is_paragraph', bool, value)
 
     @file.setter
-    def file(self, value: str):
+    def file(self, value: typing.Optional[str]):
         if value is not None:
             value = str(value).strip().replace('\\', r'/').rstrip(r'/')
         self.__property_set(r'file', str, value)
 
     @line.setter
-    def line(self, value: int):
+    def line(self, value: typing.Union[int, str, None]):
         self.__property_set(r'line', int, value)
 
     @column.setter
-    def column(self, value: int):
+    def column(self, value: typing.Union[int, str, None]):
         self.__property_set(r'column', int, value)
 
     @kind.setter
-    def kind(self, value: str):
+    def kind(self, value: typing.Optional[str]):
         self.__property_set(r'kind', str, value, strip_strings=True)
 
     @tag.setter
-    def tag(self, value: str):
+    def tag(self, value: typing.Optional[str]):
         self.__property_set(r'tag', str, value, strip_strings=True)
 
     @extra_attributes.setter
-    def extra_attributes(self, value: typing.Sequence[typing.Tuple[str, str]]):
+    def extra_attributes(self, value: typing.Optional[typing.Sequence[typing.Tuple[str, str]]]):
         self.__property_set(r'extra_attributes', None, value)
 
     # ==============
@@ -698,7 +725,7 @@ class Node(object):
         if isinstance(id_or_index, str):
             try:
                 return self.__children_by_id[id_or_index]
-            except:
+            except Exception:
                 return None
         elif isinstance(id_or_index, int):
             return self.__children[id_or_index]
@@ -725,14 +752,16 @@ class Node(object):
 
         # check basic connection rules
         if dest.type not in source.type.CAN_CONTAIN:
-            raise GraphError(rf"{source.type_name} node '{source.id}' is not allowed to connect to {dest.type_name} nodes")
+            raise GraphError(
+                rf"{source.type_name} node '{source.id}' is not allowed to connect to {dest.type_name} nodes"
+            )
 
         # check situations where a node must only belong to one parent of a particular set of types
         def check_single_parent(dest_types, source_types):
             nonlocal source
             nonlocal dest
-            source_types = coerce_collection(source_types)
-            dest_types = coerce_collection(dest_types)
+            source_types = typing.cast(typing.Collection[type], coerce_collection(source_types))
+            dest_types = typing.cast(typing.Collection[type], coerce_collection(dest_types))
             if source.type not in source_types or dest.type not in dest_types:
                 return
             sum = 0
@@ -755,8 +784,8 @@ class Node(object):
         def check_single_child(source_types, dest_types):
             nonlocal source
             nonlocal dest
-            source_types = coerce_collection(source_types)
-            dest_types = coerce_collection(dest_types)
+            source_types = typing.cast(typing.Collection[type], coerce_collection(source_types))
+            dest_types = typing.cast(typing.Collection[type], coerce_collection(dest_types))
             if source.type not in source_types or dest.type not in dest_types:
                 return
             sum = 0
@@ -842,7 +871,7 @@ class Node(object):
         return self.type is Variable and self.is_class_member
 
     @property
-    def is_class_member_variable(self) -> bool:
+    def is_class_member_function(self) -> bool:
         return self.type is Function and self.is_class_member
 
     @property
@@ -890,7 +919,7 @@ class Node(object):
 # =======================================================================================================================
 
 
-class Graph(object):
+class Graph:
     """A C++ project graph."""
 
     def __init__(self):
@@ -903,7 +932,7 @@ class Graph(object):
         self.__next_unique_id += 1
         return id
 
-    def get_or_create_node(self, id: str = None, type=None, parent=None) -> Node:
+    def get_or_create_node(self, id: typing.Optional[str] = None, type=None, parent=None) -> Node:
         if id is None:
             id = self.__get_unique_id()
         assert id
@@ -932,22 +961,22 @@ class Graph(object):
         if isinstance(node_or_id, str):
             return node_or_id in self.__nodes
         else:
-            for _, n in self.__nodes:
+            for n in self.__nodes.values():
                 if n.type is node_or_id:
                     return True
             return False
 
-    def __getitem__(self, id: str) -> Node:
+    def __getitem__(self, id: str) -> typing.Optional[Node]:
         assert id is not None
         assert isinstance(id, str)
         try:
             return self.__nodes[id]
-        except:
+        except Exception:
             return None
 
-    def remove(self, *nodes: typing.Sequence[Node], filter=None):
+    def remove(self, *nodes: Node, filter=None):
         if filter is not None and not nodes:
-            nodes = self.__nodes.values()
+            nodes = tuple(self.__nodes.values())
         prune = []
         for node in nodes:
             if node is None or node not in self:
@@ -983,9 +1012,13 @@ class Graph(object):
 
             if node.type in (Directory, File):
                 if node.qualified_name.find('\\') != -1:
-                    raise GraphError(rf"{node.type_name} node '{node.id}' attribute 'qualified_name' contains back-slashes")
+                    raise GraphError(
+                        rf"{node.type_name} node '{node.id}' attribute 'qualified_name' contains back-slashes"
+                    )
                 if node.qualified_name.endswith(r'/'):
-                    raise GraphError(rf"{node.type_name} node '{node.id}' attribute 'qualified_name' ends with a forward-slash")
+                    raise GraphError(
+                        rf"{node.type_name} node '{node.id}' attribute 'qualified_name' ends with a forward-slash"
+                    )
             if node.type in CPP_TYPES:
                 if node.qualified_name.startswith(r'::'):
                     raise GraphError(rf"{node.type_name} node '{node.id}' attribute 'qualified_name' starts with ::")
@@ -1027,5 +1060,8 @@ class Graph(object):
             for child in src:
                 if child.id not in id_remap:
                     continue
-                g[id_remap[src.id]].add(g[id_remap[child.id]])
+                parent = g[id_remap[src.id]]
+                remapped_child = g[id_remap[child.id]]
+                assert parent is not None and remapped_child is not None
+                parent.add(remapped_child)
         return g

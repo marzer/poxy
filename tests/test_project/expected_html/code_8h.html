@@ -56,7 +56,7 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a>/</span>code.h <span class="m-thin">file</span>
+          <span class="m-breadcrumb"><a href="dir_poxyhash0.html">src</a>/</span>code.h <span class="m-thin">file</span>
         </h1>
         <p>Code, yo.</p>
         <nav class="m-block m-default poxy-toc" id="poxy-toc">
@@ -67,6 +67,7 @@
               <ul>
                 <li><a href="#namespaces">Namespaces</a></li>
                 <li><a href="#nested-classes">Classes</a></li>
+                <li><a href="#nested-concepts">Concepts</a></li>
                 <li><a href="#enum-members">Enums</a></li>
                 <li><a href="#typedef-members">Typedefs</a></li>
                 <li><a href="#func-members">Functions</a></li>
@@ -82,15 +83,19 @@
           <dl class="m-doc">
             <dt>namespace <a class="m-doc" href="namespacetest.html">test</a></dt>
             <dd>A namespace.</dd>
-            <dt>namespace <a class="m-doc" href="namespacetest_1_1nested.html">test::nested</a></dt>
-            <dd>Another namespace.</dd>
             <dt>namespace <a class="m-doc" href="namespacetest_1_1empty.html">test::empty</a></dt>
             <dd>An empty namespace.</dd>
+            <dt>namespace <a class="m-doc" href="namespacetest_1_1nested.html">test::nested</a></dt>
+            <dd>Another namespace.</dd>
           </dl>
         </section>
         <section id="nested-classes">
           <h2><a href="#nested-classes">Classes</a></h2>
           <dl class="m-doc">
+            <dt>
+              class <a class="m-doc" href="classtest_1_1class__1.html">test::class_1</a>
+            </dt>
+            <dd>A class.</dd>
             <dt>
               struct <a class="m-doc" href="structtest_1_1struct__1.html">test::struct_1</a>
             </dt>
@@ -100,29 +105,40 @@
             </dt>
             <dd>A nested struct.</dd>
             <dt>
-              class <a class="m-doc" href="classtest_1_1class__1.html">test::class_1</a>
-            </dt>
-            <dd>A class.</dd>
-            <dt>
               <div class="m-doc-template">template &lt;<span class="m-doc-template-params"><span class="m-doc-template-param">typename T</span></span>&gt;</div>
               class <a class="m-doc" href="classtest_1_1template__class__1.html">test::template_class_1</a>
             </dt>
             <dd>A template class.</dd>
           </dl>
         </section>
+        <section id="nested-concepts">
+          <h2><a href="#nested-concepts">Concepts</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <div class="m-doc-template">template &lt;<span class="m-doc-template-params"><span class="m-doc-template-param">typename T</span></span>&gt;</div>
+              concept <a class="m-doc" href="concepttest_1_1concept__1.html">test::concept_1</a>
+            </dt>
+            <dd>A concept.</dd>
+            <dt>
+              <div class="m-doc-template">template &lt;<span class="m-doc-template-params"><span class="m-doc-template-param">typename T</span></span>&gt;</div>
+              concept <a class="m-doc" href="concepttest_1_1nested_1_1concept__2.html">test::nested::concept_2</a>
+            </dt>
+            <dd>A concept.</dd>
+          </dl>
+        </section>
         <section id="enum-members">
           <h2><a href="#enum-members">Enums</a></h2>
           <dl class="m-doc">
-            <dt id="f50438da708555131bfbf54cb1895122a4b4c12fc981810e27ddd7aea3339743">
-              <span class="m-doc-wrap-bumper">enum class <a class="m-doc" href="namespacetest.html#a393facd551443a4aaea74c533c2bce6f">scoped_enum</a>: unsigned { </span><span class="m-doc-wrap"><a class="m-doc-self" href="#f50438da708555131bfbf54cb1895122a4b4c12fc981810e27ddd7aea3339743">val_0</a>,
-              <a class="m-doc-self" href="#f50438da708555131bfbf54cb1895122a4b4c12fc981810e27ddd7aea3339743">val_1</a> = 1,
-              <a class="m-doc-self" href="#f50438da708555131bfbf54cb1895122a4b4c12fc981810e27ddd7aea3339743">val_2</a> = 2 }</span>
+            <dt id="poxyhash1">
+              <span class="m-doc-wrap-bumper">enum class <a class="m-doc" href="namespacetest.html#poxyhash2">scoped_enum</a>: unsigned { </span><span class="m-doc-wrap"><a class="m-doc-self" href="#poxyhash1">val_0</a>,
+              <a class="m-doc-self" href="#poxyhash1">val_1</a> = 1,
+              <a class="m-doc-self" href="#poxyhash1">val_2</a> = 2 }</span>
             </dt>
             <dd>A C++11 scoped enum.</dd>
-            <dt id="9717446eeb7f2a00870177b7c2856b16552aa74af3e84c1e0b8ed7f0db0855be">
-              <span class="m-doc-wrap-bumper">enum <a class="m-doc" href="namespacetest.html#ac1a212ff6fd8b8aa63bd0d5536ae7065">unscoped_enum</a> { </span><span class="m-doc-wrap"><a class="m-doc-self" href="#9717446eeb7f2a00870177b7c2856b16552aa74af3e84c1e0b8ed7f0db0855be">LEGACY_ENUM_VAL_0</a>,
-              <a class="m-doc-self" href="#9717446eeb7f2a00870177b7c2856b16552aa74af3e84c1e0b8ed7f0db0855be">LEGACY_ENUM_VAL_1</a> = 1,
-              <a class="m-doc-self" href="#9717446eeb7f2a00870177b7c2856b16552aa74af3e84c1e0b8ed7f0db0855be">LEGACY_ENUM_VAL_2</a> = 2 }</span>
+            <dt id="poxyhash3">
+              <span class="m-doc-wrap-bumper">enum <a class="m-doc" href="namespacetest.html#poxyhash4">unscoped_enum</a> { </span><span class="m-doc-wrap"><a class="m-doc-self" href="#poxyhash3">LEGACY_ENUM_VAL_0</a>,
+              <a class="m-doc-self" href="#poxyhash3">LEGACY_ENUM_VAL_1</a> = 1,
+              <a class="m-doc-self" href="#poxyhash3">LEGACY_ENUM_VAL_2</a> = 2 }</span>
             </dt>
             <dd>A pre-C++11 unscoped enum.</dd>
           </dl>
@@ -131,16 +147,16 @@
           <h2><a href="#typedef-members">Typedefs</a></h2>
           <dl class="m-doc">
             <dt>
-              using <a class="m-doc" href="namespacetest.html#a51ed0e00636746f407a20697efc8518e">a_shit_typedef</a> = int
+              using <a class="m-doc" href="namespacetest.html#poxyhash5">a_shit_typedef</a> = int
             </dt>
             <dd>An old-school typedef.</dd>
             <dt>
-              using <a class="m-doc" href="namespacetest.html#af3b055b49aff8d48bea92e5f226daa5d">a_typedef</a> = int
+              using <a class="m-doc" href="namespacetest.html#poxyhash6">a_typedef</a> = int
             </dt>
             <dd>A C++11 'using' typedef.</dd>
             <dt>
               <div class="m-doc-template">template &lt;<span class="m-doc-template-params"><span class="m-doc-template-param">typename T</span></span>&gt;</div>
-              using <a class="m-doc" href="namespacetest.html#a58dc421199859607c527ded8e3d87bae">a_typedef_template</a> = T
+              using <a class="m-doc" href="namespacetest.html#poxyhash7">a_typedef_template</a> = T
             </dt>
             <dd>A C++11 'using' typedef template.</dd>
           </dl>
@@ -149,24 +165,24 @@
           <h2><a href="#func-members">Functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a class="m-doc" href="namespacetest.html#a14eee7dd5169cc088aad164c5fcb1800">a_friend_function</a>(</span><span class="m-doc-wrap">)</span>
+              <span class="m-doc-wrap-bumper">void <a class="m-doc" href="namespacetest.html#poxyhash8">a_friend_function</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>A function that appears as a friend to a <a class="m-doc" href="classtest_1_1class__1.html">test::<wbr/>class_1</a>.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="namespacetest.html#af10bf287d581eb8aae63d450e3f848c5">a_function_with_a_deduced_return_type</a>(</span><span class="m-doc-wrap">)</span>
+              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="namespacetest.html#poxyhash9">a_function_with_a_deduced_return_type</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>A function with a deduced return type.</dd>
             <dt>
               <div class="m-doc-template">template &lt;<span class="m-doc-template-params"><span class="m-doc-template-param">typename T</span>, <span class="m-doc-template-param">typename U</span></span>&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="namespacetest.html#ae66b7e2e94f84934cff5de3e512ce0ee">do_the_other_thing</a>(</span><span class="m-doc-wrap">U u) →  T <span class="m-label m-flat m-primary">constexpr</span> <span class="m-label m-flat m-success">noexcept</span></span>
+              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="namespacetest.html#poxyhash10">do_the_other_thing</a>(</span><span class="m-doc-wrap">U u) →  T <span class="m-label m-flat m-primary">constexpr</span> <span class="m-label m-flat m-success">noexcept</span></span>
             </dt>
             <dd>A function template.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="namespacetest.html#a011c6f27e90f228cd68be9def15bc076">do_the_thing</a>(</span><span class="m-doc-wrap">) →  <a class="m-doc-external poxy-cppreference poxy-external" href="http://en.cppreference.com/w/cpp/types/integer.html" target="_blank">std::<wbr/>uint8_t</a></span>
+              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="namespacetest.html#poxyhash11">do_the_thing</a>(</span><span class="m-doc-wrap">) →  <a class="m-doc-external poxy-cppreference poxy-external" href="http://en.cppreference.com/w/cpp/types/integer.html" target="_blank">std::<wbr/>uint8_t</a></span>
             </dt>
             <dd>A function.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="namespacetest.html#af2e6008ff8ee50f6cda80da681d44348">do_the_thing_automatically</a>(</span><span class="m-doc-wrap">) →  int</span>
+              <span class="m-doc-wrap-bumper">auto <a class="m-doc" href="namespacetest.html#poxyhash12">do_the_thing_automatically</a>(</span><span class="m-doc-wrap">) →  int</span>
             </dt>
             <dd>A function with a trailing return type.</dd>
           </dl>
@@ -175,7 +191,7 @@
           <h2><a href="#var-members">Variables</a></h2>
           <dl class="m-doc">
             <dt>
-              bool <a class="m-doc" href="namespacetest.html#af2f5b0612e98ea3ef9de39eb10981879">inline_variable</a> <span class="m-label m-flat m-primary">constexpr</span>
+              bool <a class="m-doc" href="namespacetest.html#poxyhash13">inline_variable</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd>An inline variable.</dd>
           </dl>
@@ -184,20 +200,20 @@
           <h2><a href="#define-members">Defines</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">#define <a class="m-doc" href="#a867e1e9e6c924393462cf7c1a78c6c3e">KEK</a></span>
+              <span class="m-doc-wrap-bumper">#define <a class="m-doc" href="#poxyhash14">KEK</a></span>
             </dt>
             <dd>A macro.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">#define <a class="m-doc" href="group__group.html#gab8f35b5fe5a9047e142acaef9b5336ca">KEK_IN_GROUP</a></span>
+              <span class="m-doc-wrap-bumper">#define <a class="m-doc" href="group__group.html#gpoxyhash15">KEK_IN_GROUP</a></span>
             </dt>
             <dd>A macro inside a group.</dd>
           </dl>
         </section>
         <section>
           <h2>Define documentation</h2>
-          <section class="m-doc-details" id="a867e1e9e6c924393462cf7c1a78c6c3e"><div>
+          <section class="m-doc-details" id="poxyhash14"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">#define <a class="m-doc-self" href="#a867e1e9e6c924393462cf7c1a78c6c3e">KEK</a></span>
+              <span class="m-doc-wrap-bumper">#define <a class="m-doc-self" href="#poxyhash14">KEK</a></span>
             </h3>
             <p>A macro.</p>
 <p>More info.</p>

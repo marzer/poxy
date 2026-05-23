@@ -227,6 +227,22 @@ def add_wbr(text: str) -> str:
     else:
         return text
 
+def toc_depth(toc):
+    # max nesting depth of a doxygen <tableofcontents> tocsect tree (0 if None/empty). doxygen prunes this
+    # tree to N for @tableofcontents{...:N}, so it tells us how deep the page TOC was requested to go.
+    if toc is None:
+        return 0
+    depth = 0
+    for tocsect in toc.findall('tocsect'):
+        depth = max(depth, 1 + toc_depth(tocsect.find('tableofcontents')))
+    return depth
+
+def prune_sections(sections, depth):
+    # trim the nested (id, title, children) section list to at most `depth` levels
+    if depth <= 0:
+        return []
+    return [(id, title, prune_sections(children, depth - 1)) for id, title, children in sections]
+
 def parse_ref(state: State, element: ET.Element, add_inline_css_class: str = None) -> str:
     id = element.attrib['refid']
 
@@ -936,6 +952,9 @@ def parse_desc_internal(state: State, element: ET.Element, immediate_parent: ET.
                     elif i.attrib['kind'] == 'warning':
                         title = 'Warning'
                         css_class = 'm-danger'
+                    elif i.attrib['kind'] == 'important':
+                        title = 'Important'
+                        css_class = 'm-primary'
                     elif i.attrib['kind'] == 'author':
                         title = 'Author'
                         css_class = 'm-default'
@@ -2994,9 +3013,13 @@ def parse_xml(state: State, xml: str):
         state.current_include = None
 
     if compound.kind == 'page':
-        # Drop TOC for pages, if not requested
-        if compounddef.find('tableofcontents') is None:
+        # m.css builds the page TOC from the body section structure; gate and depth-limit it by doxygen's
+        # <tableofcontents> (absent => no TOC; @tableofcontents{...:N} => doxygen prunes that tree to N levels)
+        toc = compounddef.find('tableofcontents')
+        if toc is None:
             compound.sections = []
+        else:
+            compound.sections = prune_sections(compound.sections, toc_depth(toc))
 
         # Enable footer navigation, if requested
         if footer_navigation:

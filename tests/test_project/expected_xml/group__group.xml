@@ -4,7 +4,7 @@
 		<compoundname>group</compoundname>
 		<title>A group.</title>
 		<sectiondef kind="define">
-			<memberdef kind="define" id="group__group_1gab8f35b5fe5a9047e142acaef9b5336ca" prot="public" static="no">
+			<memberdef kind="define" id="group__group_1gpoxyhash0" prot="public" static="no">
 				<name>KEK_IN_GROUP</name>
 				<initializer>1</initializer><briefdescription>
 					<para>A macro inside a group. </para>
@@ -13,7 +13,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="42" column="9" bodyfile="src/code.h" bodystart="42" bodyend="-1"/>
+				<location file="src/code.h" line="42" column="9" bodyfile="src/code.h" bodystart="42" bodyend="42"/>
 			</memberdef>
 		</sectiondef>
 		<briefdescription></briefdescription>

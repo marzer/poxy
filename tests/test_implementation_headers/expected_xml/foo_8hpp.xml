@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="foo_8hpp" kind="file" language="C++">
+		<compoundname>foo.hpp</compoundname>
+		<briefdescription></briefdescription>
+		<detaileddescription>
+			<para>The public-facing header users are meant to include. </para>
+		</detaileddescription>
+		<location file="foo.hpp"/>
+		<innernamespace refid="namespacefoo">foo</innernamespace>
+		<sectiondef kind="define">
+			<memberdef kind="define" id="foo_8hpp_poxyhash0" prot="public" static="no">
+				<name>IMPL_ANSWER</name>
+				<initializer>42</initializer><briefdescription>
+					<para>The answer to life, the universe and everything. </para>
+				</briefdescription>
+				<detaileddescription></detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="foo.hpp" line="7" column="9" bodyfile="foo.hpp" bodystart="7" bodyend="7"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="func">
+			<memberdef kind="function" id="namespacefoo_poxyhash1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>widget</type>
+				<definition>widget foo::make_widget</definition>
+				<argsstring>()</argsstring>
+				<name>make_widget</name>
+				<qualifiedname>foo::make_widget</qualifiedname>
+				<briefdescription>
+					<para>Makes a widget. </para>
+				</briefdescription>
+				<detaileddescription></detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="foo.hpp" line="19" column="8" declfile="foo.hpp" declline="19" declcolumn="8"/>
+			</memberdef>
+			<memberdef kind="function" id="namespacefoo_poxyhash2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>gadget</type>
+				<definition>gadget foo::make_gadget</definition>
+				<argsstring>(widget const &amp;w)</argsstring>
+				<name>make_gadget</name>
+				<qualifiedname>foo::make_gadget</qualifiedname>
+				<param>
+					<type>widget const &amp;</type>
+					<declname>w</declname>
+				</param>
+				<briefdescription></briefdescription>
+				<detaileddescription>
+					<para>Makes a gadget from a widget. <simplesect kind="see">
+							<para>
+								<ref refid="namespacefoo_poxyhash1" kindref="member">make_widget()</ref>, <ref refid="foo_8hpp_poxyhash0" kindref="member">IMPL_ANSWER</ref>
+							</para>
+						</simplesect>
+					</para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="foo.hpp" line="18" column="8" declfile="foo.hpp" declline="18" declcolumn="8"/>
+			</memberdef>
+		</sectiondef>
+	</compounddef>
+</doxygen>

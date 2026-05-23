@@ -23,8 +23,9 @@ py2toml = {
 
 def FixedArrayOf(typ, length, name=''):
     global py2toml
+    # schema's And/Or/Use accept heterogeneous args by design but their type hints model this poorly
     return And(
-        [typ],
+        [typ],  # pyright: ignore[reportArgumentType]
         lambda v: len(v) == length,
         error=rf'{name + ": " if name else ""}expected array of {length} {py2toml[typ]}{"s" if length != 1 else ""}',
     )
@@ -33,19 +34,29 @@ def FixedArrayOf(typ, length, name=''):
 def ValueOrArray(typ, name='', length=None):
     global py2toml
     inner = None
+    # schema's And/Or/Use accept heterogeneous args by design but their type hints model this poorly
     if length is None:
-        inner = Or(typ, [typ], error=rf'{name + ": " if name else ""}expected {py2toml[typ]} or array of {py2toml[typ]}s')
+        inner = Or(
+            typ,
+            [typ],  # pyright: ignore[reportArgumentType]
+            error=rf'{name + ": " if name else ""}expected {py2toml[typ]} or array of {py2toml[typ]}s',
+        )
     else:
         err = rf'{name + ": " if name else ""}expected {py2toml[typ]} or array of {length} {py2toml[typ]}{"s" if length != 1 else ""}'
-        inner = And(Or(typ, [typ], error=err), lambda v: not isinstance(v, list) or len(v) == length, error=err)
-    return And(inner, Use(lambda x: x if isinstance(x, list) else [x]))
+        inner = And(
+            Or(typ, [typ], error=err),  # pyright: ignore[reportArgumentType]
+            lambda v: not isinstance(v, list) or len(v) == length,
+            error=err,
+        )
+    return And(inner, Use(lambda x: x if isinstance(x, list) else [x]))  # pyright: ignore[reportArgumentType]
 
 
 def Stripped(typ, allow_empty=True, name=''):
     if not name:
         name = 'value'
+    # schema's And/Or/Use accept heterogeneous args by design but their type hints model this poorly
     return And(
-        And(typ, Use(lambda x: x.strip())),
+        And(typ, Use(lambda x: x.strip())),  # pyright: ignore[reportArgumentType]
         (lambda x: True) if allow_empty else (lambda x: len(x) > 0),
         error=rf'{name} cannot be blank',
     )
@@ -54,7 +65,7 @@ def Stripped(typ, allow_empty=True, name=''):
 context_stack = list()
 
 
-class SchemaContext(object):
+class SchemaContext:
     def __init__(self, val: str):
         self.__val = str(val) if val is not None else None
 

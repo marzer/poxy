@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="0.0.0" xml:lang="en-US">
+	<compound refid="structfoo_1_1gadget" kind="struct">
+		<name>foo::gadget</name>
+		<member refid="structfoo_1_1gadget_poxyhash0" kind="variable">
+			<name>w</name>
+		</member>
+	</compound>
+	<compound refid="structfoo_1_1widget" kind="struct">
+		<name>foo::widget</name>
+		<member refid="structfoo_1_1widget_poxyhash1" kind="variable">
+			<name>value</name>
+		</member>
+	</compound>
+	<compound refid="namespacefoo" kind="namespace">
+		<name>foo</name>
+		<member refid="namespacefoo_poxyhash2" kind="function">
+			<name>make_widget</name>
+		</member>
+		<member refid="namespacefoo_poxyhash3" kind="function">
+			<name>make_gadget</name>
+		</member>
+	</compound>
+	<compound refid="foo_8hpp" kind="file">
+		<name>foo.hpp</name>
+		<member refid="foo_8hpp_poxyhash4" kind="define">
+			<name>IMPL_ANSWER</name>
+		</member>
+		<member refid="namespacefoo_poxyhash2" kind="function">
+			<name>make_widget</name>
+		</member>
+		<member refid="namespacefoo_poxyhash3" kind="function">
+			<name>make_gadget</name>
+		</member>
+	</compound>
+	<compound refid="dir_poxyhash5" kind="dir">
+		<name>detail</name>
+	</compound>
+</doxygenindex>

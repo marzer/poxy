@@ -7,8 +7,6 @@
 Functions for working with CSS files.
 """
 
-from typing import Tuple
-
 from . import paths
 from .utils import *
 
@@ -42,7 +40,7 @@ def has_mcss_filename(path) -> bool:
     return bool(RX_MCSS_FILENAME.match(path))
 
 
-def resolve_imports(text, cwd=None, use_cached_fonts=True) -> Tuple[str, bool]:
+def resolve_imports(text, cwd=None, use_cached_fonts=True) -> tuple[str, bool]:
     if cwd is None:
         cwd = Path.cwd()
     cwd = coerce_path(cwd).resolve()
@@ -58,7 +56,7 @@ def resolve_imports(text, cwd=None, use_cached_fonts=True) -> Tuple[str, bool]:
 
         import_path = strip_quotes(m[1].strip())
         had_mcss_files = had_mcss_files or has_mcss_filename(import_path)
-        path = None
+        path: typing.Optional[Path] = None
         path_ok = lambda: path is not None and path.exists() and path.is_file()
 
         # download + cache uris locally
@@ -74,14 +72,15 @@ def resolve_imports(text, cwd=None, use_cached_fonts=True) -> Tuple[str, bool]:
 
         # otherwise just check cwd
         if not path_ok():
-            path = Path(cwd, import_path)
+            path = Path(typing.cast(Path, cwd), import_path)
 
         # if we still haven't found a match just leave the @import statement as it was
         if not path_ok():
             return m[0]
+        assert path is not None  # narrowing: path_ok() guarantees this
 
         text = strip_comments(read_all_text_from_file(path, logger=True)).strip()
-        header = rf'/*==== {import_path} {"="*(110-len(import_path))}*/'
+        header = rf'/*==== {import_path} {"=" * (110 - len(import_path))}*/'
         text = f'\n\n{header}\n{text}\n\n'
 
         res = resolve_imports(text, cwd=path.parent, use_cached_fonts=use_cached_fonts)

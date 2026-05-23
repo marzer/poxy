@@ -7,7 +7,8 @@
 Functions and classes for working with SVG files.
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Optional, Union
 
 from lxml import etree
 
@@ -15,16 +16,16 @@ from . import xml_utils
 from .utils import *
 
 
-class SVG(object):
+class SVG:
     pass
 
     def __init__(
         self,  #
         file_path: Union[Path, str],
         logger=None,
-        root_id: str = None,
-        id_namespace: str = None,
-        root_classes: Union[str, Sequence[str]] = None,
+        root_id: Optional[str] = None,
+        id_namespace: Optional[str] = None,
+        root_classes: Optional[Union[str, Sequence[str]]] = None,
     ):
         # read file
         svg = read_all_text_from_file(file_path, logger=logger)
@@ -63,9 +64,9 @@ class SVG(object):
 
         # set class attribute if specified
         if root_classes is not None:
-            root_classes = list(coerce_collection(root_classes))
-            if root_classes:
-                attrs[r'class'] = r' '.join(list(coerce_collection(root_classes)))
+            classes = typing.cast(typing.List[str], list(coerce_collection(root_classes)))
+            if classes:
+                attrs[r'class'] = r' '.join(classes)
             elif r'class' in attrs:
                 del attrs[r'class']
 

@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="structfoo_1_1gadget" kind="struct" language="C++" prot="public">
+		<compoundname>foo::gadget</compoundname>
+		<includes local="no">b.hpp</includes>
+		<sectiondef kind="public-attrib">
+			<memberdef kind="variable" id="structfoo_1_1gadget_poxyhash0" prot="public" static="no" mutable="no">
+				<type>
+					<ref refid="structfoo_1_1widget" kindref="compound">widget</ref>
+				</type>
+				<definition>widget foo::gadget::w</definition>
+				<argsstring/>
+				<name>w</name>
+				<qualifiedname>foo::gadget::w</qualifiedname>
+				<briefdescription>
+					<para>the owned widget </para>
+				</briefdescription>
+				<detaileddescription></detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="foo.hpp" line="13" column="8" bodyfile="foo.hpp" bodystart="13" bodyend="13"/>
+			</memberdef>
+		</sectiondef>
+		<briefdescription>
+			<para>A gadget that owns a <ref refid="structfoo_1_1widget" kindref="compound">foo::widget</ref>. See also <ref refid="namespacefoo_poxyhash1" kindref="member">make_widget()</ref>. </para>
+		</briefdescription>
+		<detaileddescription></detaileddescription>
+		<collaborationgraph>
+			<node id="1">
+				<label>foo::gadget</label>
+				<link refid="structfoo_1_1gadget"/>
+				<childnode refid="2" relation="usage">
+					<edgelabel>w</edgelabel>
+				</childnode>
+			</node>
+			<node id="2">
+				<label>foo::widget</label>
+				<link refid="structfoo_1_1widget"/>
+			</node>
+		</collaborationgraph>
+		<location file="foo.hpp" line="11" column="1" bodyfile="foo.hpp" bodystart="12" bodyend="14"/>
+		<listofallmembers>
+			<member refid="structfoo_1_1gadget_poxyhash0" prot="public" virt="non-virtual">
+				<scope>foo::gadget</scope>
+				<name>w</name>
+			</member>
+		</listofallmembers>
+	</compounddef>
+</doxygen>

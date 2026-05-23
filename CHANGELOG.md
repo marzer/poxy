@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.21.0 - 2026-05-24
+
+- fixed malformed TAGFILES crashing the parser
+- fixed markdown titles with backticks (`\``) crashing the parser
+- fixed various bugs in the "implementation headers" feature
+- fixed path ignore filter being ignored
+- fixed internal #id links not resolving in some circumstances
+- fixed tagfile inconsistencies between doxygen versions
+- fixed various TOC rendering bugs
+- fixed various markdown parsing bugs
+- fixed crash due to overlong XML file paths (#21)
+- normalized XML output across doxygen versions 1.9.3 - 1.17.0 (typedefs, concepts, programlisting, tagfiles)
+- added a doxygen version-support policy (hard error below 1.9.3, warning above 1.17.0)
+
 ## v0.20.1 - 2025-12-24
 
 - disabled Doxygen's IMPLICIT_DIR_DOCS (a.k.a. Doxygen's `HAVE_DOT`) (#41) (@fwerner)

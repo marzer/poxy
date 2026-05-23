@@ -5,25 +5,25 @@
 		<includes local="no">code.h</includes>
 		<innerclass refid="structtest_1_1struct__1_1_1nested__struct" prot="public">test::struct_1::nested_struct</innerclass>
 		<sectiondef kind="public-type">
-			<memberdef kind="enum" id="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0c" prot="public" static="no" strong="yes">
+			<memberdef kind="enum" id="structtest_1_1struct__1_poxyhash0" prot="public" static="no" strong="yes">
 				<type/>
 				<name>nested_enum</name>
 				<qualifiedname>test::struct_1::nested_enum</qualifiedname>
-				<enumvalue id="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0ca209e4404bac5df6700a512df9e988ba3" prot="public">
+				<enumvalue id="structtest_1_1struct__1_poxyhash1" prot="public">
 					<name>val_0</name>
 					<briefdescription>
 						<para>Value zero. </para>
 					</briefdescription>
 					<detaileddescription></detaileddescription>
 				</enumvalue>
-				<enumvalue id="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0cad69dff41cc115965adfeaa0f58fed641" prot="public">
+				<enumvalue id="structtest_1_1struct__1_poxyhash2" prot="public">
 					<name>val_1</name>
 					<initializer>= 1</initializer><briefdescription>
 						<para>Value one. </para>
 					</briefdescription>
 					<detaileddescription></detaileddescription>
 				</enumvalue>
-				<enumvalue id="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0ca3745be12e7d2d79a55682a6b1ef5863c" prot="public">
+				<enumvalue id="structtest_1_1struct__1_poxyhash3" prot="public">
 					<name>val_2</name>
 					<initializer>= 2</initializer><briefdescription>
 						<para>Value two. </para>
@@ -41,7 +41,7 @@
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="public-static-attrib">
-			<memberdef kind="variable" id="structtest_1_1struct__1_1a93dfbf581e6e3abb295161832143dc75" prot="public" static="yes" constexpr="yes" mutable="no">
+			<memberdef kind="variable" id="structtest_1_1struct__1_poxyhash4" prot="public" static="yes" constexpr="yes" mutable="no">
 				<type>bool</type>
 				<definition>bool test::struct_1::static_variable</definition>
 				<argsstring/>
@@ -54,7 +54,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="106" column="23" bodyfile="src/code.h" bodystart="106" bodyend="-1"/>
+				<location file="src/code.h" line="106" column="23" bodyfile="src/code.h" bodystart="106" bodyend="106"/>
 			</memberdef>
 		</sectiondef>
 		<briefdescription>
@@ -65,11 +65,11 @@
 		</detaileddescription>
 		<location file="src/code.h" line="102" column="1" bodyfile="src/code.h" bodystart="103" bodyend="123"/>
 		<listofallmembers>
-			<member refid="structtest_1_1struct__1_1a2d7cf0473e91c0a7815b11dd2f213f0c" prot="public" virt="non-virtual">
+			<member refid="structtest_1_1struct__1_poxyhash0" prot="public" virt="non-virtual">
 				<scope>test::struct_1</scope>
 				<name>nested_enum</name>
 			</member>
-			<member refid="structtest_1_1struct__1_1a93dfbf581e6e3abb295161832143dc75" prot="public" virt="non-virtual">
+			<member refid="structtest_1_1struct__1_poxyhash4" prot="public" virt="non-virtual">
 				<scope>test::struct_1</scope>
 				<name>static_variable</name>
 			</member>

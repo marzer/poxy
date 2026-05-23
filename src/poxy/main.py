@@ -9,11 +9,9 @@ The various entry-point methods used when poxy is invoked from the command line.
 
 import argparse
 import datetime
-import os
 import shutil
 import subprocess
 import sys
-import typing
 import zipfile
 from pathlib import Path
 
@@ -60,22 +58,10 @@ def _invoker(func, **kwargs):
 
 def make_boolean_optional_arg(args: argparse.ArgumentParser, name: str, default, help='', **kwargs):
     name = name.strip().lstrip('-')
-    if sys.version_info >= (3, 9):
-        args.add_argument(rf'--{name}', default=default, help=help, action=argparse.BooleanOptionalAction, **kwargs)
-    else:
-        dest = name.replace(r'-', r'_')
-        args.add_argument(rf'--{name}', action=r'store_true', help=help, dest=dest, default=default, **kwargs)
-        args.add_argument(
-            rf'--no-{name}',
-            action=r'store_false',
-            help=(help if help == argparse.SUPPRESS else None),
-            dest=dest,
-            default=default,
-            **kwargs,
-        )
+    args.add_argument(rf'--{name}', default=default, help=help, action=argparse.BooleanOptionalAction, **kwargs)
 
 
-def git(git_args: str, cwd=None) -> typing.Tuple[int, str, str]:
+def git(git_args: str, cwd=None) -> tuple[int, str, str]:
     assert git_args is not None
     proc = subprocess.run(
         ['git'] + str(git_args).strip().split(),
@@ -86,7 +72,7 @@ def git(git_args: str, cwd=None) -> typing.Tuple[int, str, str]:
     return (proc.returncode, proc.stdout.strip() if proc.stdout else "", proc.stderr.strip() if proc.stderr else "")
 
 
-def git_failed(git_output: typing.Tuple[int, str, str], desc=''):
+def git_failed(git_output: tuple[int, str, str], desc=''):
     assert git_output is not None
     message = rf"git command failed"
     if desc:
@@ -102,7 +88,7 @@ def git_failed(git_output: typing.Tuple[int, str, str], desc=''):
     raise Error(message)
 
 
-def git_failed_if_nonzero(git_output: typing.Tuple[int, str, str], desc=''):
+def git_failed_if_nonzero(git_output: tuple[int, str, str], desc=''):
     if git_output[0] != 0:
         git_failed(git_output, desc)
     return git_output
@@ -150,7 +136,7 @@ def multi_version_git_tags(args: argparse.Namespace):
         for i in range(len(tags)):
             normalized_version = (tags[i][1][0], tags[i][1][1])
             if normalized_version in seen_versions:
-                tags[i] = None
+                tags[i] = None  # type: ignore[assignment]  # sentinel, filtered out immediately below
                 continue
             seen_versions.add(normalized_version)
         tags = [t for t in tags if t]
@@ -171,8 +157,8 @@ def multi_version_git_tags(args: argparse.Namespace):
                 max_vers = int(args.min_version)
                 assert max_vers < 0
                 tags = tags[:-max_vers]
-            except:
-                raise Error(rf'min-version: expected semver tag or negative integer')
+            except Exception:
+                raise Error(rf'min-version: expected semver tag or negative integer') from None
 
     tags = [t for t, _ in tags]
     print("Versions:")
@@ -196,7 +182,7 @@ def multi_version_git_tags(args: argparse.Namespace):
         pos = -1
         try:
             pos = worker_args.index(key)
-        except:
+        except Exception:
             pass
         if pos != -1:
             worker_args.pop(pos)
@@ -256,7 +242,7 @@ def multi_version_git_tags(args: argparse.Namespace):
             except Exception as exc:
                 msg = rf'documentation generation failed for {Style.BRIGHT}{tag}{Style.RESET_ALL}: {exc}'
                 if args.werror:
-                    raise WarningTreatedAsError(msg)
+                    raise WarningTreatedAsError(msg) from exc
                 else:
                     print(rf'{Style.BRIGHT}{Fore.YELLOW}warning:{Style.RESET_ALL} {msg}', file=sys.stderr)
                     continue
@@ -341,7 +327,7 @@ def bug_report(args: argparse.Namespace):
         pos = -1
         try:
             pos = bug_report_args.index(key)
-        except:
+        except Exception:
             pass
         if pos != -1:
             bug_report_args.pop(pos)
@@ -395,7 +381,7 @@ def bug_report(args: argparse.Namespace):
         f.write(f'returncode: {result.returncode}\n')
         try:
             f.write(f'doxygen: {doxygen.raw_version_string()}\n')
-        except:
+        except Exception:
             f.write(f'doxygen: --version failed\n')
 
     # zip file
@@ -487,10 +473,14 @@ def main(invoker=True):
         args, r'werror', default=None, help=r'treat warnings as errors (default: read from config)'
     )  #
     args.add_argument(
-        r'--bug-report', action=r'store_true', help=r"captures all output in a zip file for easier bug reporting."  #
+        r'--bug-report',
+        action=r'store_true',
+        help=r"captures all output in a zip file for easier bug reporting.",  #
     )
     args.add_argument(
-        r'--git-tags', action=r'store_true', help=r"add git-tag-based semver version switcher to the generated HTML"  #
+        r'--git-tags',
+        action=r'store_true',
+        help=r"add git-tag-based semver version switcher to the generated HTML",  #
     )
     make_boolean_optional_arg(
         args,
@@ -520,7 +510,9 @@ def main(invoker=True):
     args.add_argument(r'--doxygen-version', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--update-mcss', type=Path, default=None, help=argparse.SUPPRESS)  #
     args.add_argument(  # --xml and --html are the replacements for --xmlonly
-        r'--xmlonly', action=r'store_true', help=argparse.SUPPRESS  #
+        r'--xmlonly',
+        action=r'store_true',
+        help=argparse.SUPPRESS,  #
     )
     args.add_argument(r'--xml-v2', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--worker', action=r'store_true', help=argparse.SUPPRESS)  #
@@ -582,7 +574,7 @@ def main(invoker=True):
             )
         run_python_script(
             Path(paths.TESTS, r'regenerate_tests.py'),  #
-            *[a for a in (r'--verbose' if args.verbose else None, r'--nocleanup' if args.nocleanup else None) if a],
+            *([r'-v'] if args.verbose else []),
         )
 
     if (
@@ -610,7 +602,7 @@ def main(invoker=True):
     # --------------------------------------------------------------
 
     if args.git_tags:
-        with ScopeTimer(r'All tasks', print_start=False, print_end=True) as timer:
+        with ScopeTimer(r'All tasks', print_start=False, print_end=True):
             multi_version_git_tags(args)
         return
 
@@ -622,7 +614,7 @@ def main(invoker=True):
         args.html = False
         args.xml = True
 
-    with ScopeTimer(r'All tasks', print_start=False, print_end=not args.worker) as timer:
+    with ScopeTimer(r'All tasks', print_start=False, print_end=not args.worker):
         run(
             # named args:
             config_path=args.config,

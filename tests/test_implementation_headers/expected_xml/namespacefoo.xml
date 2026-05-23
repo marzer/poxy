@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="namespacefoo" kind="namespace" language="C++">
+		<compoundname>foo</compoundname>
+		<sectiondef kind="func">
+			<memberdef kind="function" id="namespacefoo_poxyhash0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>
+					<ref refid="structfoo_1_1gadget" kindref="compound">gadget</ref>
+				</type>
+				<definition>gadget foo::make_gadget</definition>
+				<argsstring>(widget const &amp;w)</argsstring>
+				<name>make_gadget</name>
+				<qualifiedname>foo::make_gadget</qualifiedname>
+				<param>
+					<type>
+						<ref refid="structfoo_1_1widget" kindref="compound">widget</ref> const &amp;</type>
+					<declname>w</declname>
+				</param>
+				<briefdescription></briefdescription>
+				<detaileddescription>
+					<para>Makes a gadget from a widget. <simplesect kind="see">
+							<para>
+								<ref refid="namespacefoo_poxyhash1" kindref="member">make_widget()</ref>, <ref refid="foo_8hpp_poxyhash2" kindref="member">IMPL_ANSWER</ref>
+							</para>
+						</simplesect>
+					</para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="foo.hpp" line="18" column="8" declfile="foo.hpp" declline="18" declcolumn="8"/>
+			</memberdef>
+			<memberdef kind="function" id="namespacefoo_poxyhash1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>
+					<ref refid="structfoo_1_1widget" kindref="compound">widget</ref>
+				</type>
+				<definition>widget foo::make_widget</definition>
+				<argsstring>()</argsstring>
+				<name>make_widget</name>
+				<qualifiedname>foo::make_widget</qualifiedname>
+				<briefdescription>
+					<para>Makes a widget. </para>
+				</briefdescription>
+				<detaileddescription></detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="foo.hpp" line="19" column="8" declfile="foo.hpp" declline="19" declcolumn="8"/>
+			</memberdef>
+		</sectiondef>
+		<briefdescription>
+			<para>The project's namespace. </para>
+		</briefdescription>
+		<detaileddescription></detaileddescription>
+		<location file="foo.hpp" line="10" column="1"/>
+		<innerclass refid="structfoo_1_1gadget" prot="public">foo::gadget</innerclass>
+		<innerclass refid="structfoo_1_1widget" prot="public">foo::widget</innerclass>
+	</compounddef>
+</doxygen>

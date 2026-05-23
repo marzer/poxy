@@ -9,16 +9,18 @@ Low-level helper functions and useful bits.
 
 import io
 import logging
+import os
 import re
+import subprocess
 import sys
-import typing  # used transitively
-from pathlib import Path  # used transitively
+import typing  # noqa: F401  (re-exported transitively via 'from .utils import *')
+from pathlib import Path  # noqa: F401  (re-exported transitively via 'from .utils import *')
 
 import requests
 from misk import *
 from trieregex import TrieRegEx
 
-from . import paths  # used transitively
+from . import paths  # noqa: F401  (re-exported transitively via 'from .utils import *')
 
 # =======================================================================================================================
 # FUNCTIONS
@@ -70,6 +72,18 @@ def is_uri(s):
     return RX_IS_URI.fullmatch(str(s)) is not None
 
 
+def path_exists(path) -> bool:
+    """Path.exists() that tolerates an over-long path component. Doxygen derives XML filenames from
+    compound ids, and a deeply-nested template instantiation can produce an id longer than the filesystem's
+    per-component limit (typically 255 bytes); stat() then raises OSError [Errno 36] ENAMETOOLONG. Such a
+    file cannot exist (Doxygen couldn't have written it either), so treat it as absent rather than crashing
+    (marzer/poxy#21)."""
+    try:
+        return Path(path).exists()
+    except OSError:
+        return False
+
+
 def filter_filenames(files, include, exclude):
     if include is not None:
         files = [f for f in files if include.search(f.name)]
@@ -95,6 +109,39 @@ def download_binary(uri: str, timeout=10) -> bytes:
     global DOWNLOAD_HEADERS
     response = requests.get(str(uri), headers=DOWNLOAD_HEADERS, timeout=timeout, stream=False, allow_redirects=True)
     return response.content
+
+
+# github:// sources let a tagfile be fetched from a private repo's gh-pages branch via the authenticated API
+# (private GitHub Pages can't be fetched directly - they redirect to a browser-only OAuth flow).
+GITHUB_TAGFILE_URI = re.compile(r'^github://(?P<owner>[^/]+)/(?P<repo>[^/]+)/(?P<path>.+?)(?:@(?P<ref>[^@/]+))?$')
+
+
+def is_github_uri(s) -> bool:
+    return GITHUB_TAGFILE_URI.fullmatch(str(s)) is not None
+
+
+def github_token() -> typing.Optional[str]:
+    """Resolve a GitHub token from the environment (CI) or the gh CLI's stored credential (local)."""
+    for var in (r'GH_TOKEN', r'GITHUB_TOKEN'):
+        tok = os.environ.get(var)
+        if tok and tok.strip():
+            return tok.strip()
+    try:
+        result = subprocess.run([r'gh', r'auth', r'token'], capture_output=True, text=True, timeout=10)
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return None
+
+
+def github_api_get(url: str, token: typing.Optional[str], accept=r'application/vnd.github+json', timeout=30):
+    headers = {r'Accept': accept, r'X-GitHub-Api-Version': r'2022-11-28'}
+    if token:
+        headers[r'Authorization'] = rf'Bearer {token}'
+    response = requests.get(url, headers=headers, timeout=timeout, allow_redirects=True)
+    response.raise_for_status()
+    return response
 
 
 def tail(s: str, split: str) -> str:
@@ -130,7 +177,7 @@ def temp_dir_name_for(input, path=None):
 # =======================================================================================================================
 
 
-class RegexReplacer(object):
+class RegexReplacer:
     def __substitute(self, m):
         self.__result = True
         return self.__handler(m, self.__out_data)
@@ -181,7 +228,7 @@ class WarningTreatedAsError(Error):
 # =======================================================================================================================
 
 
-class Defer(object):
+class Defer:
     def __init__(self, callable, *args, **kwargs):
         self.__callable = callable
         self.__args = args

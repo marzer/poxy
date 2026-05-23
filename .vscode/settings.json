@@ -26,7 +26,10 @@
 	},
 	"python.formatting.provider": "none",
 	"[python]": {
-		"editor.defaultFormatter": "ms-python.black-formatter"
+		"editor.defaultFormatter": "charliermarsh.ruff",
+		"editor.codeActionsOnSave": {
+			"source.organizeImports.ruff": "explicit"
+		}
 	},
 	"css.format.braceStyle": "expand",
 	"[css]": {

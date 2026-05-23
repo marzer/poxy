@@ -8,12 +8,15 @@
 """
 
 import html
+import typing
+from typing import Union
 
-from bs4 import NavigableString
+from bs4.element import NavigableString, Tag
 from trieregex import TrieRegEx
-from typing import Tuple, Union
 
 from . import soup
+from .mdfilter import SENTINEL_AMP, SENTINEL_AT, SENTINEL_HEX
+from .pipeline.fixups import DEDUCED_AUTO_RETURN_TYPE, SECTION_TITLE_CODE_BEGIN, SECTION_TITLE_CODE_END
 from .project import Context
 from .svg import SVG
 from .utils import *
@@ -23,12 +26,14 @@ from .utils import *
 # =======================================================================================================================
 
 
-class HTMLFixer(object):
-    pass
+class HTMLFixer:
+    def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path) -> bool:
+        raise NotImplementedError
 
 
-class PlainTextFixer(object):
-    pass
+class PlainTextFixer:
+    def __call__(self, context: Context, text: str, path: Path) -> typing.Optional[str]:
+        raise NotImplementedError
 
 
 # =======================================================================================================================
@@ -149,6 +154,7 @@ class CustomTags(HTMLFixer):
 
     __hex_entity = re.compile(r'(?:[0#]?[xX])?([a-fA-F0-9]+)')
 
+    @classmethod
     def __paired_tags_substitute(cls, m, out, context):
         tag_name = m[1].lower()
         tag_attrs = m[2].strip() if m[2] else ''
@@ -171,7 +177,7 @@ class CustomTags(HTMLFixer):
                     cp = int(hex_match[1], 16)
                     if cp <= 0x10FFFF:
                         return rf'&#x{hex_match[1]};'
-                except:
+                except Exception:
                     pass
             return f'&{tag_attrs};'
         elif tag_name == r'emoji':
@@ -184,7 +190,7 @@ class CustomTags(HTMLFixer):
                     emoji = context.emoji[int(tag_attrs, base)]
                     if emoji is not None:
                         break
-                except:
+                except Exception:
                     pass
             if emoji is None:
                 emoji = context.emoji[tag_attrs]
@@ -206,13 +212,16 @@ class CustomTags(HTMLFixer):
     def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
         if doc.article_content is None:
             return False
+        article_content = doc.article_content
 
         changed = False
 
-        def get_candidate_tags():
-            tags = doc.article_content.find_all(TAG_PARENTS)
+        def get_candidate_tags() -> list[Tag]:
+            tags = [
+                tag for tag in article_content.find_all(typing.cast(re.Pattern, TAG_PARENTS)) if isinstance(tag, Tag)
+            ]
             tags = [tag for tag in tags if not tag.decomposed and len(tag.contents)]
-            tags = [tag for tag in tags if soup.find_parent(tag, TAG_DISALLOWED_PARENTS, doc.article_content) is None]
+            tags = [tag for tag in tags if soup.find_parent(tag, TAG_DISALLOWED_PARENTS, article_content) is None]
             return tags
 
         # paired tags
@@ -240,7 +249,6 @@ class CustomTags(HTMLFixer):
             for tag in tags:
                 strings += [string for string in tag.children if isinstance(string, NavigableString) and len(string)]
             for string in strings:
-                before = str(string)
                 replacer = RegexReplacer(
                     SINGLE_TAGS, lambda m, out: self.__single_tags_substitute(m, out, context), str(string)
                 )
@@ -277,7 +285,7 @@ class CustomTags(HTMLFixer):
                                 target = parent
                             if target is not None and isinstance(target, NavigableString):
                                 target = target.parent
-                            if not target:
+                            if not target or not isinstance(target, Tag):
                                 continue
                             if key == r'add_class':
                                 soup.add_class(target, replacer[i][1])
@@ -288,7 +296,7 @@ class CustomTags(HTMLFixer):
                             elif key == r'set_name':
                                 target.name = replacer[i][1]
                             elif key == r'set_id':
-                                target.id = replacer[i][1]
+                                target['id'] = replacer[i][1]
                     continue
             if changed_this_pass:
                 doc.smooth()
@@ -400,8 +408,10 @@ class StripIncludes(HTMLFixer):
             return False
         changed = False
         for include_div in doc.article.find_all(r'div', class_=r'm-doc-include'):
+            if not isinstance(include_div, Tag):
+                continue
             anchor = include_div.find('a', href=True, class_=r'cpf')
-            if anchor is None:
+            if not isinstance(anchor, Tag):
                 continue
             text = anchor.get_text()
             if not (text.startswith('<') and text.endswith('>')):
@@ -414,7 +424,7 @@ class StripIncludes(HTMLFixer):
                     soup.destroy_node(include_div)
                 else:
                     anchor.contents.clear()
-                    anchor.contents.append(NavigableString(rf'<{text[len(strip):]}>'))
+                    anchor.contents.append(NavigableString(rf'<{text[len(strip) :]}>'))
                 changed = True
                 break
         return changed
@@ -432,7 +442,7 @@ class Banner(HTMLFixer):
 
         h1 = parent.find('h1', recursive=False)
         banner = parent.find('img', recursive=False)
-        if not banner or not h1 or r'src' not in banner.attrs or not banner[r'src']:
+        if not isinstance(banner, Tag) or not isinstance(h1, Tag) or r'src' not in banner.attrs or not banner[r'src']:
             return False
 
         # ensure it's the first image in the page, before any subsections or headings
@@ -444,6 +454,7 @@ class Banner(HTMLFixer):
         banner = banner.extract()
         h1.replace_with(banner)
         banner[r'id'] = r'poxy-main-banner'
+        assert doc.body is not None
         soup.add_class(doc.body, r'poxy-has-main-banner')
 
         if context.badges:
@@ -528,11 +539,14 @@ class CodeBlocks(HTMLFixer):
     __func_bracket = re.compile(r'^\s*[(]')
 
     @classmethod
-    def __colourize_compound_def(cls, tags, context) -> bool:
+    def __colourize_compound_def(cls, tags: list[Tag], context) -> bool:
         assert tags
         assert tags[0].string != '::'
         assert len(tags) == 1 or tags[-1].string != '::'
         full_str = ''.join([tag.get_text() for tag in tags])
+        # these are collected as set[str] then compiled to patterns in-place by the xml stage; by now
+        # they are re.Pattern, but the checker only sees the set type
+        code_blocks = typing.cast(typing.Any, context.code_blocks)
 
         def colourize_case(c: str) -> bool:
             nonlocal cls
@@ -548,16 +562,16 @@ class CodeBlocks(HTMLFixer):
                 changed = cls.__colourize_compound_def(tags, context) or changed
             return changed
 
-        if context.code_blocks.enums.fullmatch(full_str):
+        if code_blocks.enums.fullmatch(full_str):
             return colourize_case(r'mi')  # Literal.Number.Integer
 
-        if context.code_blocks.functions.fullmatch(full_str):
+        if code_blocks.functions.fullmatch(full_str):
             return colourize_case(r'nf')  # Name.Function
 
-        if context.code_blocks.types.fullmatch(full_str):
+        if code_blocks.types.fullmatch(full_str):
             return colourize_case(r'nc')  # Name.Class
 
-        while not context.code_blocks.namespaces.fullmatch(full_str):
+        while not code_blocks.namespaces.fullmatch(full_str):
             del tags[-1]
             while tags and tags[-1].string == r'::':
                 del tags[-1]
@@ -581,20 +595,24 @@ class CodeBlocks(HTMLFixer):
 
     def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
         changed = False
+        assert doc.body is not None
+        body = doc.body
 
         # fix up syntax highlighting
-        code_blocks = doc.body(('pre', 'code'), class_='m-code')
+        code_blocks = body(('pre', 'code'), class_='m-code')
         changed_this_pass = True
         while changed_this_pass:
             changed_this_pass = False
             for code_block in code_blocks:
+                if not isinstance(code_block, Tag):
+                    continue
                 changed_this_block = False
 
                 # c-style multi-line comments (doxygen butchers them)
                 mlc_open = code_block.find('span', class_='o', string='/!*')
-                while mlc_open is not None:
+                while isinstance(mlc_open, Tag):
                     mlc_close = mlc_open.find_next_sibling('span', class_='o', string='*!/')
-                    if mlc_close is None:
+                    if not isinstance(mlc_close, Tag):
                         break
                     changed_this_block = True
                     next_open = mlc_close.find_next_sibling('span', class_='o', string='/!*')
@@ -622,7 +640,9 @@ class CodeBlocks(HTMLFixer):
                 # macros
                 spans = code_block(r'span', class_=self.__compound_classes, string=True)
                 for span in spans:
-                    if context.code_blocks.macros.fullmatch(span.get_text()):
+                    if not isinstance(span, Tag):
+                        continue
+                    if typing.cast(typing.Any, context.code_blocks).macros.fullmatch(span.get_text()):
                         soup.set_class(span, r'fm')  # Name.Function.Magic
                         changed_this_block = True
 
@@ -633,19 +653,20 @@ class CodeBlocks(HTMLFixer):
                     compound_name_evaluated_tags = set()
                     for i in range(0, len(spans)):
                         current = spans[i]
-                        if id(current) in compound_name_evaluated_tags:
+                        if not isinstance(current, Tag) or id(current) in compound_name_evaluated_tags:
                             continue
 
                         compound_name_evaluated_tags.add(id(current))
                         tags = [current]
                         while True:
                             prev = current.previous_sibling
+                            if prev is None or not isinstance(prev, Tag):
+                                break
+                            prev_string = prev.string
                             if (
-                                prev is None
-                                or prev.string is None
-                                or isinstance(prev, NavigableString)
+                                prev_string is None
                                 or not soup.has_any_classes(prev, *self.__compound_classes, r'o', r'p')
-                                or not self.__ns_token_expr.fullmatch(prev.string)
+                                or not self.__ns_token_expr.fullmatch(prev_string)
                             ):
                                 break
                             current = prev
@@ -653,14 +674,16 @@ class CodeBlocks(HTMLFixer):
                             compound_name_evaluated_tags.add(id(current))
 
                         current = spans[i]
+                        assert isinstance(current, Tag)
                         while True:
                             nxt = current.next_sibling
+                            if nxt is None or not isinstance(nxt, Tag):
+                                break
+                            nxt_string = nxt.string
                             if (
-                                nxt is None
-                                or nxt.string is None
-                                or isinstance(nxt, NavigableString)
+                                nxt_string is None
                                 or not soup.has_any_classes(nxt, *self.__compound_classes, r'o', r'p')
-                                or not self.__ns_token_expr.fullmatch(nxt.string)
+                                or not self.__ns_token_expr.fullmatch(nxt_string)
                             ):
                                 break
                             current = nxt
@@ -685,14 +708,18 @@ class CodeBlocks(HTMLFixer):
                 if 1:
                     spans = code_block(r'span', class_=(r'n', r'nc'), string=True)
                     for func in spans:
+                        if not isinstance(func, Tag) or func.string is None:
+                            continue
                         if not self.__func_name.fullmatch(func.string):
                             continue
                         bracket = func.next_sibling
+                        if bracket is None or not isinstance(bracket, Tag):
+                            continue
+                        bracket_string = bracket.string
                         if (
-                            bracket is None  #
-                            or isinstance(bracket, NavigableString)  #
-                            or r'p' not in soup.get_classes(bracket)  #
-                            or not self.__func_bracket.search(bracket.string)
+                            r'p' not in soup.get_classes(bracket)  #
+                            or bracket_string is None  #
+                            or not self.__func_bracket.search(bracket_string)
                         ):
                             continue
                         soup.set_class(func, r'nf')
@@ -701,6 +728,8 @@ class CodeBlocks(HTMLFixer):
                 # keywords
                 spans = code_block(r'span', class_=self.__compound_classes, string=True)
                 for span in spans:
+                    if not isinstance(span, Tag):
+                        continue
                     if span.string in self.__keywords:
                         soup.set_class(span, r'k')  # Keyword
                         changed_this_block = True
@@ -711,11 +740,13 @@ class CodeBlocks(HTMLFixer):
             changed = changed or changed_this_pass
 
         # fix doxygen butchering code blocks as inline nonsense
-        code_blocks = doc.body('code', class_=('m-code', 'm-console'))
+        code_blocks = body('code', class_=('m-code', 'm-console'))
         changed_this_pass = True
         while changed_this_pass:
             changed_this_pass = False
             for code_block in code_blocks:
+                if not isinstance(code_block, Tag):
+                    continue
                 parent = code_block.parent
                 if (
                     parent is None
@@ -728,7 +759,9 @@ class CodeBlocks(HTMLFixer):
                 code_block.name = 'pre'
                 parent.insert_before(code_block.extract())
                 parent.smooth()
-                if not parent.contents or (len(parent.contents) == 1 and parent.contents[0].string.strip() == ''):
+                if not parent.contents or (
+                    len(parent.contents) == 1 and typing.cast(typing.Any, parent.contents[0]).string.strip() == ''
+                ):
                     soup.destroy_node(parent)
             changed = changed or changed_this_pass
 
@@ -766,11 +799,14 @@ class AutoDocLinks(HTMLFixer):
 
             existing_doc_links = doc.article_content.find_all(m_doc_anchor_tags)
             for link in existing_doc_links:
+                if not isinstance(link, Tag):
+                    continue
                 done = False
                 s = link.get_text()
                 for expr, uri in context.autolinks:
                     # check that it's a match for the replacement expression
-                    if not expr.fullmatch(s):
+                    # (autolink keys are compiled to patterns by the time this fixer runs)
+                    if not typing.cast(re.Pattern, expr).fullmatch(s):
                         continue
                     # check the existing href against the target first
                     if link.has_attr('href'):
@@ -817,8 +853,10 @@ class AutoDocLinks(HTMLFixer):
                         repl_str = str(replacer)
                         begins_with_ws = len(repl_str) > 0 and repl_str[:1].isspace()
                         new_tags = soup.replace_tag(string, repl_str)
-                        if begins_with_ws and new_tags[0].string is not None and not new_tags[0].string[:1].isspace():
-                            new_tags[0].insert_before(' ')
+                        first_new = new_tags[0]
+                        first_string = first_new.string
+                        if begins_with_ws and first_string is not None and not first_string[:1].isspace():
+                            first_new.insert_before(' ')
                         changed = True
                         del strings[i]
                         for tag in new_tags:
@@ -844,51 +882,71 @@ class Links(HTMLFixer):
 
     def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
         changed = False
+        assert doc.body is not None
+        body = doc.body
 
-        elems_with_ids = [e for e in doc.body(id=True) if e['id'] is not None and len(e['id'])]
-        elems_with_ids = {e['id']: e for e in elems_with_ids}
+        elems_with_ids = [e for e in body(id=True) if isinstance(e, Tag) and e['id'] is not None and len(e['id'])]
+        elems_with_ids = {str(e['id']): e for e in elems_with_ids}
 
-        for anchor in doc.body('a', href=True):
+        # nearest ancestor of start (exclusive of the body boundary) satisfying predicate.
+        # replaces the old find_parent(..., cutoff=body) calls; bs4 has no cutoff parameter so the
+        # boundary was previously a no-op and the whole id-resolution below never actually did anything.
+        def find_ancestor(start: Tag, predicate) -> typing.Optional[Tag]:
+            parent = start.parent
+            while parent is not None and parent is not body:
+                if isinstance(parent, Tag) and predicate(parent):
+                    return parent
+                parent = parent.parent
+            return None
+
+        for anchor in body('a', href=True):
+            if not isinstance(anchor, Tag):
+                continue
+            href = str(anchor['href'])
+
             # make sure internal links to #ids on the same page don't get treated as external links
             # (some versions of doxygen did this with @ref)
-            if anchor['href'].startswith(rf'{path.name}#'):
-                anchor['href'] = anchor['href'][len(rf'{path.name}') :]
+            if href.startswith(rf'{path.name}#'):
+                href = href[len(rf'{path.name}') :]
+                anchor['href'] = href
                 changed = True
 
             # tag links to cppreference.com
-            if self.__cppreference.fullmatch(anchor['href']):
+            if self.__cppreference.fullmatch(href):
                 changed = soup.add_class(anchor, 'poxy-cppreference') or changed
 
             # tag links to cpp named requirements
-            if self.__named_req.fullmatch(anchor['href']):
+            if self.__named_req.fullmatch(href):
                 changed = soup.add_class(anchor, 'poxy-named-requirement') or changed
 
             # make sure links to external sources are correctly marked as such
-            if self.__external_href.fullmatch(anchor['href']) is not None:
+            if self.__external_href.fullmatch(href) is not None:
                 if 'target' not in anchor.attrs or anchor['target'] != '_blank':
                     anchor['target'] = '_blank'
                     changed = True
                 changed = soup.add_class(anchor, 'poxy-external') or changed
 
                 # do magic with godbolt.org links
-                if self.__godbolt.fullmatch(anchor['href']):
+                if self.__godbolt.fullmatch(href):
                     changed = soup.add_class(anchor, 'poxy-godbolt') or changed
+                    anchor_parent = anchor.parent
+                    next_sibling = anchor_parent.next_sibling if anchor_parent is not None else None
                     if (
-                        anchor.parent.name == 'p'
-                        and len(anchor.parent.contents) == 1
-                        and anchor.parent.next_sibling is not None
-                        and anchor.parent.next_sibling.name in ('pre', 'code')
+                        anchor_parent is not None
+                        and anchor_parent.name == 'p'
+                        and len(anchor_parent.contents) == 1
+                        and isinstance(next_sibling, Tag)
+                        and next_sibling.name in ('pre', 'code')
                     ):
-                        soup.add_class(anchor.parent, ('m-note', 'm-success', 'poxy-godbolt'))
-                        code_block = anchor.parent.next_sibling
-                        code_block.insert(0, anchor.parent.extract())
+                        soup.add_class(anchor_parent, ('m-note', 'm-success', 'poxy-godbolt'))
+                        next_sibling.insert(0, anchor_parent.extract())
                         changed = True
                 continue
 
             is_mdoc = r'class' in anchor.attrs and (r'm-doc' in anchor['class'] or r'm-doc-self' in anchor['class'])
 
             # make sure links to local files point to actual existing files
-            match = self.__local_href.fullmatch(anchor['href'])
+            match = self.__local_href.fullmatch(href)
             if match and not coerce_path(path.parent, match[1]).exists():
                 changed = True
                 # fix for some doxygen versions not emitting the 'md_' prefix:
@@ -899,7 +957,8 @@ class Links(HTMLFixer):
                         continue
                 # non-existent hrefs that correspond to internal documentation can sometimes by fixed by the next step
                 if is_mdoc:
-                    anchor['href'] = r'#'
+                    href = r'#'
+                    anchor['href'] = href
                 # otherwise this is a href to a non-existent file so we just convert it to a plain span
                 else:
                     for attr in (
@@ -920,25 +979,23 @@ class Links(HTMLFixer):
                     continue
 
             # make sure internal documentation #id links actually have somewhere to go
-            if (
-                is_mdoc
-                and anchor['href'].startswith(r'#')
-                and (len(anchor['href']) == 1 or anchor['href'][1:] not in elems_with_ids)
-            ):
+            if is_mdoc and href.startswith(r'#') and (len(href) == 1 or href[1:] not in elems_with_ids):
                 changed = True
                 soup.remove_class(anchor, 'm-doc')
                 soup.add_class(anchor, 'm-doc-self')
                 anchor['href'] = '#'
-                parent_with_id = anchor.find_parent(id=self.__internal_doc_id, cutoff=doc.body)
+                parent_with_id = find_ancestor(
+                    anchor, lambda t: t.has_attr('id') and self.__internal_doc_id.search(str(t.get('id'))) is not None
+                )
                 if parent_with_id is None:
-                    parent_with_id = anchor.find_parent((r'dt', r'tr'), id=False, cutoff=doc.body)
+                    parent_with_id = find_ancestor(anchor, lambda t: t.name in (r'dt', r'tr') and not t.has_attr('id'))
                     if parent_with_id is not None:
                         parent_with_id['id'] = sha256(parent_with_id.get_text())
-                        elems_with_ids[parent_with_id['id']] = parent_with_id
+                        elems_with_ids[str(parent_with_id['id'])] = parent_with_id
                 if parent_with_id is None:
-                    parent_with_id = anchor.find_parent(id=True, cutoff=doc.body)
+                    parent_with_id = find_ancestor(anchor, lambda t: t.has_attr('id'))
                 if parent_with_id is not None:
-                    anchor['href'] = '#' + parent_with_id['id']
+                    anchor['href'] = '#' + str(parent_with_id['id'])
                 continue
 
         return changed
@@ -951,7 +1008,10 @@ class EmptyTags(HTMLFixer):
 
     def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
         changed = False
+        assert doc.body is not None
         for tag in doc.body((r'p', r'span')):
+            if not isinstance(tag, Tag):
+                continue
             if not tag.contents or (
                 len(tag.contents) == 1 and isinstance(tag.contents[0], NavigableString) and not tag.string
             ):
@@ -973,12 +1033,12 @@ class FixTOC(HTMLFixer):
         # inject css classes
         soup.add_class(doc.table_of_contents, r'poxy-toc')
         doc.table_of_contents['id'] = r'poxy-toc'
+        assert doc.body is not None
         soup.add_class(doc.body, r'poxy-has-toc')
 
         # fix <ul> <li> <a href="#"></a> <ul> <li> </li> </ul> </ul>
-        items = doc.table_of_contents.find("ul", recursive=False)
-        if items:
-            items = items.find_all("li", recursive=False)
+        ul_tag = doc.table_of_contents.find("ul", recursive=False)
+        items = ul_tag.find_all("li", recursive=False) if isinstance(ul_tag, Tag) else None
         if items:
 
             def string_content(node) -> str:
@@ -993,6 +1053,8 @@ class FixTOC(HTMLFixer):
                 return ''
 
             for item in items:
+                if not isinstance(item, Tag):
+                    continue
                 if len(item.contents) != 5 or string_content(item) != '':
                     continue
 
@@ -1005,21 +1067,26 @@ class FixTOC(HTMLFixer):
                 if not len(li) == 1 or id(li[0].parent) != id(ul) or string_content(li[0]) != '':
                     continue
                 li = li[0]
+                if not isinstance(li, Tag):
+                    continue
                 li_tags = [x for x in li.contents if not isinstance(x, NavigableString)]
                 if len(li_tags) != 1:
                     continue
 
                 a = item.find_all("a")
+                if not len(a) == 2:
+                    continue
+                a0, a1 = a[0], a[1]
                 if (
-                    not len(a) == 2
-                    or id(a[0].parent) != id(item)
-                    or id(a[1].parent) != id(li)
-                    or a[0]['href'] != '#'
-                    or string_content(a[0]) != ''
-                    or string_content(a[1]) == ''
+                    id(a0.parent) != id(item)
+                    or id(a1.parent) != id(li)
+                    or not isinstance(a0, Tag)
+                    or a0['href'] != '#'
+                    or string_content(a0) != ''
+                    or string_content(a1) == ''
                 ):
                     continue
-                a = a[1]
+                a = a1
 
                 item.clear()
                 item.append(a)
@@ -1033,23 +1100,28 @@ class InjectSVGs(HTMLFixer):
     '''
 
     def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
+        assert doc.body is not None
         imgs = doc.body.find_all(r'img')
         if not imgs:
             return False
         imgs = [
             i
             for i in imgs
-            if r'src' in i.attrs and i[r'src'] and not is_uri(i[r'src']) and i[r'src'].lower().endswith(r'.svg')
+            if isinstance(i, Tag)
+            and r'src' in i.attrs
+            and i[r'src']
+            and not is_uri(str(i[r'src']))
+            and str(i[r'src']).lower().endswith(r'.svg')
         ]
         count = 0
         for img in imgs:
-            src = Path(path.parent, img[r'src'])
+            src = Path(path.parent, str(img[r'src']))
             if not src.exists() or not src.is_file() or src.stat().st_size > (1024 * 16):  # max 16 kb
                 continue
             svg = SVG(
                 src,  #
                 logger=context.verbose_logger,
-                root_id=img[r'id'] if r'id' in img.attrs else rf'poxy-injected-svg-{count}',
+                root_id=str(img[r'id']) if r'id' in img.attrs else rf'poxy-injected-svg-{count}',
                 root_classes=(*soup.get_classes(img), r'poxy-injected-svg'),
             )
             img = soup.replace_tag(img, str(svg))[0]
@@ -1063,7 +1135,12 @@ class RemoveTemplateNoise(HTMLFixer):
     '''
 
     def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
-        tags = [tag for tag in doc.article.find_all(r'span', class_='m-doc-details-prefix') if not tag.decomposed]
+        assert doc.article is not None
+        tags = [
+            tag
+            for tag in doc.article.find_all(r'span', class_='m-doc-details-prefix')
+            if isinstance(tag, Tag) and not tag.decomposed
+        ]
         changed = False
         for tag in tags:
             m = re.fullmatch(r'([a-zA-Z_][a-zA-Z_0-9:]*)<.+?>::', tag.get_text())
@@ -1101,9 +1178,6 @@ class ImplementationDetails(PlainTextFixer):
         return text
 
 
-WBR = r'(?:<wbr[ \t]*/?>)?'
-
-
 class MarkdownPages(PlainTextFixer):
     '''
     Cleans up some HTML snafus from markdown-based pages.
@@ -1117,11 +1191,24 @@ class MarkdownPages(PlainTextFixer):
             or (context.changelog and lower_name == r'poxy_changelog.html')
             or (context.main_page and lower_name in (r'poxy_main_page.html', r'index.html'))
         ):
-            PREFIX = rf'_{WBR}_{WBR}poxy_{WBR}this_{WBR}was_{WBR}'
-            text = re.sub(rf'{PREFIX}amp', r'&amp;', text)
-            text = re.sub(rf'{PREFIX}at', r'@', text)
-            text = re.sub(rf'{PREFIX}hex([a-fA-F0-9]{{2,4}})', r'&#x\1;', text)
             text = re.sub(r'<p><br[ \t]*/?></p>', r'', text)
+        return text
+
+
+class RestoreMarkdownSentinels(PlainTextFixer):
+    '''
+    Restores the entity / '@' sentinels mdfilter.py injects before doxygen runs (so doxygen doesn't mangle
+    them) back into the real characters in the final HTML. Runs on every page; a no-op where no sentinels
+    are present. The sentinels are underscore-free precisely so m.css's add_wbr() leaves them intact, so a
+    plain replacement here is enough.
+    '''
+
+    __hex = re.compile(rf'{SENTINEL_HEX}([a-fA-F0-9]{{2,4}})')
+
+    def __call__(self, context: Context, text: str, path: Path) -> str:
+        text = text.replace(SENTINEL_AMP, r'&amp;')
+        text = text.replace(SENTINEL_AT, r'@')
+        text = self.__hex.sub(r'&#x\1;', text)
         return text
 
 
@@ -1130,10 +1217,8 @@ class ReturnTypes(PlainTextFixer):
     Fixes various issues with function return types
     '''
 
-    __deduced_auto_return_type_brief = re.compile(
-        rf'\)[ \t]*-&gt;[ \t]*_{WBR}_{WBR}poxy_{WBR}deduced_{WBR}auto_{WBR}return_{WBR}type'
-    )
-    __deduced_auto_return_type = re.compile(rf'_{WBR}_{WBR}poxy_{WBR}deduced_{WBR}auto_{WBR}return_{WBR}type')
+    __deduced_auto_return_type_brief = re.compile(rf'\)[ \t]*-&gt;[ \t]*{DEDUCED_AUTO_RETURN_TYPE}')
+    __deduced_auto_return_type = re.compile(DEDUCED_AUTO_RETURN_TYPE)
 
     def __call__(self, context: Context, text: str, path: Path) -> str:
 
@@ -1200,7 +1285,7 @@ class Pygments(PlainTextFixer):
     Fixes minor issues with pygments-generated markup.
     '''
 
-    def __call__(self, context: Context, text: str, path: Path) -> str:
+    def __call__(self, context: Context, text: str, path: Path) -> typing.Optional[str]:
         if not re.search(r'class="[^"]*?m-code[^"]*?"', text):
             return None
 
@@ -1254,7 +1339,20 @@ class InstallSearchShim(PlainTextFixer):
         )
 
 
-def create_all() -> Tuple[Union[HTMLFixer, PlainTextFixer]]:
+class SectionTitleCodeSpans(PlainTextFixer):
+    '''
+    Restores inline code spans in section headings. They are encoded as sentinels before m.css runs
+    (m.css renders headings as plain text and would otherwise crash on, or truncate, the markup); here
+    they are turned back into <code>.
+    '''
+
+    __pattern = re.compile(re.escape(SECTION_TITLE_CODE_BEGIN) + r'(.*?)' + re.escape(SECTION_TITLE_CODE_END))
+
+    def __call__(self, context: Context, text: str, path: Path) -> str:
+        return self.__pattern.sub(r'<code>\1</code>', text)
+
+
+def create_all() -> tuple[Union[HTMLFixer, PlainTextFixer], ...]:
 
     # order matters here!
     return (
@@ -1271,7 +1369,9 @@ def create_all() -> Tuple[Union[HTMLFixer, PlainTextFixer]]:
         RemoveTemplateNoise(),  # html
         EmptyTags(),  # html
         ImplementationDetails(),
+        SectionTitleCodeSpans(),
         MarkdownPages(),
+        RestoreMarkdownSentinels(),
         InstallSearchShim(),
         ReturnTypes(),
         InjectSVGs(),  # html

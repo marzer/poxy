@@ -7,14 +7,12 @@
 Functions and classes for working with various source control repositories.
 """
 
-from typing import Tuple
-
 from .utils import *
 
 RX_REPO_PAIR = re.compile(r"""\s*([a-zA-Z0-9_+.-]+)\s*[/\\:,;|]\s*([a-zA-Z0-9_+.-]+)\s*""")
 
 
-def extract_user_and_repo(s) -> Tuple[str, str]:
+def extract_user_and_repo(s) -> tuple[str, str]:
     assert s is not None
     s = str(s)
     global RX_REPO_PAIR
@@ -29,7 +27,7 @@ def extract_user_and_repo(s) -> Tuple[str, str]:
 # =======================================================================================================================
 
 
-class GitHub(object):
+class GitHub:
     KEY = r'github'
 
     def __init__(self, user_and_repo: str):
@@ -69,7 +67,7 @@ class GitHub(object):
 # =======================================================================================================================
 
 
-class GitLab(object):
+class GitLab:
     KEY = r'gitlab'
 
     def __init__(self, user_and_repo: str):

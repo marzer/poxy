@@ -7,11 +7,21 @@
 XML utilities - Helpers for working with XML using lxml.
 """
 
+import typing
 from typing import Union
 
 from lxml import etree
 
 from .utils import *
+
+_T = typing.TypeVar('_T')
+
+
+def require(value: typing.Optional[_T]) -> _T:
+    '''narrows an Optional to non-None at a site where presence is a known invariant (e.g. a child
+    element doxygen always emits). makes the man-in-the-middle assumption explicit instead of silent.'''
+    assert value is not None
+    return value
 
 
 def create_parser(remove_blank_text=False, **kwargs) -> etree.XMLParser:
@@ -70,9 +80,12 @@ def write(
 
     if isinstance(source, (str, bytes)):
         source = read(source, parser=parser, logger=logger)
+    if isinstance(source, etree._ElementTree):
+        source = source.getroot()
+    assert isinstance(source, etree._Element)
 
     tree = etree.ElementTree(source)
     tree.write(str(dest), encoding=r'utf-8', xml_declaration=xml_declaration, pretty_print=pretty_print)  #
 
 
-__all__ = ['create_parser', 'DEFAULT_PARSER', 'make_child', 'read', 'ElementTypes', 'write']
+__all__ = ['create_parser', 'DEFAULT_PARSER', 'make_child', 'read', 'ElementTypes', 'write', 'require']

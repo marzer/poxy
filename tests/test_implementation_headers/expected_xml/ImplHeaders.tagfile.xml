@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<tagfile doxygen_version="0.0.0">
+  <compound kind="file">
+    <name>foo.hpp</name>
+    <filename>foo_8hpp.html</filename>
+    <class kind="struct">foo::widget</class>
+    <namespace>foo</namespace>
+    <member kind="define">
+      <type>#define</type>
+      <name>IMPL_ANSWER</name>
+      <anchorfile>foo_8hpp.html</anchorfile>
+      <anchor>poxyhash0</anchor>
+      <arglist/>
+    </member>
+  <class kind="struct">foo::gadget</class>
+    </compound>
+  <compound kind="struct">
+    <name>foo::gadget</name>
+    <filename>structfoo_1_1gadget.html</filename>
+    <member kind="variable">
+      <type>widget</type>
+      <name>w</name>
+      <anchorfile>structfoo_1_1gadget.html</anchorfile>
+      <anchor>poxyhash1</anchor>
+      <arglist/>
+    </member>
+  </compound>
+  <compound kind="struct">
+    <name>foo::widget</name>
+    <filename>structfoo_1_1widget.html</filename>
+    <member kind="variable">
+      <type>int</type>
+      <name>value</name>
+      <anchorfile>structfoo_1_1widget.html</anchorfile>
+      <anchor>poxyhash2</anchor>
+      <arglist/>
+    </member>
+  </compound>
+  <compound kind="namespace">
+    <name>foo</name>
+    <filename>namespacefoo.html</filename>
+    <class kind="struct">foo::gadget</class>
+    <class kind="struct">foo::widget</class>
+    <member kind="function">
+      <type>widget</type>
+      <name>make_widget</name>
+      <anchorfile>namespacefoo.html</anchorfile>
+      <anchor>poxyhash3</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>gadget</type>
+      <name>make_gadget</name>
+      <anchorfile>namespacefoo.html</anchorfile>
+      <anchor>poxyhash4</anchor>
+      <arglist>(widget const &amp;w)</arglist>
+    </member>
+  </compound>
+</tagfile>
