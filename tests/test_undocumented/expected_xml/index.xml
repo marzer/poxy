@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="0.0.0" xml:lang="en-US">
+	<compound refid="classouter_1_1middle_1_1inner_1_1deep" kind="class">
+		<name>outer::middle::inner::deep</name>
+	</compound>
+	<compound refid="classouter_1_1documented__child" kind="class">
+		<name>outer::documented_child</name>
+		<member refid="classouter_1_1documented__child_poxyhash0" kind="function">
+			<name>method</name>
+		</member>
+	</compound>
+	<compound refid="classouter_1_1fully__undocumented" kind="class">
+		<name>outer::fully_undocumented</name>
+		<member refid="classouter_1_1fully__undocumented_poxyhash1" kind="function">
+			<name>undocumented_method</name>
+		</member>
+	</compound>
+	<compound refid="classouter_1_1undocumented__with__member" kind="class">
+		<name>outer::undocumented_with_member</name>
+		<member refid="classouter_1_1undocumented__with__member_poxyhash2" kind="function">
+			<name>documented_method</name>
+		</member>
+	</compound>
+	<compound refid="namespaceouter" kind="namespace">
+		<name>outer</name>
+	</compound>
+	<compound refid="namespaceouter_1_1middle" kind="namespace">
+		<name>outer::middle</name>
+	</compound>
+	<compound refid="namespaceouter_1_1middle_1_1inner" kind="namespace">
+		<name>outer::middle::inner</name>
+	</compound>
+	<compound refid="namespacetest" kind="namespace">
+		<name>test</name>
+		<member refid="code_8h_poxyhash3" kind="enum">
+			<name>all_values_undocumented</name>
+		</member>
+		<member refid="code_8h_poxyhash4" kind="enumvalue">
+			<name>red</name>
+		</member>
+		<member refid="code_8h_poxyhash5" kind="enumvalue">
+			<name>green</name>
+		</member>
+		<member refid="code_8h_poxyhash6" kind="enumvalue">
+			<name>blue</name>
+		</member>
+		<member refid="code_8h_poxyhash7" kind="enum">
+			<name>some_values_undocumented</name>
+		</member>
+		<member refid="code_8h_poxyhash8" kind="enumvalue">
+			<name>circle</name>
+		</member>
+		<member refid="code_8h_poxyhash9" kind="enumvalue">
+			<name>square</name>
+		</member>
+		<member refid="code_8h_poxyhash10" kind="enumvalue">
+			<name>triangle</name>
+		</member>
+		<member refid="code_8h_poxyhash11" kind="enum">
+			<name>fully_undocumented_enum</name>
+		</member>
+		<member refid="code_8h_poxyhash12" kind="enumvalue">
+			<name>alpha</name>
+		</member>
+		<member refid="code_8h_poxyhash13" kind="enumvalue">
+			<name>beta</name>
+		</member>
+	</compound>
+	<compound refid="code_8h" kind="file">
+		<name>code.h</name>
+		<member refid="code_8h_poxyhash3" kind="enum">
+			<name>all_values_undocumented</name>
+		</member>
+		<member refid="code_8h_poxyhash4" kind="enumvalue">
+			<name>red</name>
+		</member>
+		<member refid="code_8h_poxyhash5" kind="enumvalue">
+			<name>green</name>
+		</member>
+		<member refid="code_8h_poxyhash6" kind="enumvalue">
+			<name>blue</name>
+		</member>
+		<member refid="code_8h_poxyhash7" kind="enum">
+			<name>some_values_undocumented</name>
+		</member>
+		<member refid="code_8h_poxyhash8" kind="enumvalue">
+			<name>circle</name>
+		</member>
+		<member refid="code_8h_poxyhash9" kind="enumvalue">
+			<name>square</name>
+		</member>
+		<member refid="code_8h_poxyhash10" kind="enumvalue">
+			<name>triangle</name>
+		</member>
+		<member refid="code_8h_poxyhash11" kind="enum">
+			<name>fully_undocumented_enum</name>
+		</member>
+		<member refid="code_8h_poxyhash12" kind="enumvalue">
+			<name>alpha</name>
+		</member>
+		<member refid="code_8h_poxyhash13" kind="enumvalue">
+			<name>beta</name>
+		</member>
+	</compound>
+	<compound refid="globals_8h" kind="file">
+		<name>globals.h</name>
+		<member refid="globals_8h_poxyhash14" kind="function">
+			<name>global_documented_function</name>
+		</member>
+		<member refid="globals_8h_poxyhash15" kind="function">
+			<name>undocumented_global_function</name>
+		</member>
+	</compound>
+	<compound refid="dir_poxyhash16" kind="dir">
+		<name>src</name>
+	</compound>
+</doxygenindex>

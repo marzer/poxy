@@ -1,0 +1,8 @@
+name = 'Undocumented!'
+description = 'exercises relaxed pruning of undocumented parents + enum values'
+cpp = 20
+navbar = 'all'
+
+[sources]
+recursive_paths = './src'
+strip_paths = '.'

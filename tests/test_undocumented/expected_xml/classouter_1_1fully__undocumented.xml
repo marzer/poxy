@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="classouter_1_1fully__undocumented" kind="class" language="C++" prot="public">
+		<compoundname>outer::fully_undocumented</compoundname>
+		<sectiondef kind="public-func">
+			<memberdef kind="function" id="classouter_1_1fully__undocumented_poxyhash0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>void</type>
+				<definition>void outer::fully_undocumented::undocumented_method</definition>
+				<argsstring>()</argsstring>
+				<name>undocumented_method</name>
+				<qualifiedname>outer::fully_undocumented::undocumented_method</qualifiedname>
+				<briefdescription></briefdescription>
+				<detaileddescription></detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="30" column="6"/>
+			</memberdef>
+		</sectiondef>
+		<briefdescription></briefdescription>
+		<detaileddescription></detaileddescription>
+		<location file="src/code.h" line="27" column="1" bodyfile="src/code.h" bodystart="28" bodyend="31"/>
+		<listofallmembers>
+			<member refid="classouter_1_1fully__undocumented_poxyhash0" prot="public" virt="non-virtual">
+				<scope>outer::fully_undocumented</scope>
+				<name>undocumented_method</name>
+			</member>
+		</listofallmembers>
+	</compounddef>
+</doxygen>

@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="namespaceouter" kind="namespace" language="C++">
+		<compoundname>outer</compoundname>
+		<briefdescription>
+			<para>
+				<ns0:span xmlns:ns0="http://mcss.mosra.cz/doxygen/"/>
+			</para>
+		</briefdescription>
+		<detaileddescription></detaileddescription>
+		<location file="src/code.h" line="7" column="1"/>
+		<innerclass refid="classouter_1_1documented__child" prot="public">outer::documented_child</innerclass>
+		<innerclass refid="classouter_1_1fully__undocumented" prot="public">outer::fully_undocumented</innerclass>
+		<innernamespace refid="namespaceouter_1_1middle">outer::middle</innernamespace>
+		<innerclass refid="classouter_1_1undocumented__with__member" prot="public">outer::undocumented_with_member</innerclass>
+	</compounddef>
+</doxygen>

@@ -1,0 +1,116 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="code_8h" kind="file" language="C++">
+		<compoundname>code.h</compoundname>
+		<innerclass refid="classouter_1_1documented__child" prot="public">outer::documented_child</innerclass>
+		<innerclass refid="classouter_1_1undocumented__with__member" prot="public">outer::undocumented_with_member</innerclass>
+		<innerclass refid="classouter_1_1fully__undocumented" prot="public">outer::fully_undocumented</innerclass>
+		<innerclass refid="classouter_1_1middle_1_1inner_1_1deep" prot="public">outer::middle::inner::deep</innerclass>
+		<innernamespace refid="namespaceouter">outer</innernamespace>
+		<innernamespace refid="namespaceouter_1_1middle">outer::middle</innernamespace>
+		<innernamespace refid="namespaceouter_1_1middle_1_1inner">outer::middle::inner</innernamespace>
+		<innernamespace refid="namespacetest">test</innernamespace>
+		<sectiondef kind="enum">
+			<memberdef kind="enum" id="code_8h_poxyhash0" prot="public" static="no" strong="yes">
+				<type/>
+				<name>all_values_undocumented</name>
+				<qualifiedname>test::all_values_undocumented</qualifiedname>
+				<enumvalue id="code_8h_poxyhash1" prot="public">
+					<name>red</name>
+					<briefdescription>
+						<para>
+							<ns0:span xmlns:ns0="http://mcss.mosra.cz/doxygen/"/>
+						</para>
+					</briefdescription>
+					<detaileddescription></detaileddescription>
+				</enumvalue>
+				<enumvalue id="code_8h_poxyhash2" prot="public">
+					<name>green</name>
+					<briefdescription>
+						<para>
+							<ns1:span xmlns:ns1="http://mcss.mosra.cz/doxygen/"/>
+						</para>
+					</briefdescription>
+					<detaileddescription></detaileddescription>
+				</enumvalue>
+				<enumvalue id="code_8h_poxyhash3" prot="public">
+					<name>blue</name>
+					<briefdescription>
+						<para>
+							<ns2:span xmlns:ns2="http://mcss.mosra.cz/doxygen/"/>
+						</para>
+					</briefdescription>
+					<detaileddescription></detaileddescription>
+				</enumvalue>
+				<briefdescription>
+					<para>A documented enum whose values are all undocumented. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>The enumerator table should still render. </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="49" column="1" bodyfile="src/code.h" bodystart="50" bodyend="54"/>
+			</memberdef>
+			<memberdef kind="enum" id="code_8h_poxyhash4" prot="public" static="no" strong="yes">
+				<type/>
+				<name>fully_undocumented_enum</name>
+				<qualifiedname>test::fully_undocumented_enum</qualifiedname>
+				<enumvalue id="code_8h_poxyhash5" prot="public">
+					<name>alpha</name>
+					<briefdescription></briefdescription>
+					<detaileddescription></detaileddescription>
+				</enumvalue>
+				<enumvalue id="code_8h_poxyhash6" prot="public">
+					<name>beta</name>
+					<briefdescription></briefdescription>
+					<detaileddescription></detaileddescription>
+				</enumvalue>
+				<briefdescription></briefdescription>
+				<detaileddescription></detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="65" column="1" bodyfile="src/code.h" bodystart="66" bodyend="69"/>
+			</memberdef>
+			<memberdef kind="enum" id="code_8h_poxyhash7" prot="public" static="no" strong="yes">
+				<type/>
+				<name>some_values_undocumented</name>
+				<qualifiedname>test::some_values_undocumented</qualifiedname>
+				<enumvalue id="code_8h_poxyhash8" prot="public">
+					<name>circle</name>
+					<briefdescription>
+						<para>A round one. </para>
+					</briefdescription>
+					<detaileddescription></detaileddescription>
+				</enumvalue>
+				<enumvalue id="code_8h_poxyhash9" prot="public">
+					<name>square</name>
+					<briefdescription>
+						<para>
+							<ns3:span xmlns:ns3="http://mcss.mosra.cz/doxygen/"/>
+						</para>
+					</briefdescription>
+					<detaileddescription></detaileddescription>
+				</enumvalue>
+				<enumvalue id="code_8h_poxyhash10" prot="public">
+					<name>triangle</name>
+					<briefdescription>
+						<para>
+							<ns4:span xmlns:ns4="http://mcss.mosra.cz/doxygen/"/>
+						</para>
+					</briefdescription>
+					<detaileddescription></detaileddescription>
+				</enumvalue>
+				<briefdescription>
+					<para>A documented enum with a single documented value. </para>
+				</briefdescription>
+				<detaileddescription></detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/code.h" line="57" column="1" bodyfile="src/code.h" bodystart="58" bodyend="62"/>
+			</memberdef>
+		</sectiondef>
+		<briefdescription>
+			<para>Documented file holding the scoped (namespace/class) cases. </para>
+		</briefdescription>
+		<detaileddescription></detaileddescription>
+		<location file="src/code.h"/>
+	</compounddef>
+</doxygen>

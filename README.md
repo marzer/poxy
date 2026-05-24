@@ -3,16 +3,17 @@
 Documentation generator for C++ based on Doxygen and [mosra/m.css](https://mcss.mosra.cz/).
 
 [![Sponsor](https://img.shields.io/static/v1?label=sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86&style=flat-square)][sponsor]
-[![Gitter](https://badges.gitter.im/marzer/poxy.svg)][gitter]
 
--   [Overview](#overview)
--   [Example](#example)
--   [Installation](#installation)
--   [Usage](#usage)
--   [Config file options](#config-file-options)
--   [Migrating from Doxygen](#migrating-from-doxygen)
--   [Why the name "Poxy"?](#why-the-name-poxy)
--   [License and Attribution](#license-and-attribution)
+- [Overview](#overview)
+- [Example](#example)
+- [Installation](#installation)
+	- [Prerequisites:](#prerequisites)
+	- [Then:](#then)
+- [Usage](#usage)
+- [Config file options](#config-file-options)
+- [Migrating from Doxygen](#migrating-from-doxygen)
+- [Why the name "Poxy"?](#why-the-name-poxy)
+- [License and Attribution](#license-and-attribution)
 
 <br><br>
 
@@ -32,8 +33,10 @@ a fantastic live search feature. **Poxy** builds upon both by:
 -   Giving more control over the HTML inline using square-bracket `[tags][/tags]`
 -   Adding a switchable light theme
 -   Adding support for C++20 concepts
+-   Adding a top-level page listing all `#defines` so they're discoverable without hunting through file docs
 -   Self-hosting fonts to reduce external HTTP requests
 -   Inlining SVGs so they can take advantage of [`currentColor`]
+-   Keeping undocumented parents of documented symbols (and documented enums' values) instead of pruning them
 -   Quite a bit more!
 
 <br><br>
@@ -51,8 +54,8 @@ The homepage + documentation for [toml++] is built using poxy:
 
 ### Prerequisites:
 
--   Python 3.7+
--   Doxygen 1.8.20+ (must be visible on system path)
+-   Python 3.9+
+-   Doxygen 1.9+ (must be visible on system path)
 -   Linux only: `sudo apt install dvisvgm`
 
 ### Then:
@@ -185,5 +188,4 @@ Poxy bundles a fork of m.css, used per the [MIT/Expat license](https://github.co
 [configuration options]: https://github.com/marzer/poxy/wiki/Configuration-options
 [feature request]: https://github.com/marzer/poxy/issues/new
 [`currentcolor`]: https://gomakethings.com/currentcolor-and-svgs
-[gitter]: https://gitter.im/marzer/poxy
 [sponsor]: https://github.com/sponsors/marzer

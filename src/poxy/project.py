@@ -208,6 +208,7 @@ class Context:
         self.compounds: dict = dict()
         self.compound_pages = dict()
         self.compound_kinds = set()
+        self.has_macros = False
 
         # initial warning state
         # note that this is overwritten after the config is read;

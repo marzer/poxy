@@ -4050,6 +4050,7 @@ def parse_doxyfile(state: State, doxyfile, values = None):
         'annotated': ("Classes", 'annotated.html'),
         'files': ("Files", 'files.html'),
         'concepts': ("Concepts", 'concepts.html'),
+        'macros': ("Macros", 'macros.html'),
     }
     def extract_link(link):
         # If this is a HTML code, return it as a one-item tuple
@@ -4154,7 +4155,7 @@ def parse_doxyfile(state: State, doxyfile, values = None):
         logging.fatal("{}: CREATE_SUBDIRS is not supported, sorry. Disable it and try again.".format(doxyfile))
         raise NotImplementedError
 
-default_index_pages = ['pages', 'files', 'namespaces', 'modules', 'annotated', 'concepts']
+default_index_pages = ['pages', 'files', 'namespaces', 'modules', 'annotated', 'concepts', 'macros']
 default_wildcard = '*.xml'
 default_templates = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'templates/doxygen/')
 
@@ -4212,11 +4213,18 @@ def run(state: State, *, templates=default_templates, wildcard=default_wildcard,
 
     postprocess_state(state)
 
+    # Top-level macros (#defines) are doxygen members of files/groups rather than compounds, so
+    # they aren't part of parsed.index. Gather them across the file/group pass and render the
+    # macros index page afterwards (the index.xml render below may run before those compounds).
+    macros = []
+
     for file in xml_files:
         if os.path.basename(file) == 'index.xml':
             parsed = parse_index_xml(state, file)
 
             for i in index_pages:
+                if i == 'macros':
+                    continue
                 file = '{}.html'.format(i)
 
                 template = env.get_template(file)
@@ -4241,6 +4249,21 @@ def run(state: State, *, templates=default_templates, wildcard=default_wildcard,
             parsed = parse_xml(state, file)
             if not parsed: continue
 
+            # collect documented #defines at their canonical compound (matches the search dedup
+            # condition in parse_define) for the top-level macros index page
+            if parsed.compound.kind in ('file', 'group'):
+                for define in parsed.compound.defines:
+                    if define.base_url != parsed.compound.url:
+                        continue
+                    entry = Empty()
+                    entry.name = define.name
+                    entry.url = define.base_url + '#' + define.id
+                    entry.brief = define.brief
+                    entry.params = None if define.params is None else [param[0] for param in define.params]
+                    entry.deprecated = define.deprecated
+                    entry.since = define.since
+                    macros += [entry]
+
             template = env.get_template('{}.html'.format(parsed.compound.kind))
             rendered = template.render(compound=parsed.compound,
                 DOXYGEN_VERSION=parsed.version,
@@ -4259,6 +4282,23 @@ def run(state: State, *, templates=default_templates, wildcard=default_wildcard,
                 # contain a trailing newline on its own.
                 assert not rendered.endswith('\n')
                 f.write(b'\n')
+
+    # Render the top-level macros index from the defines gathered above.
+    if 'macros' in index_pages:
+        macros.sort(key=lambda m: m.name.lower())
+        index = Empty()
+        index.macros = macros
+        template = env.get_template('macros.html')
+        rendered = template.render(index=index,
+            DOXYGEN_VERSION=None,
+            FILENAME='macros.html',
+            SEARCHDATA_FORMAT_VERSION=searchdata_format_version,
+            **state.doxyfile, **state.config)
+        output = os.path.join(html_output, 'macros.html')
+        with open(output, 'wb') as f:
+            f.write(rendered.encode('utf-8'))
+            assert not rendered.endswith('\n')
+            f.write(b'\n')
 
     # Empty index page in case no mainpage documentation was provided so
     # there's at least some entrypoint. Doxygen version is not set in this

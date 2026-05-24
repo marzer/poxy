@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="classouter_1_1middle_1_1inner_1_1deep" kind="class" language="C++" prot="public">
+		<compoundname>outer::middle::inner::deep</compoundname>
+		<includes local="no">code.h</includes>
+		<briefdescription>
+			<para>A deeply nested documented class. </para>
+		</briefdescription>
+		<detaileddescription></detaileddescription>
+		<location file="src/code.h" line="39" column="1" bodyfile="src/code.h" bodystart="40" bodyend="40"/>
+		<listofallmembers>
+    </listofallmembers>
+	</compounddef>
+</doxygen>

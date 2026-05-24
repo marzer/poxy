@@ -3,7 +3,9 @@
 	"prettier.tabWidth": 4,
 	"prettier.printWidth": 120,
 	"prettier.singleAttributePerLine": true,
-	"editor.rulers": [120],
+	"editor.rulers": [
+		120
+	],
 	"editor.formatOnSave": true,
 	"editor.formatOnPaste": false,
 	"editor.formatOnType": false,

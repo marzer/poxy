@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<tagfile doxygen_version="0.0.0">
+  <compound kind="file">
+    <name>code.h</name>
+    <filename>code_8h.html</filename>
+    <class kind="class">outer::documented_child</class>
+    <class kind="class">outer::middle::inner::deep</class>
+  </compound>
+  <compound kind="class">
+    <name>outer::middle::inner::deep</name>
+    <filename>classouter_1_1middle_1_1inner_1_1deep.html</filename>
+  </compound>
+  <compound kind="class">
+    <name>outer::documented_child</name>
+    <filename>classouter_1_1documented__child.html</filename>
+    <member kind="function">
+      <type>void</type>
+      <name>method</name>
+      <anchorfile>classouter_1_1documented__child.html</anchorfile>
+      <anchor>poxyhash0</anchor>
+      <arglist>()</arglist>
+    </member>
+  </compound>
+</tagfile>

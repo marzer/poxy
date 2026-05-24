@@ -133,7 +133,36 @@ def fold_implementation_headers_in_tagfile(tagfile_root, implementation_header_d
     return changed
 
 
-def normalize_tagfile(tagfile_root) -> bool:
+def collect_namespace_member_keys(xml_dir) -> set:
+    """
+    Build the set of (anchorfile, anchor) keys for every member that the project's XML attributes to a
+    namespace. Doxygen member ids are '<compound-base>_1<anchor>', and the tagfile addresses the same
+    member as anchorfile='<compound-base>.html' + anchor='<anchor>', so the two line up exactly.
+    Used to strip namespace members that older doxygen duplicates into file compounds even when it emits
+    no namespace compound in the tagfile for them to be de-duplicated against.
+    """
+    keys = set()
+    for xml_file in get_all_files(xml_dir, any=r'*.xml'):
+        if xml_file.name in (r'index.xml', r'Doxyfile.xml'):
+            continue
+        root = xml_utils.read(xml_file)
+        if root.tag != r'doxygen':
+            continue
+        for compounddef in root.findall(r'compounddef'):
+            if compounddef.get(r'kind') != r'namespace':
+                continue
+            for memberdef in compounddef.iter(r'memberdef'):
+                member_id = memberdef.get(r'id')
+                if not member_id:
+                    continue
+                i = member_id.rfind(r'_1')
+                if i < 0:
+                    continue
+                keys.add((member_id[:i] + r'.html', member_id[i + 2 :]))
+    return keys
+
+
+def normalize_tagfile(tagfile_root, extra_namespace_member_keys=None) -> bool:
     """
     Normalise a doxygen tagfile for version-independence:
       - drop <compound kind="dir"> entries (directory cross-refs that some doxygen versions emit and
@@ -141,6 +170,8 @@ def normalize_tagfile(tagfile_root) -> bool:
       - strip namespace members that older doxygen (<=1.9.x) also duplicates into the owning file
         compound; modern doxygen lists them only in the namespace compound (the file keeps its #defines
         plus a <namespace> backref). every member stays tag-linkable via the namespace compound.
+        extra_namespace_member_keys covers members whose namespace doxygen omits from the tagfile
+        entirely (e.g. an undocumented namespace), so the tagfile alone can't tell they're namespace-scoped.
       - sort each compound's inner namespace/class/concept refs by name, since doxygen's ordering of
         these is version-dependent
     """
@@ -160,7 +191,7 @@ def normalize_tagfile(tagfile_root) -> bool:
 
     # de-duplicate namespace members out of file compounds (keyed on (anchorfile, anchor), which a
     # genuinely file-scoped #define never shares with a namespace member)
-    namespace_member_keys = set()
+    namespace_member_keys = set(extra_namespace_member_keys) if extra_namespace_member_keys else set()
     for compound in tagfile_root.findall(r'compound'):
         if compound.get(r'kind') != r'namespace':
             continue
@@ -250,6 +281,123 @@ def resolve_implementation_headers(configured, file_id_by_location: dict) -> lis
         if impls:
             data.append((header_path, os.path.basename(header_path), header_id, sorted(impls)))
     return data
+
+
+# container kinds m.css prunes when they lack their own brief/detailed (orphaning documented children)
+_SURVIVOR_COMPOUND_KINDS = frozenset((r'namespace', r'class', r'struct', r'union', r'file'))
+
+# inner-ref tags forming the m.css parent->child nesting we propagate survival across
+_SURVIVOR_INNER_TAGS = (r'innernamespace', r'innerclass')
+
+# m.css namespace for the empty <span> sentinel used by _document_all_stuff
+_MCSS_NAMESPACE = r'http://mcss.mosra.cz/doxygen/'
+
+
+def _description_is_empty(desc) -> bool:
+    # matches m.css: real content is always wrapped in a child <para>, so bare text doesn't count
+    return desc is None or (len(desc) == 0 and (desc.text is None or not desc.text.strip()))
+
+
+def _is_documented(node) -> bool:
+    return not _description_is_empty(node.find(r'briefdescription')) or not _description_is_empty(
+        node.find(r'detaileddescription')
+    )
+
+
+def _has_documented_member(compounddef) -> bool:
+    for memberdef in compounddef.iterfind(r'sectiondef/memberdef'):
+        if _is_documented(memberdef):
+            return True
+        if memberdef.get(r'kind') == r'enum':
+            for enumvalue in memberdef.findall(r'enumvalue'):
+                if _is_documented(enumvalue):
+                    return True
+    return False
+
+
+def _inject_dummy_brief(node):
+    # m.css's _document_all_stuff sentinel: an empty mcss <span> makes a node "appear documented" (so
+    # it survives pruning) while rendering as nothing; m.css special-cases the exact '<span></span>'.
+    brief = node.find(r'briefdescription')
+    if brief is None:
+        brief = etree.SubElement(node, r'briefdescription')
+    para = etree.SubElement(brief, r'para')
+    etree.SubElement(para, f'{{{_MCSS_NAMESPACE}}}span')
+
+
+def relax_undocumented_pruning(context: Context):
+    # keep undocumented containers that hold documented descendants, and force enumerator tables for
+    # documented enums with undocumented values, by synthesizing empty descriptions. extract_all
+    # already shows everything via m.css, so there's nothing to do.
+    if context.sources.extract_all:
+        return
+
+    xml_files = [f for f in get_all_files(context.temp_xml_dir, any=(r'*.xml')) if f.name.lower() != r'doxyfile.xml']
+    if not xml_files:
+        return
+
+    # pass 1: per container, record own-documentation state, whether it holds a documented member,
+    # and its nestable children
+    file_roots = []  # (xml_file, root, compounddef) for every compound file
+    documented = dict()  # id -> own brief/detailed present
+    keepworthy = dict()  # id -> documented self, or holds a documented member
+    children = dict()  # id -> [child ids]
+    for xml_file in xml_files:
+        root = xml_utils.read(xml_file)
+        if root.tag != r'doxygen':
+            continue
+        compounddef = root.find(r'compounddef')
+        if compounddef is None:
+            continue
+        file_roots.append((xml_file, root, compounddef))
+        cid = compounddef.get(r'id')
+        if not cid or compounddef.get(r'kind') not in _SURVIVOR_COMPOUND_KINDS:
+            continue
+        documented[cid] = _is_documented(compounddef)
+        keepworthy[cid] = documented[cid] or _has_documented_member(compounddef)
+        kids = []
+        for tag in _SURVIVOR_INNER_TAGS:
+            for inner in compounddef.findall(tag):
+                ref = inner.get(r'refid')
+                if ref:
+                    kids.append(ref)
+        children[cid] = kids
+
+    # pass 2: a container survives if its subtree (itself + nestable descendants) holds a keepworthy
+    # node. memoized; the stack guard is defensive against pathological cycles.
+    survives_cache = dict()
+
+    def survives(cid, stack=()) -> bool:
+        if cid in survives_cache:
+            return survives_cache[cid]
+        if cid not in keepworthy:  # foreign/external ref
+            return False
+        if cid in stack:
+            return keepworthy[cid]
+        result = keepworthy[cid] or any(survives(k, stack + (cid,)) for k in children.get(cid, ()))
+        survives_cache[cid] = result
+        return result
+
+    # pass 3: inject into surviving-but-undocumented containers, and into the undocumented values of
+    # documented enums (so their enumerator table renders)
+    for xml_file, root, compounddef in file_roots:
+        file_changed = False
+
+        cid = compounddef.get(r'id')
+        if cid in documented and not documented[cid] and survives(cid):
+            _inject_dummy_brief(compounddef)
+            file_changed = True
+
+        for memberdef in compounddef.iterfind(r'sectiondef/memberdef'):
+            if memberdef.get(r'kind') != r'enum' or not _is_documented(memberdef):
+                continue
+            for enumvalue in memberdef.findall(r'enumvalue'):
+                if not _is_documented(enumvalue):
+                    _inject_dummy_brief(enumvalue)
+                    file_changed = True
+
+        if file_changed:
+            xml_utils.write(root, xml_file)
 
 
 def preprocess_xml(context: Context):
@@ -826,17 +974,21 @@ def preprocess_xml(context: Context):
                     xml_text = relink_implementation_header_refs(xml_text, iid, hid, ip, hp)
             xml_utils.write(xml_text, xml_file)
 
+    # relax m.css's all-or-nothing pruning of undocumented parents + enum values
+    relax_undocumented_pruning(context)
+
     # normalise the generated tagfile (always) and fold implementation headers into it (when present),
     # so downstream consumers get version-independent output that reads as if everything lived in the
     # public header
     if context.generate_tagfile and context.tagfile_path and context.tagfile_path.exists():
         tagfile_root = xml_utils.read(context.tagfile_path)
-        changed = normalize_tagfile(tagfile_root)
+        normalize_tagfile(tagfile_root, collect_namespace_member_keys(context.temp_xml_dir))
         if implementation_header_data:
             context.verbose(rf"Folding implementation headers in '{context.tagfile_path}'")
-            changed |= fold_implementation_headers_in_tagfile(tagfile_root, implementation_header_data)
-        if changed:
-            xml_utils.write(tagfile_root, context.tagfile_path)
+            fold_implementation_headers_in_tagfile(tagfile_root, implementation_header_data)
+        # always re-serialise so the xml declaration is canonical regardless of doxygen version (doxygen
+        # emits "standalone='yes' ?>", lxml the plain form); body whitespace is preserved either way
+        xml_utils.write(tagfile_root, context.tagfile_path)
 
 
 def preprocess_xml_v2(context: Context):
@@ -1017,6 +1169,13 @@ def parse_xml(context: Context):
 
         # the doxygen index
         elif root.tag == r'doxygenindex':
+            # #defines are file/group members rather than compounds, so detect them here to
+            # decide whether the top-level macros index page gets a navbar link
+            if not context.has_macros:
+                for m in root.iter(r'member'):
+                    if m.get(r'kind') == r'define':
+                        context.has_macros = True
+                        break
             compounds = [
                 (c, c.find(r'name'))
                 for c in root.findall(r'compound')

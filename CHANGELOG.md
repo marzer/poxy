@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.22.0 - 2026-05-24
+
+- relaxed documentation requirements so that documented children in undocumented parents are not pruned from the output (i.e. it is now leaf-based)
+- added a top-level Macros page to make `#defines` more discoverable
+
 ## v0.21.0 - 2026-05-24
 
 - fixed malformed TAGFILES crashing the parser

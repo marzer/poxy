@@ -130,6 +130,11 @@ def preprocess_mcss_config(context: Context):
             bar = [(NAVBAR_ALIASES[b] if b in NAVBAR_ALIASES else b) for b in context.navbar]
             # remove links to index pages that will have no entries
             for i in range(len(bar)):
+                # macros are doxygen members, not compounds, so they aren't in compound_kinds
+                if bar[i] == r'macros':
+                    if not context.has_macros:
+                        bar[i] = None
+                    continue
                 if bar[i] not in NAVBAR_TO_KIND:
                     continue
                 found = False

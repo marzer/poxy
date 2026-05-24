@@ -1,0 +1,12 @@
+{% set navbar_current = 'macros' %}
+{% extends 'base-index.html' %}
+
+{% block main %}
+        <h1>Macros</h1>
+        <ul class="m-doc">
+          {% for i in index.macros %}
+          <li>#define <a href="{{ i.url }}" class="m-doc">{{ i.name }}</a>{% if i.params != None %}({{ i.params|join(', ') }}){% endif %}{% if i.deprecated %} <span class="m-label m-danger">{{ i.deprecated }}</span>{% endif %}{% if i.since %} {{ i.since }}{% endif %} <span class="m-doc">{{ i.brief }}</span></li>
+          {% endfor %}
+        </ul>
+{{ super() -}}
+{% endblock %}

@@ -9,15 +9,17 @@ For most situations the easiest way for you to contribute is to simply let me kn
 
 If you'd like to contribute more directly via a pull request, see below.
 
--   [Pull Requests](#pull-requests)
-    -   [Getting started](#getting-started)
-    -   [Code style](#code-style)
-    -   [Developer subcommands](#developer-subcommands)
-        -   [Updating m.css](#updating-mcss)
-        -   [Updating the built-in fonts](#updating-the-built-in-fonts)
-        -   [Updating the built-in CSS stylesheets](#updating-the-built-in-css-stylesheets)
-        -   [Updating the emoji database](#updating-the-emoji-database)
-        -   [Updating the test reference outputs](#updating-the-test-reference-outputs)
+- [Pull Requests](#pull-requests)
+	- [Getting started](#getting-started)
+	- [Running the tests](#running-the-tests)
+	- [Code style](#code-style)
+	- [Versioning and releases](#versioning-and-releases)
+	- [Developer subcommands](#developer-subcommands)
+		- [Updating m.css](#updating-mcss)
+		- [Updating the built-in fonts](#updating-the-built-in-fonts)
+		- [Updating the built-in CSS stylesheets](#updating-the-built-in-css-stylesheets)
+		- [Updating the emoji database](#updating-the-emoji-database)
+		- [Updating the test reference outputs](#updating-the-test-reference-outputs)
 
 ## Pull Requests
 
@@ -67,6 +69,18 @@ ruff format src tests
 ```
 
 I'm not too fussy though. I'm unlikely to reject a PR on the basis of style unless you do something truly horrendous.
+
+### Versioning and releases
+
+The version lives in a single place: the `VERSION` file at the repo root, a bare `major.minor.patch` triplet.
+setuptools reads it at build time, and at runtime poxy reads it back from the same file (falling back to the
+installed package metadata when running from a wheel rather than a checkout).
+
+Releases are automated and maintainer-only. Bumping `VERSION` on `main` is what cuts a release: CI tags
+`v<version>`, and that tag triggers the publish workflow that uploads to PyPI.
+
+The practical upshot for a PR: **don't touch `VERSION`** (nor add release headings to `CHANGELOG.md`). I bump it
+myself when cutting a release, so a PR that also bumps it just invites a merge conflict or an accidental publish.
 
 ### Developer subcommands
 

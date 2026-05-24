@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="globals_8h" kind="file" language="C++">
+		<compoundname>globals.h</compoundname>
+		<sectiondef kind="func">
+			<memberdef kind="function" id="globals_8h_poxyhash0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>void</type>
+				<definition>void global_documented_function</definition>
+				<argsstring>()</argsstring>
+				<name>global_documented_function</name>
+				<briefdescription>
+					<para>A documented global function in an undocumented file. </para>
+				</briefdescription>
+				<detaileddescription></detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/globals.h" line="6" column="6" declfile="src/globals.h" declline="6" declcolumn="6"/>
+			</memberdef>
+			<memberdef kind="function" id="globals_8h_poxyhash1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>void</type>
+				<definition>void undocumented_global_function</definition>
+				<argsstring>()</argsstring>
+				<name>undocumented_global_function</name>
+				<briefdescription></briefdescription>
+				<detaileddescription></detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/globals.h" line="9" column="6" declfile="src/globals.h" declline="9" declcolumn="6"/>
+			</memberdef>
+		</sectiondef>
+		<briefdescription>
+			<para>
+				<ns0:span xmlns:ns0="http://mcss.mosra.cz/doxygen/"/>
+			</para>
+		</briefdescription>
+		<detaileddescription></detaileddescription>
+		<location file="src/globals.h"/>
+	</compounddef>
+</doxygen>

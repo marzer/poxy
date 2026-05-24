@@ -384,3 +384,53 @@ def test_has_unresolved_member_references_boundary(monkeypatch):
     assert doxygen.has_unresolved_member_references() is False
     monkeypatch.setattr(doxygen, 'version', lambda: (1, 9, 7))
     assert doxygen.has_unresolved_member_references() is True
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# tagfile normalisation (version-independence)
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+def test_collect_namespace_member_keys_maps_ids_to_anchors(tmp_path):
+    from poxy.pipeline.xml import collect_namespace_member_keys
+
+    (tmp_path / 'namespacetest.xml').write_text(
+        '<doxygen>'
+        '<compounddef kind="namespace"><compoundname>test</compoundname>'
+        '<sectiondef><memberdef kind="enum" id="code_8h_1aDEAD"><name>e</name></memberdef></sectiondef>'
+        '</compounddef>'
+        '<compounddef kind="file"><compoundname>code.h</compoundname>'
+        '<sectiondef><memberdef kind="define" id="code_8h_1aBEEF"><name>M</name></memberdef></sectiondef>'
+        '</compounddef>'
+        '</doxygen>',
+        encoding='utf-8',
+    )
+    # index.xml is skipped, and only namespace members count (the file-scoped #define must not appear)
+    (tmp_path / 'index.xml').write_text('<doxygenindex></doxygenindex>', encoding='utf-8')
+
+    assert collect_namespace_member_keys(tmp_path) == {('code_8h.html', 'aDEAD')}
+
+
+def test_normalize_tagfile_strips_leaked_namespace_members_from_file_compound():
+    from poxy import xml_utils
+    from poxy.pipeline.xml import normalize_tagfile
+
+    # mimics older doxygen duplicating a namespace enum into the owning file compound while emitting no
+    # namespace compound of its own (e.g. an undocumented namespace); the genuine #define must survive
+    root = xml_utils.read(
+        '<tagfile>'
+        '<compound kind="file"><name>code.h</name><filename>code_8h.html</filename>'
+        '<member kind="define"><name>M</name><anchorfile>code_8h.html</anchorfile><anchor>aBEEF</anchor></member>'
+        '<member kind="enumeration"><name>e</name><anchorfile>code_8h.html</anchorfile><anchor>aDEAD</anchor></member>'
+        '</compound>'
+        '</tagfile>'
+    )
+
+    changed = normalize_tagfile(root, {('code_8h.html', 'aDEAD')})
+
+    assert changed is True
+    file_compound = root.find('compound')
+    assert file_compound is not None
+    members = file_compound.findall('member')
+    assert [m.get('kind') for m in members] == ['define']
+    assert members[0].findtext('anchor') == 'aBEEF'
