@@ -1,4 +1,5 @@
 .poxy-theme-light {
+	--code-background-color: var(--poxy-code-background-color);
 	--code-font: "Consolas", "Source Code Pro", monospace;
 	--code-color-comments: #008000;
 	--code-color-keywords: #0000ff;
@@ -34,6 +35,23 @@
 
 	--detail-section-header-color: var(--theme-surface3);
 	--detail-section-background-color: rgba(255, 255, 255, 0.3);
+
+	/* elevation + card surfaces (modern depth) */
+	--poxy-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.07);
+	--poxy-shadow-md: 0 2px 6px rgba(15, 23, 42, 0.08), 0 8px 20px rgba(15, 23, 42, 0.08);
+	--poxy-header-shadow: 0 1px 3px rgba(15, 23, 42, 0.14), 0 4px 14px rgba(15, 23, 42, 0.1);
+	--poxy-card-border-color: hsl(var(--theme-hue), 22%, 86%);
+	--poxy-code-background-color: hsl(var(--theme-hue), 30%, 97%);
+
+	/* anchor-target arrival flash */
+	--poxy-target-flash-color: rgba(255, 196, 0, 0.45);
+	--poxy-target-bar-color: var(--theme-surface8);
+
+	/* footer separator */
+	--poxy-footer-border-color: hsl(var(--theme-hue), 22%, 74%);
+
+	/* translucent (frosted) sticky header */
+	--poxy-header-bg-translucent: hsla(var(--theme-hue), calc(var(--theme-saturation) * 0.5), 55%, 0.8);
 
 	--sponsor-color: #f8c8dc;
 }

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8"/>
+  <title>poxy theme preview</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <link href="../src/poxy/css/poxy.css" referrerpolicy="no-referrer" rel="stylesheet"/>
+  <script src="../src/poxy/js/poxy.js"></script>
+  <script>initialize_theme("__THEME__");</script>
+</head>
+<body class="poxy-has-toc">
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a class="m-col-t-8 m-col-m-none m-left-m" href="#" id="m-navbar-brand">
+        ABC <span class="m-thin">Pretend this is documentation.</span>
+      </a>
+      <div class="m-col-t-12 m-show-m m-col-m-none m-right-m" id="m-navbar-collapse">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="#" id="m-navbar-current">These</a></li>
+            <li><a href="#">Links</a></li>
+            <li><a href="#">Are</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="4">
+            <li><a href="#">Fake</a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main>
+<article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>toml::array <span class="m-thin">class</span></h1>
+        <p>A TOML array. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
+        ultrices a erat eu suscipit. Lorem ipsum dolor sit amet, consectetur adipiscing
+        elit. Vivamus ultrices a erat eu suscipit. The styling should feel comfortable to
+        read across a full page of API documentation.</p>
+
+        <h2>Heading scale</h2>
+        <h1>H1 heading looks like this</h1>
+        <p>Body copy for comparison. The quick brown fox jumps over the lazy dog.</p>
+        <h2>H2 heading looks like this</h2>
+        <p>Body copy for comparison. The quick brown fox jumps over the lazy dog.</p>
+        <h3>H3 heading looks like this</h3>
+        <p>Body copy for comparison. The quick brown fox jumps over the lazy dog.</p>
+        <h4>H4 heading looks like this</h4>
+        <p>Body copy for comparison. The quick brown fox jumps over the lazy dog.</p>
+        <h5>H5 heading looks like this</h5>
+        <p>Body copy for comparison. The quick brown fox jumps over the lazy dog.</p>
+        <h6>H6 heading looks like this</h6>
+        <p>Body copy for comparison. The quick brown fox jumps over the lazy dog.</p>
+
+        <h2>A code example</h2>
+        <p>Call <a class="m-doc" href="#">toml::<wbr>parse()</a> and work with the
+        <a class="m-doc" href="#">toml::<wbr>table</a> you get back:</p>
+<pre class="m-code"><p class="m-note m-success poxy-godbolt"><a class="poxy-external poxy-godbolt" href="#" target="_blank">Try this code on Compiler Explorer</a></p><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;toml++/toml.h&gt;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="o">::</span><span class="nn">string_view_literals</span><span class="p">;</span>
+
+<span class="k">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">tbl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">toml</span><span class="o">::</span><span class="n">parse</span><span class="p">(</span><span class="s">"a = 3"</span><span class="sa">sv</span><span class="p">);</span>
+<span class="w">    </span><span class="nn">std</span><span class="o">::</span><span class="nc">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">tbl</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span></pre><pre class="m-console"><span class="go">a = 3</span></pre>
+
+        <h2>Notes of every flavour</h2>
+        <aside class="m-note m-default"><h4>See also</h4><p>A default note with a <a href="#">link</a> inside it.</p></aside>
+        <aside class="m-note m-info"><h4>Info</h4><p>An informational note with a <a href="#">link</a> inside it.</p></aside>
+        <aside class="m-note m-success"><h4>Tip</h4><p>A success note with a <a href="#">link</a> inside it.</p></aside>
+        <aside class="m-note m-warning"><h4>Warning</h4><p>A warning note with a <a href="#">link</a> inside it.</p></aside>
+        <aside class="m-note m-danger"><h4>Danger</h4><p>A danger note with a <a href="#">link</a> inside it.</p></aside>
+
+        <h2>Function documentation</h2>
+        <section class="m-doc-details" id="fn1"><div>
+          <h3>
+            <div class="m-doc-template">template&lt;typename ElemType, typename... ElemTypes&gt;</div>
+            <span class="m-doc-wrap-bumper"> toml::<wbr>array::<wbr></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a class="m-doc-self" href="#fn1">array</a>(</span><span class="m-doc-wrap">ElemType&amp;&amp; val, ElemTypes &amp;&amp; ... vals) <span class="m-label m-info">explicit</span> </span></span>
+          </h3>
+          <p>Constructs an array with one or more initial elements.</p>
+          <table class="m-table m-fullwidth m-flat">
+            <thead><tr><th colspan="2">Parameters</th></tr></thead>
+            <tbody>
+              <tr><td style="width: 1%">val</td><td>The node or value used to initialize element 0.</td></tr>
+              <tr><td>vals</td><td>The nodes or values used to initialize elements 1...N.</td></tr>
+            </tbody>
+            <tfoot><tr><th>Returns</th><td>The newly-constructed array.</td></tr></tfoot>
+          </table>
+<pre class="m-code"><span class="k">auto</span><span class="w"> </span><span class="n">arr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">toml</span><span class="o">::</span><span class="nc">array</span><span class="p">{</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2.0</span><span class="p">,</span><span class="w"> </span><span class="s">"three"</span><span class="sa">sv</span><span class="w"> </span><span class="p">};</span></pre>
+        </div></section>
+
+        <h2>A table</h2>
+        <table class="m-table">
+          <thead><tr><th>Type</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>int64_t</td><td>A signed 64-bit integer value.</td></tr>
+            <tr><td>double</td><td>An IEEE-754 binary64 floating point value.</td></tr>
+            <tr><td>string</td><td>A UTF-8 encoded string value.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</article>
+</main>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>poxy theme preview footer. Generated for design iteration only.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body></html>

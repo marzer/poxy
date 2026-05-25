@@ -24,5 +24,22 @@
 	--detail-section-header-color: var(--header-background-color);
 	--detail-section-background-color: rgba(0, 0, 0, 0.06);
 
+	/* elevation + card surfaces (modern depth) */
+	--poxy-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.25);
+	--poxy-shadow-md: 0 2px 6px rgba(0, 0, 0, 0.35), 0 8px 22px rgba(0, 0, 0, 0.32);
+	--poxy-header-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+	--poxy-card-border-color: #3a4654;
+	--poxy-code-background-color: #282e36;
+
+	/* anchor-target arrival flash */
+	--poxy-target-flash-color: rgba(255, 210, 80, 0.3);
+	--poxy-target-bar-color: var(--article-heading-color);
+
+	/* footer separator */
+	--poxy-footer-border-color: #545f6f;
+
+	/* translucent (frosted) sticky header */
+	--poxy-header-bg-translucent: rgba(34, 39, 46, 0.8);
+
 	--sponsor-color: #ff69b4;
 }

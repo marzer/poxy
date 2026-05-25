@@ -50,7 +50,7 @@ a:hover {
 }
 
 article div > section {
-	margin-top: 2.5rem;
+	margin-top: 3rem;
 }
 article div > section:first-of-type {
 	margin-top: initial;
@@ -338,6 +338,47 @@ article section:target section.m-doc-details > div > h3:first-child {
 	border-left-width: 0.25rem;
 }
 
+/*
+	make the anchor-target highlight actually noticeable: a one-shot background flash
+	on arrival (fades out on its own) plus a bolder, more vivid left bar that persists
+	as a "you are here" marker. the thin line m.css gives you is too easy to miss.
+*/
+@keyframes poxy-target-flash {
+	from {
+		background-color: var(--poxy-target-flash-color);
+	}
+	to {
+		background-color: transparent;
+	}
+}
+article section:target,
+article section.m-doc-details:target > div {
+	animation: poxy-target-flash 2s ease-out 1;
+}
+article section:target {
+	border-left-width: 0.35rem;
+	border-left-color: var(--poxy-target-bar-color);
+}
+article section.m-doc-details:target > div > h3:first-child {
+	border-left-color: var(--poxy-target-bar-color) !important;
+}
+/* the flash lightens the background, which washes out the low-contrast dim text used for
+   summary briefs (especially in the dark theme). brighten that text in sync with the flash
+   and let it settle back to dim as the flash fades, so it stays readable throughout. */
+@keyframes poxy-target-text-restore {
+	from {
+		color: var(--color);
+	}
+	to {
+		color: var(--dim-color);
+	}
+}
+article section:target .m-doc-template,
+article section:target dl.m-doc dd,
+article section:target ul.m-doc li > span.m-doc {
+	animation: poxy-target-text-restore 2s ease-out 1;
+}
+
 /* 'filled' labels */
 .m-label:not(.m-flat) {
 	color: var(--background-color) !important;
@@ -440,4 +481,149 @@ a.poxy-icon.sponsor:hover {
 /* C++ named requirement links */
 main article a.poxy-named-requirement {
 	font-style: italic;
+}
+
+/*
+	modern depth + spacing
+	(elevation/border colours come from the --poxy-shadow-* / --poxy-card-border-color theme vars)
+*/
+
+/* lift the sticky header off the page */
+body > header > nav {
+	box-shadow: var(--poxy-header-shadow);
+}
+
+/* translucent sticky header with a backdrop blur, so page content frosts through it on scroll
+   (skip the landing/cover navbars, which are deliberately transparent over a hero image) */
+body > header > nav:not(.m-navbar-landing):not(.m-navbar-cover) {
+	background-color: var(--poxy-header-bg-translucent);
+	-webkit-backdrop-filter: blur(10px);
+	backdrop-filter: blur(10px);
+}
+
+/* give the footer a defined top edge + a little more air so it reads as its own region
+   (otherwise the light-theme footer is nearly the same colour as the page above it) */
+body > footer > nav {
+	border-top: 1px solid var(--poxy-footer-border-color);
+	padding-top: 1.5rem;
+	padding-bottom: 1.5rem;
+}
+
+/* code + console blocks: defined edge + subtle elevation */
+pre.m-code,
+pre.m-console {
+	border: 1px solid var(--poxy-card-border-color);
+	box-shadow: var(--poxy-shadow-sm);
+}
+pre.m-console {
+	border-color: transparent;
+}
+/* code/console nested in notes shouldn't double up the elevation */
+.m-note pre.m-code,
+.m-note pre.m-console {
+	box-shadow: none;
+}
+
+/* notes (admonitions): RTD-style left accent bar + raised card */
+.m-note {
+	box-shadow: var(--poxy-shadow-sm);
+	border-left: 0.3rem solid var(--dim-color);
+}
+.m-note > h4:first-child {
+	font-weight: 600;
+	margin-bottom: 0.5rem;
+}
+.m-note.m-primary {
+	border-left-color: var(--primary-color);
+}
+.m-note.m-success {
+	border-left-color: var(--success-color);
+}
+.m-note.m-warning {
+	border-left-color: var(--warning-color);
+}
+.m-note.m-danger {
+	border-left-color: var(--danger-color);
+}
+.m-note.m-info {
+	border-left-color: var(--info-color);
+}
+.m-note.m-special {
+	border-left-color: var(--special-color);
+}
+
+/* function/class detail sections read as raised cards */
+article section.m-doc-details > div {
+	box-shadow: var(--poxy-shadow-md);
+	border-radius: var(--border-radius);
+	overflow: hidden; /* clip the square-cornered header fill to the rounded corners */
+}
+
+/* tables: lift and round, clip the corners */
+article table.m-table {
+	box-shadow: var(--poxy-shadow-sm);
+	border-radius: var(--border-radius);
+	border-collapse: separate;
+	border-spacing: 0;
+	overflow: hidden;
+}
+article table.m-table:not(.m-flat) thead th,
+article table.m-table:not(.m-flat) thead td {
+	background-color: var(--detail-section-header-color);
+}
+article table.m-table.m-flat {
+	box-shadow: none;
+	border-radius: 0;
+}
+
+/*
+	heading scale + clearance
+
+	m.css leaves article headings at the browser's UA sizes, so h4 collapses to
+	body size and h5/h6 actually end up *smaller* than the surrounding text. give
+	them an explicit scale that always stays above body size, leaning on weight to
+	keep the smaller levels distinct, plus a little more air above section headings.
+*/
+main article h1 {
+	font-size: 2.2rem;
+}
+main article h2 {
+	font-size: 1.6rem;
+}
+main article h3 {
+	font-size: 1.3rem;
+}
+main article h4 {
+	font-size: 1.15rem;
+}
+main article h5 {
+	font-size: 1.05rem;
+}
+main article h6 {
+	font-size: 1rem;
+}
+main article h5,
+main article h6 {
+	font-weight: 700;
+}
+/* headings use a tight line-height, not the loose body one - also stops the nested
+   inline-block signature spans (.m-doc-wrap, vertical-align: text-top) from stair-stepping
+   down the line, which the larger body line-height was exaggerating. the same wrap spans
+   appear in function summary signatures (dl.m-doc dt), so tighten those too. */
+main article h1,
+main article h2,
+main article h3,
+main article h4,
+main article h5,
+main article h6,
+main article dl.m-doc dt {
+	line-height: 1.25;
+}
+
+/* more clearance above section headings, but only when they follow sibling content;
+   a heading that is the first child of a container (section, TOC block, detail card)
+   gets no extra gap (the container's own spacing handles it) */
+main article h2:not(:first-child),
+main article h3:not(:first-child) {
+	margin-top: 2.25rem;
 }

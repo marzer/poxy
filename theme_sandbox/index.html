@@ -1649,16 +1649,30 @@
 <div class="m-image m-fullwidth">
   <a href="#"><img src="flowers-small.jpg" /></a>
 </div><p>SVG im&shy;age:</p>
-<svg class="m-image" width="80" height="80">
-  <text x="16" y="40" style="text-anchor: middle; fill: #ff0000">Hello</text>
+<svg class="m-image" width="200" height="112" viewBox="0 0 160 90">
+  <rect width="160" height="90" fill="#a8d8ea"/>
+  <circle cx="126" cy="24" r="13" fill="#ffd27f"/>
+  <polygon points="0,90 46,36 86,90" fill="#6c8e6e"/>
+  <polygon points="56,90 104,28 156,90" fill="#4f7355"/>
+  <rect y="78" width="160" height="12" fill="#7aa37a"/>
 </svg><p>SVG im&shy;age, full&shy;width, with link in&shy;side:</p>
-<svg width="80" height="80" class="m-image m-fullwidth">
-  <a xlink:href="#"><text x="16" y="40" style="text-anchor: middle; fill: #ff0000">Hello</text></a>
+<svg width="200" height="112" viewBox="0 0 160 90" class="m-image m-fullwidth">
+  <a xlink:href="#">
+    <rect width="160" height="90" fill="#a8d8ea"/>
+    <circle cx="126" cy="24" r="13" fill="#ffd27f"/>
+    <polygon points="0,90 46,36 86,90" fill="#6c8e6e"/>
+    <polygon points="56,90 104,28 156,90" fill="#4f7355"/>
+    <rect y="78" width="160" height="12" fill="#7aa37a"/>
+  </a>
 </svg><p>SVG im&shy;age, full&shy;width, with link out&shy;side:</p>
 <div class="m-image m-fullwidth">
   <a href="#">
-    <svg width="80" height="80">
-      <text x="16" y="40" style="text-anchor: middle; fill: #ff0000">Hello</text>
+    <svg viewBox="0 0 160 90">
+      <rect width="160" height="90" fill="#a8d8ea"/>
+      <circle cx="126" cy="24" r="13" fill="#ffd27f"/>
+      <polygon points="0,90 46,36 86,90" fill="#6c8e6e"/>
+      <polygon points="56,90 104,28 156,90" fill="#4f7355"/>
+      <rect y="78" width="160" height="12" fill="#7aa37a"/>
     </svg>
   </a>
 </div><p>Badge:</p>
@@ -2023,7 +2037,7 @@ posuere metus porta, et aliquam ex condimentum. Proin sagittis nisi leo, ac
 pellentesque purus bibendum sit amet. Aliquam placerat justo ut purus
 interdum, ac placerat lacus consequat. Ut dictum enim posuere metus porta,
 et aliquam ex condimentum. </p></section>
-<section id="mainpage-example-parsing-strings"><h3><a href="#mainpage-example-parsing-strings">Parsing strings and iostreams</a></h3><p>Call <a class="m-doc" href="namespacetoml.html#ada8654fb4ceef15c20fc1d5e0cc734dd">toml::<wbr>parse()</a> and work with the <a class="m-doc" href="classtoml_1_1table.html">toml::<wbr>table</a> you get back, or handle any <a class="m-doc" href="classtoml_1_1parse__error.html">toml::<wbr>parse_error</a> that gets thrown:</p><pre class="m-code"><p class="m-note m-success godbolt"><a class="poxy-external godbolt" href="https://godbolt.org/z/NsR-xf" target="_blank">Try this code on Compiler Explorer</a></p><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<section id="mainpage-example-parsing-strings"><h3><a href="#mainpage-example-parsing-strings">Parsing strings and iostreams</a></h3><p>Call <a class="m-doc" href="namespacetoml.html#ada8654fb4ceef15c20fc1d5e0cc734dd">toml::<wbr>parse()</a> and work with the <a class="m-doc" href="classtoml_1_1table.html">toml::<wbr>table</a> you get back, or handle any <a class="m-doc" href="classtoml_1_1parse__error.html">toml::<wbr>parse_error</a> that gets thrown:</p><pre class="m-code"><p class="m-note m-success poxy-godbolt"><a class="poxy-external poxy-godbolt" href="https://godbolt.org/z/NsR-xf" target="_blank">Try this code on Compiler Explorer</a></p><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sstream&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;toml++/toml.h&gt;</span>
 <span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="o">::</span><span class="nn">string_view_literals</span><span class="p">;</span>

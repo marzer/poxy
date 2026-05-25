@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.23.0 - 2026-05-25
+
+- modernized themes
+
 ## v0.22.0 - 2026-05-24
 
 - relaxed documentation requirements so that documented children in undocumented parents are not pruned from the output (i.e. it is now leaf-based)

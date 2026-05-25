@@ -21,11 +21,11 @@
   /* Text properties */
   --font: 'Source Sans Pro', sans-serif;
   --code-font: 'Source Code Pro', monospace;
-  --font-size: 16px;
+  --font-size: 17px;
   --code-font-size: 0.9em; /* *not* rem, so it follows surrounding font size */
-  --line-height: normal;
-  --paragraph-indent: 1.5rem;
-  --paragraph-align: justify;
+  --line-height: 1.65;
+  --paragraph-indent: 0rem;
+  --paragraph-align: left;
   --link-decoration: underline;
   --link-decoration-nav: none;
   --link-decoration-heading: none;
@@ -37,7 +37,7 @@
   --heading-font-weight: 600;
 
   /* Shapes */
-  --border-radius: 0.2rem;
+  --border-radius: 0.4rem;
 
   /* Basics */
   --background-color: var(--theme-surface4);
