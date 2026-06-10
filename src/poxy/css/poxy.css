@@ -39,3 +39,9 @@
 
 /* poxy overrides */
 @import url("poxy-overrides.css");
+
+/* tabbed content blocks */
+@import url("poxy-tabs.css");
+
+/* embedded iframe pages */
+@import url("poxy-iframe.css");

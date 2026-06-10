@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<tagfile doxygen_version="0.0.0">
+  <compound kind="struct">
+    <name>widget</name>
+    <filename>structwidget.html</filename>
+    <member kind="function">
+      <type>void</type>
+      <name>go</name>
+      <anchorfile>structwidget.html</anchorfile>
+      <anchor>poxyhash0</anchor>
+      <arglist>()</arglist>
+    </member>
+  </compound>
+  <compound kind="page">
+    <name>coverage</name>
+    <title>Coverage</title>
+    <filename>coverage.html</filename>
+  </compound>
+  <compound kind="page">
+    <name>notes</name>
+    <title>Design notes</title>
+    <filename>notes.html</filename>
+  </compound>
+  <compound kind="page">
+    <name>upstream</name>
+    <title>Upstream</title>
+    <filename>upstream.html</filename>
+  </compound>
+</tagfile>

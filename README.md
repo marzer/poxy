@@ -10,7 +10,7 @@ Documentation generator for C++ based on Doxygen and [mosra/m.css](https://mcss.
 	- [Prerequisites:](#prerequisites)
 	- [Then:](#then)
 - [Usage](#usage)
-- [Config file options](#config-file-options)
+- [Documentation](#documentation)
 - [Migrating from Doxygen](#migrating-from-doxygen)
 - [Why the name "Poxy"?](#why-the-name-poxy)
 - [License and Attribution](#license-and-attribution)
@@ -29,15 +29,16 @@ a fantastic live search feature. **Poxy** builds upon both by:
 -   Allowing source, image and example directories to be recursive or shallow on a per-directory basis
 -   Automatically defining C++ language feature macros based on your project's target C++ version
 -   Automatically integrating the cppreference.com doxygen tagfile
--   Providing a number of additional built-in doxygen `@alias` commands
--   Giving more control over the HTML inline using square-bracket `[tags][/tags]`
+-   Providing a number of additional built-in doxygen [`@alias` commands](docs/aliases.md)
+-   Giving more control over the HTML inline using [square-bracket tags](docs/tags.md)
 -   Adding a switchable light theme
 -   Adding support for C++20 concepts
+-   Adding [tabbed content blocks](docs/aliases.md#tabbed-content) (e.g. for showing the same example in multiple languages)
 -   Adding a top-level page listing all `#defines` so they're discoverable without hunting through file docs
 -   Self-hosting fonts to reduce external HTTP requests
 -   Inlining SVGs so they can take advantage of [`currentColor`]
 -   Keeping undocumented parents of documented symbols (and documented enums' values) instead of pruning them
--   Quite a bit more!
+-   [Quite a bit more!](docs/improvements.md)
 
 <br><br>
 
@@ -120,12 +121,17 @@ The basic three-step to using Poxy is similar to Doxygen:
 
 <br><br>
 
-## Config file options
+## Documentation
+
+Full documentation lives in the [`docs`](docs) directory:
+
+-   [What poxy does over Doxygen + m.css](docs/improvements.md)
+-   [Configuration options](docs/configuration.md) - every `poxy.toml` option
+-   [Doxygen @alias commands](docs/aliases.md) - the extra `@commands` poxy provides
+-   [Square-bracket tags](docs/tags.md) - inline control of the generated HTML
 
 For a self-contained `poxy.toml` example to copy and paste from,
 see [the one used by toml++](https://github.com/marzer/tomlplusplus/blob/master/docs/poxy.toml).
-
-For a full list of options, with full descriptions, schemas and usage examples, see the [Configuration options] wiki page.
 
 <br><br>
 
@@ -185,7 +191,6 @@ Poxy bundles a fork of m.css, used per the [MIT/Expat license](https://github.co
 [mosra/m.css]: https://mcss.mosra.cz/documentation/doxygen/
 [toml++]: https://marzer.github.io/tomlplusplus/
 [c++ feature test macros]: https://en.cppreference.com/w/cpp/feature_test
-[configuration options]: https://github.com/marzer/poxy/wiki/Configuration-options
 [feature request]: https://github.com/marzer/poxy/issues/new
 [`currentcolor`]: https://gomakethings.com/currentcolor-and-svgs
 [sponsor]: https://github.com/sponsors/marzer

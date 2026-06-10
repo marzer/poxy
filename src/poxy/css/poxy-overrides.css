@@ -52,9 +52,6 @@ a:hover {
 article div > section {
 	margin-top: 3rem;
 }
-article div > section:first-of-type {
-	margin-top: initial;
-}
 article div > section > section {
 	margin-top: 2.25rem;
 }

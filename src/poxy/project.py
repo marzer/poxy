@@ -8,6 +8,7 @@ Everything relating to the 'project context' object that describes the project f
 """
 
 import copy
+import html
 import os
 import shutil
 import sys
@@ -75,6 +76,17 @@ class Context:
             Optional(r'meta_tags'): {str: Or(str, int)},
             Optional(r'name'): Stripped(str),
             Optional(r'navbar'): ValueOrArray(str, name=r'navbar'),
+            Optional(r'pages'): {
+                str: {
+                    Optional(r'title'): Stripped(str),
+                    Optional(r'content'): Stripped(str),
+                    Optional(r'url'): Stripped(str),
+                    Optional(r'navbar'): bool,
+                    Optional(r'required'): bool,
+                    Optional(r'layout'): Or(r'full', r'inline'),  # pyright: ignore[reportArgumentType]
+                    Optional(r'height'): Stripped(str),
+                }
+            },
             Optional(r'private_repo'): bool,
             Optional(r'robots'): bool,
             Optional(r'scripts'): ValueOrArray(str, name=r'scripts'),
@@ -116,8 +128,9 @@ class Context:
     def info(self, msg, indent=None):
         self.__log(logging.INFO, msg, indent=indent)
 
-    def warning(self, msg, indent=None):
-        if self.warnings.treat_as_errors:
+    def warning(self, msg, indent=None, fatal=True):
+        # fatal=False suppresses --werror escalation, for warnings about deliberately-optional conditions
+        if fatal and self.warnings.treat_as_errors:
             raise WarningTreatedAsError(msg)
         else:
             self.__log(logging.WARNING, rf'{Style.BRIGHT}{Fore.YELLOW}warning:{Style.RESET_ALL} {msg}', indent=indent)
@@ -520,6 +533,7 @@ class Context:
         self.verbose_value(r'Context.scripts', self.scripts)
 
         self.__read_pages(config)
+        self.__read_custom_pages(config)
         self.__read_inputs(config)
         # dot tool (HAVE_DOT)
         self.dot = bool(config['dot']) if 'dot' in config else None
@@ -766,6 +780,63 @@ class Context:
             self.main_page = temp_main_page_path
         self.verbose_value(r'Context.main_page', self.main_page)
 
+    def __read_custom_pages(self, config):
+        # custom iframe-hosting pages (config option 'pages'). each becomes a synthetic @page whose body
+        # is an <iframe> embedding either a bundled local file/directory or an external url, rendered
+        # inside the normal poxy chrome. content is bundled into html/<id>/ by run.py.
+        self.custom_pages = []
+        if r'pages' not in config or not isinstance(config[r'pages'], dict):
+            return
+        for key in config[r'pages']:
+            page = config[r'pages'][key] or {}
+            page_id = re.sub(r'[^a-zA-Z0-9_]+', r'_', str(key)).strip(r'_').lower()
+            if not page_id:
+                raise Error(rf'pages: invalid page name {key!r}')
+            if re.match(r'^[0-9]', page_id):
+                page_id = rf'page_{page_id}'
+            title = str(page.get(r'title') or key).strip()
+            content = str(page.get(r'content') or '').strip()
+            url = str(page.get(r'url') or '').strip()
+            if bool(content) == bool(url):
+                raise Error(rf'pages.{key}: exactly one of "content" or "url" must be set')
+            layout = str(page.get(r'layout') or r'full').strip()
+            height = str(page.get(r'height') or '').strip()
+            navbar = bool(page.get(r'navbar', True))
+            required = bool(page.get(r'required', True))
+
+            content_src = None
+            if url:
+                src = url
+            else:
+                content_src = coerce_path(content)
+                if not content_src.is_absolute():
+                    content_src = Path(self.input_dir, content_src)
+                content_src = content_src.resolve()
+                if not content_src.exists():
+                    if required:
+                        raise Error(rf'pages.{key}: content path {content!r} did not exist')
+                    # optional page whose content is missing (e.g. a report not generated this build): skip it
+                    self.warning(rf'pages.{key}: skipping, content path {content!r} does not exist', fatal=False)
+                    continue
+                src = rf'{page_id}/index.html' if content_src.is_dir() else rf'{page_id}/{content_src.name}'
+
+            classes = rf'poxy-iframe poxy-iframe-{layout}'
+            style = rf' style="height: {html.escape(height, quote=True)}"' if (layout == r'inline' and height) else ''
+            iframe = (
+                rf'<iframe class="{classes}" src="{html.escape(src, quote=True)}"'
+                rf' title="{html.escape(title, quote=True)}"{style}></iframe>'
+            )
+            # emit a .dox (not .md) page: markdown pages get a version-dependent 'md_<file>' id prefix,
+            # whereas '@page <id>' in a .dox reliably names the output <id>.html on every doxygen version
+            dox = f'/** @page {page_id} {title}\n\n@htmlonly\n{iframe}\n@endhtmlonly\n*/\n'
+            with open(
+                Path(self.temp_pages_dir, rf'poxy_page_{page_id}.dox'), r'w', encoding=r'utf-8', newline='\n'
+            ) as f:
+                f.write(dox)
+
+            self.custom_pages.append({r'id': page_id, r'title': title, r'navbar': navbar, r'content_src': content_src})
+        self.verbose_value(r'Context.custom_pages', self.custom_pages)
+
     def __read_inputs(self, config):
         # sources (INPUT, FILE_PATTERNS, STRIP_FROM_PATH, STRIP_FROM_INC_PATH, EXTRACT_ALL)
         self.sources = Sources(
@@ -867,6 +938,11 @@ class Context:
                     self.navbar[i] = r'repo'
                 elif self.navbar[i] in (r'sponsorship', r'funding', r'fund'):
                     self.navbar[i] = r'sponsor'
+
+            # custom pages with navbar=true (appended after the content links, before repo/theme)
+            for page in getattr(self, r'custom_pages', []):
+                if page[r'navbar']:
+                    self.navbar.append(rf'<a href="{page["id"]}.html">{html.escape(page["title"])}</a>')
 
             # version switcher
             if self.versions_in_navbar and r'version' not in self.navbar:

@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="namespacetabs" kind="namespace" language="C++">
+		<compoundname>tabs</compoundname>
+		<sectiondef kind="func">
+			<memberdef kind="function" id="namespacetabs_poxyhash0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>int</type>
+				<definition>int tabs::func</definition>
+				<argsstring>()</argsstring>
+				<name>func</name>
+				<qualifiedname>tabs::func</qualifiedname>
+				<briefdescription>
+					<para>A function with a tabbed example mixing prose and code. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>[tabs]</para>
+					<para>[tab Usage]</para>
+					<para>Call it like so:</para>
+					<para><programlisting filename=".cpp"><codeline><highlight class="normal">auto<sp/>x<sp/>=<sp/><ref refid="namespacetabs_poxyhash0" kindref="member">tabs::func</ref>();</highlight></codeline></programlisting></para>
+					<para>[tab Notes]</para>
+					<para>Just returns a number. Nothing to see here.</para>
+					<para>[/tabs] </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/tabs.h" line="43" column="5" declfile="src/tabs.h" declline="43" declcolumn="5"/>
+			</memberdef>
+		</sectiondef>
+		<briefdescription>
+			<para>A namespace documented with a tabbed code example. </para>
+		</briefdescription>
+		<detaileddescription>
+			<para>Here is the same idea in two languages:</para>
+			<para>[tabs]</para>
+			<para>[tab C++] <programlisting filename=".cpp"><codeline><highlight class="normal">auto<sp/>greet()</highlight></codeline><codeline><highlight class="normal">{</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>"hello";</highlight></codeline><codeline><highlight class="normal">}</highlight></codeline></programlisting></para>
+			<para>[tab Python] <programlisting filename=".py"><codeline><highlight class="normal">def<sp/>greet():</highlight></codeline><codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>"hello"</highlight></codeline></programlisting></para>
+			<para>[/tabs] </para>
+		</detaileddescription>
+		<location file="src/tabs.h" line="23" column="1"/>
+	</compounddef>
+</doxygen>

@@ -513,3 +513,85 @@ def fix_nested_tableofcontents(compounddef) -> bool:
             toc_parent.insert(toc_index, toc_child)
             changed = True
     return changed
+
+
+_LEADING_LIST_BULLET = re.compile(r'^\s*[-*+]\s+')
+_LEADING_LIST_BLOCK_TAGS = (
+    r'para',
+    r'itemizedlist',
+    r'orderedlist',
+    r'simplesect',
+    r'parameterlist',
+    r'variablelist',
+    r'table',
+    r'programlisting',
+    r'blockquote',
+    r'verbatim',
+    r'xrefsect',
+)
+
+
+def fix_leading_list_item(compounddef) -> bool:
+    """Repair a markdown list whose first item shares the opening line of a block command, e.g.
+
+        @see - @ref foo
+             - @ref bar
+
+    Doxygen only treats '-' as a list marker at the start of a line, so the first item is left inline as
+    literal '- ...' text directly followed by an <itemizedlist> holding the rest. Fold that leading inline
+    content into a new first <listitem> so the whole block renders as one list."""
+    changed = False
+    for para in list(compounddef.iter(r'para')):
+        m = _LEADING_LIST_BULLET.match(para.text) if para.text else None
+        if m is None:
+            continue
+        # the missed first item is the inline content up to the first <itemizedlist>; bail if a block
+        # element gets in the way (then the leading bullet is something else, not a split-off list item)
+        il = None
+        for child in para:
+            if child.tag == r'itemizedlist':
+                il = child
+                break
+            if child.tag in _LEADING_LIST_BLOCK_TAGS:
+                break
+        if il is None:
+            continue
+        new_item = para.makeelement(r'listitem', {})
+        new_para = para.makeelement(r'para', {})
+        new_item.append(new_para)
+        new_para.text = para.text[m.end() :] or None
+        moved = []
+        for child in list(para):
+            if child is il:
+                break
+            para.remove(child)
+            new_para.append(child)
+            moved.append(child)
+        # tidy trailing whitespace that used to sit between the first item and the list
+        if moved:
+            if moved[-1].tail and not moved[-1].tail.strip():
+                moved[-1].tail = None
+        elif new_para.text and not new_para.text.strip():
+            new_para.text = None
+        elif new_para.text:
+            new_para.text = new_para.text.rstrip() or None
+        para.text = None
+        il.insert(0, new_item)
+        changed = True
+    return changed
+
+
+def strip_trailing_paragraph_linebreaks(compounddef) -> bool:
+    """Drop a <linebreak/> sitting at the very end of a <para> (last child, whitespace-only tail). A line
+    break immediately before the paragraph closes renders nothing, but doxygen 1.11.0 emits one at the end
+    of a detailed description's final paragraph (e.g. after a trailing block command) where other versions
+    do not, so strip it for convergence."""
+    changed = False
+    for para in list(compounddef.iter(r'para')):
+        while len(para):
+            last = para[-1]
+            if last.tag != r'linebreak' or (last.tail and last.tail.strip()):
+                break
+            para.remove(last)
+            changed = True
+    return changed

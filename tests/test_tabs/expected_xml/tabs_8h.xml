@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="tabs_8h" kind="file" language="C++">
+		<compoundname>tabs.h</compoundname>
+		<innernamespace refid="namespacetabs">tabs</innernamespace>
+		<sectiondef kind="func">
+			<memberdef kind="function" id="namespacetabs_poxyhash0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+				<type>int</type>
+				<definition>int tabs::func</definition>
+				<argsstring>()</argsstring>
+				<name>func</name>
+				<qualifiedname>tabs::func</qualifiedname>
+				<briefdescription>
+					<para>A function with a tabbed example mixing prose and code. </para>
+				</briefdescription>
+				<detaileddescription>
+					<para>[tabs]</para>
+					<para>[tab Usage]</para>
+					<para>Call it like so:</para>
+					<para><programlisting filename=".cpp"><codeline><highlight class="normal">auto<sp/>x<sp/>=<sp/><ref refid="namespacetabs_poxyhash0" kindref="member">tabs::func</ref>();</highlight></codeline></programlisting></para>
+					<para>[tab Notes]</para>
+					<para>Just returns a number. Nothing to see here.</para>
+					<para>[/tabs] </para>
+				</detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/tabs.h" line="43" column="5" declfile="src/tabs.h" declline="43" declcolumn="5"/>
+			</memberdef>
+		</sectiondef>
+		<briefdescription>
+			<para>
+				<ns0:span xmlns:ns0="http://mcss.mosra.cz/doxygen/"/>
+			</para>
+		</briefdescription>
+		<detaileddescription></detaileddescription>
+		<location file="src/tabs.h"/>
+	</compounddef>
+</doxygen>

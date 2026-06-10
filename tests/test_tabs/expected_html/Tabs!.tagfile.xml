@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<tagfile doxygen_version="0.0.0">
+  <compound kind="namespace">
+    <name>tabs</name>
+    <filename>namespacetabs.html</filename>
+    <member kind="function">
+      <type>int</type>
+      <name>func</name>
+      <anchorfile>namespacetabs.html</anchorfile>
+      <anchor>poxyhash0</anchor>
+      <arglist>()</arglist>
+    </member>
+  </compound>
+</tagfile>

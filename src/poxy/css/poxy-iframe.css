@@ -1,0 +1,25 @@
+/*
+	Embedded iframe pages (config option 'pages'). The synthetic page generated for each entry hosts a
+	single <iframe class="poxy-iframe poxy-iframe-{full,inline}">; these rules size it.
+*/
+
+iframe.poxy-iframe {
+	display: block;
+	border: 0;
+}
+
+/* full-bleed: break out of the centered content column to span the viewport, and fill the height
+   below the navbar (the title still sits above it) */
+iframe.poxy-iframe-full {
+	width: 100vw;
+	margin-left: calc(50% - 50vw);
+	height: calc(100vh - 9.5rem);
+}
+
+/* inline: stay within the content column, framed like a figure (height set per-page, default below) */
+iframe.poxy-iframe-inline {
+	width: 100%;
+	height: 40rem;
+	border: 1px solid var(--line-color);
+	border-radius: var(--border-radius);
+}

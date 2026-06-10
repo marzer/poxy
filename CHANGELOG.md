@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.24.0 - 2026-06-10
+
+- fixed malformed HTML when a markdown list was the first thing in a `@see` block
+- fixed minor style issues
+- added `@tabs` command
+- added `pages` config option for inlining other HTML content (e.g. coverage reports)
+
 ## v0.23.0 - 2026-05-25
 
 - modernized themes

@@ -305,6 +305,118 @@ class CustomTags(HTMLFixer):
         return changed
 
 
+class TabBlocks(HTMLFixer):
+    '''
+    Restructures the [tabs] / [tab title] / [/tabs] marker paragraphs (emitted by the @tabs / @tab /
+    @endtabs aliases) into a pure-CSS tabbed content widget. The markers must sit within a single
+    description block, with the [tab] markers and their content as siblings between [tabs] and [/tabs].
+    '''
+
+    __begin = re.compile(r'^\s*\[\s*tabs\s*\]\s*$', re.I)
+    __tab = re.compile(r'^\s*\[\s*tab\b\s*([^\]]*?)\s*\]\s*$', re.I)
+    __end = re.compile(r'^\s*\[\s*/\s*tabs\s*\]\s*$', re.I)
+    # non-anchored, matches any of the three markers (for detecting/stripping malformed leftovers)
+    __any = re.compile(r'\[\s*(?:/\s*tabs\s*|tabs\s*|tab\b[^\]]*)\]', re.I)
+
+    @classmethod
+    def __is_marker(cls, node, pattern):
+        return isinstance(node, Tag) and node.name == 'p' and pattern.match(node.get_text()) is not None
+
+    def __find_opener(self, root):
+        for p in root.find_all('p'):
+            if self.__begin.match(p.get_text()):
+                return p
+        return None
+
+    def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
+        if doc.article_content is None:
+            return False
+
+        changed = False
+        group_index = 0
+        while True:
+            opener = self.__find_opener(doc.article_content)
+            if opener is None:
+                break
+
+            # walk siblings from the opener to the matching [/tabs], collecting the elements between
+            closer = None
+            between = []
+            sib = opener.next_sibling
+            while sib is not None:
+                nxt = sib.next_sibling
+                if self.__is_marker(sib, self.__end):
+                    closer = sib
+                    break
+                if isinstance(sib, Tag):
+                    between.append(sib)
+                sib = nxt
+
+            if closer is None:
+                context.warning(rf'[tabs] without a matching [/tabs] in {path.name}')
+                soup.destroy_node(opener)
+                changed = True
+                continue
+
+            # partition the elements into tabs, splitting at each [tab title] marker
+            markers = []  # the [tab] marker paragraphs, to remove once consumed
+            tabs = []  # [title, [content nodes]]
+            for node in between:
+                m = self.__tab.match(node.get_text()) if (isinstance(node, Tag) and node.name == 'p') else None
+                if m is not None:
+                    markers.append(node)
+                    tabs.append([m[1].strip() or rf'Tab {len(tabs) + 1}', []])
+                elif tabs:
+                    tabs[-1][1].append(node)
+                # content before the first [tab] marker is dropped
+
+            # nothing to build (no [tab] markers); just drop the wrapper markers and leave content in place
+            if not tabs:
+                soup.destroy_node(opener)
+                soup.destroy_node(closer)
+                changed = True
+                continue
+
+            group_index += 1
+            group_id = rf'poxy-tabs-{group_index}'
+            container = doc.new_tag('div', before=opener, class_='poxy-tabs')
+            container['id'] = group_id
+            for i, (title, nodes) in enumerate(tabs):
+                radio_id = rf'{group_id}-{i}'
+                radio = doc.new_tag('input', parent=container, class_='poxy-tab-radio')
+                radio['type'] = 'radio'
+                radio['name'] = group_id
+                radio['id'] = radio_id
+                if i == 0:
+                    radio['checked'] = ''
+                label = doc.new_tag('label', parent=container, string=title, class_='poxy-tab-label')
+                label['for'] = radio_id
+                panel = doc.new_tag('div', parent=container, class_='poxy-tab-panel')
+                for node in nodes:
+                    panel.append(node.extract())
+
+            for node in (opener, closer, *markers):
+                soup.destroy_node(node)
+            changed = True
+
+        # any markers still present were not in well-formed standalone paragraphs (usually because the
+        # author did not separate @tabs/@tab/@endtabs with blank lines, so doxygen merged them into one
+        # paragraph). strip them so raw markers never leak into the output, and warn.
+        leftovers = [s for s in doc.article_content.find_all(string=self.__any)]
+        if leftovers:
+            for s in leftovers:
+                s.replace_with(NavigableString(self.__any.sub('', str(s))))
+            context.warning(
+                rf'malformed tabbed content block in {path.name}: '
+                rf'separate @tabs, @tab and @endtabs with blank lines'
+            )
+            changed = True
+
+        if changed:
+            doc.smooth()
+        return changed
+
+
 class _CPPModifiersBase(HTMLFixer):
     '''
     Base type for modifier parsing fixers.
@@ -1366,6 +1478,7 @@ def create_all() -> tuple[Union[HTMLFixer, PlainTextFixer], ...]:
         AutoDocLinks(),  # html
         Links(),  # html
         CustomTags(),  # html
+        TabBlocks(),  # html
         RemoveTemplateNoise(),  # html
         EmptyTags(),  # html
         ImplementationDetails(),

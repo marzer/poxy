@@ -312,6 +312,20 @@ def run(
                     dest_path.parent.mkdir(exist_ok=True)
                     copy_file(source_path, dest_path, logger=context.verbose_logger)
 
+            # bundle custom-page iframe content into html/<id>/
+            if context.custom_pages:
+                with ScopeTimer(r'Copying custom page content', print_start=True, print_end=context.verbose_logger):
+                    for page in context.custom_pages:
+                        source_path = page[r'content_src']
+                        if source_path is None:
+                            continue
+                        dest_dir = Path(context.html_dir, page[r'id']).resolve()
+                        if source_path.is_dir():
+                            copy_tree(source_path, dest_dir)
+                        else:
+                            dest_dir.mkdir(exist_ok=True, parents=True)
+                            copy_file(source_path, Path(dest_dir, source_path.name), logger=context.verbose_logger)
+
             # copy fonts
             if context.copy_assets:
                 with ScopeTimer(r'Copying fonts', print_start=True, print_end=context.verbose_logger):

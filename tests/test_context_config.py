@@ -72,6 +72,20 @@ strip_paths = ['src']
 paths = ['images']
 [examples]
 paths = ['examples']
+[pages.coverage]
+title = 'Coverage'
+content = 'coverage'
+[pages.bench]
+title = 'Benchmarks'
+url = 'https://example.com/bench'
+navbar = false
+[pages.'API Reference']
+content = 'api.html'
+layout = 'inline'
+height = '40rem'
+[pages.optional]
+content = 'not-generated-this-build'
+required = false
 """
 
 
@@ -88,6 +102,9 @@ def ctx(tmp_path_factory):
     for name in ('favicon.png', 'logo.svg', 'style.css', 'script.js'):
         (d / name).write_bytes(b'x')
     (d / 'extra' / 'note.txt').write_bytes(b'x')
+    (d / 'coverage').mkdir()
+    (d / 'coverage' / 'index.html').write_text('<h1>cov</h1>\n')
+    (d / 'api.html').write_text('<h1>api</h1>\n')
     (d / 'CHANGELOG.md').write_text('# Changes\n')
     (d / 'readme.md').write_text('# Home\n')
     (d / 'poxy.toml').write_text(RICH_TOML)
@@ -143,6 +160,32 @@ def test_flags(ctx):
 
 def test_html_header(ctx):
     assert ctx.html_header == '<meta name="x" content="y">'
+
+
+def test_custom_pages(ctx):
+    pages = {p['id']: p for p in ctx.custom_pages}
+    # the 'API Reference' key is sanitised into a valid page id; the 'optional' page is skipped because
+    # its content does not exist and required = false
+    assert set(pages) == {'coverage', 'bench', 'api_reference'}
+
+    cov = pages['coverage']
+    assert cov['title'] == 'Coverage'
+    assert cov['navbar'] is True  # default
+    assert cov['content_src'] is not None and cov['content_src'].is_dir()
+
+    bench = pages['bench']
+    assert bench['navbar'] is False
+    assert bench['content_src'] is None  # url-based: nothing bundled
+
+    api = pages['api_reference']
+    assert api['content_src'] is not None and api['content_src'].name == 'api.html'
+
+
+def test_custom_pages_navbar_links(ctx):
+    navbar_html = ' '.join(ctx.navbar)
+    assert 'coverage.html' in navbar_html  # navbar = true
+    assert 'api_reference.html' in navbar_html  # navbar defaults to true
+    assert 'bench.html' not in navbar_html  # navbar = false
 
 
 def test_assets_resolved(ctx):

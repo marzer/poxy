@@ -18,9 +18,10 @@ Requires doxygen on PATH; skipped automatically when it isn't found.
 """
 
 import difflib
+import shutil
 
 import pytest
-from utils import doxygen_available, enumerate_test_projects, produce_outputs
+from utils import TESTS_ROOT, doxygen_available, enumerate_test_projects, produce_outputs, run_poxy
 
 pytestmark = pytest.mark.skipif(not doxygen_available(), reason='doxygen not found on PATH')
 
@@ -84,3 +85,17 @@ def test_snapshot(project_dir, config, kind, regenerate, _outputs):
         _diff(name, expected[name], produced[name]) for name in sorted(expected) if expected[name] != produced[name]
     ]
     assert not diffs, '\n\n'.join(diffs)
+
+
+def test_pages_bundle_iframe_content(tmp_path):
+    """The 'pages' feature bundles each page's content into html/<id>/ next to the generated page. The
+    snapshot only diffs top-level pages, so assert the copied tree on disk here (a real build's iframes
+    resolve; the sanitized golden directory deliberately omits this raw content)."""
+    work = tmp_path / 'work'
+    shutil.copytree(TESTS_ROOT / 'test_pages', work, ignore=shutil.ignore_patterns('expected_*'))
+    run_poxy(work, '--noassets', '--html', '--no-xml')
+    html = work / 'html'
+    assert (html / 'coverage.html').is_file()  # generated page
+    assert (html / 'coverage' / 'index.html').is_file()  # bundled directory content
+    assert (html / 'notes' / 'notes.html').is_file()  # bundled single file
+    assert not (html / 'upstream').exists()  # url-based page bundles nothing

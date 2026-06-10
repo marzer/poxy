@@ -1,0 +1,25 @@
+name = 'Pages!'
+description = 'A C++ project demonstrating embedded iframe pages'
+cpp = 20
+navbar = ['pages', 'classes']
+
+[pages.coverage]
+title = 'Coverage'
+content = 'coverage'
+navbar = true
+
+[pages.notes]
+title = 'Design notes'
+content = 'notes.html'
+layout = 'inline'
+height = '30rem'
+navbar = false
+
+[pages.upstream]
+title = 'Upstream'
+url = 'https://example.com/'
+navbar = true
+
+[sources]
+recursive_paths = './src'
+strip_paths = '.'

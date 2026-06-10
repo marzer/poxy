@@ -1,0 +1,7 @@
+name = 'Tabs!'
+description = 'A C++ project demonstrating tabbed content blocks'
+cpp = 20
+
+[sources]
+recursive_paths = './src'
+strip_paths = '.'

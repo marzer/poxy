@@ -484,3 +484,60 @@ def test_collapse_codeline_highlights_noop_on_single_normal_span():
         '</programlisting></compounddef>'
     )
     assert fixups.fix_programlisting(cd) is False
+
+
+def test_fix_leading_list_item_folds_first_item_into_list():
+    # '@see - @ref a' / '- @ref b': doxygen strands the first item as inline '- <ref/>' text directly
+    # before the <itemizedlist> holding the rest; the fix folds it into a proper first <listitem>.
+    cd = E(
+        '<compounddef><detaileddescription><para><simplesect kind="see">'
+        '<para>- <ref refid="a" kindref="compound">A</ref>'
+        '<itemizedlist><listitem><para><ref refid="b" kindref="compound">B</ref></para></listitem></itemizedlist>'
+        '</para></simplesect></para></detaileddescription></compounddef>'
+    )
+    assert fixups.fix_leading_list_item(cd) is True
+    para = require(require(cd.find('.//simplesect')).find('para'))
+    assert (para.text or '').strip() == ''  # no stray '- ' text left in the para
+    lists = para.findall('itemizedlist')
+    assert len(lists) == 1
+    items = lists[0].findall('listitem')
+    assert len(items) == 2
+    refs = [require(li.find('.//ref')) for li in items]
+    assert [r.get('refid') for r in refs] == ['a', 'b']
+    assert [r.text for r in refs] == ['A', 'B']
+
+
+def test_fix_leading_list_item_plain_text_first_item():
+    cd = E(
+        '<compounddef><detaileddescription><para><simplesect kind="see">'
+        '<para>- first<itemizedlist><listitem><para>second</para></listitem></itemizedlist></para>'
+        '</simplesect></para></detaileddescription></compounddef>'
+    )
+    assert fixups.fix_leading_list_item(cd) is True
+    items = require(cd.find('.//itemizedlist')).findall('listitem')
+    assert [require(li.find('para')).text for li in items] == ['first', 'second']
+
+
+def test_fix_leading_list_item_noop_on_clean_list():
+    # body already a proper list (the list started on the next line) - nothing to fold
+    cd = E(
+        '<compounddef><detaileddescription><para><simplesect kind="see"><para>'
+        '<itemizedlist><listitem><para>one</para></listitem><listitem><para>two</para></listitem></itemizedlist>'
+        '</para></simplesect></para></detaileddescription></compounddef>'
+    )
+    assert fixups.fix_leading_list_item(cd) is False
+
+
+def test_fix_leading_list_item_noop_without_following_list():
+    # a single inline item (no <itemizedlist> to merge into) is left as-is
+    cd = E('<compounddef><para>- <ref refid="a">A</ref></para></compounddef>')
+    assert fixups.fix_leading_list_item(cd) is False
+
+
+def test_fix_leading_list_item_ignores_intro_text_before_list():
+    # a paragraph that legitimately introduces a list (no leading bullet) must not be touched
+    cd = E(
+        '<compounddef><para>Intro:'
+        '<itemizedlist><listitem><para>one</para></listitem></itemizedlist></para></compounddef>'
+    )
+    assert fixups.fix_leading_list_item(cd) is False

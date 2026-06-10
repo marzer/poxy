@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="0.0.0" xml:lang="en-US">
+	<compound refid="namespacetabs" kind="namespace">
+		<name>tabs</name>
+		<member refid="namespacetabs_poxyhash0" kind="function">
+			<name>func</name>
+		</member>
+	</compound>
+	<compound refid="tabs_8h" kind="file">
+		<name>tabs.h</name>
+		<member refid="namespacetabs_poxyhash0" kind="function">
+			<name>func</name>
+		</member>
+	</compound>
+	<compound refid="dir_poxyhash1" kind="dir">
+		<name>src</name>
+	</compound>
+</doxygenindex>

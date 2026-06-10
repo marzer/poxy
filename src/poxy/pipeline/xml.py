@@ -671,6 +671,14 @@ def preprocess_xml(context: Context):
             # clean up <programlisting> blocks
             changed |= fixups.fix_programlisting(compounddef)
 
+            # fold a markdown list's first item back in when it shared a line with a block command
+            # (e.g. '@see - @ref a' / '- @ref b'), which doxygen leaves stranded as inline '- ...' text
+            changed |= fixups.fix_leading_list_item(compounddef)
+
+            # drop a meaningless trailing <linebreak/> at the end of a paragraph (doxygen 1.11.0 emits one
+            # at the end of a detailed description's final paragraph where other versions do not)
+            changed |= fixups.strip_trailing_paragraph_linebreaks(compounddef)
+
             # normalize section headings (m.css can't handle rich/empty <title>s); code spans are
             # preserved via sentinels and restored to <code> by the SectionTitleCodeSpans HTML fixer
             changed |= fixups.normalize_section_titles(compounddef)
