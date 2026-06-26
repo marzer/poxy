@@ -163,7 +163,7 @@ changelog = 'path/to/the/changelog.md'
 
 #### ℹ&#xFE0F; Notes:
 
-When setting this value to `true`, the library will search for the following filenames, in order:
+When setting this value to `true`, poxy will search for these filenames, in order:
 
 -   `CHANGELOG.md`
 -   `CHANGELOG.txt`
@@ -174,7 +174,7 @@ When setting this value to `true`, the library will search for the following fil
 
 Searching starts in the same directory as `poxy.toml`, and continues up through parent directories until a match is found.
 
-Note that the file is assumed to be plain-text and will be parsed as markdown. No other formats are supported.
+The file is assumed to be plain-text and will be parsed as markdown. No other formats are supported.
 
 <br><br> <!-- ====================================================================================================== -->
 
@@ -736,9 +736,8 @@ jquery = true
 
 #### ℹ&#xFE0F; Notes:
 
-Poxy itself does not (currently) make use of jQuery; this is provided as a convenience if you wish to make use of it
-in additional script files added via [`scripts`]. Setting this to `true` if you do not intend to add any of your own
-custom javascript serves no purpose.
+Poxy itself doesn't (currently) use jQuery; it's here in case you want it in your own [`scripts`]. Enabling it
+without adding any javascript of your own does nothing.
 
 <br><br> <!-- ====================================================================================================== -->
 
@@ -845,7 +844,7 @@ main_page = 'path/to/the/main_page.md'
 
 #### ℹ&#xFE0F; Notes:
 
-When setting this value to `true`, the library will search for the following filenames, in order:
+When setting this value to `true`, poxy will search for these filenames, in order:
 
 -   `README.md`
 -   `README.txt`
@@ -862,7 +861,7 @@ When setting this value to `true`, the library will search for the following fil
 
 Searching starts in the same directory as `poxy.toml`, and continues up through parent directories until a match is found.
 
-Note that the file is assumed to be plain-text and will be parsed as markdown. No other formats are supported.
+The file is assumed to be plain-text and will be parsed as markdown. No other formats are supported.
 
 #### Related Doxygen options:
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.24.1 - 2026-06-26
+
+- fixed confusing diagnostics when m.css crashes due to malformed doxygen markup
+
 ## v0.24.0 - 2026-06-10
 
 - fixed malformed HTML when a markdown list was the first thing in a `@see` block

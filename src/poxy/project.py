@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# This file is a part of marzer/poxy and is subject to the the terms of the MIT license.
+# This file is a part of marzer/poxy and is subject to the terms of the MIT license.
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
@@ -223,9 +223,8 @@ class Context:
         self.compound_kinds = set()
         self.has_macros = False
 
-        # initial warning state
-        # note that this is overwritten after the config is read;
-        # it is set here first so that we can have correct 'treat_as_errors' behaviour if we add any pre-config warnings
+        # initial warning state; overwritten after the config is read.
+        # set here first so 'treat_as_errors' behaves correctly for any pre-config warnings
         self.warnings = Warnings(None)
         if treat_warnings_as_errors is not None:
             self.warnings.treat_as_errors = bool(treat_warnings_as_errors)

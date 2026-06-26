@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# This file is a part of marzer/poxy and is subject to the the terms of the MIT license.
+# This file is a part of marzer/poxy and is subject to the terms of the MIT license.
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
@@ -1099,7 +1099,7 @@ def parse_xml(context: Context):
             member_kinds = (r'define',)
         members = [(m, m.find(r'name')) for m in compound.findall(r'member') if m.get(r'kind') in member_kinds]
         members = [(m, n) for m, n in members if n is not None and name_ok(n.text)]
-        # first we do everything _except_ enumvalues because they require special handling
+        # first we do everything except enumvalues because they require special handling
         enums = dict()
         for member, member_name in members:
             member_kind = member.get(r'kind')
@@ -1119,7 +1119,7 @@ def parse_xml(context: Context):
                         refid = member.get(r'refid')
                         if refid:
                             enums[refid] = member_qualified_name
-        # then we do enumvaleus
+        # then we do enumvalues
         for member, member_name in members:
             if member.get(r'kind') != r'enumvalue':
                 continue

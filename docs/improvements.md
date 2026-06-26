@@ -71,7 +71,7 @@ see [`implementation_headers`](configuration.md#implementation_headers).
 - SVGs are inlined, so they can take advantage of [`currentColor`] and follow the active theme.
 - Fonts are self-hosted, so a built site makes no external font requests.
 - Configured `#include` prefixes can be stripped from the include line shown on each page.
-- [Tabbed content blocks](aliases.md#tabbed-content) for showing, for example, one example in several
+- [Tabbed content blocks](aliases.md#tabbed-content) for showing, for example, one snippet in several
   languages.
 - [Embedded iframe pages](configuration.md#pages) for hosting an external report (coverage, benchmarks,
   hand-written HTML) inside the docs without leaving them.

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# This file is a part of marzer/poxy and is subject to the the terms of the MIT license.
+# This file is a part of marzer/poxy and is subject to the terms of the MIT license.
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
 """
 m.css configuration + HTML post-processing stage. Generates the m.css conf.py and runs the
-parallel HTML fixers over m.css's output. Extracted verbatim from run.py.
+parallel HTML fixers over m.css's output.
 """
 
 import concurrent.futures as futures

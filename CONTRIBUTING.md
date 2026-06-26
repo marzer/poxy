@@ -86,7 +86,7 @@ myself when cutting a release, so a PR that also bumps it just invites a merge c
 
 A nontrivial amount of the Poxy codebase + assets are assembled from external sources or generated programmatically.
 Depending on what part of the application you're working on you may need to use one or more hidden developer-only
-subcommands to perform update these components or perform other tasks.
+subcommands to update these components or perform other tasks.
 
 Using one or more developer subcommands will cause Poxy to execute their tasks and exit, without performing a regular
 documentation build. You may need to combine them together and _then_ perform a regular Poxy invocation:
@@ -146,7 +146,7 @@ This will regenerate the amalgamated `poxy.css` that is shipped with documentati
 
 Poxy allows users to inject emoji into their documents by name using `[emoji <name>]`, where `<name>` is derived from
 GitHub's Emoji API (e.g. `[emoji tada]` is equivalent to `:tada:`). This data is stored in the repository in an
-internal 'emoji database' file which needs needs to be regenerated occasionally (e.g. when new versions of Unicode
+internal 'emoji database' file which needs to be regenerated occasionally (e.g. when new versions of Unicode
 are published):
 
 ```sh

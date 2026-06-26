@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# This file is a part of marzer/poxy and is subject to the the terms of the MIT license.
+# This file is a part of marzer/poxy and is subject to the terms of the MIT license.
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
@@ -110,6 +110,35 @@ def extract_warnings(outputs):
     return warnings
 
 
+# m.css dies on a bare AssertionError when malformed markup nests a block element inside an inline span;
+# match that one assert (others fall through to the generic bug path, more likely a poxy normalisation gap)
+_mcss_block_in_inline_assert = r"element.tag in ['para'"
+
+
+def diagnose_mcss_failure(stderr: str) -> typing.Optional[str]:
+    if not stderr:
+        return None
+    if r'AssertionError' not in stderr or _mcss_block_in_inline_assert not in stderr:
+        return None
+    # m.css names the parsed file only at debug level; best normal-run hint is the last WARNING:root: line
+    # (the crashing file, or one parsed just before it)
+    current = None
+    for m in re.finditer(r'^WARNING:root:(?P<file>[^\s:]+\.xml):', stderr, re.M | re.I):
+        current = m[r'file']
+    hint = rf" (m.css was last working on '{current}')" if current else r''
+    return (
+        r"m.css crashed: Doxygen produced structurally invalid XML in which a block-level element (a"
+        rf" list, code block, blockquote or table) is nested inside an inline span.{hint}"
+        "\nThis is almost always malformed markup. Check the Doxygen warnings printed above for the"
+        r' source file and line; the tell-tale signs are "found </em> at different nesting level" or'
+        r' "end of comment block while expecting command </...>". A common trigger is a markdown block'
+        r" marker (> - * or a digit) sitting inside an emphasis/bold span - e.g. *Advanced > Proceed* -"
+        r" or an unclosed * / _ marker."
+        "\nIf the markup is genuinely correct this may instead be a poxy normalisation gap - please"
+        r" re-run with --bug-report and file an issue at github.com/marzer/poxy/issues."
+    )
+
+
 def run_doxygen(context: Context):
     assert context is not None
     assert isinstance(context, Context)
@@ -205,7 +234,11 @@ def run_mcss(context: Context):
 
         except:
             context.info(r'm.css failed!')
-            dump_output_streams(context, read_output_streams(stdout, stderr), source=r'm.css')
+            outputs = read_output_streams(stdout, stderr)
+            dump_output_streams(context, outputs, source=r'm.css')
+            diagnosis = diagnose_mcss_failure(outputs[r'stderr'])
+            if diagnosis:
+                raise Error(diagnosis) from None
             raise
         if context.is_verbose() or context.warnings.enabled:
             outputs = read_output_streams(stdout, stderr)

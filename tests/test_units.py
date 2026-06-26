@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# This file is a part of marzer/poxy and is subject to the the terms of the MIT license.
+# This file is a part of marzer/poxy and is subject to the terms of the MIT license.
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
 # See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
 # SPDX-License-Identifier: MIT
@@ -434,3 +434,70 @@ def test_normalize_tagfile_strips_leaked_namespace_members_from_file_compound():
     members = file_compound.findall('member')
     assert [m.get('kind') for m in members] == ['define']
     assert members[0].findtext('anchor') == 'aBEEF'
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# run (m.css failure diagnosis)
+# ----------------------------------------------------------------------------------------------------------------------
+
+_MCSS_PARSE_CRASH_STDERR = """WARNING:root:rpcc.xml: inline code has multiple lines, fallback to a code block
+WARNING:root:rpcc.xml: no filename attribute in <programlisting>, assuming C++
+Traceback (most recent call last):
+  File ".../doxygen.py", line 4249, in run
+    parsed = parse_xml(state, file)
+  File ".../doxygen.py", line 1939, in parse_toplevel_desc
+    parsed = parse_desc_internal(state, element)
+  File ".../doxygen.py", line 1491, in parse_desc_internal
+    content = parse_inline_desc(state, i).strip()
+  File ".../doxygen.py", line 1971, in parse_inline_desc
+    parsed = parse_desc_internal(state, element, trim=False)
+  File ".../doxygen.py", line 839, in parse_desc_internal
+    assert element.tag in ['para', '{http://mcss.mosra.cz/doxygen/}div']
+AssertionError"""
+
+
+# an AssertionError inside the same parser functions but on an unrelated assert (e.g. a poxy
+# normalisation gap) must NOT be misdiagnosed as malformed block-in-inline markup
+_MCSS_UNRELATED_ASSERT_STDERR = """Traceback (most recent call last):
+  File ".../doxygen.py", line 4249, in run
+    parsed = parse_xml(state, file)
+  File ".../doxygen.py", line 1939, in parse_toplevel_desc
+    parsed = parse_desc_internal(state, element)
+  File ".../doxygen.py", line 836, in parse_desc_internal
+    assert not parsed.section
+AssertionError"""
+
+
+def test_diagnose_mcss_failure_recognises_block_in_inline_crash_and_hints_file():
+    from poxy import run
+
+    msg = run.diagnose_mcss_failure(_MCSS_PARSE_CRASH_STDERR)
+    assert msg is not None
+    assert "last working on 'rpcc.xml'" in msg
+    assert 'block-level element' in msg
+    assert 'bug-report' in msg
+
+
+def test_diagnose_mcss_failure_recognises_crash_without_named_file():
+    from poxy import run
+
+    stderr = '\n'.join(line for line in _MCSS_PARSE_CRASH_STDERR.splitlines() if not line.startswith('WARNING:root:'))
+    msg = run.diagnose_mcss_failure(stderr)
+    assert msg is not None
+    assert 'm.css crashed' in msg
+    assert 'last working on' not in msg
+
+
+@pytest.mark.parametrize(
+    'stderr',
+    [
+        '',
+        'WARNING:root:rpcc.xml: some warning but no crash',
+        "Traceback (most recent call last):\n  File 'x'\nKeyError: 'foo'",
+        _MCSS_UNRELATED_ASSERT_STDERR,
+    ],
+)
+def test_diagnose_mcss_failure_ignores_unrelated_output(stderr):
+    from poxy import run
+
+    assert run.diagnose_mcss_failure(stderr) is None
