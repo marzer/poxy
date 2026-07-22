@@ -27,7 +27,16 @@ import itertools
 from colorama import Fore, Style
 
 from . import doxygen, emoji, paths, repos
-from .config import CodeBlocks, FilteredInputs, Inputs, Sources, Warnings, assert_no_unexpected_keys, extract_kvps
+from .config import (
+    CodeBlocks,
+    FilteredInputs,
+    Inputs,
+    PostBuild,
+    Sources,
+    Warnings,
+    assert_no_unexpected_keys,
+    extract_kvps,
+)
 from .defaults import Defaults
 from .schemas import *
 from .utils import *
@@ -87,6 +96,7 @@ class Context:
                     Optional(r'height'): Stripped(str),
                 }
             },
+            Optional(r'post'): PostBuild.schema,
             Optional(r'private_repo'): bool,
             Optional(r'robots'): bool,
             Optional(r'scripts'): ValueOrArray(str, name=r'scripts'),
@@ -191,6 +201,7 @@ class Context:
         temp_dir: typing.Optional[Path] = None,
         copy_config_to: typing.Optional[Path] = None,
         versions_in_navbar: bool = False,
+        reset_output: bool = True,
         **kwargs,
     ):
         self.logger = logger
@@ -322,8 +333,10 @@ class Context:
 
             # delete leftovers from previous run and initialize temp dirs
             delete_directory(self.temp_dir, logger=self.verbose_logger)
-            delete_directory(self.xml_dir, logger=self.verbose_logger)
-            delete_directory(self.html_dir, logger=self.verbose_logger)
+            # --post-build-only keeps existing output (it runs against it)
+            if reset_output:
+                delete_directory(self.xml_dir, logger=self.verbose_logger)
+                delete_directory(self.html_dir, logger=self.verbose_logger)
             self.temp_dir.mkdir(exist_ok=True, parents=True)
             self.temp_pages_dir.mkdir(exist_ok=True, parents=True)
 
@@ -380,6 +393,9 @@ class Context:
         if treat_warnings_as_errors is not None:
             self.warnings.treat_as_errors = bool(treat_warnings_as_errors)
         self.verbose_value(r'Context.warnings', self.warnings)
+
+        self.post_build = PostBuild(config)
+        self.verbose_object(r'Context.post_build', self.post_build)
 
         # project name (PROJECT_NAME)
         self.name = ''

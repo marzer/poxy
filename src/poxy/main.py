@@ -94,6 +94,27 @@ def git_failed_if_nonzero(git_output: tuple[int, str, str], desc=''):
     return git_output
 
 
+def run_git_tags_post_build(args: argparse.Namespace, worker_args: list):
+    # post-build runs once over the whole assembled site (not per version), reusing the normal worker path
+    result = subprocess.run(
+        args=[
+            r'poxy',
+            r'--worker',
+            r'--post-build-only',
+            r'--output-dir',
+            str(args.output_dir.resolve()),
+            *worker_args,
+        ],
+        cwd=str(Path.cwd()),
+        capture_output=not args.verbose,
+        encoding='utf-8',
+    )
+    if result.returncode != 0:
+        raise Error(
+            rf'post-build commands failed{"" if args.verbose else " (re-run with --verbose to see worker output)"}'
+        )
+
+
 def multi_version_git_tags(args: argparse.Namespace):
     print('Running in git-tags mode')
 
@@ -268,6 +289,8 @@ def multi_version_git_tags(args: argparse.Namespace):
             emitted_tags.add(tag)
 
     if not args.html:
+        if emitted_tags:
+            run_git_tags_post_build(args, worker_args)
         return
 
     print("Linking versions in HTML output")
@@ -315,6 +338,9 @@ def multi_version_git_tags(args: argparse.Namespace):
             )
             with open(fp, r'w', newline='\n', encoding=r'utf-8') as f:
                 f.write(text)
+
+    if emitted_tags:
+        run_git_tags_post_build(args, worker_args)
 
 
 def bug_report(args: argparse.Namespace):
@@ -516,6 +542,7 @@ def main(invoker=True):
     )
     args.add_argument(r'--xml-v2', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--worker', action=r'store_true', help=argparse.SUPPRESS)  #
+    args.add_argument(r'--post-build-only', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--output-dir', type=Path, default=Path.cwd(), help=argparse.SUPPRESS)  #
     args.add_argument(r'--temp-dir', type=Path, default=None, help=argparse.SUPPRESS)  #
     args.add_argument(r'--copy-config-to', type=Path, default=None, help=argparse.SUPPRESS)  #
@@ -634,6 +661,8 @@ def main(invoker=True):
             copy_config_to=args.copy_config_to,
             versions_in_navbar=args.versions_in_navbar,
             keep_original_xml=args.keep_original_xml,
+            worker=args.worker,
+            post_build_only=args.post_build_only,
             # kwargs:
             xml_v2=args.xml_v2,
         )

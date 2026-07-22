@@ -501,3 +501,42 @@ def test_diagnose_mcss_failure_ignores_unrelated_output(stderr):
     from poxy import run
 
     assert run.diagnose_mcss_failure(stderr) is None
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# config.PostBuild
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+def test_post_build_absent_is_empty():
+    assert config.PostBuild(None).commands == []
+    assert config.PostBuild({}).commands == []
+
+
+def test_post_build_flattens_entries_and_applies_defaults():
+    pb = config.PostBuild(
+        {
+            'post': [
+                {'commands': ['echo hi', ['python', 'p.py']]},
+                {
+                    'commands': ['deploy'],
+                    'shell': True,
+                    'working_directory': 'config',
+                    'allow_failure': True,
+                    'timeout': 30,
+                },
+            ]
+        }
+    )
+    assert len(pb.commands) == 3
+    assert pb.commands[0] == dict(
+        raw='echo hi', argv=None, shell=False, working_directory='output', allow_failure=False, timeout=None
+    )
+    assert pb.commands[1]['argv'] == ['python', 'p.py'] and pb.commands[1]['raw'] is None
+    assert pb.commands[2] == dict(
+        raw='deploy', argv=None, shell=True, working_directory='config', allow_failure=True, timeout=30.0
+    )
+
+
+def test_post_build_skips_blank_commands():
+    assert config.PostBuild({'post': [{'commands': ['  ', ['', '  ']]}]}).commands == []

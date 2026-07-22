@@ -88,6 +88,61 @@ class Warnings:
             self.undocumented = bool(config[r'undocumented'])
 
 
+class PostBuild:
+    # each [[post]] entry is a group of commands sharing options; a command is a string or an argv array
+    _command = Or(
+        Stripped(str, allow_empty=False, name=r'command'),  # pyright: ignore[reportArgumentType]
+        [Stripped(str, allow_empty=False, name=r'command')],  # pyright: ignore[reportArgumentType]
+    )
+    # strict Schema so unknown per-entry keys are rejected (the outer schema ignores extras, and
+    # assert_no_unexpected_keys doesn't recurse into list elements)
+    _entry = Schema(
+        {
+            r'commands': [_command],
+            Optional(r'shell'): bool,
+            Optional(r'working_directory'): Or(r'output', r'config'),  # pyright: ignore[reportArgumentType]
+            Optional(r'allow_failure'): bool,
+            Optional(r'timeout'): Or(int, float),
+        }
+    )
+    schema = [_entry]
+
+    def __init__(self, config):
+        # flattened to per-command dicts carrying the group's options (exactly one of raw/argv set)
+        self.commands = []
+
+        if config is None or r'post' not in config:
+            return
+
+        for entry in config[r'post']:
+            shell = bool(entry.get(r'shell', False))
+            working_directory = str(entry.get(r'working_directory', r'output'))
+            allow_failure = bool(entry.get(r'allow_failure', False))
+            timeout = entry.get(r'timeout', None)
+            timeout = float(timeout) if timeout is not None else None
+            for spec in entry[r'commands']:
+                if isinstance(spec, list):
+                    raw = None
+                    argv = [str(s).strip() for s in spec if str(s).strip()]
+                    if not argv:
+                        continue
+                else:
+                    raw = str(spec).strip()
+                    argv = None
+                    if not raw:
+                        continue
+                self.commands.append(
+                    dict(
+                        raw=raw,
+                        argv=argv,
+                        shell=shell,
+                        working_directory=working_directory,
+                        allow_failure=allow_failure,
+                        timeout=timeout,
+                    )
+                )
+
+
 class CodeBlocks:
     schema = {
         Optional(r'types'): ValueOrArray(str, name=r'types'),

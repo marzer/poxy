@@ -34,7 +34,7 @@ classifiers = [
 ]
 dependencies = [
     'misk >= 0.8.1',
-    'bs4',
+    'beautifulsoup4 >= 4.13.3', # AttributeValueList et al; 4.13.0-4.13.2 had regressions
     'jinja2',
     'pygments',
     'html5lib',

@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.25.0 - 2026-07-23
+
+- added `[[post]]` config option for post-build scripting
+- fixed missing beautifulsoup4 version floor causing ImportError with bs4 < 4.13
+
 ## v0.24.1 - 2026-06-26
 
 - fixed confusing diagnostics when m.css crashes due to malformed doxygen markup

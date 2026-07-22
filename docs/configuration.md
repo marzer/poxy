@@ -43,6 +43,7 @@ not the working directory.
 - [name]
 - [navbar]
 - [pages]
+- [post]
 - [private_repo]
 - [robots]
 - [scripts]
@@ -1004,6 +1005,74 @@ height  = '40rem'
 -   `required = false` suits content produced by a separate build step (a coverage report, say): if it has not been generated, the page is skipped with a warning instead of failing the build, even under `--werror`.
 -   Each page also appears in the "Pages" index regardless of its `navbar` setting.
 -   The entry's `id` is used for both the output filename (`<id>.html`) and the bundled content directory; non-identifier characters in the key are replaced with underscores.
+
+<br><br> <!-- ====================================================================================================== -->
+
+## `post`
+
+**Since v0.25.0**
+
+One or more shell commands run after a successful build. Useful for packaging, deploying, or applying
+your own post-processing to the generated output.
+
+#### Schema:
+
+An array of tables (`[[post]]`). Each entry runs its `commands` in order and may set options shared by
+those commands:
+
+| Key                 | Description                                                                                                                                                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `commands`          | The commands to run, in order. Each is either a `string` (tokenized with POSIX shell-quoting rules on every platform) or an `array` of arguments (used verbatim, no tokenizing - best for paths with spaces or backslashes). Required. |
+| `shell`             | Run each command through the system shell (`cmd.exe` on Windows, `/bin/sh` on POSIX) so pipes, `&&`, redirection and globbing work. Defaults to `false`. Not portable across operating systems.                       |
+| `working_directory` | `output` (default) to run in the output directory (where `html/` and `xml/` are written), or `config` to run in the directory containing your `poxy.toml`.                                                            |
+| `allow_failure`     | When `true`, a non-zero exit is downgraded to a warning instead of failing the build (still escalated to an error under `--werror`). Defaults to `false`.                                                             |
+| `timeout`           | Optional per-command time limit, in seconds. Exceeding it fails the build. No limit by default.                                                                                                                      |
+
+#### Default:
+
+None (no commands run).
+
+#### Example:
+
+```toml
+# package the html once it's built
+[[post]]
+commands = [
+    'tar -czf docs.tar.gz html',
+]
+
+# deploy in a shell (for the pipe), allowed to fail without breaking the build
+[[post]]
+shell         = true
+allow_failure = true
+commands = [
+    'rsync -a html/ user@host:/var/www/docs/',
+]
+
+# run a helper script that reads the poxy-provided paths from the environment
+[[post]]
+commands = [
+    ['python', 'tools/postprocess.py'],
+]
+```
+
+#### ℹ&#xFE0F; Notes:
+
+-   Commands do **not** run when neither HTML nor XML output was produced.
+-   Paths are provided to each command as environment variables rather than substituted into the command
+    text, so paths containing spaces or shell metacharacters are always safe:
+    -   `POXY_OUTPUT_DIR` - the output directory (also the default working directory)
+    -   `POXY_CONFIG_DIR` - the directory containing `poxy.toml`
+    -   `POXY_CONFIG_PATH` - the `poxy.toml` file itself
+    -   `POXY_HTML_DIR` - the `html/` directory (only set when HTML was generated)
+    -   `POXY_XML_DIR` - the `xml/` directory (only set when XML was generated)
+-   `shell = false` (the default) runs commands directly, without a shell: portable and free of
+    shell-injection surprises. Reach for `shell = true` only when you need shell features like pipes.
+-   `post` runs arbitrary programs during the build, so treat a checked-in `poxy.toml` with the same
+    trust you would give a build script.
+-   Under `--git-tags`, `post` runs **once** for the whole build, after every version has been generated
+    and assembled, with `POXY_HTML_DIR` pointing at the top-level `html/` that contains all versions
+    (each under `html/<tag>`).
 
 <br><br> <!-- ====================================================================================================== -->
 

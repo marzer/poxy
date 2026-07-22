@@ -9,6 +9,7 @@ The 'actually do the thing' module.
 
 import os
 import platform
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -250,6 +251,56 @@ def run_mcss(context: Context):
                     context.warning(w)
 
 
+def run_post_build_commands(context: Context):
+    assert context is not None
+    assert isinstance(context, Context)
+
+    # paths go to commands as env vars, never interpolated, so spaces/metacharacters can't break out
+    env = {k: v for k, v in os.environ.items()}
+    env[r'POXY_OUTPUT_DIR'] = str(context.output_dir)
+    env[r'POXY_CONFIG_DIR'] = str(context.input_dir)
+    env[r'POXY_CONFIG_PATH'] = str(context.config_path)
+    if context.output_html:
+        env[r'POXY_HTML_DIR'] = str(context.html_dir)
+    if context.output_xml:
+        env[r'POXY_XML_DIR'] = str(context.xml_dir)
+
+    for cmd in context.post_build.commands:
+        label = cmd[r'raw'] if cmd[r'raw'] is not None else ' '.join(cmd[r'argv'])
+        cwd = context.input_dir if cmd[r'working_directory'] == r'config' else context.output_dir
+        # posix tokenizing on every platform for consistent quoting; argv form skips it (windows paths);
+        # shell mode passes the string through verbatim (cmd.exe / sh)
+        if cmd[r'shell']:
+            args = cmd[r'raw'] if cmd[r'raw'] is not None else subprocess.list2cmdline(cmd[r'argv'])
+        elif cmd[r'argv'] is not None:
+            args = cmd[r'argv']
+        else:
+            args = shlex.split(cmd[r'raw'], posix=True)
+        context.info(rf'Running post-build command: {label}')
+        with make_temp_file() as stdout, make_temp_file() as stderr:
+            try:
+                subprocess.run(
+                    args,
+                    check=True,
+                    shell=cmd[r'shell'],
+                    stdout=stdout,
+                    stderr=stderr,
+                    cwd=str(cwd),
+                    env=env,
+                    timeout=cmd[r'timeout'],
+                )
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as ex:
+                dump_output_streams(context, read_output_streams(stdout, stderr), source=rf'post-build [{label}]')
+                msg = rf"post-build command failed ('{label}'): {ex}"
+                # allow_failure downgrades to a warning; fatal defaults True so --werror still escalates
+                if cmd[r'allow_failure']:
+                    context.warning(msg)
+                    continue
+                raise Error(msg) from None
+            if context.is_verbose():
+                dump_output_streams(context, read_output_streams(stdout, stderr), source=rf'post-build [{label}]')
+
+
 def run(
     config_path: typing.Optional[Path] = None,
     output_dir: typing.Union[Path, str] = '.',
@@ -268,6 +319,8 @@ def run(
     copy_config_to: typing.Optional[Path] = None,
     versions_in_navbar: bool = False,
     keep_original_xml: bool = False,
+    worker: bool = False,
+    post_build_only: bool = False,
     **kwargs,
 ):
     timer = lambda desc: ScopeTimer(desc, print_start=True, print_end=context.verbose_logger)
@@ -289,8 +342,16 @@ def run(
         temp_dir=temp_dir,
         copy_config_to=copy_config_to,
         versions_in_navbar=versions_in_navbar,
+        reset_output=not post_build_only,
         **kwargs,
     ) as context:
+        # post-build-only: run the commands against existing output, no generation (see --git-tags)
+        if post_build_only:
+            if context.post_build.commands:
+                with timer(r'Running post-build commands'):
+                    run_post_build_commands(context)
+            return
+
         # fail fast on doxygen versions poxy can't normalise correctly (warns on untested-new ones)
         doxygen.check_supported(context)
 
@@ -371,3 +432,9 @@ def run(
             # post-process html files
             with timer(r'Post-processing HTML files'):
                 postprocess_html(context)
+
+        # run once over the finalized output; workers skip it (--git-tags runs it once over the whole
+        # assembled site via a --post-build-only worker; --bug-report must not trigger side effects)
+        if not worker and context.post_build.commands:
+            with timer(r'Running post-build commands'):
+                run_post_build_commands(context)
