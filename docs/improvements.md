@@ -94,6 +94,9 @@ see [`implementation_headers`](configuration.md#implementation_headers).
   library link to cppreference without any setup.
 - [`autolinks`](configuration.md#autolinks) adds your own regex-to-URL hotlinking on top of what Doxygen
   and tagfiles resolve.
+- Explicit link requests to documented macros (`#SOME_MACRO`) resolve everywhere, including markdown
+  pages. Doxygen can only resolve a macro reference from inside a file scope, so from a page every
+  spelling fails; poxy repairs these in the XML so they link like any other reference.
 - Poxy can emit a tagfile of your own project for others to link against; see
   [`generate_tagfile`](configuration.md#generate_tagfile).
 

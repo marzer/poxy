@@ -174,6 +174,8 @@ def normalize_tagfile(tagfile_root, extra_namespace_member_keys=None) -> bool:
         entirely (e.g. an undocumented namespace), so the tagfile alone can't tell they're namespace-scoped.
       - sort each compound's inner namespace/class/concept refs by name, since doxygen's ordering of
         these is version-dependent
+      - drop the synthetic 'md_*' <docanchor> some doxygen versions add to a page generated from a
+        markdown file; its id embeds the source path with version-dependent mangling
     """
     changed = False
     # capture the closing whitespace (the last child's tail sits before </tagfile>) so we can restore it
@@ -215,6 +217,19 @@ def normalize_tagfile(tagfile_root, extra_namespace_member_keys=None) -> bool:
                 kids = list(compound)
                 if kids and compound_tail is not None:
                     kids[-1].tail = compound_tail
+    for compound in tagfile_root.findall(r'compound'):
+        kids = list(compound)
+        compound_tail = kids[-1].tail if kids else None
+        removed = False
+        for docanchor in compound.findall(r'docanchor'):
+            if docanchor.text and docanchor.text.startswith(r'md_'):
+                compound.remove(docanchor)
+                removed = True
+        if removed:
+            changed = True
+            kids = list(compound)
+            if kids and compound_tail is not None:
+                kids[-1].tail = compound_tail
     for compound in tagfile_root.findall(r'compound'):
         for tag_name in (r'namespace', r'class', r'concept'):
             refs = compound.findall(tag_name)
@@ -1025,6 +1040,213 @@ def preprocess_xml_v2(context: Context):
     doxygen.write_graph_to_xml(g, context.temp_xml_dir, log_func=log_func)
 
 
+# elements whose internal text must never be rewritten into <ref>s; their tails are still prose
+DEFINE_REF_EXCLUSIONS = frozenset(
+    (
+        r'anchor',
+        r'computeroutput',
+        r'docbookonly',
+        r'dot',
+        r'formula',
+        r'htmlonly',
+        r'image',
+        r'javadoccode',
+        r'javadocliteral',
+        r'latexonly',
+        r'manonly',
+        r'plantuml',
+        r'preformatted',
+        r'programlisting',
+        r'ref',
+        r'rtfonly',
+        r'ulink',
+        r'verbatim',
+        r'xmlonly',
+    )
+)
+
+
+def collect_defines(root, defines: typing.Optional[dict] = None) -> dict:
+    """
+    Collect documented #defines from a doxygen compound tree as {name: refid}, refid being the
+    <memberdef> id (compound id + '_1' + anchor) that a <ref kindref="member"> resolves against.
+    A name documented in more than one place keeps the lexicographically-smallest refid so the
+    pick is deterministic.
+    """
+    if defines is None:
+        defines = dict()
+    for memberdef in root.iter(r'memberdef'):
+        if memberdef.get(r'kind') != r'define':
+            continue
+        refid = memberdef.get(r'id')
+        name = memberdef.findtext(r'name')
+        if not refid or not name or refid.rfind(r'_1') <= 0:
+            continue
+        prev = defines.get(name)
+        if prev is None or refid < prev:
+            defines[name] = refid
+    return defines
+
+
+def _define_ref_pattern(defines: dict) -> re.Pattern:
+    names = sorted(defines, key=lambda n: (-len(n), n))
+    return re.compile(r'(?<![a-zA-Z0-9_#])#(' + r'|'.join(re.escape(n) for n in names) + r')(?![a-zA-Z0-9_])')
+
+
+def _resolve_define_refs_in_text(parent, defines: dict, pattern: re.Pattern) -> bool:
+    changed = False
+
+    def substitute(text):
+        matches = list(pattern.finditer(text))
+        if not matches:
+            return None
+        refs = []
+        for i, m in enumerate(matches):
+            ref = etree.Element(r'ref', attrib={r'refid': defines[m[1]], r'kindref': r'member'})
+            ref.text = m[1]
+            end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+            ref.tail = text[m.end() : end] or None
+            refs.append(ref)
+        return (text[: matches[0].start()] or None, refs)
+
+    if parent.text:
+        subst = substitute(parent.text)
+        if subst is not None:
+            parent.text, refs = subst
+            for i, ref in enumerate(refs):
+                parent.insert(i, ref)
+            changed = True
+
+    for child in list(parent):
+        if child.tag not in DEFINE_REF_EXCLUSIONS:
+            changed = _resolve_define_refs_in_text(child, defines, pattern) or changed
+        if child.tail:
+            subst = substitute(child.tail)
+            if subst is not None:
+                child.tail, refs = subst
+                pos = parent.index(child)
+                for i, ref in enumerate(refs):
+                    parent.insert(pos + 1 + i, ref)
+                changed = True
+
+    return changed
+
+
+def resolve_define_refs_in_tree(root, defines: dict) -> bool:
+    """
+    Rewrite doxygen's failed explicit-link requests to documented #defines into real <ref> elements.
+
+    Doxygen resolves '#NAME' and '@ref NAME' by searching the referencing scope, and macros only ever
+    match when that scope is a file, so from a page (which has none) no spelling of a macro reference
+    works; some versions fail even from file scope. A failed request survives into the XML as the
+    literal text '#NAME', which makes it precisely recoverable here: swap it for the <ref> doxygen
+    would have emitted, and m.css renders the usual m-doc link.
+    """
+    if not defines:
+        return False
+    pattern = _define_ref_pattern(defines)
+    changed = False
+    for elem in root.iter(r'briefdescription', r'detaileddescription', r'inbodydescription'):
+        changed = _resolve_define_refs_in_text(elem, defines, pattern) or changed
+    return changed
+
+
+def unlink_code_spans(root) -> bool:
+    """
+    Unwrap <ref>s inside <computeroutput> back to plain text. Doxygen 1.15+ cross-references
+    identifiers inside inline code spans where every earlier version leaves them as text, so code
+    spans are kept plain to render identically across versions.
+    """
+    changed = False
+    for span in root.iter(r'computeroutput'):
+        for ref in list(span.iter(r'ref')):
+            parent = require(ref.getparent())
+            text = (ref.text or r'') + (ref.tail or r'')
+            prev = ref.getprevious()
+            if prev is not None:
+                prev.tail = (prev.tail or r'') + text
+            else:
+                parent.text = (parent.text or r'') + text
+            parent.remove(ref)
+            changed = True
+    return changed
+
+
+def strip_markdown_file_anchors(root) -> bool:
+    """
+    Remove the synthetic top-of-file <anchor> some doxygen versions add to a page generated from a
+    markdown file (the id ends in 'md_<mangled source path>', and the mangling is version-dependent).
+    Nothing can sensibly link to it, so it only exists to break convergence.
+    """
+    changed = False
+    for anchor in list(root.iter(r'anchor')):
+        anchor_id = anchor.get(r'id') or r''
+        i = anchor_id.rfind(r'_1')
+        if not anchor_id[i + 2 if i >= 0 else 0 :].startswith(r'md_'):
+            continue
+        parent = require(anchor.getparent())
+        if anchor.tail:
+            prev = anchor.getprevious()
+            if prev is not None:
+                prev.tail = (prev.tail or r'') + anchor.tail
+            else:
+                # older doxygen puts the anchor and the prose in one para; also drop the space it leaves
+                text = (parent.text or r'') + anchor.tail
+                parent.text = text.lstrip() if not (parent.text or r'').strip() else text
+        parent.remove(anchor)
+        if parent.tag == r'para' and not len(parent) and not (parent.text or r'').strip():
+            require(parent.getparent()).remove(parent)
+        changed = True
+    return changed
+
+
+def read_index_define_names(dir) -> set:
+    """Read the names of all #defines listed in a doxygen output directory's index.xml."""
+    names = set()
+    index_path = Path(dir, r'index.xml')
+    if not index_path.is_file():
+        return names
+    root = xml_utils.read(index_path)
+    if root.tag != r'doxygenindex':
+        return names
+    for member in root.iter(r'member'):
+        if member.get(r'kind') != r'define':
+            continue
+        name = member.findtext(r'name')
+        if name:
+            names.add(name)
+    return names
+
+
+def resolve_define_refs(context: Context, dir=None):
+    assert context is not None
+    assert isinstance(context, Context)
+    if dir is None:
+        dir = context.temp_xml_dir
+
+    xml_files = [f for f in get_all_files(dir, any=(r'*.xml')) if f.name.lower() != r'doxyfile.xml']
+    if not xml_files:
+        return
+
+    defines = dict()
+    roots = []
+    for xml_file in xml_files:
+        root = xml_utils.read(xml_file)
+        if root.tag != r'doxygen':
+            continue
+        roots.append((xml_file, root))
+        collect_defines(root, defines)
+
+    for xml_file, root in roots:
+        changed = unlink_code_spans(root)
+        changed = strip_markdown_file_anchors(root) or changed
+        if resolve_define_refs_in_tree(root, defines):
+            context.verbose(rf'Resolved #define references in {xml_file}')
+            changed = True
+        if changed:
+            xml_utils.write(root, xml_file, logger=context.verbose_logger)
+
+
 def parse_xml(context: Context):
     assert context is not None
     assert isinstance(context, Context)
@@ -1072,18 +1294,8 @@ def parse_xml(context: Context):
         if compound_name is None or not name_ok(compound_name.text):
             return
         compound_kind = compound.get(r'kind')
-        if compound_kind is None or compound_kind not in (
-            r'namespace',
-            r'class',
-            r'struct',
-            r'union',
-            r'concept',
-            r'group',
-            r'file',
-        ):
+        if compound_kind is None or compound_kind not in (r'namespace', r'class', r'struct', r'union', r'concept'):
             return
-        # for files and groups we can only extract #defines because they need the full::namespace::context
-        # otherwise we get all the C++ types
         member_kinds = (
             r'namespace',
             r'class',
@@ -1095,30 +1307,25 @@ def parse_xml(context: Context):
             r'enumvalue',
             r'function',
         )
-        if compound_kind in (r'group', r'file'):
-            member_kinds = (r'define',)
         members = [(m, m.find(r'name')) for m in compound.findall(r'member') if m.get(r'kind') in member_kinds]
         members = [(m, n) for m, n in members if n is not None and name_ok(n.text)]
         # first we do everything except enumvalues because they require special handling
         enums = dict()
         for member, member_name in members:
             member_kind = member.get(r'kind')
-            if member_kind == r'define':
-                tries.macros.add(compound_name.text)
-            else:
-                member_qualified_name = rf'{compound_name.text}::{member_name.text}'
-                if member_kind == r'namespace':
-                    tries.namespaces.add(member_qualified_name)
-                elif member_kind == r'function':
-                    if member_name.text.startswith(r'operator'):
-                        continue
-                    tries.functions.add(member_qualified_name)
-                elif member_kind != r'enumvalue':
-                    tries.types.add(member_qualified_name)
-                    if member_kind == r'enum':
-                        refid = member.get(r'refid')
-                        if refid:
-                            enums[refid] = member_qualified_name
+            member_qualified_name = rf'{compound_name.text}::{member_name.text}'
+            if member_kind == r'namespace':
+                tries.namespaces.add(member_qualified_name)
+            elif member_kind == r'function':
+                if member_name.text.startswith(r'operator'):
+                    continue
+                tries.functions.add(member_qualified_name)
+            elif member_kind != r'enumvalue':
+                tries.types.add(member_qualified_name)
+                if member_kind == r'enum':
+                    refid = member.get(r'refid')
+                    if refid:
+                        enums[refid] = member_qualified_name
         # then we do enumvalues
         for member, member_name in members:
             if member.get(r'kind') != r'enumvalue':
@@ -1177,13 +1384,15 @@ def parse_xml(context: Context):
 
         # the doxygen index
         elif root.tag == r'doxygenindex':
-            # #defines are file/group members rather than compounds, so detect them here to
-            # decide whether the top-level macros index page gets a navbar link
-            if not context.has_macros:
-                for m in root.iter(r'member'):
-                    if m.get(r'kind') == r'define':
-                        context.has_macros = True
-                        break
+            # #defines are file/group members rather than compounds; collect their names for macro
+            # highlighting, and to decide whether the macros index page gets a navbar link
+            for m in root.iter(r'member'):
+                if m.get(r'kind') != r'define':
+                    continue
+                context.has_macros = True
+                define_name = m.findtext(r'name')
+                if define_name and name_ok(define_name):
+                    tries.macros.add(define_name)
             compounds = [
                 (c, c.find(r'name'))
                 for c in root.findall(r'compound')

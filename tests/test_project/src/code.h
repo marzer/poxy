@@ -37,7 +37,7 @@
 /// @defgroup group A group.
 
 /// @brief A macro inside a group.
-/// @details More info.
+/// @details More info. See also #KEK.
 /// @ingroup group
 #define KEK_IN_GROUP 1
 
@@ -255,6 +255,7 @@ namespace test
 
 	/// @brief A function.
 	/// @details More info.
+	/// @remarks See #KEK for the 1.14 regression where this fails to resolve even from file scope.
 	std::uint8_t do_the_thing();
 
 	/// @brief A function template.

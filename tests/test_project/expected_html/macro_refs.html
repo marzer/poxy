@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head>
   <meta charset="utf-8"/>
-  <title>src/ directory | Test! A C++ Project</title>
+  <title>Macro refs | Test! A C++ Project</title>
   <link href="favicon-dark.png" rel="icon" type="image/png"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <meta content="#22272e" name="theme-color"/>
@@ -19,7 +19,7 @@
   <meta content="Poxy v0.0.0" name="generator"/>
   <meta content="strict-origin-when-cross-origin" name="referrer"/>
 </head>
-<body class="poxy-has-toc">
+<body>
 <header><nav id="navigation">
   <div class="m-container">
     <div class="m-row">
@@ -58,35 +58,9 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          src<span class="m-breadcrumb">/</span> <span class="m-thin">directory</span>
+          Macro refs
         </h1>
-        <p>A folder.</p>
-        <nav class="m-block m-default poxy-toc" id="poxy-toc">
-          <h3>Contents</h3>
-          <ul>
-            <li>
-              Reference
-              <ul>
-                <li><a href="#subdirs">Directories</a></li>
-                <li><a href="#files">Files</a></li>
-              </ul>
-            </li>
-          </ul>
-        </nav>
-        <section id="subdirs">
-          <h2><a href="#subdirs">Directories</a></h2>
-          <dl class="m-doc">
-            <dt>directory <a class="m-doc" href="dir_poxyhash0.html">subfolder</a>/</dt>
-            <dd>A subfolder.</dd>
-          </dl>
-        </section>
-        <section id="files">
-          <h2><a href="#files">Files</a></h2>
-          <dl class="m-doc">
-            <dt>file <a class="m-doc" href="code_8h.html">code.h</a></dt>
-            <dd>Code, yo.</dd>
-          </dl>
-        </section>
+<p>Explicit link requests to documented macros should resolve even though this page has no file scope: <a class="m-doc" href="code_8h.html#poxyhash0">KEK</a> and <a class="m-doc" href="group__group.html#gpoxyhash1">KEK_<wbr/>IN_<wbr/>GROUP</a>.</p><p>Bare prose mentions like KEK should stay plain text, as should unknown names like #KEK_NOT_A_MACRO and code spans like <code>#KEK</code>.</p><ul><li><a class="m-doc" href="code_8h.html#poxyhash0">KEK</a> inside a list item should also resolve.</li></ul><pre class="m-code"><span class="k">int</span> <span class="n">x</span> <span class="o">=</span> <span class="fm">KEK</span><span class="p">;</span></pre>
       </div>
     </div>
   </div>

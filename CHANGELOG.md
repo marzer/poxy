@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.25.1 - 2026-08-05
+
+- fixed `#MACRO` refs not working from page bodies
+
 ## v0.25.0 - 2026-07-23
 
 - added `[[post]]` config option for post-build scripting

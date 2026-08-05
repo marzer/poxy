@@ -10,7 +10,7 @@
 					<para>A macro inside a group. </para>
 				</briefdescription>
 				<detaileddescription>
-					<para>More info. </para>
+					<para>More info. See also <ref refid="code_8h_poxyhash1" kindref="member">KEK</ref>. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
 				<location file="src/code.h" line="42" column="9" bodyfile="src/code.h" bodystart="42" bodyend="42"/>

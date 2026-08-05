@@ -216,6 +216,9 @@
 			<name>KEK_IN_GROUP</name>
 		</member>
 	</compound>
+	<compound refid="macro_refs" kind="page">
+		<name>macro_refs</name>
+	</compound>
 	<compound refid="dir_poxyhash42" kind="dir">
 		<name>src</name>
 	</compound>

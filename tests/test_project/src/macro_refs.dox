@@ -1,0 +1,11 @@
+/// @page macro_refs Macro refs
+///
+/// Explicit link requests to documented macros should resolve even though this page has no file scope: #KEK and #KEK_IN_GROUP.
+///
+/// Bare prose mentions like KEK should stay plain text, as should unknown names like #KEK_NOT_A_MACRO and code spans like `#KEK`.
+///
+/// - #KEK inside a list item should also resolve.
+///
+/// @code{.cpp}
+/// int x = KEK;
+/// @endcode

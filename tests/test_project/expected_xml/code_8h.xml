@@ -20,7 +20,7 @@
 					<para>A macro inside a group. </para>
 				</briefdescription>
 				<detaileddescription>
-					<para>More info. </para>
+					<para>More info. See also <ref refid="code_8h_poxyhash0" kindref="member">KEK</ref>. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
 				<location file="src/code.h" line="42" column="9" bodyfile="src/code.h" bodystart="42" bodyend="42"/>
@@ -110,7 +110,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="278" column="13" bodyfile="src/code.h" bodystart="278" bodyend="278"/>
+				<location file="src/code.h" line="279" column="13" bodyfile="src/code.h" bodystart="279" bodyend="279"/>
 			</memberdef>
 			<memberdef kind="typedef" id="namespacetest_poxyhash11" prot="public" static="no">
 				<type>int</type>
@@ -125,7 +125,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="282" column="1" bodyfile="src/code.h" bodystart="282" bodyend="282"/>
+				<location file="src/code.h" line="283" column="1" bodyfile="src/code.h" bodystart="283" bodyend="283"/>
 			</memberdef>
 			<memberdef kind="typedef" id="namespacetest_poxyhash12" prot="public" static="no">
 				<templateparamlist>
@@ -145,7 +145,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="287" column="1" bodyfile="src/code.h" bodystart="287" bodyend="287"/>
+				<location file="src/code.h" line="288" column="1" bodyfile="src/code.h" bodystart="288" bodyend="288"/>
 			</memberdef>
 		</sectiondef>
 		<sectiondef kind="var">
@@ -194,7 +194,7 @@
 					<para>We shouldn't see a redundant "-&gt; auto" in the output. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="291" column="6" bodyfile="src/code.h" bodystart="291" bodyend="294"/>
+				<location file="src/code.h" line="292" column="6" bodyfile="src/code.h" bodystart="292" bodyend="295"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_poxyhash16" prot="public" static="no" constexpr="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
 				<templateparamlist>
@@ -252,7 +252,7 @@
 					</para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="267" column="13" bodyfile="src/code.h" bodystart="267" bodyend="270"/>
+				<location file="src/code.h" line="268" column="13" bodyfile="src/code.h" bodystart="268" bodyend="271"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_poxyhash17" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>
@@ -266,10 +266,13 @@
 					<para>A function. </para>
 				</briefdescription>
 				<detaileddescription>
-					<para>More info. </para>
+					<para>More info. <simplesect kind="remark">
+							<para>See <ref refid="code_8h_poxyhash0" kindref="member">KEK</ref> for the 1.14 regression where this fails to resolve even from file scope. </para>
+						</simplesect>
+					</para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="258" column="14" declfile="src/code.h" declline="258" declcolumn="14"/>
+				<location file="src/code.h" line="259" column="14" declfile="src/code.h" declline="259" declcolumn="14"/>
 			</memberdef>
 			<memberdef kind="function" id="namespacetest_poxyhash18" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
 				<type>int</type>
@@ -284,7 +287,7 @@
 					<para>More info. </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/code.h" line="274" column="6" declfile="src/code.h" declline="274" declcolumn="6"/>
+				<location file="src/code.h" line="275" column="6" declfile="src/code.h" declline="275" declcolumn="6"/>
 			</memberdef>
 		</sectiondef>
 		<briefdescription>

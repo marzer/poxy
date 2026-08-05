@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="macro_refs" kind="page">
+		<compoundname>macro_refs</compoundname>
+		<title>Macro refs</title>
+		<briefdescription></briefdescription>
+		<detaileddescription>
+			<para>Explicit link requests to documented macros should resolve even though this page has no file scope: <ref refid="code_8h_poxyhash0" kindref="member">KEK</ref> and <ref refid="group__group_1gpoxyhash1" kindref="member">KEK_IN_GROUP</ref>.</para>
+			<para>Bare prose mentions like KEK should stay plain text, as should unknown names like #KEK_NOT_A_MACRO and code spans like <computeroutput>#KEK</computeroutput>.</para>
+			<para>
+				<itemizedlist>
+					<listitem>
+						<para>
+							<ref refid="code_8h_poxyhash0" kindref="member">KEK</ref> inside a list item should also resolve.</para>
+					</listitem>
+				</itemizedlist>
+			</para>
+			<para><programlisting filename=".cpp"><codeline><highlight class="normal">int<sp/>x<sp/>=<sp/><ref refid="code_8h_poxyhash0" kindref="member">KEK</ref>;</highlight></codeline></programlisting></para>
+		</detaileddescription>
+		<location file="src/macro_refs.dox"/>
+	</compounddef>
+</doxygen>

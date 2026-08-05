@@ -17,7 +17,15 @@ import tempfile
 from . import doxygen
 from .pipeline.doxyfile import preprocess_doxyfile, preprocess_tagfiles, preprocess_temp_markdown_files
 from .pipeline.html import postprocess_html, preprocess_mcss_config
-from .pipeline.xml import clean_xml, compile_regexes, parse_xml, preprocess_xml, preprocess_xml_v2
+from .pipeline.xml import (
+    clean_xml,
+    compile_regexes,
+    parse_xml,
+    preprocess_xml,
+    preprocess_xml_v2,
+    read_index_define_names,
+    resolve_define_refs,
+)
 from .project import Context
 from .utils import *
 from .version import *
@@ -70,6 +78,13 @@ _warnings_regexes = (
 _warnings_trim_suffixes = (r'Skipping it...',)
 _warnings_substitutions = ((r'does not exist or is not a file', r'did not exist or was not a file'),)
 _warnings_ignored = (r'inline code has multiple lines, fallback to a code block', r'libgs not found')
+
+# doxygen cannot resolve macro references without a file scope; poxy repairs the '#NAME' form in XML
+# post-processing (so its failures are suppressed), but the \ref form degrades beyond repair
+_unresolvable_define_link = re.compile(r"explicit link request to [`']([a-zA-Z_][a-zA-Z0-9_]*)'? could not be resolved")
+_unresolvable_define_ref = re.compile(
+    r"unable to resolve reference to [`']([a-zA-Z_][a-zA-Z0-9_]*)'? for \\ref command"
+)
 
 
 def extract_warnings(outputs):
@@ -162,7 +177,14 @@ def run_doxygen(context: Context):
                 dump_output_streams(context, outputs, source=r'Doxygen')
             if context.warnings.enabled:
                 warnings = extract_warnings(outputs)
+                defines = read_index_define_names(context.temp_xml_dir) if warnings else set()
                 for w in warnings:
+                    m = _unresolvable_define_link.search(w)
+                    if m and m[1] in defines:
+                        continue
+                    m = _unresolvable_define_ref.search(w)
+                    if m and m[1] in defines:
+                        w += rf" (hint: write '#{m[1]}' instead - poxy resolves explicit-link references to documented #defines)"
                     context.warning(w)
 
     # remove the local paths from the tagfile since they're meaningless (and a privacy breach)
@@ -377,6 +399,7 @@ def run(
                 preprocess_xml_v2(context)
             else:
                 preprocess_xml(context)
+            resolve_define_refs(context)
             parse_xml(context)
             clean_xml(context)
 

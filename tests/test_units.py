@@ -437,6 +437,209 @@ def test_normalize_tagfile_strips_leaked_namespace_members_from_file_compound():
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+# define ref resolution (macros referenced from pages, issue #42)
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+def _define_xml(body: str):
+    from poxy import xml_utils
+
+    return xml_utils.read(
+        f'<doxygen><compounddef kind="page"><detaileddescription>{body}</detaileddescription></compounddef></doxygen>'
+    )
+
+
+def test_collect_defines_maps_names_to_memberdef_ids():
+    from poxy import xml_utils
+    from poxy.pipeline.xml import collect_defines
+
+    root = xml_utils.read(
+        '<doxygen><compounddef kind="file">'
+        '<sectiondef>'
+        '<memberdef kind="define" id="code_8h_1aBEEF"><name>M</name></memberdef>'
+        '<memberdef kind="define" id="group__g_1aF00D"><name>GROUPED</name></memberdef>'
+        '<memberdef kind="enum" id="code_8h_1aDEAD"><name>e</name></memberdef>'
+        '<memberdef kind="define" id="badid"><name>NO_ANCHOR</name></memberdef>'
+        '</sectiondef>'
+        '</compounddef></doxygen>'
+    )
+    assert collect_defines(root) == {'M': 'code_8h_1aBEEF', 'GROUPED': 'group__g_1aF00D'}
+
+
+def test_collect_defines_picks_smallest_refid_for_duplicate_names():
+    from poxy import xml_utils
+    from poxy.pipeline.xml import collect_defines
+
+    a = xml_utils.read('<doxygen><memberdef kind="define" id="b_8h_1a2"><name>M</name></memberdef></doxygen>')
+    b = xml_utils.read('<doxygen><memberdef kind="define" id="a_8h_1a1"><name>M</name></memberdef></doxygen>')
+    defines = collect_defines(a)
+    assert collect_defines(b, defines) == {'M': 'a_8h_1a1'}
+    # merge order must not matter
+    defines = collect_defines(b)
+    assert collect_defines(a, defines) == {'M': 'a_8h_1a1'}
+
+
+def test_resolve_define_refs_replaces_explicit_link_text():
+    from lxml import etree
+
+    from poxy import xml_utils
+    from poxy.pipeline.xml import resolve_define_refs_in_tree
+
+    root = _define_xml('<para>Use #M and #M_XL, but not #OTHER or x#M or ##M or #M_XLS.</para>')
+    changed = resolve_define_refs_in_tree(root, {'M': 'a_8h_1a1', 'M_XL': 'a_8h_1a2'})
+
+    assert changed is True
+    para = etree.tostring(xml_utils.require(root.find('.//para')), encoding='unicode')
+    assert para == (
+        '<para>Use <ref refid="a_8h_1a1" kindref="member">M</ref>'
+        ' and <ref refid="a_8h_1a2" kindref="member">M_XL</ref>,'
+        ' but not #OTHER or x#M or ##M or #M_XLS.</para>'
+    )
+
+
+def test_resolve_define_refs_handles_leading_trailing_and_nested_positions():
+    from lxml import etree
+
+    from poxy.pipeline.xml import resolve_define_refs_in_tree
+
+    root = _define_xml(
+        '<para>#M</para><para><itemizedlist><listitem><para>in a bullet: #M</para></listitem></itemizedlist></para>'
+    )
+    assert resolve_define_refs_in_tree(root, {'M': 'a_8h_1a1'}) is True
+    paras = [etree.tostring(p, encoding='unicode') for p in root.iter('para')]
+    assert paras[0] == '<para><ref refid="a_8h_1a1" kindref="member">M</ref></para>'
+    assert paras[-1] == '<para>in a bullet: <ref refid="a_8h_1a1" kindref="member">M</ref></para>'
+
+
+def test_resolve_define_refs_skips_code_and_link_contexts_but_not_their_tails():
+    from lxml import etree
+
+    from poxy.pipeline.xml import resolve_define_refs_in_tree
+
+    root = _define_xml(
+        '<para><computeroutput>#M</computeroutput> tail #M</para>'
+        '<para><programlisting><codeline><highlight>#M</highlight></codeline></programlisting></para>'
+        '<para><ulink url="https://example.com">#M</ulink></para>'
+        '<para><ref refid="a_8h_1a1" kindref="member">#M</ref></para>'
+    )
+    assert resolve_define_refs_in_tree(root, {'M': 'a_8h_1a1'}) is True
+    text = etree.tostring(root, encoding='unicode')
+    assert text.count('<ref') == 2  # the pre-existing ref plus the one injected in the tail
+    assert '<computeroutput>#M</computeroutput> tail <ref refid="a_8h_1a1" kindref="member">M</ref>' in text
+    assert '<highlight>#M</highlight>' in text
+    assert '<ulink url="https://example.com">#M</ulink>' in text
+    assert '<ref refid="a_8h_1a1" kindref="member">#M</ref>' in text
+
+
+def test_resolve_define_refs_no_defines_is_a_noop():
+    from lxml import etree
+
+    from poxy import xml_utils
+    from poxy.pipeline.xml import resolve_define_refs_in_tree
+
+    root = _define_xml('<para>#M</para>')
+    assert resolve_define_refs_in_tree(root, {}) is False
+    assert etree.tostring(xml_utils.require(root.find('.//para')), encoding='unicode') == '<para>#M</para>'
+
+
+def test_unlink_code_spans_unwraps_refs_but_leaves_other_content():
+    from lxml import etree
+
+    from poxy.pipeline.xml import unlink_code_spans
+
+    root = _define_xml(
+        '<para><computeroutput>#<ref refid="a_8h_1a1" kindref="member">M</ref> tail</computeroutput></para>'
+        '<para><computeroutput><ref refid="x" kindref="member">a</ref><ref refid="y" kindref="member">b</ref></computeroutput></para>'
+        '<para><computeroutput>plain</computeroutput> and a prose <ref refid="z" kindref="member">link</ref></para>'
+    )
+    assert unlink_code_spans(root) is True
+    text = etree.tostring(root, encoding='unicode')
+    assert '<computeroutput>#M tail</computeroutput>' in text
+    assert '<computeroutput>ab</computeroutput>' in text
+    assert '<ref refid="z" kindref="member">link</ref>' in text  # refs outside code spans survive
+
+
+def test_strip_markdown_file_anchors_removes_anchor_and_emptied_para():
+    from lxml import etree
+
+    from poxy.pipeline.xml import strip_markdown_file_anchors
+
+    root = _define_xml(
+        '<para><anchor id="macro_refs_1md_src_2macro__refs"/></para>'
+        '<para><anchor id="apage_1a_real_anchor"/>kept</para>'
+        '<para><anchor id="apage_1md_other"/>text keeps the para</para>'
+    )
+    assert strip_markdown_file_anchors(root) is True
+    text = etree.tostring(root, encoding='unicode')
+    assert 'md_src_2macro__refs' not in text
+    assert 'md_other' not in text
+    assert '<para>text keeps the para</para>' in text
+    assert '<anchor id="apage_1a_real_anchor"/>kept' in text
+    assert text.count('<para>') == 2  # the emptied para is gone
+
+
+def test_normalize_tagfile_drops_synthetic_markdown_docanchors():
+    from poxy import xml_utils
+    from poxy.pipeline.xml import normalize_tagfile
+
+    root = xml_utils.read(
+        '<tagfile>'
+        '<compound kind="page"><name>macro_refs</name><filename>macro_refs.html</filename>'
+        '<docanchor file="macro_refs.html" title="src/macro_refs.md">md_src_2macro__refs</docanchor>'
+        '<docanchor file="macro_refs.html" title="A real section">real_section</docanchor>'
+        '</compound>'
+        '</tagfile>'
+    )
+    assert normalize_tagfile(root) is True
+    anchors = [d.text for d in root.iter('docanchor')]
+    assert anchors == ['real_section']
+
+
+def test_read_index_define_names(tmp_path):
+    from poxy.pipeline.xml import read_index_define_names
+
+    (tmp_path / 'index.xml').write_text(
+        '<doxygenindex>'
+        '<compound kind="file" refid="code_8h"><name>code.h</name>'
+        '<member kind="define" refid="code_8h_1aBEEF"><name>M</name></member>'
+        '<member kind="enum" refid="code_8h_1aDEAD"><name>e</name></member>'
+        '</compound>'
+        '</doxygenindex>',
+        encoding='utf-8',
+    )
+    assert read_index_define_names(tmp_path) == {'M'}
+    assert read_index_define_names(tmp_path / 'nonexistent') == set()
+
+
+@pytest.mark.parametrize(
+    'text,name',
+    [
+        ("explicit link request to 'M' could not be resolved", 'M'),
+        ("explicit link request to `M' could not be resolved", 'M'),
+    ],
+)
+def test_unresolvable_define_link_warning_regex(text, name):
+    from poxy import run
+
+    m = run._unresolvable_define_link.search(f'file.md:3: {text}')
+    assert m is not None and m[1] == name
+
+
+@pytest.mark.parametrize(
+    'text,name',
+    [
+        ("unable to resolve reference to 'M' for \\ref command", 'M'),
+        ("unable to resolve reference to `M' for \\ref command", 'M'),
+    ],
+)
+def test_unresolvable_define_ref_warning_regex(text, name):
+    from poxy import run
+
+    m = run._unresolvable_define_ref.search(f'file.md:3: {text}')
+    assert m is not None and m[1] == name
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 # run (m.css failure diagnosis)
 # ----------------------------------------------------------------------------------------------------------------------
 

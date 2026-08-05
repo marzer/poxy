@@ -287,4 +287,9 @@
       <arglist/>
     </member>
   </compound>
+  <compound kind="page">
+    <name>macro_refs</name>
+    <title>Macro refs</title>
+    <filename>macro_refs.html</filename>
+  </compound>
 </tagfile>
