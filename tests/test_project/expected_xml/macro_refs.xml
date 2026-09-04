@@ -15,7 +15,7 @@
 					</listitem>
 				</itemizedlist>
 			</para>
-			<para><programlisting filename=".cpp"><codeline><highlight class="normal">int<sp/>x<sp/>=<sp/><ref refid="code_8h_poxyhash0" kindref="member">KEK</ref>;</highlight></codeline></programlisting></para>
+			<para><programlisting filename=".cpp"><codeline><highlight class="normal">int<sp/>x<sp/>=<sp/>KEK;</highlight></codeline></programlisting></para>
 		</detaileddescription>
 		<location file="src/macro_refs.dox"/>
 	</compounddef>

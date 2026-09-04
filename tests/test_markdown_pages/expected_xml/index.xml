@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="0.0.0" xml:lang="en-US">
+	<compound refid="structwidget" kind="struct">
+		<name>widget</name>
+		<member refid="structwidget_poxyhash0" kind="variable">
+			<name>value</name>
+		</member>
+		<member refid="structwidget_poxyhash1" kind="function">
+			<name>reset</name>
+		</member>
+	</compound>
+	<compound refid="widgets_8h" kind="file">
+		<name>widgets.h</name>
+	</compound>
+	<compound refid="poxy_changelog" kind="page">
+		<name>poxy_changelog</name>
+	</compound>
+	<compound refid="md_guide" kind="page">
+		<name>md_guide</name>
+	</compound>
+	<compound refid="notes" kind="page">
+		<name>notes</name>
+	</compound>
+	<compound refid="dir_poxyhash2" kind="dir">
+		<name>src</name>
+	</compound>
+	<compound refid="indexpage" kind="page">
+		<name>index</name>
+	</compound>
+</doxygenindex>

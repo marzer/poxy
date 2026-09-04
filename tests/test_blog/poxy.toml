@@ -1,0 +1,13 @@
+name = 'Blog'
+description = 'A C++ project with a blog'
+author = 'A. Author'
+cpp = 20
+navbar = ['blog', 'pages', 'classes']
+site_url = 'https://example.com/docs'
+
+[blog]
+title = 'Blog'
+
+[sources]
+recursive_paths = './src'
+strip_paths = '.'

@@ -154,6 +154,11 @@ REFERENCE_VERSION = (1, 14, 0)
 # newest doxygen exercised by CI; newer may work but is unverified, so it only warns
 HIGHEST_TESTED_VERSION = (1, 17, 0)
 
+# releases inside that range which poxy does not normalise for and CI does not exercise. 1.9.7 discards
+# a markdown page's '{#id}' label outright (the page keeps its md_* name and nothing can @ref it), on top
+# of the concept <includes> and member-reference regressions poxy already works around
+UNSUPPORTED_VERSIONS = {(1, 9, 7)}
+
 
 def _format_version(v) -> str:
     return r'.'.join(str(i) for i in v)
@@ -162,12 +167,18 @@ def _format_version(v) -> str:
 def check_supported(context=None):
     '''
     Enforces poxy's doxygen version-support policy: a hard error below MINIMUM_VERSION, a warning above
-    HIGHEST_TESTED_VERSION. Call once before relying on doxygen's output.
+    HIGHEST_TESTED_VERSION or on one of the UNSUPPORTED_VERSIONS. Call once before relying on doxygen's
+    output.
     '''
     v = version()
     if v < MINIMUM_VERSION:
         raise Error(
             rf'doxygen {version_string()} is too old; poxy needs at least {_format_version(MINIMUM_VERSION)} '
+            rf'(recommended: {_format_version(REFERENCE_VERSION)}). please upgrade doxygen.'
+        )
+    if v in UNSUPPORTED_VERSIONS and context is not None:
+        context.warning(
+            rf'doxygen {version_string()} is not supported; it has known defects poxy does not work around '
             rf'(recommended: {_format_version(REFERENCE_VERSION)}). please upgrade doxygen.'
         )
     if v > HIGHEST_TESTED_VERSION and context is not None:
@@ -183,6 +194,14 @@ def has_unresolved_member_references() -> bool:
     them itself during xml preprocessing. see https://github.com/mosra/m.css/issues/239
     '''
     return version() >= (1, 9, 7)
+
+
+def duplicates_markdown_anchor_link_text() -> bool:
+    '''
+    doxygen >= 1.17.0 repeats the label of a markdown in-page anchor link ('[text](#anchor)') as plain
+    text directly after the <ref> it generates for it, so the label renders twice.
+    '''
+    return version() >= (1, 17, 0)
 
 
 # =======================================================================================================================

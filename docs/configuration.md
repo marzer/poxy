@@ -7,6 +7,16 @@ not the working directory.
 - [author]
 - [autolinks]
 - [badges]
+- [blog]
+    - [blog.enabled]
+    - [blog.dir]
+    - [blog.title]
+    - [blog.id]
+    - [blog.navbar]
+    - [blog.drafts]
+    - [blog.tags]
+    - [blog.feed]
+    - [blog.feed_limit]
 - [changelog]
 - [code_blocks]
     - [code_blocks.enums]
@@ -48,6 +58,8 @@ not the working directory.
 - [robots]
 - [scripts]
 - [show_includes]
+- [site_url]
+- [sitemap]
 - [sources]
     - [sources.extract_all]
     - [sources.paths]
@@ -139,6 +151,178 @@ A table containing `description` &rArr; `[ image, uri ]` mappings. `image` can b
 'C++20'       = [ 'badge-C++20.svg', 'https://en.cppreference.com/w/cpp/compiler_support' ]
 'TOML v1.0.0' = [ 'badge-TOML.svg', 'https://toml.io/en/v1.0.0' ]
 ```
+
+<br><br> <!-- ====================================================================================================== -->
+
+## `blog`
+
+Controls the blog. See [the blog documentation](blog.md) for the post format and directory layout.
+
+A blog is generated whenever the blog directory exists and contains at least one post, so this table is
+only needed to change the defaults.
+
+#### Schema:
+
+A table with the sub-options described below.
+
+#### Example:
+
+```toml
+[blog]
+title = 'News'
+feed_limit = 10
+```
+
+<br><br> <!-- ====================================================================================================== -->
+
+## `blog.enabled`
+
+Set to `false` to skip the blog entirely, leaving the post files in place.
+
+#### Schema:
+
+A `boolean`.
+
+#### Default:
+
+`true`
+
+<br><br> <!-- ====================================================================================================== -->
+
+## `blog.dir`
+
+The directory containing the posts, relative to `poxy.toml`.
+
+#### Schema:
+
+A `string`.
+
+#### Default:
+
+`'blog'`
+
+<br><br> <!-- ====================================================================================================== -->
+
+## `blog.title`
+
+The title of the blog index page, and of its navbar entry.
+
+#### Schema:
+
+A `string`.
+
+#### Default:
+
+`'Blog'`
+
+<br><br> <!-- ====================================================================================================== -->
+
+## `blog.id`
+
+The page id of the blog index, which also names its output file.
+
+#### Schema:
+
+A `string`.
+
+#### Default:
+
+`'blog'`, giving `blog.html`
+
+#### ℹ&#xFE0F; Notes:
+
+Change this only if you have a [pages] entry that already claims the id `blog`. Poxy raises an error
+naming both, so neither gets silently renamed.
+
+<br><br> <!-- ====================================================================================================== -->
+
+## `blog.navbar`
+
+Whether to add the blog index to the navbar automatically.
+
+#### Schema:
+
+A `boolean`.
+
+#### Default:
+
+`true`
+
+#### ℹ&#xFE0F; Notes:
+
+The entry is appended after the content links. To place it yourself, set this to `false` and add `blog`
+to [navbar] in the position you want. A site with no posts never gets an entry either way.
+
+<br><br> <!-- ====================================================================================================== -->
+
+## `blog.drafts`
+
+Whether posts marked `draft = true` are built.
+
+#### Schema:
+
+A `boolean`.
+
+#### Default:
+
+`false`
+
+#### ℹ&#xFE0F; Notes:
+
+`--drafts` and `--no-drafts` on the command line override this, which is the more usual way to preview
+drafts locally without committing a config change.
+
+<br><br> <!-- ====================================================================================================== -->
+
+## `blog.tags`
+
+Whether to generate a page per tag, plus a tag index.
+
+#### Schema:
+
+A `boolean`.
+
+#### Default:
+
+`true`
+
+#### ℹ&#xFE0F; Notes:
+
+Tag pages enter the search index alongside your C++ symbols. Set this to `false` if that dilution
+bothers you; tags still appear on posts, without links.
+
+<br><br> <!-- ====================================================================================================== -->
+
+## `blog.feed`
+
+Whether to generate `feed.xml`, an RSS 2.0 feed.
+
+#### Schema:
+
+A `boolean`.
+
+#### Default:
+
+`true`
+
+#### ℹ&#xFE0F; Notes:
+
+Requires [site_url], since feed entries must carry absolute links. Without it no feed is written,
+regardless of this setting.
+
+<br><br> <!-- ====================================================================================================== -->
+
+## `blog.feed_limit`
+
+How many of the most recent posts appear in the feed.
+
+#### Schema:
+
+An `integer`.
+
+#### Default:
+
+`20`
 
 <br><br> <!-- ====================================================================================================== -->
 
@@ -1163,6 +1347,54 @@ show_includes = true
 
 <br><br> <!-- ====================================================================================================== -->
 
+## `site_url`
+
+The absolute URL your documentation is published at. Without it, everything needing a full link is
+skipped: the RSS feed, `sitemap.xml`, `<link rel="canonical">` and `og:url`.
+
+#### Schema:
+
+An absolute `http` or `https` URL. A trailing slash is ignored.
+
+#### Default:
+
+None.
+
+#### Example:
+
+```toml
+site_url = 'https://marzer.github.io/tomlplusplus'
+```
+
+#### ℹ&#xFE0F; Notes:
+
+Poxy does not infer this from [github]. That guess is wrong for `<user>.github.io` repositories and for
+every custom domain, and unlike poxy's other guesses the result is baked into a published feed, where a
+wrong base URL is worse than no feed at all.
+
+<br><br> <!-- ====================================================================================================== -->
+
+## `sitemap`
+
+Whether to generate a `sitemap.xml` covering every generated page.
+
+#### Schema:
+
+A `boolean`.
+
+#### Default:
+
+`true` when [site_url] is set, `false` otherwise.
+
+#### ℹ&#xFE0F; Notes:
+
+Post entries carry a `lastmod` taken from the post date. Nothing else does, because file modification
+times are meaningless in CI, where a fresh clone stamps every file identically.
+
+Redirect stubs generated from a post's `aliases` are excluded, as is `404.html`.
+
+<br><br> <!-- ====================================================================================================== -->
+
 ## `sources`
 
 A table of nested options relating to Doxygen's discovery and handling of source files. See the specific entries below.
@@ -1490,9 +1722,19 @@ undocumented = false
 [`author`]: #author
 [`autolinks`]: #autolinks
 [`badges`]: #badges
+[`blog`]: #blog
+[`blog.enabled`]: #blogenabled
+[`blog.dir`]: #blogdir
+[`blog.title`]: #blogtitle
+[`blog.id`]: #blogid
+[`blog.navbar`]: #blognavbar
+[`blog.drafts`]: #blogdrafts
+[`blog.tags`]: #blogtags
+[`blog.feed`]: #blogfeed
+[`blog.feed_limit`]: #blogfeed_limit
 [`changelog`]: #changelog
 [`code_blocks.enums`]: #code_blocksenums
-[`code_blocks.functions`]: #code_blockfunctions
+[`code_blocks.functions`]: #code_blocksfunctions
 [`code_blocks.macros`]: #code_blocksmacros
 [`code_blocks.namespaces`]: #code_blocksnamespaces
 [`code_blocks.types`]: #code_blockstypes
@@ -1530,6 +1772,8 @@ undocumented = false
 [`robots`]: #robots
 [`scripts`]: #scripts
 [`show_includes`]: #show_includes
+[`site_url`]: #site_url
+[`sitemap`]: #sitemap
 [`sources.extract_all`]: #sourcesextract_all
 [`sources.paths`]: #sourcespaths
 [`sources.patterns`]: #sourcespatterns
@@ -1550,6 +1794,16 @@ undocumented = false
 [author]: #author
 [autolinks]: #autolinks
 [badges]: #badges
+[blog]: #blog
+[blog.enabled]: #blogenabled
+[blog.dir]: #blogdir
+[blog.title]: #blogtitle
+[blog.id]: #blogid
+[blog.navbar]: #blognavbar
+[blog.drafts]: #blogdrafts
+[blog.tags]: #blogtags
+[blog.feed]: #blogfeed
+[blog.feed_limit]: #blogfeed_limit
 [changelog]: #changelog
 [code_blocks.enums]: #code_blocksenums
 [code_blocks.functions]: #code_blocksfunctions
@@ -1588,10 +1842,13 @@ undocumented = false
 [name]: #name
 [navbar]: #navbar
 [pages]: #pages
+[post]: #post
 [private_repo]: #private_repo
 [robots]: #robots
 [scripts]: #scripts
 [show_includes]: #show_includes
+[site_url]: #site_url
+[sitemap]: #sitemap
 [sources.extract_all]: #sourcesextract_all
 [sources.paths]: #sourcespaths
 [sources.patterns]: #sourcespatterns

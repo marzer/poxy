@@ -515,6 +515,65 @@ def fix_nested_tableofcontents(compounddef) -> bool:
     return changed
 
 
+def split_paragraphs_around_tables(compounddef) -> bool:
+    """Give every <table> a <para> of its own. Most doxygen versions close the enclosing paragraph before
+    a markdown table and open a fresh one for it, but 1.10.0 - 1.12.0 leave the table inline in the
+    paragraph that preceded it."""
+    changed = False
+    for para in list(compounddef.iter(r'para')):
+        parent = para.getparent()
+        if parent is None or not any(child.tag == r'table' for child in para):
+            continue
+
+        segments = []
+        text = para.text
+        children = []
+        for child in list(para):
+            if child.tag != r'table':
+                children.append(child)
+                continue
+            segments.append((text, children))
+            text = child.tail
+            child.tail = None
+            segments.append((None, [child]))
+            children = []
+        segments.append((text, children))
+
+        paras = []
+        for seg_text, seg_children in segments:
+            if not seg_children and not (seg_text or r'').strip():
+                continue
+            new_para = para.makeelement(r'para', {})
+            new_para.text = seg_text
+            for child in seg_children:
+                new_para.append(child)
+            if len(new_para):
+                last = new_para[-1]
+                if last.tail is not None and not last.tail.strip():
+                    last.tail = None
+            paras.append(new_para)
+
+        index = parent.index(para)
+        tail = para.tail
+        parent.remove(para)
+        for offset, new_para in enumerate(paras):
+            new_para.tail = tail
+            parent.insert(index + offset, new_para)
+        changed = True
+    return changed
+
+
+def strip_toc_section_docs(compounddef) -> bool:
+    """Drop the <docs> child doxygen 1.14+ adds to each <tocsect>. It just repeats the sibling <name>,
+    and m.css reads only <name>/<reference> plus the nesting depth, so it is pure divergence."""
+    changed = False
+    for tocsect in compounddef.iter(r'tocsect'):
+        for docs in tocsect.findall(r'docs'):
+            tocsect.remove(docs)
+            changed = True
+    return changed
+
+
 _LEADING_LIST_BULLET = re.compile(r'^\s*[-*+]\s+')
 _LEADING_LIST_BLOCK_TAGS = (
     r'para',
@@ -578,6 +637,38 @@ def fix_leading_list_item(compounddef) -> bool:
         para.text = None
         il.insert(0, new_item)
         changed = True
+    return changed
+
+
+def strip_duplicated_ref_text(compounddef) -> bool:
+    """Drop the copy of a <ref>'s own label that doxygen 1.17.0 leaves sitting in its tail. Only markdown
+    in-page anchor links ('[text](#anchor)') are affected; '@ref' and cross-page links are not."""
+    changed = False
+    for ref in compounddef.iter(r'ref'):
+        text = ref.text
+        if not text or not ref.tail or not ref.tail.startswith(text):
+            continue
+        ref.tail = ref.tail[len(text) :] or None
+        changed = True
+    return changed
+
+
+def strip_table_cell_padding(compounddef) -> bool:
+    """Trim the whitespace doxygen carries over from a markdown table's cell padding into <entry><para>.
+    How much of it survives depends on the version (1.13.2 keeps one more space than 1.14.0 for the same
+    '| option |' cell), and it renders as nothing either way."""
+    changed = False
+    for entry in compounddef.iter(r'entry'):
+        for para in entry.findall(r'para'):
+            if para.text and para.text != para.text.lstrip():
+                para.text = para.text.lstrip() or None
+                changed = True
+            children = list(para)
+            node, attr = (children[-1], r'tail') if children else (para, r'text')
+            text = getattr(node, attr)
+            if text and text != text.rstrip():
+                setattr(node, attr, text.rstrip() or None)
+                changed = True
     return changed
 
 

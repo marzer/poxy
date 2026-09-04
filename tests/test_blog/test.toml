@@ -1,0 +1,5 @@
+[html]
+#enabled = false
+
+[xml]
+enabled = true

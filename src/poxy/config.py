@@ -88,6 +88,44 @@ class Warnings:
             self.undocumented = bool(config[r'undocumented'])
 
 
+class Blog:
+    schema = {
+        Optional(r'enabled'): bool,
+        Optional(r'dir'): Stripped(str, allow_empty=False, name=r'dir'),
+        Optional(r'title'): Stripped(str, allow_empty=False, name=r'title'),
+        Optional(r'id'): Stripped(str, allow_empty=False, name=r'id'),
+        Optional(r'navbar'): bool,
+        Optional(r'drafts'): bool,
+        Optional(r'tags'): bool,
+        Optional(r'feed'): bool,
+        Optional(r'feed_limit'): int,
+    }
+
+    def __init__(self, config):
+        self.enabled = True
+        self.dir = r'blog'
+        self.title = r'Blog'
+        self.id = r'blog'
+        self.navbar = True
+        self.drafts = False
+        self.tags = True
+        self.feed = True
+        self.feed_limit = 20
+
+        if config is None or r'blog' not in config:
+            return
+
+        config = config[r'blog']
+        for key in (r'enabled', r'navbar', r'drafts', r'tags', r'feed'):
+            if key in config:
+                setattr(self, key, bool(config[key]))
+        for key in (r'dir', r'title', r'id'):
+            if key in config:
+                setattr(self, key, str(config[key]).strip())
+        if r'feed_limit' in config:
+            self.feed_limit = max(1, int(config[r'feed_limit']))
+
+
 class PostBuild:
     # each [[post]] entry is a group of commands sharing options; a command is a string or an argv array
     _command = Or(
@@ -317,9 +355,8 @@ class Sources(FilteredInputs):
         if self.patterns is None:
             self.patterns = copy.deepcopy(Defaults.source_patterns)
 
-        if key not in config:
-            return
-        config = config[key]
+        # not an early-out: additional_strip_paths must still apply when the config has no [sources] table
+        config = config[key] if key in config else {}
 
         strip_path_sources = (
             coerce_collection(config[r'strip_paths']) if r'strip_paths' in config else None,

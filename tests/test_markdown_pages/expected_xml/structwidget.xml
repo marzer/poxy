@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="structwidget" kind="struct" language="C++" prot="public">
+		<compoundname>widget</compoundname>
+		<includes local="no">widgets.h</includes>
+		<sectiondef kind="public-attrib">
+			<memberdef kind="variable" id="structwidget_poxyhash0" prot="public" static="no" mutable="no">
+				<type>int</type>
+				<definition>int widget::value</definition>
+				<argsstring/>
+				<name>value</name>
+				<qualifiedname>widget::value</qualifiedname>
+				<briefdescription>
+					<para>The widget's value. </para>
+				</briefdescription>
+				<detaileddescription></detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/widgets.h" line="7" column="5" bodyfile="src/widgets.h" bodystart="7" bodyend="7"/>
+			</memberdef>
+		</sectiondef>
+		<sectiondef kind="public-func">
+			<memberdef kind="function" id="structwidget_poxyhash1" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+				<type>void</type>
+				<definition>void widget::reset</definition>
+				<argsstring>() noexcept</argsstring>
+				<name>reset</name>
+				<qualifiedname>widget::reset</qualifiedname>
+				<briefdescription>
+					<para>Resets the widget. </para>
+				</briefdescription>
+				<detaileddescription></detaileddescription>
+				<inbodydescription></inbodydescription>
+				<location file="src/widgets.h" line="10" column="6"/>
+			</memberdef>
+		</sectiondef>
+		<briefdescription>
+			<para>A widget. </para>
+		</briefdescription>
+		<detaileddescription></detaileddescription>
+		<location file="src/widgets.h" line="4" column="1" bodyfile="src/widgets.h" bodystart="5" bodyend="11"/>
+		<listofallmembers>
+			<member refid="structwidget_poxyhash1" prot="public" virt="non-virtual">
+				<scope>widget</scope>
+				<name>reset</name>
+			</member>
+			<member refid="structwidget_poxyhash0" prot="public" virt="non-virtual">
+				<scope>widget</scope>
+				<name>value</name>
+			</member>
+		</listofallmembers>
+	</compounddef>
+</doxygen>

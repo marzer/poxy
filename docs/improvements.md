@@ -94,6 +94,10 @@ see [`implementation_headers`](configuration.md#implementation_headers).
   library link to cppreference without any setup.
 - [`autolinks`](configuration.md#autolinks) adds your own regex-to-URL hotlinking on top of what Doxygen
   and tagfiles resolve.
+- Markdown headings get stable anchors derived from their text and namespaced per page. Doxygen
+  otherwise numbers them `autotoc_md<N>` from a counter global to the whole run, so adding one page
+  silently renumbers the anchors on every other page and breaks every deep link into them. An explicit
+  `{#label}` on a heading is always honoured as written.
 - Explicit link requests to documented macros (`#SOME_MACRO`) resolve everywhere, including markdown
   pages. Doxygen can only resolve a macro reference from inside a file scope, so from a page every
   spelling fails; poxy repairs these in the XML so they link like any other reference.
@@ -104,6 +108,9 @@ see [`implementation_headers`](configuration.md#implementation_headers).
 
 ## Extras
 
+- A [blog](blog.md) can be built alongside the API documentation: markdown posts with TOML front matter,
+  a dated index, tags, drafts, per-post media, an RSS feed and a sitemap. Posts can `@ref` your C++
+  symbols, which is most of the reason to keep the blog in the docs at all.
 - A git-tag-based semver version switcher can be added to the generated HTML (`--git-tags`).
 - Built-in [`navbar`](configuration.md#navbar), [`badges`](configuration.md#badges) and sponsor / social
   links.

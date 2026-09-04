@@ -14,8 +14,8 @@ from typing import Union
 from bs4.element import NavigableString, Tag
 from trieregex import TrieRegEx
 
-from . import soup
-from .mdfilter import SENTINEL_AMP, SENTINEL_AT, SENTINEL_HEX
+from . import blog, soup
+from .mdfilter import SENTINEL_AMP, SENTINEL_AT, SENTINEL_HEX, slugify
 from .pipeline.fixups import DEDUCED_AUTO_RETURN_TYPE, SECTION_TITLE_CODE_BEGIN, SECTION_TITLE_CODE_END
 from .project import Context
 from .svg import SVG
@@ -542,6 +542,183 @@ class StripIncludes(HTMLFixer):
         return changed
 
 
+class BlogPosts(HTMLFixer):
+    '''
+    Adds the date/tag byline to blog post pages, and rewrites the post lists on the blog index and
+    tag pages into styled reverse-chronological listings.
+    '''
+
+    def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
+        if doc.article_content is None or not context.blog_posts:
+            return False
+        post = context.blog_pages.get(path.name)
+        if post is not None:
+            return self.__add_byline(context, doc, post)
+        if path.name == r'blog_tags.html':
+            return self.__rewrite_tag_cloud(context, doc)
+        listings = {rf'{context.blog.id}.html'}
+        listings |= {rf'{blog.tag_page_id(slug)}.html' for slug in context.blog_tags}
+        if path.name in listings:
+            return self.__rewrite_index(context, doc)
+        return False
+
+    @classmethod
+    def __rewrite_tag_cloud(cls, context: Context, doc: soup.HTMLDocument) -> bool:
+        # m.css ships .m-tagcloud and .m-tag-1 .. .m-tag-5 unscoped, so they are reusable here
+        assert doc.article_content is not None
+        by_page = {rf'{blog.tag_page_id(s)}.html': t for s, t in context.blog_tags.items()}
+        if not by_page:
+            return False
+        counts = [len(t[r'posts']) for t in context.blog_tags.values()]
+        lowest, highest = min(counts), max(counts)
+
+        changed = False
+        for ul in [t for t in doc.article_content.find_all(r'ul') if isinstance(t, Tag)]:
+            items = []
+            for li in ul.find_all(r'li', recursive=False):
+                if not isinstance(li, Tag):
+                    continue
+                anchor = li.find(r'a')
+                tag = by_page.get(str(anchor[r'href'])) if isinstance(anchor, Tag) and r'href' in anchor.attrs else None
+                if tag is None:
+                    items = []
+                    break
+                items.append((li, anchor, tag))
+            if not items:
+                continue
+            soup.set_class(ul, r'm-tagcloud')
+            for li, anchor, tag in items:
+                soup.set_class(li, rf'm-tag-{blog.tag_size_bucket(len(tag[r"posts"]), lowest, highest)}')
+                # the anchor carries the tag page's title; a cloud wants the bare tag
+                anchor.string = tag[r'display']
+            changed = True
+        return changed
+
+    @classmethod
+    def __add_byline(cls, context: Context, doc: soup.HTMLDocument, post) -> bool:
+        assert doc.article_content is not None
+        h1 = doc.article_content.find(r'h1', recursive=False)
+        if not isinstance(h1, Tag):
+            return False
+
+        meta = doc.new_tag(r'div', class_=r'poxy-post-meta', after=h1)
+        doc.new_tag(
+            r'time',
+            parent=meta,
+            string=blog.format_date(post[r'date']),
+            class_=r'poxy-post-date',
+            datetime=post[r'date'].isoformat(),
+        )
+        if post[r'draft']:
+            doc.new_tag(r'span', parent=meta, string=r'Draft', class_=[r'poxy-tag', r'poxy-tag-draft'])
+        if post[r'tags']:
+            tags = doc.new_tag(r'span', parent=meta, class_=r'poxy-post-tags')
+            for tag in post[r'tags']:
+                slug = slugify(tag)
+                if context.blog_tags and slug in context.blog_tags:
+                    doc.new_tag(
+                        r'a', parent=tags, string=tag, class_=r'poxy-tag', href=rf'{blog.tag_page_id(slug)}.html'
+                    )
+                else:
+                    doc.new_tag(r'span', parent=tags, string=tag, class_=r'poxy-tag')
+
+        cls.__add_metadata(doc, post)
+        return True
+
+    @classmethod
+    def __add_metadata(cls, doc: soup.HTMLDocument, post):
+        # per-page, so it cannot live in m.css's HTML_HEADER, which is one global string spliced
+        # identically into every page
+        if doc.head is None:
+            return
+        tags = [
+            (r'property', r'og:type', r'article'),
+            (r'property', r'og:title', post[r'title']),
+            (r'property', r'article:published_time', post[r'date'].isoformat()),
+            (r'name', r'twitter:title', post[r'title']),
+        ]
+        if post[r'excerpt']:
+            tags.append((r'property', r'og:description', post[r'excerpt']))
+            tags.append((r'name', r'twitter:description', post[r'excerpt']))
+            tags.append((r'name', r'description', post[r'excerpt']))
+        if post[r'draft']:
+            tags.append((r'name', r'robots', r'noindex'))
+
+        # attrs= rather than kwargs: a bare name= would collide with BeautifulSoup.new_tag's own
+        # 'name' parameter, which raises TypeError
+        for key_name, key, content in tags:
+            # replace poxy's site-wide value rather than emitting a second, conflicting tag
+            existing = doc.head.find(r'meta', attrs={key_name: key})
+            if isinstance(existing, Tag):
+                existing[r'content'] = content
+                continue
+            doc.new_tag(r'meta', parent=doc.head, attrs={key_name: key, r'content': content})
+
+        # article:tag is legitimately repeated, so it never replaces
+        for tag in post[r'tags']:
+            doc.new_tag(r'meta', parent=doc.head, attrs={r'property': r'article:tag', r'content': tag})
+
+    @classmethod
+    def __rewrite_index(cls, context: Context, doc: soup.HTMLDocument) -> bool:
+        assert doc.article_content is not None
+        lists = [t for t in doc.article_content.find_all(r'ul') if isinstance(t, Tag)]
+        changed = False
+        for ul in lists:
+            entries = []
+            for li in ul.find_all(r'li', recursive=False):
+                if not isinstance(li, Tag):
+                    continue
+                anchor = li.find(r'a')
+                post = (
+                    context.blog_pages.get(str(anchor[r'href']))
+                    if isinstance(anchor, Tag) and r'href' in anchor.attrs
+                    else None
+                )
+                if post is None:
+                    entries = []
+                    break
+                entries.append((li, anchor, post))
+            if not entries:
+                continue
+
+            soup.set_class(ul, r'poxy-blog-index')
+            for li, anchor, post in entries:
+                anchor = anchor.extract()
+                li.clear()
+                soup.set_class(li, r'poxy-blog-entry')
+                soup.set_class(anchor, r'poxy-blog-entry-title')
+                doc.new_tag(
+                    r'time',
+                    parent=li,
+                    string=blog.format_date(post[r'date']),
+                    class_=r'poxy-blog-entry-date',
+                    datetime=post[r'date'].isoformat(),
+                )
+                li.append(anchor)
+                if post[r'excerpt']:
+                    doc.new_tag(r'p', parent=li, string=post[r'excerpt'], class_=r'poxy-blog-entry-excerpt')
+            changed = True
+        return changed
+
+
+class Canonical(HTMLFixer):
+    '''
+    Adds <link rel="canonical"> (and og:url on blog posts) to every page. Per-page, so it cannot go in
+    m.css's HTML_HEADER, which is one global string.
+    '''
+
+    def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
+        if not context.site_url or doc.head is None:
+            return False
+        url = rf'{context.site_url}/{path.name}'
+        if doc.head.find(r'link', attrs={r'rel': r'canonical'}) is not None:
+            return False
+        doc.new_tag(r'link', parent=doc.head, attrs={r'rel': r'canonical', r'href': url})
+        if path.name in context.blog_pages:
+            doc.new_tag(r'meta', parent=doc.head, attrs={r'property': r'og:url', r'content': url})
+        return True
+
+
 class Banner(HTMLFixer):
     '''
     Makes the first image on index.html a 'banner'
@@ -1061,12 +1238,6 @@ class Links(HTMLFixer):
             match = self.__local_href.fullmatch(href)
             if match and not coerce_path(path.parent, match[1]).exists():
                 changed = True
-                # fix for some doxygen versions not emitting the 'md_' prefix:
-                if match[1].startswith(r'md_'):
-                    repl_name = match[1][3:]
-                    if repl_name and coerce_path(path.parent, repl_name).exists():
-                        anchor[r'href'] = repl_name
-                        continue
                 # non-existent hrefs that correspond to internal documentation can sometimes by fixed by the next step
                 if is_mdoc:
                     href = r'#'
@@ -1472,6 +1643,8 @@ def create_all() -> tuple[Union[HTMLFixer, PlainTextFixer], ...]:
         Pygments(),
         CodeBlocks(),  # html
         Banner(),  # html
+        BlogPosts(),  # html
+        Canonical(),  # html
         CPPModifiers1(),  # html
         CPPModifiers2(),  # html
         StripIncludes(),  # html

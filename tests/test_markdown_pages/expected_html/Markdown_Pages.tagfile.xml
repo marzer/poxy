@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<tagfile doxygen_version="0.0.0">
+  <compound kind="struct">
+    <name>widget</name>
+    <filename>structwidget.html</filename>
+    <member kind="function">
+      <type>void</type>
+      <name>reset</name>
+      <anchorfile>structwidget.html</anchorfile>
+      <anchor>poxyhash0</anchor>
+      <arglist>() noexcept</arglist>
+    </member>
+    <member kind="variable">
+      <type>int</type>
+      <name>value</name>
+      <anchorfile>structwidget.html</anchorfile>
+      <anchor>poxyhash1</anchor>
+      <arglist/>
+    </member>
+  </compound>
+  <compound kind="page">
+    <name>poxy_changelog</name>
+    <title>Changelog</title>
+    <filename>poxy_changelog.html</filename>
+    <docanchor file="poxy_changelog.html">changelog</docanchor>
+    <docanchor file="poxy_changelog.html" title="v2.0.0 - 2026-04-01">poxy_changelog_v2_0_0_2026_04_01</docanchor>
+    <docanchor file="poxy_changelog.html" title="Breaking changes">poxy_changelog_breaking_changes</docanchor>
+    <docanchor file="poxy_changelog.html" title="v1.1.0 - 2026-02-14">poxy_changelog_v1_1_0_2026_02_14</docanchor>
+    <docanchor file="poxy_changelog.html" title="Upgrade notes">poxy_changelog_upgrade_notes</docanchor>
+    <docanchor file="poxy_changelog.html" title="v1.0.0 - 2026-01-01">poxy_changelog_v1_0_0_2026_01_01</docanchor>
+  </compound>
+  <compound kind="page">
+    <name>md_guide</name>
+    <title>Guide</title>
+    <filename>md_guide.html</filename>
+    <docanchor file="md_guide.html" title="Getting started">guide_getting_started</docanchor>
+  </compound>
+  <compound kind="page">
+    <name>notes</name>
+    <title>Design notes</title>
+    <filename>notes.html</filename>
+    <docanchor file="notes.html" title="Rationale">notes_rationale</docanchor>
+    <docanchor file="notes.html" title="Rationale">notes_rationale_2</docanchor>
+    <docanchor file="notes.html" title="Hand-picked anchor">hand_picked</docanchor>
+  </compound>
+  <compound kind="page">
+    <name>index</name>
+    <title>Markdown Pages</title>
+    <filename>index.html</filename>
+    <docanchor file="index.html" title="Overview">poxy_main_page_overview</docanchor>
+    <docanchor file="index.html" title="Usage">poxy_main_page_usage</docanchor>
+  </compound>
+</tagfile>

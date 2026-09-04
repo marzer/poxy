@@ -11,8 +11,14 @@ from poxy.mdfilter import (
     SENTINEL_AMP,
     SENTINEL_AT,
     SENTINEL_HEX,
+    label_headings,
     normalize_toc_directives,
+    preprocess,
+    promote_headings,
     protect_entities,
+    setext_to_atx,
+    slugify,
+    split_heading_label,
     strip_handrolled_toc,
 )
 
@@ -120,3 +126,110 @@ def test_restore_fixer_reverses_all_sentinels():
     protected = protect_entities('a &amp; b, heart &#x2764;') + f' at {SENTINEL_AT} here'
     restored = RestoreMarkdownSentinels()(None, protected, None)  # type: ignore[arg-type]
     assert restored == 'a &amp; b, heart &#x2764; at @ here'
+
+
+def test_slugify_reduces_markup_to_bare_anchor():
+    assert slugify('Hello, World!') == 'hello_world'
+    assert slugify('`code` and **bold**') == 'code_and_bold'
+    assert slugify('A [link](https://example.com) here') == 'a_link_here'
+    assert slugify('Already {#labelled}') == 'already'
+
+
+def test_slugify_returns_blank_when_nothing_survives():
+    assert slugify('!!!') == ''
+    assert slugify('日本語') == ''
+
+
+def test_setext_headings_become_atx():
+    assert setext_to_atx('Title\n=====\n\nBody\n') == '# Title\n\nBody\n'
+    assert setext_to_atx('Sub\n---\n') == '## Sub\n'
+
+
+def test_setext_conversion_ignores_table_separators_and_fenced_code():
+    table = '| a | b |\n|---|---|\n| 1 | 2 |\n'
+    assert setext_to_atx(table) == table
+    fenced = '```\nnot a heading\n=====\n```\n'
+    assert setext_to_atx(fenced) == fenced
+
+
+def test_promote_headings_shifts_every_level_up_by_one():
+    assert promote_headings('## A\n### B\n###### F\n') == '# A\n## B\n##### F\n'
+
+
+def test_promote_headings_leaves_h1_and_fenced_hashes_alone():
+    assert promote_headings('# A\n') == '# A\n'
+    fenced = '```cpp\n#define FOO 1\n## not a heading\n```\n'
+    assert promote_headings(fenced) == fenced
+
+
+def test_label_headings_derives_slugs_from_text():
+    assert label_headings('# Hello World\n') == '# Hello World {#hello_world}\n'
+
+
+def test_label_headings_dedupes_repeated_titles():
+    out = label_headings('# Notes\n\n# Notes\n\n# Notes\n')
+    assert out == '# Notes {#notes}\n\n# Notes {#notes_2}\n\n# Notes {#notes_3}\n'
+
+
+def test_label_headings_is_idempotent_and_respects_explicit_labels():
+    once = label_headings('# A {#custom}\n\n# B\n')
+    assert once == '# A {#custom}\n\n# B {#b}\n'
+    assert label_headings(once) == once
+
+
+def test_label_headings_avoids_colliding_with_an_explicit_label_declared_later():
+    # the explicit '{#a}' below must win, so the derived slug for the first heading has to dodge it
+    out = label_headings('# A\n\n# Something {#a}\n')
+    assert out == '# A {#a_2}\n\n# Something {#a}\n'
+
+
+def test_label_headings_falls_back_when_the_title_slugifies_to_nothing():
+    assert label_headings('# 日本語\n') == '# 日本語 {#section}\n'
+
+
+def test_label_headings_namespaces_slugs_by_prefix():
+    # doxygen section labels share one global namespace, so two pages both headed 'Overview' would
+    # collide: it warns, then m.css dies on an id-prefix assertion and the build fails
+    assert label_headings('# Overview\n', 'page_a') == '# Overview {#page_a_overview}\n'
+    assert label_headings('# Overview\n', 'page_b') == '# Overview {#page_b_overview}\n'
+
+
+def test_label_headings_dedupe_still_applies_within_a_prefix():
+    out = label_headings('# A\n\n# A\n', 'p')
+    assert out == '# A {#p_a}\n\n# A {#p_a_2}\n'
+
+
+def test_preprocess_keeps_explicit_subheading_labels_verbatim():
+    out = preprocess('# Overview\n\n## Details {#the_details}\n\n## More\n', 'notes')
+    assert '## Details {#the_details}' in out
+    assert '## More {#notes_more}' in out
+
+
+def test_split_heading_label():
+    assert split_heading_label('Details {#the_details}') == ('Details', 'the_details')
+    assert split_heading_label('## Details {#the_details}  ') == ('## Details', 'the_details')
+    assert split_heading_label('Details') == ('Details', '')
+    # a label needs no whitespace in it, so this is prose rather than an anchor
+    assert split_heading_label('Details {# not a label}') == ('Details {# not a label}', '')
+
+
+def test_preprocess_prefixes_from_the_caller():
+    assert '{#notes_details}' in preprocess('# Overview\n\n## Details\n', 'notes')
+
+
+def test_preprocess_leaves_the_page_title_heading_unlabelled():
+    # doxygen takes that heading's label as the page id, so labelling it renames the output file
+    out = preprocess('# Overview\n\n## Details\n', 'notes')
+    assert out.splitlines()[0] == '# Overview'
+
+
+def test_label_headings_skips_fenced_code():
+    fenced = '```\n# not a heading\n```\n'
+    assert label_headings(fenced) == fenced
+
+
+def test_preprocess_labels_headings_before_entities_are_hidden():
+    # slugs must come from the real heading text, not from a sentinel
+    out = preprocess('# Title\n\n## A &amp; B\n')
+    assert '{#a_amp_b}' in out
+    assert SENTINEL_AMP not in out[out.index('{#') :]

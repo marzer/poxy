@@ -35,6 +35,7 @@ a fantastic live search feature. **Poxy** builds upon both by:
 -   Adding support for C++20 concepts
 -   Adding [tabbed content blocks](docs/aliases.md#tabbed-content) (e.g. for showing the same example in multiple languages)
 -   Adding a top-level page listing all `#defines` so they're discoverable without hunting through file docs
+-   Adding a [blog](docs/blog.md) with tags, drafts, per-post media, an RSS feed and a sitemap
 -   Self-hosting fonts to reduce external HTTP requests
 -   Inlining SVGs so they can take advantage of [`currentColor`]
 -   Keeping undocumented parents of documented symbols (and documented enums' values) instead of pruning them
@@ -56,7 +57,7 @@ The homepage + documentation for [toml++] is built using poxy:
 ### Prerequisites:
 
 -   Python 3.9+
--   Doxygen 1.9+ (must be visible on system path)
+-   Doxygen 1.9.3+ (must be visible on system path; 1.9.7 is not supported)
 -   Linux only: `sudo apt install dvisvgm`
 
 ### Then:
@@ -72,9 +73,10 @@ pip install poxy
 Poxy is a command-line application.
 
 ```
-usage: poxy [-h] [-v] [--html | --no-html] [--ppinclude <regex>] [--ppexclude <regex>]
-            [--theme {light,dark,custom}] [--threads N] [--version] [--xml | --no-xml]
-            [--werror | --no-werror] [--bug-report] [--git-tags]
+usage: poxy [-h] [-v] [--html | --no-html] [--ppinclude <regex>]
+            [--ppexclude <regex>] [--theme {light,dark,custom}] [--threads N]
+            [--version] [--xml | --no-xml] [--werror | --no-werror]
+            [--drafts | --no-drafts] [--bug-report] [--git-tags]
             [--squash-patches | --no-squash-patches] [--min-version <version>]
             [config]
 
@@ -83,7 +85,7 @@ usage: poxy [-h] [-v] [--html | --no-html] [--ppinclude <regex>] [--ppexclude <r
  | |_) | (_) >  <| |_| |
  | .__/ \___/_/\_\\__, |
  | |               __/ |
- |_|              |___/  v0.17.0 - github.com/marzer/poxy
+ |_|              |___/  v0.25.1 - github.com/marzer/poxy
 
 Generate fancy C++ documentation.
 
@@ -103,6 +105,8 @@ options:
   --xml, --no-xml       specify whether XML output is required
   --werror, --no-werror
                         treat warnings as errors (default: read from config)
+  --drafts, --no-drafts
+                        include blog posts marked as drafts (default: read from config)
   --bug-report          captures all output in a zip file for easier bug reporting.
   --git-tags            add git-tag-based semver version switcher to the generated HTML
   --squash-patches, --no-squash-patches
@@ -127,11 +131,27 @@ Full documentation lives in the [`docs`](docs) directory:
 
 -   [What poxy does over Doxygen + m.css](docs/improvements.md)
 -   [Configuration options](docs/configuration.md) - every `poxy.toml` option
+-   [Blog](docs/blog.md) - writing posts, tags, drafts and feeds
 -   [Doxygen @alias commands](docs/aliases.md) - the extra `@commands` poxy provides
 -   [Square-bracket tags](docs/tags.md) - inline control of the generated HTML
 
 For a self-contained `poxy.toml` example to copy and paste from,
 see [the one used by toml++](https://github.com/marzer/tomlplusplus/blob/master/docs/poxy.toml).
+
+### Blogging
+
+Poxy doubles as a small static blogging platform. `poxyblog` scaffolds a post:
+
+```
+usage: poxyblog [-h] [--tags <a,b,c>] [--date <YYYY-MM-DD>] [--draft] [--dir]
+                [--force] [-v] [--version]
+                [config] [title]
+
+Initializes a new blog post for Poxy sites.
+```
+
+Posts are markdown with optional TOML front matter, and get an index, tags, an RSS feed and a sitemap.
+See the [blog documentation](docs/blog.md).
 
 <br><br>
 

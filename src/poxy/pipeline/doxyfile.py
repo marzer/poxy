@@ -13,7 +13,7 @@ from urllib.parse import quote
 
 from lxml import etree
 
-from .. import doxygen, mdfilter, paths
+from .. import dox, doxygen, mdfilter, paths
 from ..project import Context
 from ..utils import *
 
@@ -259,7 +259,7 @@ def preprocess_doxyfile(context: Context):
         context.verbose(df.get_text(), indent=r'    ')
 
 
-def preprocess_temp_markdown_files(context: Context):
+def preprocess_temp_pages(context: Context):
     assert context is not None
     assert isinstance(context, Context)
 
@@ -279,22 +279,24 @@ def preprocess_temp_markdown_files(context: Context):
         text = read_all_text_from_file(path, logger=context.verbose_logger).strip()
         text = text.replace('\r\n', '\n')
         text = re.sub(r'\n<br[ \t]*/?><br[ \t]*/?>\n', r'', text)
-        # NB entity (&amp; / &#x..;) protection now lives in mdfilter.py so it applies to every markdown
-        # file uniformly, not just these temp copies
+        # NB the main page stays markdown, so mdfilter still handles its entity protection
 
         if attr_name == 'changelog':
+            # label first, on the untouched text, so slugs come from the real heading wording rather than
+            # from rewritten issue links or sentinels. markdown_to_dox's own labelling is then a no-op.
+            # skip_title because markdown_to_dox consumes the leading heading as the page title
+            text = mdfilter.label_headings(mdfilter.setext_to_atx(text), r'poxy_changelog', skip_title=True)
             if context.repo:
                 repo = context.repo
                 text = re.sub(r'#([0-9]+)', lambda m: rf'[#{m[1]}]({repo.make_issue_uri(m[1])})', text)
                 text = re.sub(r'!([0-9]+)', lambda m: rf'[!{m[1]}]({repo.make_pull_request_uri(m[1])})', text)
                 text = re.sub(r'@([a-zA-Z0-9_-]+)', lambda m: rf'[@{m[1]}]({repo.make_user_uri(m[1])})', text)
 
+            # a .dox is not matched by FILTER_PATTERNS, so the entity protection mdfilter would have
+            # applied to a .md has to happen here instead
             text = text.replace(r'@', mdfilter.SENTINEL_AT)
-            text = f'\n{text}\n'
-            text = re.sub('\n#[^#].+?\n', '\n', text)
-            text = f'@page poxy_changelog Changelog\n\n@tableofcontents\n\n{text}'
-            text = text.rstrip()
-            text += '\n\n'
+            text = mdfilter.protect_entities(text)
+            text = dox.markdown_to_dox(text, r'poxy_changelog', r'Changelog', toc=True)
 
         context.verbose(rf'Writing {path}')
         with open(path, r'w', encoding=r'utf-8', newline='\n') as f:

@@ -26,8 +26,10 @@ import itertools
 
 from colorama import Fore, Style
 
-from . import doxygen, emoji, paths, repos
+from . import blog as blog_utils
+from . import dox, doxygen, emoji, paths, repos
 from .config import (
+    Blog,
     CodeBlocks,
     FilteredInputs,
     Inputs,
@@ -38,6 +40,7 @@ from .config import (
     extract_kvps,
 )
 from .defaults import Defaults
+from .mdfilter import setext_to_atx, slugify, split_heading_label
 from .schemas import *
 from .utils import *
 from .version import *
@@ -58,6 +61,7 @@ class Context:
             Optional(r'author'): Stripped(str),
             Optional(r'autolinks'): {str: str},
             Optional(r'badges'): {str: ValueOrArray(str, name=r'badges', length=2)},
+            Optional(r'blog'): Blog.schema,
             Optional(r'changelog'): Or(str, bool),
             Optional(r'main_page'): Or(str, bool),
             Optional(r'code_blocks'): CodeBlocks.schema,
@@ -101,6 +105,8 @@ class Context:
             Optional(r'robots'): bool,
             Optional(r'scripts'): ValueOrArray(str, name=r'scripts'),
             Optional(r'show_includes'): bool,
+            Optional(r'site_url'): Stripped(str),
+            Optional(r'sitemap'): bool,
             Optional(r'sources'): Sources.schema,
             Optional(r'stylesheets'): ValueOrArray(str, name=r'stylesheets'),
             Optional(r'tagfiles'): {str: str},
@@ -201,6 +207,8 @@ class Context:
         temp_dir: typing.Optional[Path] = None,
         copy_config_to: typing.Optional[Path] = None,
         versions_in_navbar: bool = False,
+        drafts: typing.Optional[bool] = None,
+        no_site_artefacts: bool = False,
         reset_output: bool = True,
         **kwargs,
     ):
@@ -212,6 +220,8 @@ class Context:
         self.copy_assets = bool(copy_assets)
         self.verbose_logger = logger if self.__verbose else None
         self.versions_in_navbar = bool(versions_in_navbar)
+        self.drafts = None if drafts is None else bool(drafts)
+        self.no_site_artefacts = bool(no_site_artefacts)
 
         self.verbose_value(r'Context.output_html', self.output_html)
         self.verbose_value(r'Context.output_xml', self.output_xml)
@@ -325,11 +335,6 @@ class Context:
             self.assets_dir = Path(self.html_dir, r'poxy')
             self.verbose_value(r'Context.assets_dir', self.assets_dir)
             assert self.assets_dir.is_absolute()
-
-            # blog dir
-            self.blog_dir = Path(self.input_dir, r'blog')
-            self.verbose_value(r'Context.blog_dir', self.blog_dir)
-            assert self.blog_dir.is_absolute()
 
             # delete leftovers from previous run and initialize temp dirs
             delete_directory(self.temp_dir, logger=self.verbose_logger)
@@ -549,6 +554,7 @@ class Context:
 
         self.__read_pages(config)
         self.__read_custom_pages(config)
+        self.__read_blog(config)
         self.__read_inputs(config)
         # dot tool (HAVE_DOT)
         self.dot = bool(config['dot']) if 'dot' in config else None
@@ -689,30 +695,6 @@ class Context:
         self.verbose_value(r'Context.html_header', self.html_header)
 
     def __read_pages(self, config):
-        # enumerate blog files (need to add them to the doxygen sources)
-        # entries start as plain paths then get replaced in-place with (path, date) tuples below
-        self.blog_files: typing.List[typing.Any] = []
-        if self.blog_dir.exists() and self.blog_dir.is_dir():
-            self.blog_files = enumerate_files(self.blog_dir, any=(r'*.md', r'*.markdown'), recursive=True)
-            sep = re.compile(r'[-֊‐‑‒–—―−_ ,;.]+')
-            expr = re.compile(
-                rf'^(?:blog{sep.pattern})?((?:[0-9]{{4}}){sep.pattern}(?:[0-9]{{2}}){sep.pattern}(?:[0-9]{{2}})){sep.pattern}[a-zA-Z0-9_ -]+$'
-            )
-            for i in range(len(self.blog_files)):
-                f = self.blog_files[i]
-                m = expr.fullmatch(f.stem)
-                if not m:
-                    raise Error(
-                        rf"blog post filename '{f.name}' was not formatted correctly; "
-                        + r"it should be of the form 'YYYY-MM-DD_this_is_a_post.md'."
-                    )
-                try:
-                    d = datetime.datetime.strptime(sep.sub('-', m[1]), r'%Y-%m-%d').date()
-                    self.blog_files[i] = (f, d)
-                except Exception as exc:
-                    raise Error(rf"failed to parse date from blog post filename '{f.name}': {str(exc)}") from exc
-        self.verbose_value(r'Context.blog_files', self.blog_files)
-
         self.source_excludes = set()
 
         # changelog
@@ -750,7 +732,7 @@ class Context:
                     raise Error(rf'changelog: {config["changelog"]} did not exist or was not a file')
         if self.changelog:
             self.source_excludes.add(self.changelog)
-            temp_changelog_path = Path(self.temp_pages_dir, r'poxy_changelog.md')
+            temp_changelog_path = Path(self.temp_pages_dir, r'poxy_changelog.dox')
             copy_file(self.changelog, temp_changelog_path, logger=self.verbose_logger)
             self.changelog = temp_changelog_path
         self.verbose_value(r'Context.changelog', self.changelog)
@@ -852,17 +834,191 @@ class Context:
             self.custom_pages.append({r'id': page_id, r'title': title, r'navbar': navbar, r'content_src': content_src})
         self.verbose_value(r'Context.custom_pages', self.custom_pages)
 
+    def __read_blog(self, config):
+        # after __read_custom_pages so page id collisions are detectable, before __read_inputs so the
+        # .dox files this writes into temp_pages_dir are picked up as sources
+        self.blog = Blog(config)
+        self.blog_posts = []
+        self.blog_pages = {}
+        self.blog_tags = {}
+        self.blog_dir = coerce_path(self.blog.dir)
+        if not self.blog_dir.is_absolute():
+            self.blog_dir = Path(self.input_dir, self.blog_dir)
+        self.verbose_value(r'Context.blog_dir', self.blog_dir)
+
+        if not self.blog.enabled or not self.blog_dir.is_dir():
+            self.blog_files = []
+            return
+
+        taken = {p[r'id']: rf'pages.{p["id"]}' for p in self.custom_pages}
+        drafts = self.drafts if self.drafts is not None else self.blog.drafts
+
+        posts = []
+        for source, post_dir in blog_utils.enumerate_posts(self.blog_dir):
+            if post_dir:
+                # the directory is the date alone; a second post that day is named for its title
+                date, _ = blog_utils.parse_post_stem(post_dir.name)
+                title_part = '' if source.stem.lower() == r'index' else source.stem
+            else:
+                date, title_part = blog_utils.parse_post_stem(source.stem)
+            text = read_all_text_from_file(source, logger=self.verbose_logger)
+            if blog_utils.has_yaml_front_matter(text):
+                raise Error(rf'{source}: front matter must be TOML fenced by +++, not YAML fenced by ---')
+            front_matter_text, body = blog_utils.split_front_matter(text)
+            meta = blog_utils.parse_front_matter(front_matter_text, source) if front_matter_text else {}
+
+            if bool(meta.get(r'draft', False)) and not drafts:
+                continue
+
+            # normalise before either extractor runs, so a setext H1 names the post too
+            body = setext_to_atx(body)
+            date = meta.get(r'date', date)
+            title = meta.get(r'title') or self.__blog_title_from_body(body) or title_part
+            if not title:
+                raise Error(rf'{source}: post has no title; give it one in front matter or as a leading heading')
+            slug = slugify(str(meta.get(r'slug') or title))
+            tags = self.__dedupe_tags(coerce_collection(meta.get(r'tags', [])))
+
+            aliases = []
+            for value in coerce_collection(meta.get(r'aliases', [])):
+                stem = blog_utils.alias_stem(str(value))
+                if not stem:
+                    raise Error(rf'{source}: alias "{value}" is not a usable page name')
+                if stem not in aliases:
+                    aliases.append(stem)
+
+            description = str(meta.get(r'description') or '').strip()
+            posts.append(
+                {
+                    r'id': blog_utils.post_id(date, slug),
+                    r'title': title,
+                    r'date': date,
+                    r'slug': slug,
+                    r'source': source,
+                    r'dir': post_dir,
+                    r'draft': bool(meta.get(r'draft', False)),
+                    r'tags': tags,
+                    r'description': description,
+                    r'excerpt': description or blog_utils.extract_excerpt(body),
+                    r'aliases': aliases,
+                    r'assets': blog_utils.post_assets(post_dir),
+                    r'asset_dir': blog_utils.post_output_dir(post_dir.name) if post_dir else '',
+                    r'body': body,  # popped below; the records cross a process pool, so it does not travel
+                }
+            )
+
+        if not posts:
+            self.blog_files = []
+            return
+
+        # newest first, tiebroken on the post id: every directory-form post has the source name
+        # 'index.md', so that would not order them at all
+        posts.sort(key=lambda p: (p[r'date'], p[r'id']), reverse=True)
+
+        for post in posts:
+            if post[r'id'] in taken:
+                raise Error(rf'blog: post {post["source"]} collides with {taken[post["id"]]} (both are "{post["id"]}")')
+            taken[post[r'id']] = str(post[r'source'])
+            self.source_excludes.add(post[r'source'])
+            body = blog_utils.rewrite_asset_links(post.pop(r'body'), post[r'assets'], post[r'asset_dir'])
+            with open(
+                Path(self.temp_pages_dir, rf'poxy_blog_{post["id"]}.dox'), r'w', encoding=r'utf-8', newline='\n'
+            ) as f:
+                f.write(
+                    dox.markdown_to_dox(body, post[r'id'], post[r'title'], brief=post[r'description'], footer_nav=True)
+                )
+            self.blog_pages[rf'{post["id"]}.html'] = post
+
+        if self.blog.id in taken:
+            raise Error(
+                rf'blog: index id "{self.blog.id}" collides with {taken[self.blog.id]} (see the blog.id option)'
+            )
+        self.blog_tags = blog_utils.collect_tags(posts) if self.blog.tags else {}
+        if self.blog_tags and r'blog_tags' in taken:
+            raise Error(rf'blog: the tag index id "blog_tags" collides with {taken[r"blog_tags"]}')
+        for slug, tag in self.blog_tags.items():
+            page_id = blog_utils.tag_page_id(slug)
+            if page_id in taken:
+                raise Error(rf'blog: tag page "{page_id}" collides with {taken[page_id]}')
+            taken[page_id] = rf'blog tag "{tag["display"]}"'
+
+        self.__write_blog_index(posts)
+        if self.blog_tags:
+            self.__write_blog_tag_pages()
+
+        self.blog_posts = posts
+        self.blog_files = [(p[r'source'], p[r'date']) for p in posts]
+        self.verbose_value(r'Context.blog_posts', [p[r'id'] for p in posts])
+        self.verbose_value(r'Context.blog_tags', list(self.blog_tags.keys()))
+
+    @classmethod
+    def __dedupe_tags(cls, tags) -> list:
+        # keyed on the slug, so 'C++' and 'c++' do not become two chips pointing at one page
+        seen = set()
+        out = []
+        for tag in tags:
+            tag = str(tag).strip()
+            slug = slugify(tag)
+            if not tag or not slug or slug in seen:
+                continue
+            seen.add(slug)
+            out.append(tag)
+        return out
+
+    @classmethod
+    def __blog_title_from_body(cls, body: str) -> str:
+        m = re.match(r'\A\s*#[ \t]+(.+?)[ \t]*$', body, re.M)
+        return split_heading_label(m[1])[0] if m else ''
+
+    def __write_blog_index(self, posts):
+        lines = [rf'/// @page {self.blog.id} {self.blog.title}', r'///']
+        for post in posts:
+            lines.append(rf'/// - {post["date"]:%Y-%m-%d} @subpage {post["id"]}')
+        # last, so the tag index sits after every post in the footer's prev/next ordering
+        if self.blog_tags:
+            lines += [r'///', r'/// @subpage blog_tags']
+        with open(Path(self.temp_pages_dir, r'poxy_blog_index.dox'), r'w', encoding=r'utf-8', newline='\n') as f:
+            f.write('\n'.join(lines) + '\n')
+
+    def __write_blog_tag_pages(self):
+        # tag pages @ref their posts instead of @subpage-ing them: a post's parent is already the blog
+        # index, and a second parent breaks doxygen's prev/next ordering
+        if r'blog_tags' == self.blog.id:
+            raise Error(r'blog: the tag index id "blog_tags" collides with the blog index (see the blog.id option)')
+
+        # a plain @subpage list, restyled into a tag cloud by the BlogPosts fixer. emitting the cloud
+        # markup here does not work: doxygen strips class attributes off html in a doc comment
+        index = [rf'/// @page blog_tags Tags', r'///']
+        index += [rf'/// - @subpage {blog_utils.tag_page_id(slug)}' for slug in self.blog_tags]
+        with open(Path(self.temp_pages_dir, r'poxy_blog_tags.dox'), r'w', encoding=r'utf-8', newline='\n') as f:
+            f.write('\n'.join(index) + '\n')
+
+        for slug, tag in self.blog_tags.items():
+            page_id = blog_utils.tag_page_id(slug)
+            lines = [rf'/// @page {page_id} Posts tagged "{tag["display"]}"', r'///']
+            for post in tag[r'posts']:
+                lines.append(rf'/// - {post["date"]:%Y-%m-%d} @ref {post["id"]}')
+            with open(
+                Path(self.temp_pages_dir, rf'poxy_blog_tag_{slug}.dox'), r'w', encoding=r'utf-8', newline='\n'
+            ) as f:
+                f.write('\n'.join(lines) + '\n')
+
     def __read_inputs(self, config):
         # sources (INPUT, FILE_PATTERNS, STRIP_FROM_PATH, STRIP_FROM_INC_PATH, EXTRACT_ALL)
+        #
+        # every generated page is named individually rather than left to the temp dir's own glob, because
+        # doxygen applies FILE_PATTERNS to a directory but not to a file it was handed explicitly. a
+        # 'sources.patterns' without '*.dox' would otherwise drop the blog and the custom pages entirely.
+        # NB this requires the generators above to have already run, which is why they do
+        generated_pages = sorted(f for f in self.temp_pages_dir.iterdir() if f.is_file())
         self.sources = Sources(
             config,
             r'sources',
             self.input_dir,
             additional_inputs=(
-                self.temp_pages_dir,  #
+                *generated_pages,
                 self.changelog if self.changelog else None,
                 self.main_page if self.main_page else None,
-                *[f for f, d in self.blog_files],
             ),
             additional_strip_paths=(self.temp_pages_dir,),
         )
@@ -959,6 +1115,12 @@ class Context:
                 if page[r'navbar']:
                     self.navbar.append(rf'<a href="{page["id"]}.html">{html.escape(page["title"])}</a>')
 
+            # blog index. emitted as a raw anchor so it needs no NAVBAR_TO_KIND entry
+            while r'blog' in self.navbar:
+                self.navbar.remove(r'blog')
+            if self.blog_posts and self.blog.navbar:
+                self.navbar.append(rf'<a href="{self.blog.id}.html">{html.escape(self.blog.title)}</a>')
+
             # version switcher
             if self.versions_in_navbar and r'version' not in self.navbar:
                 self.navbar.append(r'version')
@@ -1021,6 +1183,23 @@ class Context:
         if 'robots' in config:
             self.robots = bool(config['robots'])
         self.verbose_value(r'Context.robots', self.robots)
+
+        # site_url: the absolute base every feed, sitemap and canonical link needs. deliberately not
+        # guessed from 'github': that is wrong for <user>.github.io repos and every custom domain, and a
+        # wrong base baked into a published feed is worse than no feed at all
+        self.site_url = ''
+        if r'site_url' in config and str(config[r'site_url']).strip():
+            url = str(config[r'site_url']).strip().rstrip(r'/')
+            if not re.fullmatch(r'https?://[^\s/]+(?:/[^\s]*)?', url):
+                raise Error(rf'site_url: expected an absolute http(s) URL, got {config["site_url"]!r}')
+            self.site_url = url
+        self.verbose_value(r'Context.site_url', self.site_url)
+
+        self.sitemap = bool(config[r'sitemap']) if r'sitemap' in config else bool(self.site_url)
+        if self.sitemap and not self.site_url:
+            self.warning(r'sitemap: requires site_url to be set; no sitemap will be generated', fatal=False)
+            self.sitemap = False
+        self.verbose_value(r'Context.sitemap', self.sitemap)
 
         # inline namespaces for old versions of doxygen
         self.inline_namespaces = copy.deepcopy(Defaults.inline_namespaces)

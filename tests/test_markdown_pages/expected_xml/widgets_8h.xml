@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="widgets_8h" kind="file" language="C++">
+		<compoundname>widgets.h</compoundname>
+		<innerclass refid="structwidget" prot="public">widget</innerclass>
+		<briefdescription>
+			<para>
+				<ns0:span xmlns:ns0="http://mcss.mosra.cz/doxygen/"/>
+			</para>
+		</briefdescription>
+		<detaileddescription></detaileddescription>
+		<location file="src/widgets.h"/>
+	</compounddef>
+</doxygen>

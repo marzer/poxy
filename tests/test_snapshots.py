@@ -99,3 +99,67 @@ def test_pages_bundle_iframe_content(tmp_path):
     assert (html / 'coverage' / 'index.html').is_file()  # bundled directory content
     assert (html / 'notes' / 'notes.html').is_file()  # bundled single file
     assert not (html / 'upstream').exists()  # url-based page bundles nothing
+
+
+def test_blog_stages_media_per_post(tmp_path):
+    """Doxygen resolves images by basename, so two posts each carrying a 'diagram.png' used to collide
+    down to a single staged file with one of them silently missing. Assert both survive, distinctly."""
+    work = tmp_path / 'work'
+    shutil.copytree(TESTS_ROOT / 'test_blog', work, ignore=shutil.ignore_patterns('expected_*'))
+    run_poxy(work, '--noassets', '--html', '--no-xml')
+    html = work / 'html'
+    first = html / 'blog' / '2026-03-02' / 'diagram.png'
+    second = html / 'blog' / '2026-04-11' / 'diagram.png'
+    assert first.is_file()
+    assert second.is_file()
+    assert first.read_bytes() != second.read_bytes()
+    assert not (html / 'diagram.png').exists()  # nothing flattened into the output root
+
+
+def test_pages_sharing_a_heading_do_not_collide(tmp_path):
+    """Doxygen section labels are global, so two pages headed 'Overview' used to warn and then kill the
+    build with an m.css id-prefix assertion. Anchors must be namespaced per page."""
+    work = tmp_path / 'work'
+    (work / 'src').mkdir(parents=True)
+    (work / 'src' / 'w.h').write_text('#pragma once\n\n/// @brief A widget.\nstruct widget { int v; };\n')
+    (work / 'poxy.toml').write_text(
+        "name = 'Dup'\ncpp = 20\n\n[sources]\npaths = '.'\nrecursive_paths = './src'\nstrip_paths = '.'\n"
+    )
+    (work / 'a.md').write_text('# Page A {#page_a}\n\n## Overview\n\nText A.\n')
+    (work / 'b.md').write_text('# Page B {#page_b}\n\n## Overview\n\nText B.\n')
+
+    run_poxy(work, '--noassets', '--html', '--no-xml', '--werror')
+    assert 'id="a_overview"' in (work / 'html' / 'page_a.html').read_text(encoding='utf-8')
+    assert 'id="b_overview"' in (work / 'html' / 'page_b.html').read_text(encoding='utf-8')
+
+
+def test_blog_posts_sharing_a_heading_do_not_collide(tmp_path):
+    """The same collision between two blog posts, which reach doxygen as synthetic .dox pages."""
+    work = tmp_path / 'work'
+    (work / 'src').mkdir(parents=True)
+    (work / 'blog').mkdir(parents=True)
+    (work / 'src' / 'w.h').write_text('#pragma once\n\n/// @brief A widget.\nstruct widget { int v; };\n')
+    (work / 'poxy.toml').write_text(
+        "name = 'Dup'\ncpp = 20\n\n[sources]\nrecursive_paths = './src'\nstrip_paths = '.'\n"
+    )
+    for name, title in (('2026-01-01_alpha', 'Alpha'), ('2026-01-02_beta', 'Beta')):
+        (work / 'blog' / f'{name}.md').write_text(f'# {title}\n\n## Introduction\n\nProse.\n')
+
+    run_poxy(work, '--noassets', '--html', '--no-xml', '--werror')
+    alpha = (work / 'html' / 'blog_2026_01_01_alpha.html').read_text(encoding='utf-8')
+    beta = (work / 'html' / 'blog_2026_01_02_beta.html').read_text(encoding='utf-8')
+    assert 'id="blog_2026_01_01_alpha_introduction"' in alpha
+    assert 'id="blog_2026_01_02_beta_introduction"' in beta
+
+
+def test_blog_drafts_are_excluded_unless_requested(tmp_path):
+    """A draft must emit no page at all, which a golden diff cannot assert."""
+    work = tmp_path / 'work'
+    shutil.copytree(TESTS_ROOT / 'test_blog', work, ignore=shutil.ignore_patterns('expected_*'))
+    run_poxy(work, '--noassets', '--html', '--no-xml')
+    draft = work / 'html' / 'blog_2026_05_30_a_draft.html'
+    assert not draft.exists()
+    assert 'A Draft' not in (work / 'html' / 'blog.html').read_text(encoding='utf-8')
+
+    run_poxy(work, '--noassets', '--html', '--no-xml', '--drafts')
+    assert draft.is_file()

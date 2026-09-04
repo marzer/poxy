@@ -12,11 +12,17 @@ sections are not exercised by the end-to-end snapshot projects), protecting it a
 __read_config is refactored.
 """
 
+import shutil
 from pathlib import Path
 
 import pytest
+from utils import doxygen_available
 
 from poxy.project import Context
+from poxy.utils import Error
+
+# no doxygen is run, but Context resolves the binary while building itself
+pytestmark = pytest.mark.skipif(not doxygen_available(), reason='doxygen not found on PATH')
 
 RICH_TOML = """
 name = 'Rich'
@@ -154,7 +160,8 @@ def test_flags(ctx):
     assert ctx.generate_tagfile is True
     assert ctx.internal_docs is True
     assert ctx.private_repo is True
-    assert ctx.dot is True
+    # 'dot = true' only survives when graphviz is actually installed, so this one tracks the host
+    assert ctx.dot is (shutil.which('dot') is not None)
     assert ctx.show_includes is False
 
 
@@ -241,3 +248,55 @@ def test_images_and_examples_paths(ctx):
 def test_tagfiles_record_uri_unresolved(ctx):
     assert any('example.com/x.tag.xml' in str(k) for k in ctx.tagfiles)
     assert ctx.unresolved_tagfiles is True
+
+
+def test_a_directory_post_with_no_title_anywhere_is_an_error(tmp_path):
+    # the file form always has a title part in its name to fall back on; index.md in a date directory does not
+    (tmp_path / 'blog' / '2026-01-15').mkdir(parents=True)
+    (tmp_path / 'blog' / '2026-01-15' / 'index.md').write_text('Just prose, no heading.\n')
+    (tmp_path / 'poxy.toml').write_text("name = 'p'\n")
+    with pytest.raises(Error, match='no title'):
+        Context(
+            config_path=tmp_path / 'poxy.toml',
+            output_dir=tmp_path,
+            output_html=True,
+            output_xml=False,
+            threads=1,
+            cleanup=False,
+            verbose=False,
+            logger=None,
+            html_include=None,
+            html_exclude=None,
+            treat_warnings_as_errors=False,
+            theme=None,
+            copy_assets=False,
+            temp_dir=tmp_path / 'temp',
+        )
+
+
+def test_generated_pages_are_named_individually_in_the_sources(tmp_path):
+    # doxygen applies FILE_PATTERNS to a directory but not to a file handed to it explicitly, so the
+    # generated pages have to be named one by one: this list omits '*.dox' and must not lose the blog
+    (tmp_path / 'blog').mkdir()
+    (tmp_path / 'blog' / '2026-01-15_hello.md').write_text('# Hello\n\nProse.\n')
+    (tmp_path / 'poxy.toml').write_text("name = 'p'\n\n[sources]\npatterns = ['*.md']\n")
+    ctx = Context(
+        config_path=tmp_path / 'poxy.toml',
+        output_dir=tmp_path,
+        output_html=True,
+        output_xml=False,
+        threads=1,
+        cleanup=False,
+        verbose=False,
+        logger=None,
+        html_include=None,
+        html_exclude=None,
+        treat_warnings_as_errors=False,
+        theme=None,
+        copy_assets=False,
+        temp_dir=tmp_path / 'temp',
+    )
+    assert ctx.sources.patterns == {'*.md'}  # the user's list is left exactly as written
+    generated = sorted(f for f in ctx.temp_pages_dir.iterdir() if f.is_file())
+    assert [f.name for f in generated] == ['poxy_blog_blog_2026_01_15_hello.dox', 'poxy_blog_index.dox']
+    assert set(generated) <= set(ctx.sources.paths)

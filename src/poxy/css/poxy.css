@@ -43,5 +43,8 @@
 /* tabbed content blocks */
 @import url("poxy-tabs.css");
 
+/* blog bylines + index */
+@import url("poxy-blog.css");
+
 /* embedded iframe pages */
 @import url("poxy-iframe.css");

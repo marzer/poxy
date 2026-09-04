@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<tagfile doxygen_version="0.0.0">
+  <compound kind="struct">
+    <name>widget</name>
+    <filename>structwidget.html</filename>
+    <member kind="variable">
+      <type>int</type>
+      <name>value</name>
+      <anchorfile>structwidget.html</anchorfile>
+      <anchor>poxyhash0</anchor>
+      <arglist/>
+    </member>
+  </compound>
+  <compound kind="page">
+    <name>blog_2026_01_15_hello_world</name>
+    <title>Hello, World!</title>
+    <filename>blog_2026_01_15_hello_world.html</filename>
+    <docanchor file="blog_2026_01_15_hello_world.html" title="A section">blog_2026_01_15_hello_world_a_section</docanchor>
+  </compound>
+  <compound kind="page">
+    <name>blog_2026_02_20_custom_slug</name>
+    <title>Titled From Front Matter</title>
+    <filename>blog_2026_02_20_custom_slug.html</filename>
+  </compound>
+  <compound kind="page">
+    <name>blog_2026_03_02_a_tricky_body</name>
+    <title>A Tricky Body</title>
+    <filename>blog_2026_03_02_a_tricky_body.html</filename>
+    <docanchor file="blog_2026_03_02_a_tricky_body.html" title="A pre-labelled heading">pinned_anchor</docanchor>
+    <docanchor file="blog_2026_03_02_a_tricky_body.html" title="A setext heading">blog_2026_03_02_a_tricky_body_a_setext_heading</docanchor>
+  </compound>
+  <compound kind="page">
+    <name>blog_2026_04_11_more_media</name>
+    <title>More Media</title>
+    <filename>blog_2026_04_11_more_media.html</filename>
+  </compound>
+  <compound kind="page">
+    <name>blog_2026_04_11_second</name>
+    <title>second</title>
+    <filename>blog_2026_04_11_second.html</filename>
+  </compound>
+  <compound kind="page">
+    <name>blog</name>
+    <title>Blog</title>
+    <filename>blog.html</filename>
+  </compound>
+  <compound kind="page">
+    <name>blog_tag_cpp</name>
+    <title>Posts tagged "c++"</title>
+    <filename>blog_tag_cpp.html</filename>
+  </compound>
+  <compound kind="page">
+    <name>blog_tag_release_notes</name>
+    <title>Posts tagged "release notes"</title>
+    <filename>blog_tag_release_notes.html</filename>
+  </compound>
+  <compound kind="page">
+    <name>blog_tags</name>
+    <title>Tags</title>
+    <filename>blog_tags.html</filename>
+  </compound>
+</tagfile>

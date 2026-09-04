@@ -53,5 +53,17 @@
 	/* translucent (frosted) sticky header */
 	--poxy-header-bg-translucent: hsla(var(--theme-hue), calc(var(--theme-saturation) * 0.5), 55%, 0.8);
 
+	/* blog bylines + index */
+	--poxy-post-meta-color: hsl(var(--theme-hue), 12%, 38%);
+	--poxy-blog-entry-border-color: hsl(var(--theme-hue), 22%, 84%);
+	--poxy-tag-color: hsl(var(--theme-hue), 30%, 25%);
+	--poxy-tag-background-color: hsl(var(--theme-hue), 25%, 84%);
+	--poxy-tag-border-color: hsl(var(--theme-hue), 22%, 74%);
+	--poxy-tag-active-color: hsl(var(--theme-hue), 90%, 32%);
+	--poxy-tag-active-border-color: hsl(var(--theme-hue), 60%, 60%);
+	--poxy-tag-draft-color: hsl(var(--warning-hue), 60%, 22%);
+	--poxy-tag-draft-background-color: hsl(var(--warning-hue), 70%, 82%);
+	--poxy-tag-draft-border-color: hsl(var(--warning-hue), 50%, 62%);
+
 	--sponsor-color: #f8c8dc;
 }

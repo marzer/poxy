@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="md_guide" kind="page">
+		<compoundname>md_guide</compoundname>
+		<title>Guide</title>
+		<briefdescription></briefdescription>
+		<detaileddescription>
+			<para>A standalone markdown page that doxygen names itself, so its title heading carries no label.</para>
+			<sect1 id="md_guide_1guide_getting_started">
+				<title>Getting started</title>
+				<para>Some prose. </para>
+			</sect1>
+		</detaileddescription>
+		<location file="guide.md"/>
+	</compounddef>
+</doxygen>

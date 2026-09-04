@@ -14,8 +14,8 @@ import shutil
 import subprocess
 import tempfile
 
-from . import doxygen
-from .pipeline.doxyfile import preprocess_doxyfile, preprocess_tagfiles, preprocess_temp_markdown_files
+from . import blog, doxygen
+from .pipeline.doxyfile import preprocess_doxyfile, preprocess_tagfiles, preprocess_temp_pages
 from .pipeline.html import postprocess_html, preprocess_mcss_config
 from .pipeline.xml import (
     clean_xml,
@@ -323,6 +323,62 @@ def run_post_build_commands(context: Context):
                 dump_output_streams(context, read_output_streams(stdout, stderr), source=rf'post-build [{label}]')
 
 
+def write_blog_alias_stubs(context: Context):
+    """Emits a redirect page for each post's declared old URL, so renames do not strand inbound links."""
+    aliases = [(a, p) for p in context.blog_posts for a in p[r'aliases']]
+    if not aliases:
+        return
+    with ScopeTimer(r'Writing blog alias stubs', print_start=True, print_end=context.verbose_logger):
+        for alias, post in aliases:
+            target = Path(context.html_dir, rf'{post["id"]}.html')
+            if not target.exists():
+                raise Error(rf'blog: alias "{alias}" in {post["source"]} would redirect to a missing {target}')
+            path = Path(context.html_dir, rf'{alias}.html')
+            if path.exists():
+                raise Error(rf'blog: alias "{alias}" in {post["source"]} would overwrite {path}')
+            with open(path, r'w', encoding=r'utf-8', newline='\n') as f:
+                f.write(blog.render_alias_stub(rf'{post["id"]}.html', post[r'title']))
+
+
+def write_site_artefacts(context: Context):
+    """Emits feed.xml, sitemap.xml and 404.html.
+
+    Runs after postprocess_html, the first point where every page is final and execution is back on a
+    single process (the fixers run in a pool and can never accumulate a post list).
+    """
+    if context.no_site_artefacts:
+        return
+    if not context.site_url:
+        context.verbose(r'site_url is not set; skipping feed.xml, sitemap.xml and 404.html')
+        return
+
+    # a draft is unlisted even when --drafts built it; advertising it in a feed or sitemap is the one
+    # thing that would defeat the point of marking it a draft
+    published = [p for p in context.blog_posts if not p[r'draft']]
+
+    with ScopeTimer(r'Writing site artefacts', print_start=True, print_end=context.verbose_logger):
+        if published and context.blog.feed:
+            text = blog.render_rss(
+                context.site_url, context.name, context.description, context.author, published, context.blog.feed_limit
+            )
+            with open(Path(context.html_dir, r'feed.xml'), r'w', encoding=r'utf-8', newline='\n') as f:
+                f.write(text)
+
+        if context.sitemap:
+            excluded = {rf'{a}.html' for p in context.blog_posts for a in p[r'aliases']}
+            excluded |= {rf'{p["id"]}.html' for p in context.blog_posts if p[r'draft']}
+            excluded.add(r'404.html')
+            pages = [f.name for f in get_all_files(context.html_dir, any=r'*.html', recursive=False)]
+            pages = [p for p in pages if p not in excluded]
+            with open(Path(context.html_dir, r'sitemap.xml'), r'w', encoding=r'utf-8', newline='\n') as f:
+                f.write(blog.render_sitemap(context.site_url, pages, published))
+
+        not_found = Path(context.html_dir, r'404.html')
+        if not not_found.exists():
+            with open(not_found, r'w', encoding=r'utf-8', newline='\n') as f:
+                f.write(blog.render_not_found(context.name or r'the documentation', context.site_url))
+
+
 def run(
     config_path: typing.Optional[Path] = None,
     output_dir: typing.Union[Path, str] = '.',
@@ -340,6 +396,8 @@ def run(
     temp_dir: typing.Optional[Path] = None,
     copy_config_to: typing.Optional[Path] = None,
     versions_in_navbar: bool = False,
+    drafts: typing.Optional[bool] = None,
+    no_site_artefacts: bool = False,
     keep_original_xml: bool = False,
     worker: bool = False,
     post_build_only: bool = False,
@@ -364,6 +422,8 @@ def run(
         temp_dir=temp_dir,
         copy_config_to=copy_config_to,
         versions_in_navbar=versions_in_navbar,
+        drafts=drafts,
+        no_site_artefacts=no_site_artefacts,
         reset_output=not post_build_only,
         **kwargs,
     ) as context:
@@ -381,7 +441,7 @@ def run(
         # Doxyfile's TAGFILES is written
         preprocess_tagfiles(context)
         preprocess_doxyfile(context)
-        preprocess_temp_markdown_files(context)
+        preprocess_temp_pages(context)
 
         if not context.output_html and not context.output_xml:
             return
@@ -443,6 +503,20 @@ def run(
                             dest_dir.mkdir(exist_ok=True, parents=True)
                             copy_file(source_path, Path(dest_dir, source_path.name), logger=context.verbose_logger)
 
+            # bundle each day's media into html/blog/<date>/. poxy stages these itself because doxygen
+            # resolves images by basename, so a 'diagram.png' in two posts would collide down to one file
+            if context.blog_posts:
+                with ScopeTimer(r'Copying blog post media', print_start=True, print_end=context.verbose_logger):
+                    staged = set()  # posts sharing a day share its media too
+                    for post in context.blog_posts:
+                        for asset in post[r'assets']:
+                            dest = Path(context.html_dir, post[r'asset_dir'], asset[r'name'])
+                            if dest in staged:
+                                continue
+                            staged.add(dest)
+                            dest.parent.mkdir(exist_ok=True, parents=True)
+                            copy_file(asset[r'path'], dest, logger=context.verbose_logger)
+
             # copy fonts
             if context.copy_assets:
                 with ScopeTimer(r'Copying fonts', print_start=True, print_end=context.verbose_logger):
@@ -455,6 +529,9 @@ def run(
             # post-process html files
             with timer(r'Post-processing HTML files'):
                 postprocess_html(context)
+
+            write_blog_alias_stubs(context)
+            write_site_artefacts(context)
 
         # run once over the finalized output; workers skip it (--git-tags runs it once over the whole
         # assembled site via a --post-build-only worker; --bug-report must not trigger side effects)

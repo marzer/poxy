@@ -1,0 +1,102 @@
+/*
+	Blog post bylines and the blog index listing, assembled by the BlogPosts html fixer.
+*/
+
+.poxy-post-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	column-gap: 0.75rem;
+	row-gap: 0.4rem;
+	margin-bottom: 2rem;
+}
+
+.poxy-post-date {
+	white-space: nowrap;
+	font-size: 0.9rem;
+	color: var(--poxy-post-meta-color);
+}
+
+.poxy-post-tags {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+}
+
+.poxy-tag {
+	display: inline-block;
+	padding: 0.25rem 0.6rem;
+	border: 1px solid var(--poxy-tag-border-color);
+	border-radius: var(--border-radius);
+	background-color: var(--poxy-tag-background-color);
+	color: var(--poxy-tag-color);
+	font-size: 0.8rem;
+	line-height: 1.4;
+	white-space: nowrap;
+}
+
+a.poxy-tag {
+	color: var(--poxy-tag-color);
+}
+
+/* beats the global 'a:hover { text-decoration: underline !important }' in poxy-overrides.css */
+a.poxy-tag:hover,
+a.poxy-tag:focus,
+a.poxy-tag:active {
+	text-decoration: none !important;
+	color: var(--poxy-tag-active-color);
+	border-color: var(--poxy-tag-active-border-color);
+}
+
+.poxy-tag-draft {
+	border-color: var(--poxy-tag-draft-border-color);
+	background-color: var(--poxy-tag-draft-background-color);
+	color: var(--poxy-tag-draft-color);
+	font-weight: 600;
+}
+
+.poxy-blog-index {
+	list-style: none;
+	padding-left: 0;
+}
+
+.poxy-blog-entry {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	column-gap: 1rem;
+	row-gap: 0.3rem;
+	padding: 0.7rem 0;
+	border-bottom: 1px solid var(--poxy-blog-entry-border-color);
+}
+
+.poxy-blog-entry:last-child {
+	border-bottom: none;
+	padding-bottom: 0;
+}
+
+.poxy-blog-entry-date {
+	flex: none;
+	white-space: nowrap;
+	font-size: 0.9rem;
+	color: var(--poxy-post-meta-color);
+}
+
+.poxy-blog-entry-title {
+	font-size: 1.1rem;
+	font-weight: 600;
+}
+
+.poxy-blog-entry-excerpt {
+	flex-basis: 100%;
+	margin: 0;
+	font-size: 0.95rem;
+	color: var(--poxy-post-meta-color);
+}
+
+/* stack the date above the title rather than let a long title squash into a narrow column */
+@media screen and (max-width: 576px) {
+	.poxy-blog-entry-date {
+		flex-basis: 100%;
+	}
+}

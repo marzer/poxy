@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="0.0.0" xml:lang="en-US">
+	<compound refid="structwidget" kind="struct">
+		<name>widget</name>
+		<member refid="structwidget_poxyhash0" kind="variable">
+			<name>value</name>
+		</member>
+	</compound>
+	<compound refid="widgets_8h" kind="file">
+		<name>widgets.h</name>
+	</compound>
+	<compound refid="blog_2026_01_15_hello_world" kind="page">
+		<name>blog_2026_01_15_hello_world</name>
+	</compound>
+	<compound refid="blog_2026_02_20_custom_slug" kind="page">
+		<name>blog_2026_02_20_custom_slug</name>
+	</compound>
+	<compound refid="blog_2026_03_02_a_tricky_body" kind="page">
+		<name>blog_2026_03_02_a_tricky_body</name>
+	</compound>
+	<compound refid="blog_2026_04_11_more_media" kind="page">
+		<name>blog_2026_04_11_more_media</name>
+	</compound>
+	<compound refid="blog_2026_04_11_second" kind="page">
+		<name>blog_2026_04_11_second</name>
+	</compound>
+	<compound refid="blog" kind="page">
+		<name>blog</name>
+	</compound>
+	<compound refid="blog_tag_cpp" kind="page">
+		<name>blog_tag_cpp</name>
+	</compound>
+	<compound refid="blog_tag_release_notes" kind="page">
+		<name>blog_tag_release_notes</name>
+	</compound>
+	<compound refid="blog_tags" kind="page">
+		<name>blog_tags</name>
+	</compound>
+	<compound refid="dir_poxyhash1" kind="dir">
+		<name>src</name>
+	</compound>
+</doxygenindex>

@@ -176,6 +176,8 @@ def normalize_tagfile(tagfile_root, extra_namespace_member_keys=None) -> bool:
         these is version-dependent
       - drop the synthetic 'md_*' <docanchor> some doxygen versions add to a page generated from a
         markdown file; its id embeds the source path with version-dependent mangling
+      - drop <subpage> entries, which only exist from doxygen 1.9.8 onwards and which no tagfile
+        consumer reads
     """
     changed = False
     # capture the closing whitespace (the last child's tail sits before </tagfile>) so we can restore it
@@ -225,6 +227,9 @@ def normalize_tagfile(tagfile_root, extra_namespace_member_keys=None) -> bool:
             if docanchor.text and docanchor.text.startswith(r'md_'):
                 compound.remove(docanchor)
                 removed = True
+        for subpage in compound.findall(r'subpage'):
+            compound.remove(subpage)
+            removed = True
         if removed:
             changed = True
             kids = list(compound)
@@ -487,7 +492,7 @@ def preprocess_xml(context: Context):
         # pre-pass to delete junk files
         if 1:
             # 'file' entries for markdown and dox files
-            dox_files = [rf'*{doxygen.mangle_name(ext)}.xml' for ext in (r'.dox', r'.md')]
+            dox_files = [rf'*{doxygen.mangle_name(ext)}.xml' for ext in (r'.dox', r'.md', r'.markdown')]
             dox_files.append(r'md_home.xml')
             for xml_file in get_all_files(context.temp_xml_dir, any=dox_files):
                 delete_file(xml_file, logger=context.verbose_logger)
@@ -694,6 +699,15 @@ def preprocess_xml(context: Context):
             # at the end of a detailed description's final paragraph where other versions do not)
             changed |= fixups.strip_trailing_paragraph_linebreaks(compounddef)
 
+            # trim markdown table cell padding that survives into the XML in version-dependent amounts
+            changed |= fixups.strip_table_cell_padding(compounddef)
+
+            # older doxygen leaves a markdown table inline in the paragraph before it
+            changed |= fixups.split_paragraphs_around_tables(compounddef)
+
+            if doxygen.duplicates_markdown_anchor_link_text():
+                changed |= fixups.strip_duplicated_ref_text(compounddef)
+
             # normalize section headings (m.css can't handle rich/empty <title>s); code spans are
             # preserved via sentinels and restored to <code> by the SectionTitleCodeSpans HTML fixer
             changed |= fixups.normalize_section_titles(compounddef)
@@ -816,6 +830,7 @@ def preprocess_xml(context: Context):
             if compound_kind == r'page':
                 changed |= fixups.unwrap_synthetic_page_sections(compounddef)
                 changed |= fixups.fix_nested_tableofcontents(compounddef)
+                changed |= fixups.strip_toc_section_docs(compounddef)
 
             if changed:
                 xml_utils.write(root, xml_file)
@@ -1151,15 +1166,19 @@ def resolve_define_refs_in_tree(root, defines: dict) -> bool:
     return changed
 
 
-def unlink_code_spans(root) -> bool:
+def unlink_code_refs(root) -> bool:
     """
-    Unwrap <ref>s inside <computeroutput> back to plain text. Doxygen 1.15+ cross-references
-    identifiers inside inline code spans where every earlier version leaves them as text, so code
-    spans are kept plain to render identically across versions.
+    Unwrap <ref>s inside <computeroutput> and <programlisting> back to plain text.
+
+    Doxygen cross-references identifiers inside code inconsistently: 1.15+ does it in inline code
+    spans where earlier versions leave text, and 1.14.0 alone declines to do it in the code blocks of
+    a page that came from a comment (poxy's synthetic .dox pages). m.css discards these refs and
+    re-highlights the reconstructed text with pygments regardless, so dropping them cannot change the
+    HTML, and it removes the whole class of divergence.
     """
     changed = False
-    for span in root.iter(r'computeroutput'):
-        for ref in list(span.iter(r'ref')):
+    for code in root.iter(r'computeroutput', r'programlisting'):
+        for ref in list(code.iter(r'ref')):
             parent = require(ref.getparent())
             text = (ref.text or r'') + (ref.tail or r'')
             prev = ref.getprevious()
@@ -1172,17 +1191,27 @@ def unlink_code_spans(root) -> bool:
     return changed
 
 
+_AUTOTOC_ANCHOR = re.compile(r'autotoc_md[0-9]+')
+
+
 def strip_markdown_file_anchors(root) -> bool:
     """
-    Remove the synthetic top-of-file <anchor> some doxygen versions add to a page generated from a
-    markdown file (the id ends in 'md_<mangled source path>', and the mangling is version-dependent).
-    Nothing can sensibly link to it, so it only exists to break convergence.
+    Remove the synthetic <anchor>s doxygen adds to a page generated from a markdown file:
+
+      - the top-of-file one, whose id ends in 'md_<mangled source path>' (the mangling is both version-
+        and build-path-dependent)
+      - the 'autotoc_md<N>' fallback for a heading poxy left unlabelled, which is only ever the page's
+        title heading. N comes from a counter global to the whole run, so it renumbers whenever a page
+        is added anywhere in the project.
+
+    Neither is a link target anybody can sensibly use, so both exist only to break convergence.
     """
     changed = False
     for anchor in list(root.iter(r'anchor')):
         anchor_id = anchor.get(r'id') or r''
         i = anchor_id.rfind(r'_1')
-        if not anchor_id[i + 2 if i >= 0 else 0 :].startswith(r'md_'):
+        local = anchor_id[i + 2 if i >= 0 else 0 :]
+        if not local.startswith(r'md_') and not _AUTOTOC_ANCHOR.fullmatch(local):
             continue
         parent = require(anchor.getparent())
         if anchor.tail:
@@ -1238,7 +1267,7 @@ def resolve_define_refs(context: Context, dir=None):
         collect_defines(root, defines)
 
     for xml_file, root in roots:
-        changed = unlink_code_spans(root)
+        changed = unlink_code_refs(root)
         changed = strip_markdown_file_anchors(root) or changed
         if resolve_define_refs_in_tree(root, defines):
             context.verbose(rf'Resolved #define references in {xml_file}')

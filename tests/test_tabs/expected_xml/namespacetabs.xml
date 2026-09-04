@@ -16,7 +16,7 @@
 					<para>[tabs]</para>
 					<para>[tab Usage]</para>
 					<para>Call it like so:</para>
-					<para><programlisting filename=".cpp"><codeline><highlight class="normal">auto<sp/>x<sp/>=<sp/><ref refid="namespacetabs_poxyhash0" kindref="member">tabs::func</ref>();</highlight></codeline></programlisting></para>
+					<para><programlisting filename=".cpp"><codeline><highlight class="normal">auto<sp/>x<sp/>=<sp/>tabs::func();</highlight></codeline></programlisting></para>
 					<para>[tab Notes]</para>
 					<para>Just returns a number. Nothing to see here.</para>
 					<para>[/tabs] </para>

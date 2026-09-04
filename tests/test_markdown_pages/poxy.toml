@@ -1,0 +1,11 @@
+name = 'Markdown Pages'
+description = 'A C++ project exercising markdown main pages, changelogs and standalone pages'
+cpp = 20
+navbar = ['pages', 'classes']
+changelog = true
+main_page = true
+
+[sources]
+paths = '.'
+recursive_paths = './src'
+strip_paths = '.'

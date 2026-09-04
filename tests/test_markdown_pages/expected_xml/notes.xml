@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="notes" kind="page">
+		<compoundname>notes</compoundname>
+		<title>Design notes</title>
+		<briefdescription></briefdescription>
+		<detaileddescription>
+			<para>A standalone markdown page whose '{#label}' names it.</para>
+			<para>See <ref refid="notes_1hand_picked" kindref="member">the hand-picked anchor</ref> and <ref refid="poxy_changelog_1changelog" kindref="member">the changelog</ref>.</para>
+			<sect1 id="notes_1notes_rationale">
+				<title>Rationale</title>
+				<para>Some prose.</para>
+			</sect1>
+			<sect1 id="notes_1notes_rationale_2">
+				<title>Rationale</title>
+				<para>A second heading with the same text, to pin the anchor de-duplication.</para>
+			</sect1>
+			<sect1 id="notes_1hand_picked">
+				<title>Hand-picked anchor</title>
+				<para>An explicit label on a subheading must survive verbatim rather than be replaced by a derived one. </para>
+			</sect1>
+		</detaileddescription>
+		<location file="notes.md"/>
+	</compounddef>
+</doxygen>

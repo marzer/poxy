@@ -41,5 +41,17 @@
 	/* translucent (frosted) sticky header */
 	--poxy-header-bg-translucent: rgba(34, 39, 46, 0.8);
 
+	/* blog bylines + index */
+	--poxy-post-meta-color: #a8b0ba;
+	--poxy-blog-entry-border-color: #3d4854;
+	--poxy-tag-color: #c3ccd6;
+	--poxy-tag-background-color: #3a4450;
+	--poxy-tag-border-color: #4a5666;
+	--poxy-tag-active-color: #a5c9ea;
+	--poxy-tag-active-border-color: #5b9dd9;
+	--poxy-tag-draft-color: #e9ecae;
+	--poxy-tag-draft-background-color: #5e6122;
+	--poxy-tag-draft-border-color: #8a8e35;
+
 	--sponsor-color: #ff69b4;
 }

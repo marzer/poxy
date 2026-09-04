@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.26.0 - 2026-09-05
+
+- fixed markdown heading 'autodoc' using doxygen's unstable algorithm, replaced with a better implementation
+- fixed an indented code block being read as a heading
+- fixed `poxy_changelog.html` being named `md_poxy_changelog.html` on some doxygen versions
+- fixed `sources.strip_paths` being ignored entirely when a config had no `[sources]` table
+- fixed `poxyblog --version` exiting with an error instead of printing the version
+- fixed `poxyblog` writing to `./blog` rather than the blog directory poxy reads from
+- fixed `poxyblog` accepting a multi-line title, and generating filenames poxy would later reject
+- fixed blog post images being resolved by basename
+- fixed markdown heading anchors sharing doxygen's global section-label namespace
+- fixed a markdown page's title heading being labelled, which renamed the page's output file
+- fixed an explicit `{#label}` on a blog post's or changelog's title heading being discarded
+- fixed a markdown in-page anchor link rendering its label twice on doxygen 1.17.0
+- added blog front matter (TOML, fenced by `+++`) with `title`, `date`, `slug`, `draft`, `description`, `tags` and `aliases`
+- added blog post directories, so a post's images and other media can live beside its text
+- added a blog index page, tag pages, per-post date/tag bylines, excerpts and prev/next navigation
+- added `feed.xml` (RSS 2.0), `sitemap.xml` and `404.html`
+- added the `blog`, `site_url` and `sitemap` config options
+- added `--drafts`
+- dropped support for doxygen 1.9.7 (poxy now warns when it is used)
+
 ## v0.25.1 - 2026-08-05
 
 - fixed `#MACRO` refs not working from page bodies

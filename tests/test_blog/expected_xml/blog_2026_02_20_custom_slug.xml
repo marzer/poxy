@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="blog_2026_02_20_custom_slug" kind="page">
+		<compoundname>blog_2026_02_20_custom_slug</compoundname>
+		<title>Titled From Front Matter</title>
+		<briefdescription>
+			<para>A one-line summary used for the excerpt. </para>
+		</briefdescription>
+		<detaileddescription>
+			<para>
+				<mcss:footernavigation xmlns:mcss="http://mcss.mosra.cz/doxygen/"/>
+			</para>
+			<para>The front matter title and slug both override what the filename would have given. </para>
+		</detaileddescription>
+		<location file="poxy_blog_blog_2026_02_20_custom_slug.dox"/>
+	</compounddef>
+</doxygen>

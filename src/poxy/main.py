@@ -18,7 +18,8 @@ from pathlib import Path
 import colorama
 from colorama import Fore, Style
 
-from . import css, doxygen, emoji, graph, mcss, paths
+from . import config, css, doxygen, emoji, graph, mcss, paths
+from .mdfilter import slugify
 from .run import run
 from .schemas import SchemaError
 from .utils import *
@@ -250,6 +251,8 @@ def multi_version_git_tags(args: argparse.Namespace):
                         r'--versions-in-navbar',
                         r'--output-dir',
                         str(output_dir),
+                        # only the default branch emits them, so they live once at the site root
+                        *([] if tag == default_branch else [r'--no-site-artefacts']),
                         *worker_args,
                     ],
                     cwd=str(Path.cwd()),
@@ -281,7 +284,6 @@ def multi_version_git_tags(args: argparse.Namespace):
                     dest.mkdir(exist_ok=True, parents=True)
                     delete_directory(src / 'poxy')
                     delete_file(src / 'poxy_changelog.html')
-                    delete_file(src / 'md_poxy_changelog.html')
                     shutil.copytree(str(src), str(dest), dirs_exist_ok=True)
                     if not args.nocleanup:
                         delete_directory(src)
@@ -306,7 +308,6 @@ def multi_version_git_tags(args: argparse.Namespace):
             if tag != default_branch:
                 text = text.replace('href="poxy/', 'href="../poxy/')
                 text = text.replace('href="poxy_changelog.html', 'href="../poxy_changelog.html')
-                text = text.replace('href="md_poxy_changelog.html', 'href="../md_poxy_changelog.html')
                 text = text.replace('src="poxy/', 'src="../poxy/')
             versions = rf'<li class="poxy-navbar-version-selector"><a href="{fp.name}">Version: {"HEAD" if tag == default_branch else tag}</a><ol>'
             for dest_tag in tags:
@@ -498,6 +499,9 @@ def main(invoker=True):
     make_boolean_optional_arg(
         args, r'werror', default=None, help=r'treat warnings as errors (default: read from config)'
     )  #
+    make_boolean_optional_arg(
+        args, r'drafts', default=None, help=r'include blog posts marked as drafts (default: read from config)'
+    )  #
     args.add_argument(
         r'--bug-report',
         action=r'store_true',
@@ -542,6 +546,9 @@ def main(invoker=True):
     )
     args.add_argument(r'--xml-v2', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--worker', action=r'store_true', help=argparse.SUPPRESS)  #
+    # --git-tags passes this to every non-default tag worker, so feed.xml/sitemap.xml/404.html exist
+    # exactly once, at the site root, rather than once per version advertising root-absolute URLs
+    args.add_argument(r'--no-site-artefacts', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--post-build-only', action=r'store_true', help=argparse.SUPPRESS)  #
     args.add_argument(r'--output-dir', type=Path, default=Path.cwd(), help=argparse.SUPPRESS)  #
     args.add_argument(r'--temp-dir', type=Path, default=None, help=argparse.SUPPRESS)  #
@@ -660,12 +667,109 @@ def main(invoker=True):
             temp_dir=args.temp_dir,
             copy_config_to=args.copy_config_to,
             versions_in_navbar=args.versions_in_navbar,
+            drafts=args.drafts,
+            no_site_artefacts=args.no_site_artefacts,
             keep_original_xml=args.keep_original_xml,
             worker=args.worker,
             post_build_only=args.post_build_only,
             # kwargs:
             xml_v2=args.xml_v2,
         )
+
+
+_TOML_ESCAPES = {'\\': r'\\', '"': r'\"', '\b': r'\b', '\t': r'\t', '\n': r'\n', '\f': r'\f', '\r': r'\r'}
+
+_CONFIG_CANDIDATES = (r'poxy.toml', r'docs/poxy.toml', r'doc/poxy.toml', r'doxygen/poxy.toml')
+
+
+def toml_string(value: str) -> str:
+    out = []
+    for c in str(value):
+        esc = _TOML_ESCAPES.get(c)
+        if esc is None and (c < ' ' or c == '\x7f'):
+            esc = rf'\u{ord(c):04X}'
+        out.append(c if esc is None else esc)
+    return '"' + ''.join(out) + '"'
+
+
+def blog_post_stem(date: datetime.date, title: str) -> str:
+    """The 'YYYY-MM-DD_slug' name of a new post. Always parseable by blog.parse_post_stem."""
+    # a wholly non-latin title (CJK, emoji, punctuation) slugifies to nothing, hence the fallback
+    return rf'{date:%Y-%m-%d}_{slugify(title) or r"post"}'
+
+
+def blog_post_front_matter(title: str, date=None, draft=False, tags=None) -> str:
+    lines = [r'+++', rf'title = {toml_string(title)}']
+    if date is not None:
+        lines.append(rf'date = {date:%Y-%m-%d}')
+    if draft:
+        lines.append(r'draft = true')
+    if tags:
+        lines.append(rf'tags = [{", ".join([toml_string(t) for t in tags])}]')
+    lines.append(r'+++')
+    return '\n'.join(lines) + '\n'
+
+
+def split_tag_list(value) -> list:
+    if not value:
+        return []
+    return [t for t in (t.strip() for t in str(value).split(r',')) if t]
+
+
+def split_config_and_title(first, second):
+    """Splits poxyblog's two optional positionals into (config, title).
+
+    argparse fills the leftmost optional positional first, so a lone argument lands in 'config' even
+    when it is really the title; only an existing directory or .toml file is taken as the config.
+    """
+    if second is not None:
+        return first, second
+    if first is None:
+        return None, None
+    path = Path(first)
+    if path.is_dir() or (path.suffix.lower() == r'.toml' and path.is_file()):
+        return first, None
+    return None, first
+
+
+def resolve_config_path(value):
+    """Locates the poxy.toml governing a poxyblog invocation, or None when there isn't one."""
+    if value is None:
+        cwd = Path.cwd()
+        for directory in (cwd, *cwd.parents):
+            for candidate in _CONFIG_CANDIDATES:
+                path = Path(directory, candidate)
+                if path.is_file():
+                    return path
+        return None
+    path = coerce_path(value).resolve()
+    if path.is_file():
+        return path
+    if not path.is_dir():
+        raise Error(rf"'{path}' did not exist")
+    for candidate in _CONFIG_CANDIDATES:
+        found = Path(path, candidate)
+        if found.is_file():
+            return found
+    raise Error(rf"no poxy.toml found in '{path}'")
+
+
+def resolve_blog_dir(config_path):
+    """Reads '[blog] dir' and resolves it relative to the config file, the way poxy itself does."""
+    if config_path is None:
+        return Path(Path.cwd(), r'blog')
+    try:
+        import tomllib as toml
+    except ImportError:
+        import tomli as toml  # pyright: ignore[reportMissingImports]
+    try:
+        data = toml.loads(read_all_text_from_file(config_path))
+    except Exception as exc:
+        raise Error(rf'could not parse {config_path}: {str(exc)}') from exc
+    blog_dir = coerce_path(config.Blog(data).dir)
+    if not blog_dir.is_absolute():
+        blog_dir = Path(config_path.parent, blog_dir)
+    return blog_dir
 
 
 def main_blog_post(invoker=True):
@@ -679,7 +783,33 @@ def main_blog_post(invoker=True):
     args = argparse.ArgumentParser(
         description=r'Initializes a new blog post for Poxy sites.', formatter_class=argparse.RawTextHelpFormatter
     )
-    args.add_argument(r'title', type=str, help=r'the title of the new blog post')  #
+    args.add_argument(
+        r'config',
+        type=str,
+        nargs='?',
+        default=None,
+        help='path to poxy.toml or a directory containing it\n(default: search upwards from .)',
+    )
+    args.add_argument(r'title', type=str, nargs='?', default=None, help=r'the title of the new blog post')  #
+    args.add_argument(
+        r'--tags',
+        type=str,
+        default=None,
+        metavar=r'<a,b,c>',
+        help=r'comma-separated list of tags for the new post',  #
+    )
+    args.add_argument(
+        r'--date',
+        type=str,
+        default=None,
+        metavar=r'<YYYY-MM-DD>',
+        help=r'the date of the new post (default: today)',  #
+    )
+    args.add_argument(r'--draft', action=r'store_true', help=r'mark the new post as a draft')  #
+    args.add_argument(
+        r'--dir', action=r'store_true', help=r'create the post in a directory named for its date, so it can have media'
+    )
+    args.add_argument(r'--force', action=r'store_true', help=r'overwrite an existing post')  #
     args.add_argument(r'-v', r'--verbose', action=r'store_true', help=r"enable very noisy diagnostic output")  #
     args.add_argument(r'--version', action=r'store_true', help=r"print the version and exit", dest=r'print_version')  #
     args = args.parse_args()
@@ -688,41 +818,57 @@ def main_blog_post(invoker=True):
         print(VERSION_STRING)
         return
 
-    print(rf'{Fore.CYAN}{Style.BRIGHT}poxy{Style.RESET_ALL} v{VERSION_STRING}')
+    print(rf'{Fore.CYAN}{Style.BRIGHT}poxyblog{Style.RESET_ALL} v{VERSION_STRING}')
+
+    config_arg, title = split_config_and_title(args.config, args.title)
+
+    if title is None:
+        raise Error(r'no title was given')
+    title = title.strip()
+    if not title:
+        raise Error(r'title cannot be blank')
+    if re.search(r'[\r\n\v\f]', title) is not None:
+        raise Error(r'title cannot contain newline characters')
 
     date = datetime.datetime.now().date()
+    if args.date is not None:
+        try:
+            date = datetime.datetime.strptime(args.date.strip(), r'%Y-%m-%d').date()
+        except ValueError as exc:
+            raise Error(rf"could not parse date '{args.date}': expected YYYY-MM-DD") from exc
 
-    title = args.title.strip()
-    if not title:
-        raise Error(r'title cannot be blank.')
-    if re.search(r''''[\n\v\f\r]''', title) is not None:
-        raise Error(r'title cannot contain newline characters.')
-    file = re.sub(r'''[!@#$%^&*;:'"<>?/\\\s|+]+''', '_', title)
-    file = rf'{date}_{file.lower()}.md'
-
-    blog_dir = Path(r'blog')
+    config_path = resolve_config_path(config_arg)
+    blog_dir = resolve_blog_dir(config_path)
     if blog_dir.exists() and not blog_dir.is_dir():
-        raise Error(rf'{blog_dir.resolve()} already exists and is not a directory')
-    blog_dir.mkdir(exist_ok=True)
+        raise Error(rf'{blog_dir} already exists and is not a directory')
+    if blog_dir != Path(Path.cwd(), r'blog'):
+        print(rf'Blog directory: {Style.BRIGHT}{blog_dir}{Style.RESET_ALL}')
 
-    file = Path(blog_dir, file)
+    if args.dir:
+        file = Path(blog_dir, rf'{date:%Y-%m-%d}', r'index.md')
+    else:
+        file = Path(blog_dir, rf'{blog_post_stem(date, title)}.md')
+
+    if args.verbose:
+        print(rf'Config: {config_path if config_path is not None else "(none found)"}')
+        print(rf'Post: {file}')
+
     if file.exists():
         if not file.is_file():
-            raise Error(rf'{file.resolve()} already exist and is not a file')
-        raise Error(rf'{file.resolve()} already exists')
+            raise Error(rf'{file} already exists and is not a file')
+        if not args.force:
+            raise Error(rf'{file} already exists (use --force to overwrite it)')
 
-    with open(file, r'w', encoding=r'utf-8', newline='\n') as f:
-        write = lambda s='', end='\n': print(s, end=end, file=f)
-        write(rf'# {title}')
-        write()
-        write()
-        write()
-        write()
-        write()
-        write(r'<!--[poxy_metadata[')
-        write(rf'tags = []')
-        write(r']]-->')
-    print(rf'Blog post file initialized: {file.resolve()}')
+    text = blog_post_front_matter(
+        title, date=date if args.date is not None else None, draft=args.draft, tags=split_tag_list(args.tags)
+    )
+    try:
+        file.parent.mkdir(exist_ok=True, parents=True)
+        with open(file, r'w', encoding=r'utf-8', newline='\n') as f:
+            f.write(text)
+    except OSError as exc:
+        raise Error(rf'could not write {file}: {str(exc)}') from exc
+    print(rf'Blog post file initialized: {file}')
 
 
 if __name__ == '__main__':

@@ -541,7 +541,7 @@ class Defaults:
         r'fmt::(?:v?format(?:_string|_to|ted_size|ter)?|memory_buffer|string_view|runtime|print|to_w?string|underlying|ptr|emphasis|styled)s?': 'https://fmt.dev/latest/api.html',
     }
     navbar = (r'files', r'macros', r'groups', r'namespaces', r'classes', r'concepts')
-    navbar_all = (r'pages', *navbar, r'repo', r'theme')
+    navbar_all = (r'pages', r'blog', *navbar, r'repo', r'theme')
     aliases = {
         # poxy
         r'cpp': r'@code{.cpp}',

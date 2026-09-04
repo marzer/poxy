@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="blog_2026_03_02_a_tricky_body" kind="page">
+		<compoundname>blog_2026_03_02_a_tricky_body</compoundname>
+		<title>A Tricky Body</title>
+		<briefdescription></briefdescription>
+		<detaileddescription>
+			<para>
+				<mcss:footernavigation xmlns:mcss="http://mcss.mosra.cz/doxygen/"/>
+			</para>
+			<para>The folder form, with media beside the text.</para>
+			<para>
+				<htmlonly> &lt;img class="m-image" src="blog/2026-03-02/diagram.png" alt="a blue rectangle" /&gt;</htmlonly>
+			</para>
+			<sect1 id="blog_2026_03_02_a_tricky_body_1pinned_anchor">
+				<title>A pre-labelled heading</title>
+				<para>A fenced block whose contents would end a C comment:</para>
+				<para><programlisting filename=".cpp"><codeline><highlight class="normal">/*<sp/>the<sp/>comment<sp/>terminator<sp/>*/</highlight></codeline><codeline><highlight class="normal">widget<sp/>w{<sp/>42<sp/>};</highlight></codeline></programlisting></para>
+				<para>An indented code block: <verbatim>#define NOT_A_HEADING 1
+</verbatim>
+				</para>
+				<para>
+					<table rows="2" cols="2">
+						<row>
+							<entry thead="yes">
+								<para>option</para>
+							</entry>
+							<entry thead="yes">
+								<para>default</para>
+							</entry>
+						</row>
+						<row>
+							<entry thead="no">
+								<para><computeroutput>value</computeroutput></para>
+							</entry>
+							<entry thead="no">
+								<para>0</para>
+							</entry>
+						</row>
+					</table>
+				</para>
+			</sect1>
+			<sect1 id="blog_2026_03_02_a_tricky_body_1blog_2026_03_02_a_tricky_body_a_setext_heading">
+				<title>A setext heading</title>
+				<para>Trailing prose. </para>
+			</sect1>
+		</detaileddescription>
+		<location file="poxy_blog_blog_2026_03_02_a_tricky_body.dox"/>
+	</compounddef>
+</doxygen>

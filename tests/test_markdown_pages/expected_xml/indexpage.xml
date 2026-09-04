@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="indexpage" kind="page">
+		<compoundname>index</compoundname>
+		<title>Markdown Pages</title>
+		<tableofcontents>
+			<tocsect>
+				<name>Overview</name>
+				<reference>indexpage_1poxy_main_page_overview</reference>
+			</tocsect>
+			<tocsect>
+				<name>Usage</name>
+				<reference>indexpage_1poxy_main_page_usage</reference>
+			</tocsect>
+		</tableofcontents>
+		<briefdescription></briefdescription>
+		<detaileddescription>
+			<para>A project whose front page comes from a markdown file.</para>
+			<sect1 id="index_1poxy_main_page_overview">
+				<title>Overview</title>
+				<para>The main page stays markdown, so it exercises the input filter rather than the page compiler.</para>
+			</sect1>
+			<sect1 id="index_1poxy_main_page_usage">
+				<title>Usage</title>
+				<para><programlisting filename=".cpp"><codeline><highlight class="normal">widget<sp/>w{<sp/>42<sp/>};</highlight></codeline><codeline><highlight class="normal">w.reset();</highlight></codeline></programlisting></para>
+				<para>Entities such as poxyentityamp and poxyentityhex2764 must survive the round trip. </para>
+			</sect1>
+		</detaileddescription>
+		<location file="poxy_main_page.md"/>
+	</compounddef>
+</doxygen>

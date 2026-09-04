@@ -9,6 +9,7 @@ parallel HTML fixers over m.css's output.
 """
 
 import concurrent.futures as futures
+import html
 from io import StringIO
 
 from .. import fixers, paths, soup
@@ -80,6 +81,10 @@ def preprocess_mcss_config(context: Context):
         # metadata - additional user-specified tags
         for name, content in context.meta_tags.items():
             add_meta(name, content)
+        # feed autodiscovery
+        if context.blog_posts and context.blog.feed and context.site_url and not context.no_site_artefacts:
+            title = html.escape(rf'{context.name} blog' if context.name else r'Blog', quote=True)
+            html_header += f'<link rel="alternate" type="application/rss+xml" title="{title}" href="feed.xml">\n'
         # html_header
         if context.html_header:
             html_header += f'{context.html_header}\n'
@@ -239,7 +244,9 @@ def preprocess_mcss_config(context: Context):
         if context.sponsorship_uri:
             footer.append(rf'<a href="{context.sponsorship_uri}" class="sponsor" target="_blank">Become a sponsor</a>')
         if context.changelog:
-            footer.append(rf'<a href="md_poxy_changelog.html">Changelog</a>')
+            footer.append(rf'<a href="poxy_changelog.html">Changelog</a>')
+        if context.blog_posts and context.blog.feed and context.site_url and not context.no_site_artefacts:
+            footer.append(rf'<a href="feed.xml" type="application/rss+xml">Feed</a>')
         if context.license and context.license[r'uri']:
             footer.append(rf'<a href="{context.license["uri"]}" target="_blank">License</a>')
         if context.generate_tagfile:

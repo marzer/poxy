@@ -8,14 +8,26 @@ Fast, deterministic unit tests for poxy's pure helpers. These need neither doxyg
 access, so they run in the full python matrix as the project's primary safety net.
 """
 
+import datetime
 import re
+import shutil
+import subprocess
 from pathlib import Path
 
 import bs4
 import pytest
 from bs4.element import Tag
 
-from poxy import config, doxygen, schemas, soup, utils
+from poxy import blog, config, doxygen, schemas, soup, utils
+from poxy.main import (
+    blog_post_front_matter,
+    blog_post_stem,
+    resolve_blog_dir,
+    resolve_config_path,
+    split_config_and_title,
+    split_tag_list,
+    toml_string,
+)
 from poxy.version import VERSION, VERSION_STRING
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -372,6 +384,14 @@ def test_check_supported_warns_on_untested_new(monkeypatch):
     assert len(sink.warnings) == 1
 
 
+def test_check_supported_warns_on_an_unsupported_release(monkeypatch):
+    monkeypatch.setattr(doxygen, 'version', lambda: (1, 9, 7))
+    sink = _WarningSink()
+    doxygen.check_supported(sink)
+    assert len(sink.warnings) == 1
+    assert 'not supported' in sink.warnings[0]
+
+
 def test_check_supported_silent_within_range(monkeypatch):
     monkeypatch.setattr(doxygen, 'version', lambda: doxygen.REFERENCE_VERSION)
     sink = _WarningSink()
@@ -542,21 +562,93 @@ def test_resolve_define_refs_no_defines_is_a_noop():
     assert etree.tostring(xml_utils.require(root.find('.//para')), encoding='unicode') == '<para>#M</para>'
 
 
-def test_unlink_code_spans_unwraps_refs_but_leaves_other_content():
+def test_unlink_code_refs_unwraps_refs_but_leaves_other_content():
     from lxml import etree
 
-    from poxy.pipeline.xml import unlink_code_spans
+    from poxy.pipeline.xml import unlink_code_refs
 
     root = _define_xml(
         '<para><computeroutput>#<ref refid="a_8h_1a1" kindref="member">M</ref> tail</computeroutput></para>'
         '<para><computeroutput><ref refid="x" kindref="member">a</ref><ref refid="y" kindref="member">b</ref></computeroutput></para>'
         '<para><computeroutput>plain</computeroutput> and a prose <ref refid="z" kindref="member">link</ref></para>'
+        '<para><programlisting filename=".cpp"><codeline><highlight class="normal">'
+        '<ref refid="structwidget" kindref="compound">widget</ref> w;</highlight></codeline></programlisting></para>'
     )
-    assert unlink_code_spans(root) is True
+    assert unlink_code_refs(root) is True
     text = etree.tostring(root, encoding='unicode')
     assert '<computeroutput>#M tail</computeroutput>' in text
     assert '<computeroutput>ab</computeroutput>' in text
-    assert '<ref refid="z" kindref="member">link</ref>' in text  # refs outside code spans survive
+    assert '<highlight class="normal">widget w;</highlight>' in text
+    assert '<ref refid="z" kindref="member">link</ref>' in text  # refs outside code survive
+
+
+def test_strip_duplicated_ref_text_only_eats_an_exact_repeat():
+    from lxml import etree
+
+    from poxy.pipeline.fixups import strip_duplicated_ref_text
+
+    root = _define_xml(
+        '<para>a <ref refid="p_1x" kindref="member">the label</ref>the label and on.</para>'
+        '<para>b <ref refid="p_1y" kindref="member">label</ref> label</para>'
+        '<para>c <ref refid="p_1z" kindref="member">solo</ref></para>'
+    )
+    assert strip_duplicated_ref_text(root) is True
+    text = etree.tostring(root, encoding='unicode')
+    assert '>the label</ref> and on.' in text
+    assert '>label</ref> label' in text  # a space between means it is prose, not the doubled label
+
+
+def test_strip_table_cell_padding_trims_only_the_cell_paragraphs():
+    from lxml import etree
+
+    from poxy.pipeline.fixups import strip_table_cell_padding
+
+    root = _define_xml(
+        '<para><table rows="1" cols="2"><row>'
+        '<entry thead="yes"><para>  option  </para></entry>'
+        '<entry thead="no"><para><computeroutput>v</computeroutput>  </para></entry>'
+        '</row></table></para><para>prose stays. </para>'
+    )
+    assert strip_table_cell_padding(root) is True
+    text = etree.tostring(root, encoding='unicode')
+    assert '<para>option</para>' in text
+    assert '<para><computeroutput>v</computeroutput></para>' in text
+    assert '<para>prose stays. </para>' in text
+
+
+def test_split_paragraphs_around_tables_gives_each_table_its_own_para():
+    from lxml import etree
+
+    from poxy.pipeline.fixups import split_paragraphs_around_tables
+
+    table = '<table rows="1" cols="1"><row><entry><para>a</para></entry></row></table>'
+    root = _define_xml(f'<para>before <computeroutput>c</computeroutput>{table}after</para>')
+    assert split_paragraphs_around_tables(root) is True
+    text = etree.tostring(root, encoding='unicode')
+    assert f'<para>before <computeroutput>c</computeroutput></para><para>{table}</para><para>after</para>' in text
+    # already split: the table is alone in its para, so there is nothing to do
+    assert split_paragraphs_around_tables(root) is True
+    assert etree.tostring(root, encoding='unicode') == text
+
+
+def test_strip_toc_section_docs_leaves_name_and_reference():
+    from lxml import etree
+
+    from poxy.pipeline.fixups import strip_toc_section_docs
+
+    root = _define_xml('')
+    compounddef = root.find('compounddef')
+    assert compounddef is not None
+    compounddef.append(
+        etree.fromstring(
+            '<tableofcontents><tocsect><name>Overview</name><docs><para>Overview</para></docs>'
+            '<reference>p_1overview</reference></tocsect></tableofcontents>'
+        )
+    )
+    assert strip_toc_section_docs(compounddef) is True
+    text = etree.tostring(root, encoding='unicode')
+    assert '<docs>' not in text
+    assert '<name>Overview</name><reference>p_1overview</reference>' in text
 
 
 def test_strip_markdown_file_anchors_removes_anchor_and_emptied_para():
@@ -568,14 +660,18 @@ def test_strip_markdown_file_anchors_removes_anchor_and_emptied_para():
         '<para><anchor id="macro_refs_1md_src_2macro__refs"/></para>'
         '<para><anchor id="apage_1a_real_anchor"/>kept</para>'
         '<para><anchor id="apage_1md_other"/>text keeps the para</para>'
+        '<para><anchor id="md_notes_1autotoc_md12"/></para>'
+        '<para><anchor id="apage_1autotoc_md_by_hand"/>kept too</para>'
     )
     assert strip_markdown_file_anchors(root) is True
     text = etree.tostring(root, encoding='unicode')
     assert 'md_src_2macro__refs' not in text
     assert 'md_other' not in text
+    assert 'autotoc_md12' not in text  # run-order-dependent counter
     assert '<para>text keeps the para</para>' in text
     assert '<anchor id="apage_1a_real_anchor"/>kept' in text
-    assert text.count('<para>') == 2  # the emptied para is gone
+    assert '<anchor id="apage_1autotoc_md_by_hand"/>kept too' in text  # only the numbered form is doxygen's
+    assert text.count('<para>') == 3  # the two emptied paras are gone
 
 
 def test_normalize_tagfile_drops_synthetic_markdown_docanchors():
@@ -743,3 +839,177 @@ def test_post_build_flattens_entries_and_applies_defaults():
 
 def test_post_build_skips_blank_commands():
     assert config.PostBuild({'post': [{'commands': ['  ', ['', '  ']]}]}).commands == []
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# main (poxyblog)
+# ----------------------------------------------------------------------------------------------------------------------
+
+_AWKWARD_TITLES = (
+    'Hello, World!',
+    'Version 1.2 released',
+    'Grüße aus Finnland',
+    'He said "hi"',
+    'back\\slash',
+    '日本語のタイトル',
+    '🎉 party',
+    '🎉',
+    '...',
+    '!!!',
+    '   spaces   ',
+    'C++20 concepts',
+    'a/b/c',
+    '2024 in review',
+    'blog',
+)
+
+_POST_DATE = datetime.date(2026, 1, 15)
+
+
+def _toml_loads(text: str) -> dict:
+    try:
+        import tomllib
+    except ImportError:
+        import tomli as tomllib  # pyright: ignore[reportMissingImports]
+    return tomllib.loads(text)
+
+
+@pytest.mark.parametrize('title', _AWKWARD_TITLES)
+def test_blog_post_stem_is_always_parseable(title):
+    stem = blog_post_stem(_POST_DATE, title)
+    assert re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}_[a-z0-9_]+', stem)
+    # the directory form takes its name from the stem, and Path.stem would truncate at a '.'
+    assert Path(stem).stem == stem
+    assert Path(rf'{stem}.md').stem == stem
+    date, title_part = blog.parse_post_stem(stem)
+    assert date == _POST_DATE
+    assert title_part
+
+
+@pytest.mark.parametrize('title', ['日本語のタイトル', '🎉', '...', '!!!', '- - -'])
+def test_blog_post_stem_falls_back_when_nothing_survives_slugification(title):
+    assert blog_post_stem(_POST_DATE, title) == '2026-01-15_post'
+
+
+def test_blog_post_stem_uses_the_given_date():
+    assert blog_post_stem(datetime.date(1999, 3, 7), 'Party like it is') == '1999-03-07_party_like_it_is'
+
+
+@pytest.mark.parametrize(
+    'value',
+    ['plain', 'He said "hi"', 'back\\slash', 'both " and \\', 'tab\there', 'bell\x07', 'Grüße', '日本語', '+++'],
+)
+def test_toml_string_round_trips(value):
+    assert _toml_loads(rf'title = {toml_string(value)}')['title'] == value
+
+
+def test_blog_post_front_matter_minimal_is_title_only():
+    assert blog_post_front_matter('Hello, World!') == '+++\ntitle = "Hello, World!"\n+++\n'
+
+
+def test_blog_post_front_matter_emits_every_optional_field():
+    assert blog_post_front_matter('Hello', date=_POST_DATE, draft=True, tags=['c++', 'parsing']).splitlines() == [
+        '+++',
+        'title = "Hello"',
+        'date = 2026-01-15',
+        'draft = true',
+        'tags = ["c++", "parsing"]',
+        '+++',
+    ]
+
+
+@pytest.mark.parametrize(
+    'kwargs,absent', [(dict(date=None), 'date'), (dict(draft=False), 'draft'), (dict(tags=[]), 'tags')]
+)
+def test_blog_post_front_matter_omits_optional_fields(kwargs, absent):
+    assert absent not in blog_post_front_matter('Hello', **kwargs)
+
+
+@pytest.mark.parametrize('title', _AWKWARD_TITLES)
+def test_blog_post_front_matter_round_trips_with_an_empty_body(title):
+    text = blog_post_front_matter(title, date=_POST_DATE, draft=True, tags=['c++', 'a b'])
+    front_matter, body = blog.split_front_matter(text)
+    assert body == ''
+    assert front_matter is not None
+    data = blog.front_matter_schema.validate(_toml_loads(front_matter))
+    assert data['title'] == title.strip()
+    assert data['date'] == _POST_DATE
+    assert data['draft'] is True
+    assert data['tags'] == ['c++', 'a b']
+
+
+@pytest.mark.parametrize(
+    'value,expected', [(None, []), ('', []), ('   ', []), ('a', ['a']), ('a,b', ['a', 'b']), (' a , ,b , ', ['a', 'b'])]
+)
+def test_split_tag_list(value, expected):
+    assert split_tag_list(value) == expected
+
+
+def test_split_config_and_title_treats_a_lone_argument_as_the_title(tmp_path):
+    assert split_config_and_title(None, None) == (None, None)
+    assert split_config_and_title('Hello, World!', None) == (None, 'Hello, World!')
+    assert split_config_and_title(str(tmp_path), 'Hello') == (str(tmp_path), 'Hello')
+
+
+def test_split_config_and_title_recognises_a_lone_config_path(tmp_path):
+    cfg = tmp_path / 'poxy.toml'
+    cfg.write_text('name = "x"\n', encoding='utf-8')
+    assert split_config_and_title(str(tmp_path), None) == (str(tmp_path), None)
+    assert split_config_and_title(str(cfg), None) == (str(cfg), None)
+
+
+def test_resolve_config_path_accepts_a_file_or_a_containing_directory(tmp_path):
+    docs = tmp_path / 'docs'
+    docs.mkdir()
+    cfg = docs / 'poxy.toml'
+    cfg.write_text('name = "x"\n', encoding='utf-8')
+    assert resolve_config_path(str(cfg)) == cfg
+    assert resolve_config_path(str(docs)) == cfg
+    assert resolve_config_path(str(tmp_path)) == cfg  # docs/poxy.toml is one of the search candidates
+
+
+def test_resolve_config_path_errors_on_a_directory_without_a_config(tmp_path):
+    with pytest.raises(utils.Error, match=r'no poxy.toml found'):
+        resolve_config_path(str(tmp_path))
+    with pytest.raises(utils.Error, match=r'did not exist'):
+        resolve_config_path(str(tmp_path / 'nope'))
+
+
+def test_resolve_config_path_searches_upwards_from_cwd(tmp_path, monkeypatch):
+    cfg = tmp_path / 'poxy.toml'
+    cfg.write_text('name = "x"\n', encoding='utf-8')
+    nested = tmp_path / 'src' / 'deep'
+    nested.mkdir(parents=True)
+    monkeypatch.chdir(nested)
+    assert resolve_config_path(None) == cfg
+
+
+def test_resolve_blog_dir_defaults_to_cwd_when_there_is_no_config(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert resolve_blog_dir(None) == Path(Path.cwd(), 'blog')
+
+
+def test_resolve_blog_dir_is_relative_to_the_config_file(tmp_path):
+    docs = tmp_path / 'docs'
+    docs.mkdir()
+    cfg = docs / 'poxy.toml'
+    cfg.write_text('name = "x"\n', encoding='utf-8')
+    assert resolve_blog_dir(cfg) == Path(docs, 'blog')
+    cfg.write_text('[blog]\ndir = "posts"\n', encoding='utf-8')
+    assert resolve_blog_dir(cfg) == Path(docs, 'posts')
+    cfg.write_text(rf'[blog]{chr(10)}dir = "{tmp_path.as_posix()}/elsewhere"{chr(10)}', encoding='utf-8')
+    assert resolve_blog_dir(cfg) == Path(tmp_path, 'elsewhere')
+
+
+def test_resolve_blog_dir_reports_malformed_config(tmp_path):
+    cfg = tmp_path / 'poxy.toml'
+    cfg.write_text('this is not toml\n', encoding='utf-8')
+    with pytest.raises(utils.Error, match=r'could not parse'):
+        resolve_blog_dir(cfg)
+
+
+@pytest.mark.skipif(shutil.which('poxyblog') is None, reason='poxyblog is not installed')
+def test_poxyblog_version_exits_zero():
+    result = subprocess.run(['poxyblog', '--version'], capture_output=True, encoding='utf-8', timeout=60)
+    assert result.returncode == 0
+    assert result.stdout.strip() == VERSION_STRING

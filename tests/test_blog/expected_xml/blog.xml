@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="blog" kind="page">
+		<compoundname>blog</compoundname>
+		<title>Blog</title>
+		<innerpage refid="blog_2026_04_11_second">second</innerpage>
+		<innerpage refid="blog_2026_04_11_more_media">More Media</innerpage>
+		<innerpage refid="blog_2026_03_02_a_tricky_body">A Tricky Body</innerpage>
+		<innerpage refid="blog_2026_02_20_custom_slug">Titled From Front Matter</innerpage>
+		<innerpage refid="blog_2026_01_15_hello_world">Hello, World!</innerpage>
+		<innerpage refid="blog_tags">Tags</innerpage>
+		<briefdescription></briefdescription>
+		<detaileddescription>
+			<para>
+				<itemizedlist>
+					<listitem>
+						<para>2026-04-11 <ref refid="blog_2026_04_11_second" kindref="compound">second</ref>
+						</para>
+					</listitem>
+					<listitem>
+						<para>2026-04-11 <ref refid="blog_2026_04_11_more_media" kindref="compound">More Media</ref>
+						</para>
+					</listitem>
+					<listitem>
+						<para>2026-03-02 <ref refid="blog_2026_03_02_a_tricky_body" kindref="compound">A Tricky Body</ref>
+						</para>
+					</listitem>
+					<listitem>
+						<para>2026-02-20 <ref refid="blog_2026_02_20_custom_slug" kindref="compound">Titled From Front Matter</ref>
+						</para>
+					</listitem>
+					<listitem>
+						<para>2026-01-15 <ref refid="blog_2026_01_15_hello_world" kindref="compound">Hello, World!</ref>
+						</para>
+					</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				<ref refid="blog_tags" kindref="compound">Tags</ref>
+			</para>
+		</detaileddescription>
+		<location file="poxy_blog_index.dox"/>
+	</compounddef>
+</doxygen>

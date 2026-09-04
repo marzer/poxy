@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+	<channel>
+		<title>Blog</title>
+		<link>https://example.com/docs/</link>
+		<description>A C++ project with a blog</description>
+		<atom:link href="https://example.com/docs/feed.xml" rel="self" type="application/rss+xml" />
+		<pubDate>Sat, 11 Apr 2026 00:00:00 GMT</pubDate>
+		<item>
+			<title>second</title>
+			<link>https://example.com/docs/blog_2026_04_11_second.html</link>
+			<guid isPermaLink="false">tag:example.com,2026-04-11:blog_2026_04_11_second</guid>
+			<pubDate>Sat, 11 Apr 2026 00:00:00 GMT</pubDate>
+			<description>A second post on the same day, named for its title since index.md is taken. No front matter and no heading, so the title falls back to the file name.</description>
+			<dc:creator>A. Author</dc:creator>
+		</item>
+		<item>
+			<title>More Media</title>
+			<link>https://example.com/docs/blog_2026_04_11_more_media.html</link>
+			<guid isPermaLink="false">tag:example.com,2026-04-11:blog_2026_04_11_more_media</guid>
+			<pubDate>Sat, 11 Apr 2026 00:00:00 GMT</pubDate>
+			<description>A second post carrying its own diagram.png. Doxygen resolves images by basename, so before poxy staged these per-post the two files collided and only one of them reached the output.</description>
+			<dc:creator>A. Author</dc:creator>
+		</item>
+		<item>
+			<title>A Tricky Body</title>
+			<link>https://example.com/docs/blog_2026_03_02_a_tricky_body.html</link>
+			<guid isPermaLink="false">tag:example.com,2026-03-02:blog_2026_03_02_a_tricky_body</guid>
+			<pubDate>Mon, 02 Mar 2026 00:00:00 GMT</pubDate>
+			<description>The folder form, with media beside the text.</description>
+			<dc:creator>A. Author</dc:creator>
+		</item>
+		<item>
+			<title>Titled From Front Matter</title>
+			<link>https://example.com/docs/blog_2026_02_20_custom_slug.html</link>
+			<guid isPermaLink="false">tag:example.com,2026-02-20:blog_2026_02_20_custom_slug</guid>
+			<pubDate>Fri, 20 Feb 2026 00:00:00 GMT</pubDate>
+			<description>A one-line summary used for the excerpt.</description>
+			<dc:creator>A. Author</dc:creator>
+			<category>c++</category>
+			<category>release notes</category>
+		</item>
+		<item>
+			<title>Hello, World!</title>
+			<link>https://example.com/docs/blog_2026_01_15_hello_world.html</link>
+			<guid isPermaLink="false">tag:example.com,2026-01-15:blog_2026_01_15_hello_world</guid>
+			<pubDate>Thu, 15 Jan 2026 00:00:00 GMT</pubDate>
+			<description>The legacy single-file form: no front matter, title from the H1, date from the filename.</description>
+			<dc:creator>A. Author</dc:creator>
+		</item>
+	</channel>
+</rss>

@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="blog_2026_04_11_second" kind="page">
+		<compoundname>blog_2026_04_11_second</compoundname>
+		<title>second</title>
+		<briefdescription></briefdescription>
+		<detaileddescription>
+			<para>
+				<mcss:footernavigation xmlns:mcss="http://mcss.mosra.cz/doxygen/"/>
+			</para>
+			<para>A second post on the same day, named for its title since index.md is taken. No front matter and no heading, so the title falls back to the file name.</para>
+			<para>It shares the day's media:</para>
+			<para>
+				<htmlonly> &lt;img class="m-image" src="blog/2026-04-11/diagram.png" alt="the same blue rectangle" /&gt;</htmlonly>
+			</para>
+		</detaileddescription>
+		<location file="poxy_blog_blog_2026_04_11_second.dox"/>
+	</compounddef>
+</doxygen>

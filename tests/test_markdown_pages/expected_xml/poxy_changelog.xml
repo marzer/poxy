@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
+	<compounddef id="poxy_changelog" kind="page">
+		<compoundname>poxy_changelog</compoundname>
+		<title>Changelog</title>
+		<tableofcontents>
+			<tocsect>
+				<name>v2.0.0 - 2026-04-01</name>
+				<reference>poxy_changelog_1poxy_changelog_v2_0_0_2026_04_01</reference>
+				<tableofcontents>
+					<tocsect>
+						<name>Breaking changes</name>
+						<reference>poxy_changelog_1poxy_changelog_breaking_changes</reference>
+					</tocsect>
+				</tableofcontents>
+			</tocsect>
+			<tocsect>
+				<name>v1.1.0 - 2026-02-14</name>
+				<reference>poxy_changelog_1poxy_changelog_v1_1_0_2026_02_14</reference>
+			</tocsect>
+			<tocsect>
+				<name>Upgrade notes</name>
+				<reference>poxy_changelog_1poxy_changelog_upgrade_notes</reference>
+			</tocsect>
+			<tocsect>
+				<name>v1.0.0 - 2026-01-01</name>
+				<reference>poxy_changelog_1poxy_changelog_v1_0_0_2026_01_01</reference>
+			</tocsect>
+		</tableofcontents>
+		<briefdescription></briefdescription>
+		<detaileddescription>
+			<para>
+				<anchor id="poxy_changelog_1changelog"/>
+			</para>
+			<sect1 id="poxy_changelog_1poxy_changelog_v2_0_0_2026_04_01">
+				<title>v2.0.0 - 2026-04-01</title>
+				<para>
+					<itemizedlist>
+						<listitem>
+							<para>added <computeroutput>widget::reset()</computeroutput></para>
+						</listitem>
+						<listitem>
+							<para>fixed a crash when the value overflowed</para>
+						</listitem>
+						<listitem>
+							<para>fixed the <computeroutput>poxyentityamp</computeroutput> entity being mangled</para>
+						</listitem>
+					</itemizedlist>
+				</para>
+				<sect2 id="poxy_changelog_1poxy_changelog_breaking_changes">
+					<title>Breaking changes</title>
+					<para>The constructor signature changed:</para>
+					<para><programlisting filename=".cpp"><codeline><highlight class="normal">/*<sp/>the<sp/>old<sp/>two-argument<sp/>form<sp/>is<sp/>gone<sp/>*/</highlight></codeline><codeline><highlight class="normal">widget<sp/>w{<sp/>1<sp/>};</highlight></codeline></programlisting></para>
+				</sect2>
+			</sect1>
+			<sect1 id="poxy_changelog_1poxy_changelog_v1_1_0_2026_02_14">
+				<title>v1.1.0 - 2026-02-14</title>
+				<para>Older prose with a setext heading below.</para>
+			</sect1>
+			<sect1 id="poxy_changelog_1poxy_changelog_upgrade_notes">
+				<title>Upgrade notes</title>
+				<para>Nothing to do.</para>
+				<para>
+					<table rows="2" cols="2">
+						<row>
+							<entry thead="yes">
+								<para>option</para>
+							</entry>
+							<entry thead="yes">
+								<para>default</para>
+							</entry>
+						</row>
+						<row>
+							<entry thead="no">
+								<para><computeroutput>value</computeroutput></para>
+							</entry>
+							<entry thead="no">
+								<para>0</para>
+							</entry>
+						</row>
+					</table>
+				</para>
+			</sect1>
+			<sect1 id="poxy_changelog_1poxy_changelog_v1_0_0_2026_01_01">
+				<title>v1.0.0 - 2026-01-01</title>
+				<para>
+					<itemizedlist>
+						<listitem>
+							<para>initial release </para>
+						</listitem>
+					</itemizedlist>
+				</para>
+			</sect1>
+		</detaileddescription>
+		<location file="poxy_changelog.dox"/>
+	</compounddef>
+</doxygen>

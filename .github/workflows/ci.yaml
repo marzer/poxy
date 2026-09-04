@@ -8,6 +8,10 @@ on:
             - "**.js"
             - "**.json"
             - "**.xml"
+            # test fixtures only: these feed the golden builds. docs markdown does not.
+            - "tests/**.md"
+            - "tests/**.dox"
+            - "tests/**.toml"
             - "**/poxy/data/*"
             - "**/workflows/**.yaml"
             - "pyproject.toml"
@@ -80,7 +84,7 @@ jobs:
                   python -m pip install --upgrade pip
                   python -m pip install --upgrade '.[test]'
             - name: Run unit tests
-              run: python -m pytest tests/test_units.py -ra
+              run: python -m pytest tests -ra --ignore=tests/test_snapshots.py
 
     # convergence: poxy's whole reason to exist is to normalize away doxygen's version-to-version differences,
     # so the canonical expected_* golden must be reproduced byte-for-byte by EVERY supported doxygen version.
@@ -88,6 +92,9 @@ jobs:
     #
     # reference doxygen version for re-blessing (poxy --update-tests / pytest --regenerate): 1.14.0.
     # the golden reflects that version; divergence on any other version is the normalization punch-list.
+    #
+    # 1.9.7 is deliberately absent: it is in doxygen.UNSUPPORTED_VERSIONS (it drops markdown page ids,
+    # among other things) and poxy warns rather than normalises for it.
     convergence:
         strategy:
             fail-fast: false
@@ -97,7 +104,6 @@ jobs:
                     - "1.9.4"
                     - "1.9.5"
                     - "1.9.6"
-                    - "1.9.7"
                     - "1.9.8"
                     - "1.10.0"
                     - "1.11.0"
@@ -145,9 +151,11 @@ jobs:
                   poxy --doxygen-version
                   poxy --help
 
-            # strict: the golden must be reproduced regardless of doxygen version
+            # strict: the golden must be reproduced regardless of doxygen version.
+            # the whole suite runs here, not just the snapshots: this is the only job with doxygen on
+            # PATH, so it is also where the tests that need it (test_context_config) actually execute
             - name: Snapshot convergence
-              run: python -m pytest tests/test_snapshots.py -ra
+              run: python -m pytest tests -ra
 
             # additional smoke coverage of CLI paths not exercised by the snapshot tests
             - name: CLI smoke
