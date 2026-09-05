@@ -41,7 +41,6 @@ __all__ = [
     r'rewrite_asset_links',
     r'split_front_matter',
     r'tag_page_id',
-    r'tag_size_bucket',
 ]
 
 # the separator class is kept verbatim from the original implementation, unicode dashes included, so
@@ -302,11 +301,6 @@ def extract_excerpt(body: str, limit: int = 280) -> str:
 
 def tag_page_id(slug: str) -> str:
     return rf'blog_tag_{slug}'
-
-
-def tag_size_bucket(count: int, lowest: int, highest: int) -> int:
-    """m.css's tag cloud sizes are .m-tag-1 through .m-tag-5."""
-    return 1 + (4 * (count - lowest)) // max(1, highest - lowest)
 
 
 def collect_tags(posts):

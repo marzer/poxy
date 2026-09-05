@@ -288,14 +288,6 @@ def test_alias_stem_rejects_anything_that_is_not_a_page_name():
         assert blog.alias_stem(bad) == ''
 
 
-def test_tag_size_buckets_span_one_to_five():
-    assert blog.tag_size_bucket(1, 1, 9) == 1
-    assert blog.tag_size_bucket(9, 1, 9) == 5
-    assert blog.tag_size_bucket(3, 1, 9) == 2
-    # a single tag has min == max, which must not divide by zero
-    assert blog.tag_size_bucket(4, 4, 4) == 1
-
-
 def _post(id, date, title, tags=(), excerpt=''):
     return {r'id': id, r'date': date, r'title': title, r'tags': list(tags), r'excerpt': excerpt, r'aliases': []}
 

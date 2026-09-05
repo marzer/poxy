@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.27.0 - 2026-09-05
+
+- fixed various documentation issues
+- fixed blog tag index layout issues
+- added click-to-enlarge overlays for content images, plus the `lightbox` config option to turn them off
+- added the `@youtube` alias for embedding videos
+
 ## v0.26.0 - 2026-09-05
 
 - fixed markdown heading 'autodoc' using doxygen's unstable algorithm, replaced with a better implementation

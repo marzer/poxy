@@ -10,6 +10,7 @@ You can define your own with the [`aliases`](configuration.md#aliases) config op
 - [Note boxes](#note-boxes)
 - [Links](#links)
 - [Figures](#figures)
+- [Video embeds](#video-embeds)
 - [Tabbed content](#tabbed-content)
 - [m.css passthrough](#mcss-passthrough)
 
@@ -104,8 +105,8 @@ Each of these turns the paragraph it begins into a coloured note box.
 | Alias                                   | Result                                                            |
 | --------------------------------------- | ----------------------------------------------------------------- |
 | `@github{user/repo}`                    | a link to that page on GitHub (link text is the path)             |
-| `@github{user/repo}{text}`              | the same, with custom link text                                   |
-| `@gitlab{path}` / `@gitlab{path}{text}` | the same for GitLab                                               |
+| `@github{user/repo,text}`               | the same, with custom link text                                   |
+| `@gitlab{path}` / `@gitlab{path,text}`  | the same for GitLab                                               |
 | `@godbolt{id}`                          | a "Try this code on Compiler Explorer" link to `godbolt.org/z/id` |
 
 <br>
@@ -117,7 +118,22 @@ Each of these turns the paragraph it begins into a coloured note box.
 | Alias                    | Equivalent to                |
 | ------------------------ | ---------------------------- |
 | `@figure{file}`          | `@image html file`           |
-| `@figure{file}{caption}` | `@image html file "caption"` |
+| `@figure{file,caption}`  | `@image html file "caption"` |
+
+<br>
+
+## Video embeds
+
+**Since v0.27.0**
+
+| Alias                    | Result                                                    |
+| ------------------------ | --------------------------------------------------------- |
+| `@youtube{id}`           | that video, embedded, filling the width at 16:9           |
+| `@youtube{id,title}`     | the same, with a title for screen readers                 |
+
+The `id` is the `v=` parameter of a watch URL, so `youtu.be/dQw4w9WgXcQ` is `@youtube{dQw4w9WgXcQ}`.
+The player is loaded from `youtube-nocookie.com`, and lazily, so a page carrying several costs nothing
+until one is scrolled to.
 
 <br>
 
@@ -161,9 +177,9 @@ These forward to [m.css]'s own commands; see the m.css [documentation][m.css] fo
 | `@m_span{class}` / `@m_endspan`             | the same for a `<span>`                            |
 | `@m_class{class}`                           | apply a CSS class to the next paragraph or element |
 | `@m_footernavigation`                       | add this page to the prev/next footer navigation   |
-| `@m_examplenavigation{page}{prefix}`        | example-listing navigation                         |
+| `@m_examplenavigation{page,prefix}`         | example-listing navigation                         |
 | `@m_keywords{list}`                         | extra search keywords for the page                 |
-| `@m_keyword{keyword}{title}{suffix-length}` | a single richer search keyword                     |
+| `@m_keyword{keyword,title,suffix-length}`   | a single richer search keyword                     |
 | `@m_enum_values_as_keywords`                | index an enum's values as search keywords          |
 
 [m.css]: https://mcss.mosra.cz/documentation/doxygen/

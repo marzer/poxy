@@ -591,6 +591,9 @@ class Defaults:
         r'availability': r'@par [parent_parent_set_class m-block m-special]Conditional availability ^^',
         r'figure{1}': r'@image html \1',
         r'figure{2}': r'@image html \1 "\2"',
+        # video embeds. nocookie is youtube's own privacy-preserving host for exactly this
+        r'youtube{1}': r'@htmlonly[block]<div class="poxy-video"><iframe src="https://www.youtube-nocookie.com/embed/\1" title="YouTube video" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>@endhtmlonly',
+        r'youtube{2}': r'@htmlonly[block]<div class="poxy-video"><iframe src="https://www.youtube-nocookie.com/embed/\1" title="\2" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>@endhtmlonly',
         # tabbed content blocks (restructured by the TabBlocks html fixer)
         r'tabs': r'[tabs]',
         r'etabs': r'[/tabs]',

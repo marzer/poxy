@@ -34,6 +34,7 @@ a fantastic live search feature. **Poxy** builds upon both by:
 -   Adding a switchable light theme
 -   Adding support for C++20 concepts
 -   Adding [tabbed content blocks](docs/aliases.md#tabbed-content) (e.g. for showing the same example in multiple languages)
+-   Opening content images full-size in a [lightbox](docs/configuration.md#lightbox), and embedding [videos](docs/aliases.md#video-embeds)
 -   Adding a top-level page listing all `#defines` so they're discoverable without hunting through file docs
 -   Adding a [blog](docs/blog.md) with tags, drafts, per-post media, an RSS feed and a sitemap
 -   Self-hosting fonts to reduce external HTTP requests

@@ -46,5 +46,11 @@
 /* blog bylines + index */
 @import url("poxy-blog.css");
 
+/* full-size image overlay */
+@import url("poxy-lightbox.css");
+
+/* video embeds */
+@import url("poxy-video.css");
+
 /* embedded iframe pages */
 @import url("poxy-iframe.css");

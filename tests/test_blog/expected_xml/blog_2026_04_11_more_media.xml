@@ -12,6 +12,14 @@
 			<para>
 				<htmlonly> &lt;img class="m-image" src="blog/2026-04-11/diagram.png" alt="a red square" /&gt;</htmlonly>
 			</para>
+			<para>An image already inside a link keeps its own destination, and gets no lightbox wrapper:</para>
+			<para>
+				<htmlonly> &lt;a href="https://example.com/"&gt;&lt;img class="m-image" src="blog/2026-04-11/diagram.png" alt="a linked red square" /&gt;&lt;/a&gt;</htmlonly>
+			</para>
+			<para>An svg is injected into the document instead, so it gets no wrapper either:</para>
+			<para>
+				<htmlonly> &lt;img class="m-image" src="blog/2026-04-11/circle.svg" alt="a green circle" /&gt;</htmlonly>
+			</para>
 		</detaileddescription>
 		<location file="poxy_blog_blog_2026_04_11_more_media.dox"/>
 	</compounddef>

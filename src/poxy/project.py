@@ -84,6 +84,7 @@ class Context:
             Optional(r'internal_docs'): bool,
             Optional(r'jquery'): bool,
             Optional(r'license'): ValueOrArray(str, length=2, name=r'license'),
+            Optional(r'lightbox'): bool,
             Optional(r'logo'): Stripped(str),
             Optional(r'macros'): {str: Or(str, int, bool)},
             Optional(r'meta_tags'): {str: Or(str, int)},
@@ -986,8 +987,8 @@ class Context:
         if r'blog_tags' == self.blog.id:
             raise Error(r'blog: the tag index id "blog_tags" collides with the blog index (see the blog.id option)')
 
-        # a plain @subpage list, restyled into a tag cloud by the BlogPosts fixer. emitting the cloud
-        # markup here does not work: doxygen strips class attributes off html in a doc comment
+        # a plain @subpage list, restyled into a row of tag chips by the BlogPosts fixer. emitting the
+        # chip markup here does not work: doxygen strips class attributes off html in a doc comment
         index = [rf'/// @page blog_tags Tags', r'///']
         index += [rf'/// - @subpage {blog_utils.tag_page_id(slug)}' for slug in self.blog_tags]
         with open(Path(self.temp_pages_dir, r'poxy_blog_tags.dox'), r'w', encoding=r'utf-8', newline='\n') as f:
@@ -1248,6 +1249,12 @@ class Context:
         if 'internal_docs' in config:
             self.internal_docs = bool(config['internal_docs'])
         self.verbose_value(r'Context.internal_docs', self.internal_docs)
+
+        # lightbox
+        self.lightbox = True
+        if r'lightbox' in config:
+            self.lightbox = bool(config[r'lightbox'])
+        self.verbose_value(r'Context.lightbox', self.lightbox)
 
         # generate_tagfile (GENERATE_TAGFILE)
         self.generate_tagfile = True

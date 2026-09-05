@@ -53,5 +53,10 @@
 	--poxy-tag-draft-background-color: #5e6122;
 	--poxy-tag-draft-border-color: #8a8e35;
 
+	/* full-size image overlay */
+	--poxy-lightbox-background-color: rgba(9, 11, 14, 0.9);
+	--poxy-lightbox-caption-color: #c3ccd6;
+	--poxy-lightbox-close-active-color: #ffffff;
+
 	--sponsor-color: #ff69b4;
 }

@@ -48,6 +48,25 @@ a.poxy-tag:active {
 	border-color: var(--poxy-tag-active-border-color);
 }
 
+.poxy-tag-index {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	list-style: none;
+	padding-left: 0;
+}
+
+.poxy-tag-index li {
+	margin: 0;
+}
+
+/* em, so it tracks the chip's own size, and opacity so it follows the chip through :hover */
+.poxy-tag-count {
+	margin-left: 0.45em;
+	font-size: 0.85em;
+	opacity: 0.65;
+}
+
 .poxy-tag-draft {
 	border-color: var(--poxy-tag-draft-border-color);
 	background-color: var(--poxy-tag-draft-background-color);

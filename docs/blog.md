@@ -120,6 +120,10 @@ post: `![](figures/flame.svg)`.
 External images need no setup. Poxy routes them through the same rewrite, so a post's images all reach
 the page the same way.
 
+An image in a post is scaled to the width of the text, so clicking one opens it full-size in an overlay,
+which closes on a click, on the close button, or on escape. [`lightbox`] turns that off; the alt text
+becomes the overlay's caption, so it is worth writing.
+
 <br><br>
 
 ## What gets generated
@@ -165,8 +169,8 @@ of a search engine.
 ## Tags
 
 Tags come from front matter. Poxy slugifies them and merges spellings that differ only in case, so
-`C++` and `c++` are one tag. Each tag gets a page listing its posts, and `blog_tags.html` shows them all
-as a cloud sized by post count.
+`C++` and `c++` are one tag. Each tag gets a page listing its posts, and `blog_tags.html` lists every
+tag as the same chip a post's byline carries, each with its post count.
 
 Tag pages join the search index alongside your C++ symbols. Set [`blog.tags`] to `false` if you would
 rather they did not; tags still appear on posts, just without links.
@@ -211,3 +215,4 @@ Stubs redirect immediately, declare the new page as canonical, carry `noindex`, 
 sitemap.
 
 [`blog.tags`]: configuration.md#blogtags
+[`lightbox`]: configuration.md#lightbox

@@ -20,10 +20,14 @@
 					<para><programlisting filename=".cpp"><codeline><highlight class="normal">auto<sp/>x<sp/>=<sp/>tabs::func();</highlight></codeline></programlisting></para>
 					<para>[tab Notes]</para>
 					<para>Just returns a number. Nothing to see here.</para>
+					<para>[tab Video]</para>
+					<para>
+						<htmlonly block="yes">&lt;div class="poxy-video"&gt;&lt;iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" title="a demonstration" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen&gt;&lt;/iframe&gt;&lt;/div&gt;</htmlonly>
+					</para>
 					<para>[/tabs] </para>
 				</detaileddescription>
 				<inbodydescription></inbodydescription>
-				<location file="src/tabs.h" line="43" column="5" declfile="src/tabs.h" declline="43" declcolumn="5"/>
+				<location file="src/tabs.h" line="47" column="5" declfile="src/tabs.h" declline="47" declcolumn="5"/>
 			</memberdef>
 		</sectiondef>
 		<briefdescription>

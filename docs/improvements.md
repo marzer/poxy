@@ -73,6 +73,8 @@ see [`implementation_headers`](configuration.md#implementation_headers).
 - Configured `#include` prefixes can be stripped from the include line shown on each page.
 - [Tabbed content blocks](aliases.md#tabbed-content) for showing, for example, one snippet in several
   languages.
+- Images in page content open full-size in an overlay when clicked; see [`lightbox`](configuration.md#lightbox).
+- [Video embeds](aliases.md#video-embeds) via `@youtube`, sized and lazily loaded.
 - [Embedded iframe pages](configuration.md#pages) for hosting an external report (coverage, benchmarks,
   hand-written HTML) inside the docs without leaving them.
 

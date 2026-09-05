@@ -39,6 +39,10 @@ namespace tabs
 	///
 	/// Just returns a number. Nothing to see here.
 	///
+	/// @tab{Video}
+	///
+	/// @youtube{dQw4w9WgXcQ,a demonstration}
+	///
 	/// @endtabs
 	int func();
 }

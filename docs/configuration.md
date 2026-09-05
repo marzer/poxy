@@ -46,6 +46,7 @@ not the working directory.
 - [internal_docs]
 - [jquery]
 - [license]
+- [lightbox]
 - [logo]
 - [macros]
 - [main_page]
@@ -946,6 +947,38 @@ license = [ 'MIT', 'https://github.com/marzer/tomlplusplus/blob/master/LICENSE' 
 
 <br><br> <!-- ====================================================================================================== -->
 
+## `lightbox`
+
+**Since v0.27.0**
+
+Specifies whether images in page content open full-size in an overlay when clicked.
+
+#### Schema:
+
+A `boolean`
+
+#### Default:
+
+`true`
+
+#### Example:
+
+```toml
+lightbox = false
+```
+
+#### ℹ&#xFE0F; Notes:
+
+Each eligible image is wrapped in a link to itself, so with javascript disabled a click still opens the
+image, and middle-click still opens it in a new tab. Images that are already links are left alone, as are
+SVGs, which poxy injects into the document instead.
+
+The overlay's caption is the image's `figcaption` where it has one, and its alt text otherwise. Doxygen
+gives a captioned image `alt="Image"`, so on an ordinary page the caption is what you wrote after the
+filename; in a blog post, where poxy stages the images itself, the alt survives and is what you get.
+
+<br><br> <!-- ====================================================================================================== -->
+
 ## `logo`
 
 Specifies the project logo image to feature in the HTML navbar.
@@ -1761,6 +1794,7 @@ undocumented = false
 [`inline_namespaces`]: #inline_namespaces
 [`internal_docs`]: #internal_docs
 [`license`]: #license
+[`lightbox`]: #lightbox
 [`logo`]: #logo
 [`jquery`]: #jquery
 [`macros`]: #macros
@@ -1835,6 +1869,7 @@ undocumented = false
 [internal_docs]: #internal_docs
 [jquery]: #jquery
 [license]: #license
+[lightbox]: #lightbox
 [logo]: #logo
 [macros]: #macros
 [main_page]: #main_page

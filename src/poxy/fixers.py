@@ -555,7 +555,7 @@ class BlogPosts(HTMLFixer):
         if post is not None:
             return self.__add_byline(context, doc, post)
         if path.name == r'blog_tags.html':
-            return self.__rewrite_tag_cloud(context, doc)
+            return self.__rewrite_tag_index(context, doc)
         listings = {rf'{context.blog.id}.html'}
         listings |= {rf'{blog.tag_page_id(slug)}.html' for slug in context.blog_tags}
         if path.name in listings:
@@ -563,14 +563,11 @@ class BlogPosts(HTMLFixer):
         return False
 
     @classmethod
-    def __rewrite_tag_cloud(cls, context: Context, doc: soup.HTMLDocument) -> bool:
-        # m.css ships .m-tagcloud and .m-tag-1 .. .m-tag-5 unscoped, so they are reusable here
+    def __rewrite_tag_index(cls, context: Context, doc: soup.HTMLDocument) -> bool:
         assert doc.article_content is not None
         by_page = {rf'{blog.tag_page_id(s)}.html': t for s, t in context.blog_tags.items()}
         if not by_page:
             return False
-        counts = [len(t[r'posts']) for t in context.blog_tags.values()]
-        lowest, highest = min(counts), max(counts)
 
         changed = False
         for ul in [t for t in doc.article_content.find_all(r'ul') if isinstance(t, Tag)]:
@@ -583,14 +580,17 @@ class BlogPosts(HTMLFixer):
                 if tag is None:
                     items = []
                     break
-                items.append((li, anchor, tag))
+                items.append((anchor, tag))
             if not items:
                 continue
-            soup.set_class(ul, r'm-tagcloud')
-            for li, anchor, tag in items:
-                soup.set_class(li, rf'm-tag-{blog.tag_size_bucket(len(tag[r"posts"]), lowest, highest)}')
-                # the anchor carries the tag page's title; a cloud wants the bare tag
+            soup.set_class(ul, r'poxy-tag-index')
+            for anchor, tag in items:
+                soup.set_class(anchor, r'poxy-tag')
+                # the anchor carries the tag page's title, and the index wants the bare tag
                 anchor.string = tag[r'display']
+                count = len(tag[r'posts'])
+                anchor[r'aria-label'] = rf'{tag["display"]}, {count} post{"" if count == 1 else "s"}'
+                doc.new_tag(r'span', parent=anchor, string=str(count), class_=r'poxy-tag-count')
             changed = True
         return changed
 
@@ -1377,6 +1377,34 @@ class FixTOC(HTMLFixer):
         return True
 
 
+class Lightbox(HTMLFixer):
+    '''
+    Wraps content images in a link to the full-size original. poxy.js intercepts the click and shows
+    an overlay; without javascript the link still opens the image.
+    '''
+
+    def __call__(self, context: Context, doc: soup.HTMLDocument, path: Path):
+        if not context.lightbox or doc.article_content is None:
+            return False
+
+        changed = False
+        for img in doc.article_content.find_all(r'img'):
+            if not isinstance(img, Tag) or r'src' not in img.attrs:
+                continue
+            src = str(img[r'src']).strip()
+            # svgs are injected inline further down the chain, and an image inside a link has an owner
+            if not src or src.lower().endswith(r'.svg') or img.find_parent(r'a') is not None:
+                continue
+            # poxy's own chrome, not content; both are styled by selectors a wrapper would break
+            if img.get(r'id') == r'poxy-main-banner' or img.find_parent(attrs={r'id': r'poxy-badges'}) is not None:
+                continue
+            anchor = doc.new_tag(r'a', class_=r'poxy-lightbox', href=src, before=img)
+            anchor.append(img.extract())
+            changed = True
+
+        return changed
+
+
 class InjectSVGs(HTMLFixer):
     '''
     Injects the contents of SVG <img> tags directly into the document.
@@ -1660,6 +1688,7 @@ def create_all() -> tuple[Union[HTMLFixer, PlainTextFixer], ...]:
         RestoreMarkdownSentinels(),
         InstallSearchShim(),
         ReturnTypes(),
+        Lightbox(),  # html
         InjectSVGs(),  # html
     )
 

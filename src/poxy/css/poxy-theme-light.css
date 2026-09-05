@@ -65,5 +65,10 @@
 	--poxy-tag-draft-background-color: hsl(var(--warning-hue), 70%, 82%);
 	--poxy-tag-draft-border-color: hsl(var(--warning-hue), 50%, 62%);
 
+	/* full-size image overlay */
+	--poxy-lightbox-background-color: rgba(15, 23, 42, 0.92);
+	--poxy-lightbox-caption-color: hsl(var(--theme-hue), 15%, 88%);
+	--poxy-lightbox-close-active-color: #ffffff;
+
 	--sponsor-color: #f8c8dc;
 }

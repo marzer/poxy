@@ -1,0 +1,119 @@
+/*
+	Full-size image overlay, wired up by the Lightbox html fixer and poxy.js.
+*/
+
+a.poxy-lightbox {
+	display: block;
+	cursor: zoom-in;
+	line-height: 0;
+}
+
+/* beats the global 'a:hover { text-decoration: underline !important }' in poxy-overrides.css */
+a.poxy-lightbox:hover,
+a.poxy-lightbox:focus,
+a.poxy-lightbox:active {
+	text-decoration: none !important;
+}
+
+a.poxy-lightbox:focus-visible {
+	outline: 2px solid var(--link-color);
+	outline-offset: 3px;
+}
+
+.poxy-lightbox-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 50;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 1rem;
+	padding: 2rem;
+	background-color: var(--poxy-lightbox-background-color);
+	/* the page behind still reads through a plain dim, and text under an image looks like a defect */
+	backdrop-filter: blur(6px);
+	cursor: zoom-out;
+	opacity: 0;
+	transition: opacity 0.12s ease-out;
+}
+
+/* the flex display above would otherwise beat [hidden] */
+.poxy-lightbox-overlay[hidden] {
+	display: none;
+}
+
+.poxy-lightbox-overlay.poxy-lightbox-visible {
+	opacity: 1;
+}
+
+.poxy-lightbox-overlay img {
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
+	border-radius: var(--border-radius);
+	box-shadow: var(--poxy-shadow-md);
+}
+
+.poxy-lightbox-caption {
+	max-width: 60rem;
+	margin: 0;
+	text-align: center;
+	font-size: 0.9rem;
+	line-height: 1.4;
+	color: var(--poxy-lightbox-caption-color);
+}
+
+.poxy-lightbox-caption:empty {
+	display: none;
+}
+
+.poxy-lightbox-close {
+	position: absolute;
+	top: 0.5rem;
+	right: 0.75rem;
+	padding: 0.1rem 0.6rem 0.25rem 0.6rem;
+	border: none;
+	border-radius: var(--border-radius);
+	background: none;
+	color: var(--poxy-lightbox-caption-color);
+	font-family: inherit;
+	font-size: 2rem;
+	line-height: 1.2;
+	cursor: pointer;
+}
+
+/* the button is focused when the overlay opens, so a plain :focus ring would fire on every click */
+.poxy-lightbox-close:focus {
+	outline: none;
+}
+
+.poxy-lightbox-close:hover,
+.poxy-lightbox-close:focus-visible {
+	color: var(--poxy-lightbox-close-active-color);
+}
+
+.poxy-lightbox-close:focus-visible {
+	outline: 2px solid var(--poxy-lightbox-close-active-color);
+}
+
+/* the page behind the overlay must not scroll under it */
+body.poxy-lightbox-open {
+	overflow: hidden;
+	overscroll-behavior: contain;
+}
+
+@media screen and (max-width: 576px) {
+	.poxy-lightbox-overlay {
+		padding: 1rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.poxy-lightbox-overlay {
+		transition: none;
+	}
+}

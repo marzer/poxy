@@ -516,6 +516,9 @@ unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+
 --poxy-tag-draft-color: #e9ecae;
 --poxy-tag-draft-background-color: #5e6122;
 --poxy-tag-draft-border-color: #8a8e35;
+--poxy-lightbox-background-color: rgba(9, 11, 14, 0.9);
+--poxy-lightbox-caption-color: #c3ccd6;
+--poxy-lightbox-close-active-color: #ffffff;
 --sponsor-color: #ff69b4;
 }
 /*==== m-theme-light.css =============================================================================================*/
@@ -711,6 +714,9 @@ calc(var(--special-luminosity) * 1.4)
 --poxy-tag-draft-color: hsl(var(--warning-hue), 60%, 22%);
 --poxy-tag-draft-background-color: hsl(var(--warning-hue), 70%, 82%);
 --poxy-tag-draft-border-color: hsl(var(--warning-hue), 50%, 62%);
+--poxy-lightbox-background-color: rgba(15, 23, 42, 0.92);
+--poxy-lightbox-caption-color: hsl(var(--theme-hue), 15%, 88%);
+--poxy-lightbox-close-active-color: #ffffff;
 --sponsor-color: #f8c8dc;
 }
 /*==== ../mcss/css/m-grid.css ========================================================================================*/
@@ -3022,6 +3028,9 @@ text-decoration: none !important;
 color: var(--poxy-tag-active-color);
 border-color: var(--poxy-tag-active-border-color);
 }
+.poxy-tag-index { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; padding-left: 0; }
+.poxy-tag-index li { margin: 0; }
+.poxy-tag-count { margin-left: 0.45em; font-size: 0.85em; opacity: 0.65; }
 .poxy-tag-draft {
 border-color: var(--poxy-tag-draft-border-color);
 background-color: var(--poxy-tag-draft-background-color);
@@ -3045,6 +3054,84 @@ border-bottom: 1px solid var(--poxy-blog-entry-border-color);
 @media screen and (max-width: 576px) {
 .poxy-blog-entry-date { flex-basis: 100%; }
 }
+/*==== poxy-lightbox.css =============================================================================================*/
+a.poxy-lightbox { display: block; cursor: zoom-in; line-height: 0; }
+a.poxy-lightbox:hover,
+a.poxy-lightbox:focus,
+a.poxy-lightbox:active { text-decoration: none !important; }
+a.poxy-lightbox:focus-visible { outline: 2px solid var(--link-color); outline-offset: 3px; }
+.poxy-lightbox-overlay {
+position: fixed;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+z-index: 50;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 1rem;
+padding: 2rem;
+background-color: var(--poxy-lightbox-background-color);
+backdrop-filter: blur(6px);
+cursor: zoom-out;
+opacity: 0;
+transition: opacity 0.12s ease-out;
+}
+.poxy-lightbox-overlay[hidden] { display: none; }
+.poxy-lightbox-overlay.poxy-lightbox-visible { opacity: 1; }
+.poxy-lightbox-overlay img {
+max-width: 100%;
+max-height: 100%;
+object-fit: contain;
+border-radius: var(--border-radius);
+box-shadow: var(--poxy-shadow-md);
+}
+.poxy-lightbox-caption {
+max-width: 60rem;
+margin: 0;
+text-align: center;
+font-size: 0.9rem;
+line-height: 1.4;
+color: var(--poxy-lightbox-caption-color);
+}
+.poxy-lightbox-caption:empty { display: none; }
+.poxy-lightbox-close {
+position: absolute;
+top: 0.5rem;
+right: 0.75rem;
+padding: 0.1rem 0.6rem 0.25rem 0.6rem;
+border: none;
+border-radius: var(--border-radius);
+background: none;
+color: var(--poxy-lightbox-caption-color);
+font-family: inherit;
+font-size: 2rem;
+line-height: 1.2;
+cursor: pointer;
+}
+.poxy-lightbox-close:focus { outline: none; }
+.poxy-lightbox-close:hover,
+.poxy-lightbox-close:focus-visible { color: var(--poxy-lightbox-close-active-color); }
+.poxy-lightbox-close:focus-visible { outline: 2px solid var(--poxy-lightbox-close-active-color); }
+body.poxy-lightbox-open { overflow: hidden; overscroll-behavior: contain; }
+@media screen and (max-width: 576px) {
+.poxy-lightbox-overlay { padding: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+.poxy-lightbox-overlay { transition: none; }
+}
+/*==== poxy-video.css ================================================================================================*/
+.poxy-video {
+width: 100%;
+aspect-ratio: 16 / 9;
+margin-bottom: 1rem;
+border-radius: var(--border-radius);
+overflow: hidden;
+background-color: #000;
+}
+.poxy-video iframe { display: block; width: 100%; height: 100%; border: 0; }
 /*==== poxy-iframe.css ===============================================================================================*/
 iframe.poxy-iframe { display: block; border: 0; }
 iframe.poxy-iframe-full { width: 100vw; margin-left: calc(50% - 50vw); height: calc(100vh - 9.5rem); }
