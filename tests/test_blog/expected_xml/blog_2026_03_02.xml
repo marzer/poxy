@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
-	<compounddef id="blog_2026_03_02_a_tricky_body" kind="page">
-		<compoundname>blog_2026_03_02_a_tricky_body</compoundname>
+	<compounddef id="blog_2026_03_02" kind="page">
+		<compoundname>blog_2026_03_02</compoundname>
 		<title>A Tricky Body</title>
 		<briefdescription></briefdescription>
 		<detaileddescription>
@@ -12,7 +12,7 @@
 			<para>
 				<htmlonly> &lt;img class="m-image" src="blog/2026-03-02/diagram.png" alt="a blue rectangle" /&gt;</htmlonly>
 			</para>
-			<sect1 id="blog_2026_03_02_a_tricky_body_1pinned_anchor">
+			<sect1 id="blog_2026_03_02_1pinned_anchor">
 				<title>A pre-labelled heading</title>
 				<para>A fenced block whose contents would end a C comment:</para>
 				<para><programlisting filename=".cpp"><codeline><highlight class="normal">/*<sp/>the<sp/>comment<sp/>terminator<sp/>*/</highlight></codeline><codeline><highlight class="normal">widget<sp/>w{<sp/>42<sp/>};</highlight></codeline></programlisting></para>
@@ -40,11 +40,11 @@
 					</table>
 				</para>
 			</sect1>
-			<sect1 id="blog_2026_03_02_a_tricky_body_1blog_2026_03_02_a_tricky_body_a_setext_heading">
+			<sect1 id="blog_2026_03_02_1blog_2026_03_02_a_setext_heading">
 				<title>A setext heading</title>
 				<para>Trailing prose. </para>
 			</sect1>
 		</detaileddescription>
-		<location file="poxy_blog_blog_2026_03_02_a_tricky_body.dox"/>
+		<location file="poxy_blog_blog_2026_03_02.dox"/>
 	</compounddef>
 </doxygen>

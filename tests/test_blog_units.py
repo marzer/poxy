@@ -50,7 +50,7 @@ def test_parse_post_stem_rejects_a_missing_or_invalid_date():
 def test_post_id_and_output_dir():
     date = datetime.date(2026, 1, 15)
     assert blog.post_id(date, 'hello_world') == 'blog_2026_01_15_hello_world'
-    assert blog.post_id(date, '') == 'blog_2026_01_15_post'
+    assert blog.post_id(date, '') == 'blog_2026_01_15'
     assert blog.post_output_dir('2026-01-15') == 'blog/2026-01-15'
 
 

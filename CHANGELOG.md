@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.27.1 - 2026-09-06
+
+- fixed some URL determinism issues with blog post titles
+
 ## v0.27.0 - 2026-09-05
 
 - fixed various documentation issues

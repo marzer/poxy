@@ -8,7 +8,7 @@
 			<para>
 				<mcss:footernavigation xmlns:mcss="http://mcss.mosra.cz/doxygen/"/>
 			</para>
-			<para>A second post on the same day, named for its title since index.md is taken. No front matter and no heading, so the title falls back to the file name.</para>
+			<para>A second post on the same day. index.md is taken, so this one is named for itself and gets the day's url with its own name appended. No front matter and no heading either, so the title falls back to the file name too.</para>
 			<para>It shares the day's media:</para>
 			<para>
 				<htmlonly> &lt;img class="m-image" src="blog/2026-04-11/diagram.png" alt="the same blue rectangle" /&gt;</htmlonly>

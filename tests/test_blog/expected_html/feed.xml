@@ -11,21 +11,21 @@
 			<link>https://example.com/docs/blog_2026_04_11_second.html</link>
 			<guid isPermaLink="false">tag:example.com,2026-04-11:blog_2026_04_11_second</guid>
 			<pubDate>Sat, 11 Apr 2026 00:00:00 GMT</pubDate>
-			<description>A second post on the same day, named for its title since index.md is taken. No front matter and no heading, so the title falls back to the file name.</description>
+			<description>A second post on the same day. index.md is taken, so this one is named for itself and gets the day's url with its own name appended. No front matter and no heading either, so the title falls back to the file name too.</description>
 			<dc:creator>A. Author</dc:creator>
 		</item>
 		<item>
 			<title>More Media</title>
-			<link>https://example.com/docs/blog_2026_04_11_more_media.html</link>
-			<guid isPermaLink="false">tag:example.com,2026-04-11:blog_2026_04_11_more_media</guid>
+			<link>https://example.com/docs/blog_2026_04_11.html</link>
+			<guid isPermaLink="false">tag:example.com,2026-04-11:blog_2026_04_11</guid>
 			<pubDate>Sat, 11 Apr 2026 00:00:00 GMT</pubDate>
 			<description>A second post carrying its own diagram.png. Doxygen resolves images by basename, so before poxy staged these per-post the two files collided and only one of them reached the output.</description>
 			<dc:creator>A. Author</dc:creator>
 		</item>
 		<item>
 			<title>A Tricky Body</title>
-			<link>https://example.com/docs/blog_2026_03_02_a_tricky_body.html</link>
-			<guid isPermaLink="false">tag:example.com,2026-03-02:blog_2026_03_02_a_tricky_body</guid>
+			<link>https://example.com/docs/blog_2026_03_02.html</link>
+			<guid isPermaLink="false">tag:example.com,2026-03-02:blog_2026_03_02</guid>
 			<pubDate>Mon, 02 Mar 2026 00:00:00 GMT</pubDate>
 			<description>The folder form, with media beside the text.</description>
 			<dc:creator>A. Author</dc:creator>

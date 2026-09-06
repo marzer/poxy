@@ -250,37 +250,9 @@ def test_tagfiles_record_uri_unresolved(ctx):
     assert ctx.unresolved_tagfiles is True
 
 
-def test_a_directory_post_with_no_title_anywhere_is_an_error(tmp_path):
-    # the file form always has a title part in its name to fall back on; index.md in a date directory does not
-    (tmp_path / 'blog' / '2026-01-15').mkdir(parents=True)
-    (tmp_path / 'blog' / '2026-01-15' / 'index.md').write_text('Just prose, no heading.\n')
-    (tmp_path / 'poxy.toml').write_text("name = 'p'\n")
-    with pytest.raises(Error, match='no title'):
-        Context(
-            config_path=tmp_path / 'poxy.toml',
-            output_dir=tmp_path,
-            output_html=True,
-            output_xml=False,
-            threads=1,
-            cleanup=False,
-            verbose=False,
-            logger=None,
-            html_include=None,
-            html_exclude=None,
-            treat_warnings_as_errors=False,
-            theme=None,
-            copy_assets=False,
-            temp_dir=tmp_path / 'temp',
-        )
-
-
-def test_generated_pages_are_named_individually_in_the_sources(tmp_path):
-    # doxygen applies FILE_PATTERNS to a directory but not to a file handed to it explicitly, so the
-    # generated pages have to be named one by one: this list omits '*.dox' and must not lose the blog
-    (tmp_path / 'blog').mkdir()
-    (tmp_path / 'blog' / '2026-01-15_hello.md').write_text('# Hello\n\nProse.\n')
-    (tmp_path / 'poxy.toml').write_text("name = 'p'\n\n[sources]\npatterns = ['*.md']\n")
-    ctx = Context(
+def blog_context(tmp_path, config="name = 'p'\n"):
+    (tmp_path / 'poxy.toml').write_text(config)
+    return Context(
         config_path=tmp_path / 'poxy.toml',
         output_dir=tmp_path,
         output_html=True,
@@ -296,6 +268,45 @@ def test_generated_pages_are_named_individually_in_the_sources(tmp_path):
         copy_assets=False,
         temp_dir=tmp_path / 'temp',
     )
+
+
+def test_a_directory_post_with_no_title_anywhere_is_an_error(tmp_path):
+    # the file form always has a name part to fall back on; index.md in a date directory does not
+    (tmp_path / 'blog' / '2026-01-15').mkdir(parents=True)
+    (tmp_path / 'blog' / '2026-01-15' / 'index.md').write_text('Just prose, no heading.\n')
+    with pytest.raises(Error, match='no title'):
+        blog_context(tmp_path)
+
+
+def test_a_post_url_follows_its_file_name_not_its_title(tmp_path):
+    (tmp_path / 'blog').mkdir()
+    (tmp_path / 'blog' / '2026-01-15_hello.md').write_text('# Something Else Entirely\n\nProse.\n')
+    ctx = blog_context(tmp_path)
+    assert set(ctx.blog_pages) == {'blog_2026_01_15_hello.html'}
+    assert ctx.blog_pages['blog_2026_01_15_hello.html']['title'] == 'Something Else Entirely'
+
+
+def test_a_day_directory_puts_its_index_on_the_bare_date(tmp_path):
+    (tmp_path / 'blog' / '2026-01-15').mkdir(parents=True)
+    (tmp_path / 'blog' / '2026-01-15' / 'index.md').write_text('# Hello\n\nProse.\n')
+    (tmp_path / 'blog' / '2026-01-15' / 'second.md').write_text('# Second\n\nProse.\n')
+    ctx = blog_context(tmp_path)
+    assert set(ctx.blog_pages) == {'blog_2026_01_15.html', 'blog_2026_01_15_second.html'}
+
+
+def test_front_matter_slug_still_overrides_the_file_name(tmp_path):
+    (tmp_path / 'blog').mkdir()
+    (tmp_path / 'blog' / '2026-01-15_hello.md').write_text('+++\nslug = "pinned"\n+++\n\n# Hello\n\nProse.\n')
+    ctx = blog_context(tmp_path)
+    assert set(ctx.blog_pages) == {'blog_2026_01_15_pinned.html'}
+
+
+def test_generated_pages_are_named_individually_in_the_sources(tmp_path):
+    # doxygen applies FILE_PATTERNS to a directory but not to a file handed to it explicitly, so the
+    # generated pages have to be named one by one: this list omits '*.dox' and must not lose the blog
+    (tmp_path / 'blog').mkdir()
+    (tmp_path / 'blog' / '2026-01-15_hello.md').write_text('# Hello\n\nProse.\n')
+    ctx = blog_context(tmp_path, "name = 'p'\n\n[sources]\npatterns = ['*.md']\n")
     assert ctx.sources.patterns == {'*.md'}  # the user's list is left exactly as written
     generated = sorted(f for f in ctx.temp_pages_dir.iterdir() if f.is_file())
     assert [f.name for f in generated] == ['poxy_blog_blog_2026_01_15_hello.dox', 'poxy_blog_index.dox']

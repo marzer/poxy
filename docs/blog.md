@@ -31,13 +31,13 @@ No configuration is needed. A blog is built whenever the directory exists and ho
 
 ## Where posts live
 
-A post is either a single markdown file named for its date and title, or an `index.md` inside a
-directory named for its date alone:
+A post is either a single markdown file named for its date and a name of your choosing, or an `index.md`
+inside a directory named for its date alone:
 
 ```
 blog/
-    2026-01-15_hello_world.md
-    2026-03-02/
+    2026-01-15_hello_world.md       ->  blog_2026_01_15_hello_world.html
+    2026-03-02/                     ->  blog_2026_03_02.html
         index.md
         diagram.png
         benchmark.svg
@@ -46,14 +46,19 @@ blog/
 Use the directory form when a post has images or other media, so they sit beside the text they belong to.
 The title then comes from the post itself: its front matter, or its first heading.
 
-A day can hold more than one post. Name the others `some_title.md` rather than `index.md`; they share the
-directory's media.
+A day can hold more than one post. Name the others `some_name.md` rather than `index.md`; they share the
+directory's media and land at `blog_2026_03_02_some_name.html`.
 
 The name carries the publication date and must start with `YYYY-MM-DD`. A name poxy cannot parse is a
 hard error, not a warning. A warning would let a post go quietly missing from the published site, for a
 reader to find later.
 
-`poxyblog` builds the name for you, so you rarely have to think about this.
+The file name is also the post's address, so revising a title never moves a published page. Only renaming
+the file does, which is a deliberate act you can see in a diff. Two posts that resolve to the same address
+are an error naming both files.
+
+`poxyblog` builds the name for you from the title you give it, so a new post still gets a readable URL
+without you thinking about it.
 
 <br><br>
 
@@ -80,7 +85,7 @@ body's first `#` heading, and the date from the filename.
 | ------------- | ---------------------------------------------------------------------------- |
 | `title`       | Overrides the body's `#` heading                                             |
 | `date`        | Overrides the date in the filename                                           |
-| `slug`        | Overrides the slug derived from the title, changing the output filename      |
+| `slug`        | Overrides the name taken from the filename, changing the output filename     |
 | `draft`       | Excludes the post unless drafts are enabled                                  |
 | `description` | Used as the excerpt, the page brief, and the feed and social summaries       |
 | `tags`        | Generates tag pages and adds tag links to the post                           |
@@ -128,18 +133,20 @@ becomes the overlay's caption, so it is worth writing.
 
 ## What gets generated
 
-| page      | file                                     |
-| --------- | ---------------------------------------- |
-| post      | `blog_<YYYY>_<MM>_<DD>_<slug>.html`      |
-| index     | `blog.html`                              |
-| tag       | `blog_tag_<slug>.html`                   |
-| tag index | `blog_tags.html`                         |
-| feed      | `feed.xml`                               |
-| sitemap   | `sitemap.xml`                            |
-| not found | `404.html`                               |
+| page              | file                                |
+| ----------------- | ----------------------------------- |
+| post              | `blog_<YYYY>_<MM>_<DD>_<slug>.html` |
+| post, day `index` | `blog_<YYYY>_<MM>_<DD>.html`        |
+| index             | `blog.html`                         |
+| tag               | `blog_tag_<slug>.html`              |
+| tag index         | `blog_tags.html`                    |
+| feed              | `feed.xml`                          |
+| sitemap           | `sitemap.xml`                       |
+| not found         | `404.html`                          |
 
-Post URLs are a documented contract: they depend only on the date and the slug, never on where the
-project was built or which Doxygen version built it.
+Post URLs are a documented contract: they depend only on the date and the slug, never on the title,
+where the project was built, or which Doxygen version built it. Nothing is ever numbered by position, so
+adding or removing a post cannot move another one.
 
 The index lists posts newest first with their dates and excerpts. Each post gets a date and tag byline,
 a breadcrumb back to the index, and previous and next links.
@@ -197,8 +204,8 @@ a byte-identical feed every run and does not churn in version control.
 
 ## Renaming a post
 
-Changing a title or slug changes the URL. List the old name in `aliases` and poxy writes a redirect page
-at the old address:
+Retitling a post is free, since the URL comes from the file name. Renaming the file or setting a `slug`
+does change the URL. List the old name in `aliases` and poxy writes a redirect page at the old address:
 
 ```toml
 +++

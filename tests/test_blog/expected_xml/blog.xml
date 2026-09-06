@@ -4,8 +4,8 @@
 		<compoundname>blog</compoundname>
 		<title>Blog</title>
 		<innerpage refid="blog_2026_04_11_second">second</innerpage>
-		<innerpage refid="blog_2026_04_11_more_media">More Media</innerpage>
-		<innerpage refid="blog_2026_03_02_a_tricky_body">A Tricky Body</innerpage>
+		<innerpage refid="blog_2026_04_11">More Media</innerpage>
+		<innerpage refid="blog_2026_03_02">A Tricky Body</innerpage>
 		<innerpage refid="blog_2026_02_20_custom_slug">Titled From Front Matter</innerpage>
 		<innerpage refid="blog_2026_01_15_hello_world">Hello, World!</innerpage>
 		<innerpage refid="blog_tags">Tags</innerpage>
@@ -18,11 +18,11 @@
 						</para>
 					</listitem>
 					<listitem>
-						<para>2026-04-11 <ref refid="blog_2026_04_11_more_media" kindref="compound">More Media</ref>
+						<para>2026-04-11 <ref refid="blog_2026_04_11" kindref="compound">More Media</ref>
 						</para>
 					</listitem>
 					<listitem>
-						<para>2026-03-02 <ref refid="blog_2026_03_02_a_tricky_body" kindref="compound">A Tricky Body</ref>
+						<para>2026-03-02 <ref refid="blog_2026_03_02" kindref="compound">A Tricky Body</ref>
 						</para>
 					</listitem>
 					<listitem>

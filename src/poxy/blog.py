@@ -96,7 +96,7 @@ def parse_post_stem(stem: str):
 
 
 def post_id(date: datetime.date, slug: str) -> str:
-    return rf'blog_{date:%Y_%m_%d}_{slug or "post"}'
+    return rf'blog_{date:%Y_%m_%d}_{slug}' if slug else rf'blog_{date:%Y_%m_%d}'
 
 
 def post_output_dir(post_dir_name: str) -> str:

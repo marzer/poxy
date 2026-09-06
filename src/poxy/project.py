@@ -857,11 +857,11 @@ class Context:
         posts = []
         for source, post_dir in blog_utils.enumerate_posts(self.blog_dir):
             if post_dir:
-                # the directory is the date alone; a second post that day is named for its title
+                # the directory is the date alone, so its index.md has no name part and lands on the bare date
                 date, _ = blog_utils.parse_post_stem(post_dir.name)
-                title_part = '' if source.stem.lower() == r'index' else source.stem
+                name_part = '' if source.stem.lower() == r'index' else source.stem
             else:
-                date, title_part = blog_utils.parse_post_stem(source.stem)
+                date, name_part = blog_utils.parse_post_stem(source.stem)
             text = read_all_text_from_file(source, logger=self.verbose_logger)
             if blog_utils.has_yaml_front_matter(text):
                 raise Error(rf'{source}: front matter must be TOML fenced by +++, not YAML fenced by ---')
@@ -874,10 +874,11 @@ class Context:
             # normalise before either extractor runs, so a setext H1 names the post too
             body = setext_to_atx(body)
             date = meta.get(r'date', date)
-            title = meta.get(r'title') or self.__blog_title_from_body(body) or title_part
+            title = meta.get(r'title') or self.__blog_title_from_body(body) or name_part
             if not title:
                 raise Error(rf'{source}: post has no title; give it one in front matter or as a leading heading')
-            slug = slugify(str(meta.get(r'slug') or title))
+            # deliberately not the title: a url must not move because prose was revised
+            slug = slugify(str(meta.get(r'slug') or name_part))
             tags = self.__dedupe_tags(coerce_collection(meta.get(r'tags', [])))
 
             aliases = []

@@ -23,16 +23,16 @@
     <filename>blog_2026_02_20_custom_slug.html</filename>
   </compound>
   <compound kind="page">
-    <name>blog_2026_03_02_a_tricky_body</name>
+    <name>blog_2026_03_02</name>
     <title>A Tricky Body</title>
-    <filename>blog_2026_03_02_a_tricky_body.html</filename>
-    <docanchor file="blog_2026_03_02_a_tricky_body.html" title="A pre-labelled heading">pinned_anchor</docanchor>
-    <docanchor file="blog_2026_03_02_a_tricky_body.html" title="A setext heading">blog_2026_03_02_a_tricky_body_a_setext_heading</docanchor>
+    <filename>blog_2026_03_02.html</filename>
+    <docanchor file="blog_2026_03_02.html" title="A pre-labelled heading">pinned_anchor</docanchor>
+    <docanchor file="blog_2026_03_02.html" title="A setext heading">blog_2026_03_02_a_setext_heading</docanchor>
   </compound>
   <compound kind="page">
-    <name>blog_2026_04_11_more_media</name>
+    <name>blog_2026_04_11</name>
     <title>More Media</title>
-    <filename>blog_2026_04_11_more_media.html</filename>
+    <filename>blog_2026_04_11.html</filename>
   </compound>
   <compound kind="page">
     <name>blog_2026_04_11_second</name>

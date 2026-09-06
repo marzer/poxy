@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="0.0.0" xml:lang="en-US">
-	<compounddef id="blog_2026_04_11_more_media" kind="page">
-		<compoundname>blog_2026_04_11_more_media</compoundname>
+	<compounddef id="blog_2026_04_11" kind="page">
+		<compoundname>blog_2026_04_11</compoundname>
 		<title>More Media</title>
 		<briefdescription></briefdescription>
 		<detaileddescription>
@@ -21,6 +21,6 @@
 				<htmlonly> &lt;img class="m-image" src="blog/2026-04-11/circle.svg" alt="a green circle" /&gt;</htmlonly>
 			</para>
 		</detaileddescription>
-		<location file="poxy_blog_blog_2026_04_11_more_media.dox"/>
+		<location file="poxy_blog_blog_2026_04_11.dox"/>
 	</compounddef>
 </doxygen>
