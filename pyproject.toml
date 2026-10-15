@@ -1,13 +1,10 @@
-# This file is a part of marzer/poxy and is subject to the the terms of the MIT license.
+# This file is a part of marzer/poxy and is subject to the terms of the MIT license.
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
-# See https://github.com/marzer/poxy/master/LICENSE.txt for the full license text.
+# See https://github.com/marzer/poxy/blob/main/LICENSE.txt for the full license text.
 # SPDX-License-Identifier: MIT
 
-# releasing: push a 'v*' git tag - .github/workflows/release.yaml builds and publishes to PyPI
-# via trusted publishing. (manual fallback: python -m build && twine upload dist/*)
-
 [build-system]
-requires = ['setuptools', 'wheel']
+requires = ['setuptools>=77', 'wheel']
 build-backend = 'setuptools.build_meta'
 
 [project]
@@ -15,11 +12,11 @@ name = 'poxy'
 requires-python = '>=3.9'
 description = 'Documentation generator for C++.'
 authors = [{ name = "Mark Gillard", email = "mark.gillard@outlook.com.au" }]
-license = { text = 'MIT' }
+license = 'MIT'
+license-files = ['LICENSE.txt', 'src/poxy/mcss/COPYING']
 keywords = ['c++', 'doxygen', 'documentation']
 classifiers = [
     'Development Status :: 4 - Beta',
-    'License :: OSI Approved :: MIT License',
     'Programming Language :: C++',
     'Programming Language :: Python :: 3 :: Only',
     'Programming Language :: Python :: 3.9',
@@ -125,6 +122,7 @@ split-on-trailing-comma = false
 
 [tool.pytest.ini_options]
 testpaths = ['tests']
+pythonpath = ['src']
 # unit tests need neither doxygen nor network; snapshot tests are marked and skip when doxygen is absent
 addopts = '-ra'
 

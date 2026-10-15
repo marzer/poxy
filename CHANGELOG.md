@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.27.2 - 2026-10-15
+
+- fixed the wrong version being reported after `pip install --target`
+- fixed the sdist missing most of the test suite
+- fixed `--help` showing the `--squash-patches` default twice
+- fixed a crash when the CPU count is unknown
+- fixed m.css's licence file missing from the wheel and sdist
+
 ## v0.27.1 - 2026-09-06
 
 - fixed some URL determinism issues with blog post titles

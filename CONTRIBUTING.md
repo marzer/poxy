@@ -34,7 +34,7 @@ cd poxy
 pip install -e '.[dev]'
 ```
 
-The `[dev]` extra pulls in `pytest` and `ruff` (matching the versions CI uses).
+The `[dev]` extra pulls in pytest, ruff and pyright (matching the versions CI uses).
 
 ### Running the tests
 
@@ -61,11 +61,13 @@ documented in [`.github/workflows/ci.yaml`].
 ### Code style
 
 It's Python. I'm primarily a C++ programmer. I really don't care that much.
-The codebase is linted and formatted with [ruff] (config in `pyproject.toml`); CI enforces both. Before pushing:
+The codebase is linted and formatted with [ruff] and type-checked with [pyright] (config for both in `pyproject.toml`).
+CI enforces all three. Before pushing:
 
 ```sh
 ruff check src tests
 ruff format src tests
+pyright
 ```
 
 I'm not too fussy though. I'm unlikely to reject a PR on the basis of style unless you do something truly horrendous.
@@ -79,8 +81,9 @@ installed package metadata when running from a wheel rather than a checkout).
 Releases are automated and maintainer-only. Bumping `VERSION` on `main` is what cuts a release: CI tags
 `v<version>`, and that tag triggers the publish workflow that uploads to PyPI.
 
-The practical upshot for a PR: **don't touch `VERSION`** (nor add release headings to `CHANGELOG.md`). I bump it
-myself when cutting a release, so a PR that also bumps it just invites a merge conflict or an accidental publish.
+The practical upshot for a PR: **don't touch `VERSION`**. I bump it myself when cutting a release, so a PR that also
+bumps it just invites a merge conflict or an accidental publish. User-visible changes go under the Unreleased heading
+at the top of `CHANGELOG.md`; please don't add a release heading.
 
 ### Developer subcommands
 
@@ -175,6 +178,7 @@ that version's quirks into the golden and masks the very normalisation gaps the 
 [marzer/m.css]: https://github.com/marzer/m.css
 [data/css]: https://github.com/marzer/poxy/tree/main/src/poxy/css
 [ruff]: https://docs.astral.sh/ruff/
+[pyright]: https://microsoft.github.io/pyright/
 [tests/test_units.py]: https://github.com/marzer/poxy/blob/main/tests/test_units.py
 [tests/test_snapshots.py]: https://github.com/marzer/poxy/blob/main/tests/test_snapshots.py
 [`.github/workflows/ci.yaml`]: https://github.com/marzer/poxy/blob/main/.github/workflows/ci.yaml

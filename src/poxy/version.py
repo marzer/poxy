@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # This file is a part of marzer/poxy and is subject to the terms of the MIT license.
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
-# See https://github.com/marzer/poxy/blob/master/LICENSE.txt for the full license text.
+# See https://github.com/marzer/poxy/blob/main/LICENSE.txt for the full license text.
 # SPDX-License-Identifier: MIT
 
 import importlib.metadata
@@ -9,11 +9,13 @@ import typing
 
 from . import paths
 
-# prefer the root VERSION file when running from a source tree (incl. editable installs) so the dev always
-# sees the live value; fall back to the version stamped into the package metadata for a real wheel install,
-# where VERSION lives outside the package and isn't shipped.
 _version_file = paths.REPOSITORY / r'VERSION'
-if _version_file.is_file():
+_in_source_tree = (
+    paths.SRC.name == r'src'
+    and (paths.REPOSITORY / r'pyproject.toml').is_file()
+    and not any(paths.SRC.glob(r'poxy-*.dist-info'))
+)
+if _in_source_tree and _version_file.is_file():
     VERSION_STRING = _version_file.read_text(encoding='utf-8').strip()
 else:
     VERSION_STRING = importlib.metadata.version(r'poxy')

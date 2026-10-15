@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # This file is a part of marzer/poxy and is subject to the terms of the MIT license.
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
-# See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
+# See https://github.com/marzer/poxy/blob/main/LICENSE.txt for the full license text.
 # SPDX-License-Identifier: MIT
 """
 The various entry-point methods used when poxy is invoked from the command line.
@@ -59,7 +59,8 @@ def _invoker(func, **kwargs):
 
 def make_boolean_optional_arg(args: argparse.ArgumentParser, name: str, default, help='', **kwargs):
     name = name.strip().lstrip('-')
-    args.add_argument(rf'--{name}', default=default, help=help, action=argparse.BooleanOptionalAction, **kwargs)
+    action = args.add_argument(rf'--{name}', default=default, action=argparse.BooleanOptionalAction, **kwargs)
+    action.help = help
 
 
 def git(git_args: str, cwd=None) -> tuple[int, str, str]:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # This file is a part of marzer/poxy and is subject to the terms of the MIT license.
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
-# See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
+# See https://github.com/marzer/poxy/blob/main/LICENSE.txt for the full license text.
 # SPDX-License-Identifier: MIT
 """
 Everything relating to the 'project context' object that describes the project for which the documentation is being generated.
@@ -44,6 +44,15 @@ from .mdfilter import setext_to_atx, slugify, split_heading_label
 from .schemas import *
 from .utils import *
 from .version import *
+
+
+def thread_count(threads) -> int:
+    cpus = os.cpu_count() or 1
+    threads = int(threads) if threads is not None else 0
+    if threads <= 0:
+        return cpus
+    return min(cpus, threads)
+
 
 # =======================================================================================================================
 # project context
@@ -228,10 +237,7 @@ class Context:
         self.verbose_value(r'Context.output_xml', self.output_xml)
         self.verbose_value(r'Context.cleanup', self.cleanup)
 
-        threads = int(threads) if threads is not None else 0
-        if threads <= 0:
-            threads = typing.cast(int, os.cpu_count())
-        self.threads = max(1, min(typing.cast(int, os.cpu_count()), threads))
+        self.threads = thread_count(threads)
         self.verbose_value(r'Context.threads', self.threads)
 
         # additional kwargs (experimental stuff etc)

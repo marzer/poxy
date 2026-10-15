@@ -74,11 +74,9 @@ pip install poxy
 Poxy is a command-line application.
 
 ```
-usage: poxy [-h] [-v] [--html | --no-html] [--ppinclude <regex>]
-            [--ppexclude <regex>] [--theme {light,dark,custom}] [--threads N]
-            [--version] [--xml | --no-xml] [--werror | --no-werror]
-            [--drafts | --no-drafts] [--bug-report] [--git-tags]
-            [--squash-patches | --no-squash-patches] [--min-version <version>]
+usage: poxy [-h] [-v] [--html | --no-html] [--ppinclude <regex>] [--ppexclude <regex>] [--theme {light,dark,custom}]
+            [--threads N] [--version] [--xml | --no-xml] [--werror | --no-werror] [--drafts | --no-drafts]
+            [--bug-report] [--git-tags] [--squash-patches | --no-squash-patches] [--min-version <version>]
             [config]
 
   _ __   _____  ___   _
@@ -86,7 +84,7 @@ usage: poxy [-h] [-v] [--html | --no-html] [--ppinclude <regex>]
  | |_) | (_) >  <| |_| |
  | .__/ \___/_/\_\\__, |
  | |               __/ |
- |_|              |___/  v0.25.1 - github.com/marzer/poxy
+ |_|              |___/  v0.27.1 - github.com/marzer/poxy
 
 Generate fancy C++ documentation.
 
@@ -144,8 +142,7 @@ see [the one used by toml++](https://github.com/marzer/tomlplusplus/blob/master/
 Poxy doubles as a small static blogging platform. `poxyblog` scaffolds a post:
 
 ```
-usage: poxyblog [-h] [--tags <a,b,c>] [--date <YYYY-MM-DD>] [--draft] [--dir]
-                [--force] [-v] [--version]
+usage: poxyblog [-h] [--tags <a,b,c>] [--date <YYYY-MM-DD>] [--draft] [--dir] [--force] [-v] [--version]
                 [config] [title]
 
 Initializes a new blog post for Poxy sites.
@@ -204,7 +201,7 @@ Also "poxy" can be slang for cheap, inferior, poor quality, etc., which I though
 This project is published under the terms of the [MIT license](https://github.com/marzer/poxy/blob/main/LICENSE.txt).
 
 Significant credit must go to Vladimír Vondruš ([mosra]) and his amazing [m.css] Doxygen theme.
-Poxy bundles a fork of m.css, used per the [MIT/Expat license](https://github.com/marzer/poxy/blob/main/poxy/data/m.css/COPYING)
+Poxy bundles a fork of m.css, used per the [MIT/Expat license](https://github.com/marzer/poxy/blob/main/src/poxy/mcss/COPYING)
 (which can also be found in the installed python package).
 
 [m.css]: https://mcss.mosra.cz/documentation/doxygen/

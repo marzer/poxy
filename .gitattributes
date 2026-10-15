@@ -35,7 +35,6 @@
 *.woff2             binary
 *.xlsx              binary
 
-*/generated/**      linguist-generated
-*/tests/test_*/**   linguist-generated
-*/m.css/**          linguist-vendored
-*/mcss/**           linguist-vendored
+src/poxy/generated/**   linguist-generated
+tests/test_*/**         linguist-generated
+src/poxy/mcss/**        linguist-vendored

@@ -1,0 +1,7 @@
+graft tests
+prune tests/*/html
+prune tests/*/xml
+prune tests/*/latex
+include src/__main__.py
+global-exclude *.py[cod]
+global-exclude poxy_bug_report.zip

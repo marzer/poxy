@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # This file is a part of marzer/poxy and is subject to the terms of the MIT license.
 # Copyright (c) Mark Gillard <mark.gillard@outlook.com.au>
-# See https://github.com/marzer/poxy/blob/master/LICENSE for the full license text.
+# See https://github.com/marzer/poxy/blob/main/LICENSE.txt for the full license text.
 # SPDX-License-Identifier: MIT
 """
 Fast, deterministic unit tests for poxy's pure helpers. These need neither doxygen nor network
@@ -9,19 +9,22 @@ access, so they run in the full python matrix as the project's primary safety ne
 """
 
 import datetime
+import os
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import bs4
 import pytest
 from bs4.element import Tag
 
-from poxy import blog, config, doxygen, schemas, soup, utils
+from poxy import blog, config, doxygen, project, schemas, soup, utils
 from poxy.main import (
     blog_post_front_matter,
     blog_post_stem,
+    main,
     resolve_blog_dir,
     resolve_config_path,
     split_config_and_title,
@@ -317,8 +320,6 @@ def test_version_is_three_part_tuple_matching_string():
 def test_version_file_on_disk_is_a_clean_triplet():
     # the wheel build (setuptools file=) and the release tag (v$version) read this file raw, so it must be
     # exactly a 3-part numeric semver - no comment header, no extra lines, no pre-release suffix.
-    # locate it relative to this test (the repo checkout), not via paths.REPOSITORY, which points into
-    # site-packages when poxy is installed non-editable (as the unit CI job does)
     raw = (Path(__file__).parents[1] / r'VERSION').read_text(encoding='utf-8')
     stripped = raw.strip()
     assert '\n' not in stripped
@@ -326,6 +327,43 @@ def test_version_file_on_disk_is_a_clean_triplet():
     assert len(parts) == 3
     assert all(p.isdigit() for p in parts)
     assert stripped == VERSION_STRING
+
+
+@pytest.mark.parametrize(
+    'packages,dist_info_beside,pyproject,expected',
+    [
+        ('deps', False, True, '9.8.7'),
+        ('src', True, True, '9.8.7'),
+        ('src', False, False, '9.8.7'),
+        ('src', False, True, '3.2.0'),
+    ],
+    ids=['copy_outside_src', 'target_install_into_src', 'src_without_pyproject', 'source_tree'],
+)
+def test_the_version_file_is_read_only_from_a_source_tree(tmp_path, packages, dist_info_beside, pyproject, expected):
+    host = tmp_path / 'host'
+    package = host / packages / 'poxy'
+    package.mkdir(parents=True)
+    (package / '__init__.py').write_text('', encoding='utf-8')
+    for name in ('paths.py', 'version.py'):
+        shutil.copyfile(Path(__file__).resolve().parents[1] / 'src' / 'poxy' / name, package / name)
+    if pyproject:
+        (host / 'pyproject.toml').write_text('', encoding='utf-8')
+    (host / 'VERSION').write_text('3.2.0\n', encoding='utf-8')
+    site = host / packages if dist_info_beside else tmp_path / 'site'
+    metadata = site / 'poxy-9.8.7.dist-info' / 'METADATA'
+    metadata.parent.mkdir(parents=True)
+    metadata.write_text('Metadata-Version: 2.1\nName: poxy\nVersion: 9.8.7\n', encoding='utf-8')
+    env = {**os.environ, 'PYTHONPATH': os.pathsep.join([str(host / packages), str(tmp_path / 'site')])}
+    result = subprocess.run(
+        [sys.executable, '-c', 'from poxy.version import VERSION_STRING; print(VERSION_STRING)'],
+        capture_output=True,
+        encoding='utf-8',
+        check=False,
+        env=env,
+        cwd=tmp_path,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == expected
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -842,7 +880,7 @@ def test_post_build_skips_blank_commands():
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# main (poxyblog)
+# main
 # ----------------------------------------------------------------------------------------------------------------------
 
 _AWKWARD_TITLES = (
@@ -1013,3 +1051,22 @@ def test_poxyblog_version_exits_zero():
     result = subprocess.run(['poxyblog', '--version'], capture_output=True, encoding='utf-8', timeout=60)
     assert result.returncode == 0
     assert result.stdout.strip() == VERSION_STRING
+
+
+def test_help_lists_the_squash_patches_default_once(monkeypatch, capsys):
+    monkeypatch.setattr(sys, 'argv', ['poxy', '--help'])
+    with pytest.raises(SystemExit) as excinfo:
+        main(invoker=False)
+    assert excinfo.value.code == 0
+    assert ' '.join(capsys.readouterr().out.split()).count('(default: True)') == 1
+
+
+@pytest.mark.parametrize('threads', [None, 0, -3, 4])
+def test_thread_count_survives_an_unknown_cpu_count(monkeypatch, threads):
+    monkeypatch.setattr(os, 'cpu_count', lambda: None)
+    assert project.thread_count(threads) == 1
+
+
+def test_thread_count_defaults_to_and_is_capped_at_the_cpu_count(monkeypatch):
+    monkeypatch.setattr(os, 'cpu_count', lambda: 8)
+    assert [project.thread_count(t) for t in (None, 0, -1, 3, '5', 8, 50)] == [8, 8, 8, 3, 5, 8, 8]

@@ -16,6 +16,7 @@ on:
             - "**/workflows/**.yaml"
             - "pyproject.toml"
             - "VERSION"
+            - "MANIFEST.in"
         branches:
             - "**"
         tags-ignore:
@@ -35,7 +36,7 @@ jobs:
             - uses: actions/setup-python@v6
               with:
                   python-version: "3.13"
-            - name: Install ruff
+            - name: Install poxy
               run: |
                   python -m pip install --upgrade pip
                   python -m pip install '.[dev]'
@@ -52,9 +53,6 @@ jobs:
             - uses: actions/setup-python@v6
               with:
                   python-version: "3.13"
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: "20"
             - name: Install poxy + pyright
               run: |
                   python -m pip install --upgrade pip
@@ -73,7 +71,7 @@ jobs:
                     - "3.11"
                     - "3.12"
                     - "3.13"
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         steps:
             - uses: actions/checkout@v6
             - uses: actions/setup-python@v6
@@ -219,6 +217,11 @@ jobs:
                   # PAT (not the default GITHUB_TOKEN) so the tag this pushes triggers publish.yaml
                   GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
               run: |
+                  if [ -z "$GH_TOKEN" ]; then
+                    echo "::error::the RELEASE_TOKEN secret is not set"
+                    exit 1
+                  fi
+
                   shopt -s extglob
                   version=$(<VERSION)
                   version="${version##+([[:space:]])}"
